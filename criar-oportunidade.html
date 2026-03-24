@@ -436,7 +436,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 }
 
 /* ── Visibility Cards (Passo 5) ── */
-.visibility-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+.visibility-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
 .visibility-card {
   border: 2px solid var(--gray-2); border-radius: var(--radius-lg);
   padding: 22px; cursor: pointer; transition: all .2s; position: relative;
@@ -603,7 +603,12 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); transition: transform .3s; }
   .sidebar.open { transform: translateX(0); }
-  .topbar { left: 0; padding-left: 16px; }
+  .topbar { left: 0; padding: 0 12px; gap: 6px; }
+  .topbar-back { padding: 5px 8px; font-size: 12px; }
+  .topbar-back span { display: none; }
+  .topbar-title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+  .topbar-right { flex-shrink: 0; }
+  .btn-draft { padding: 6px 12px; font-size: 12px; }
   .main { margin-left: 0; }
   .main-inner { padding: 20px 16px; }
   .step-label { display: none; }
@@ -611,6 +616,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   .template-grid { grid-template-columns: 1fr; }
   .visibility-grid { grid-template-columns: 1fr; }
   .photos-grid { grid-template-columns: repeat(2, 1fr); }
+  .step-actions { flex-wrap: wrap; gap: 8px; }
+  .step-actions .btn { flex: 1; min-width: 0; justify-content: center; font-size: 13px; padding: 10px 14px; }
+  .step-actions .btn-publish { flex: 2; }
 }
 </style>
 </head>
@@ -1188,7 +1196,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <div class="card-title">Visibilidade</div>
           <div class="card-desc">Como esta oportunidade aparecerá para as marcas?</div>
         </div>
-        <div class="visibility-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <div class="visibility-grid">
           <div class="visibility-card selected" id="vis-publica" onclick="selectVisibility('publica')">
             <div class="vis-icon"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="14" cy="14" r="11" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M14 3c0 0-5 4-5 11s5 11 5 11M14 3c0 0 5 4 5 11s-5 11-5 11M3 14h22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
             <div class="vis-title">Pública no Radar</div>
