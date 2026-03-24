@@ -190,9 +190,9 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 /* ── Mobile Progress Bar ── */
 .mobile-progress {
   display: none;
-  background: var(--white); border-radius: var(--radius-lg);
-  border: 1px solid var(--gray-2); padding: 14px 20px;
-  margin-bottom: 20px; box-shadow: var(--shadow-sm);
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-2);
+  padding: 10px 20px;
 }
 .mobile-progress-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -643,9 +643,14 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   .visibility-grid { grid-template-columns: 1fr; }
   .photos-grid { grid-template-columns: repeat(2, 1fr); }
 
-  /* Stepper → barra de progresso no mobile */
+  /* Stepper → barra de progresso fixa no mobile */
   .step-progress { display: none; }
-  .mobile-progress { display: block; }
+  .mobile-progress {
+    display: block;
+    position: fixed; top: 64px; left: 0; right: 0;
+    z-index: 89;
+  }
+  .main { padding-top: 128px; }
 
   /* Botões de ação */
   .step-actions { flex-direction: column-reverse; gap: 8px; }
