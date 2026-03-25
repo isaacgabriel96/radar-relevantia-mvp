@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --gold: #B8860B;
   --gold-gradient: linear-gradient(135deg, #B8860B, #C8A84B);
@@ -21,7 +22,7 @@
   --gray-2: #E0D8CC;
   --gray-3: #A89880;
   --gray-4: #5C4C38;
-  --gray-100: #FAF8F5;
+  --gray-100: #F5F0E8;
   --gray-200: #E0D8CC;
   --gray-300: #C8BCA8;
   --gray-400: #A89880;
@@ -36,118 +37,149 @@
   --green-bg: rgba(34,197,94,0.08);
   --green-border: rgba(34,197,94,0.2);
   --red: #EF4444;
+  --red-bg: rgba(239,68,68,0.08);
+  --red-border: rgba(239,68,68,0.2);
   --blue: #3B82F6;
+  --blue-bg: rgba(59,130,246,0.08);
+  --blue-border: rgba(59,130,246,0.2);
   --orange: #F59E0B;
+  --orange-bg: rgba(245,158,11,0.08);
+  --orange-border: rgba(245,158,11,0.2);
+  --sidebar-w: 260px;
   --radius: 10px;
+  --radius-md: 12px;
   --radius-lg: 16px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.08);
-  --shadow-lg: 0 16px 48px rgba(0,0,0,0.12);
+  --radius-pill: 100px;
+  --shadow: 0 4px 24px rgba(30,22,0,0.08);
+  --shadow-lg: 0 16px 48px rgba(30,22,0,0.12);
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+body { font-family: var(--font-body); background: var(--gray-100); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 a { text-decoration: none; color: inherit; }
 
-/* ─── TOPBAR (public, same as oportunidades.html) ─── */
+/* ─── LOADING ─── */
+#loadingScreen {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+  background: var(--black);
+}
+.ld-spinner { width: 28px; height: 28px; border: 2.5px solid rgba(184,134,11,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ld-text { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.06em; }
+
+/* ─── SIDEBAR RADAR ANIMATION ─── */
+@keyframes sb-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes sb-dot1 { 0%, 100% { opacity: 0.06; } 28%, 48% { opacity: 1; } }
+@keyframes sb-dot2 { 0%, 100% { opacity: 0.06; } 48%, 66% { opacity: 1; } }
+@keyframes sb-dot3 { 0%, 100% { opacity: 0.06; } 66%, 80% { opacity: 1; } }
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w); z-index: 110;
+  background: var(--black); display: flex; flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  transition: transform 0.3s ease;
+}
+.sidebar-logo {
+  padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.sidebar-portal-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(184,134,11,0.12); border: 1px solid rgba(184,134,11,0.25);
+  border-radius: 100px; padding: 3px 10px;
+  font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
+  margin-top: 6px;
+}
+.portal-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); animation: pulse 2s ease infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+
+.sidebar-nav {
+  flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
+  scrollbar-width: none;
+}
+.sidebar-nav::-webkit-scrollbar { display: none; }
+
+.nav-section-label {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); padding: 16px 12px 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+  cursor: pointer; transition: all 0.15s; text-decoration: none;
+  color: rgba(255,255,255,0.4); font-size: 13.5px; font-weight: 500; position: relative;
+}
+.nav-item:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
+.nav-item.active { color: var(--white); background: rgba(184,134,11,0.12); font-weight: 600; }
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
+  border-radius: 0 3px 3px 0; background: var(--gold);
+}
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.5; }
+.nav-item.active svg { opacity: 1; color: var(--gold); }
+.nav-badge {
+  margin-left: auto; background: rgba(184,134,11,0.2); color: var(--gold);
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px;
+}
+
+.sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+.sidebar-user {
+  display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px;
+  cursor: pointer; transition: background 0.15s;
+}
+.sidebar-user:hover { background: rgba(255,255,255,0.04); }
+.sidebar-user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--black); flex-shrink: 0;
+}
+.sidebar-user-info { flex: 1; min-width: 0; }
+.sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-email { font-size: 11px; color: rgba(255,255,255,0.25); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-logout-sb { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.2); transition: color 0.15s; padding: 4px; flex-shrink: 0; }
+.btn-logout-sb:hover { color: var(--red); }
+.btn-logout-sb svg { width: 16px; height: 16px; }
+
+/* ─── TOPBAR ─── */
 .topbar {
-  height: 68px;
-  background: rgba(255,255,255,0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 64px; z-index: 100;
+  background: rgba(255,255,255,0.82); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(0,0,0,0.07);
-  display: flex;
-  align-items: center;
-  padding: 0 48px;
-  gap: 20px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  display: flex; align-items: center; padding: 0; gap: 16px;
 }
-.topbar-logo {
-  font-family: var(--font-heading);
-  font-size: 18px;
-  font-weight: 700;
-  white-space: nowrap;
-  flex-shrink: 0;
+.topbar-inner { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 48px; }
+.topbar-breadcrumb { font-size: 13px; color: var(--gray-400); display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; overflow: hidden; }
+.topbar-breadcrumb a { color: var(--gray-400); transition: color 0.15s; white-space: nowrap; }
+.topbar-breadcrumb a:hover { color: var(--text); }
+.topbar-breadcrumb strong { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; display: block; }
+.topbar-sep { color: var(--gray-300); flex-shrink: 0; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.topbar-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--black); cursor: pointer; flex-shrink: 0;
 }
-.topbar-nav {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 32px;
-}
-.topbar-nav a {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--gray-500);
-  padding: 6px 14px;
-  border-radius: 100px;
-  transition: color 0.2s, background 0.2s;
-}
-.topbar-nav a:hover { color: var(--text); background: rgba(0,0,0,0.05); }
-.topbar-nav a.active { color: var(--text); background: rgba(184,134,11,0.1); font-weight: 600; }
-.topbar-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 18px; border-radius: 100px;
-  font-size: 13px; font-weight: 500; font-family: inherit;
-  cursor: pointer; border: none; transition: all 0.2s; white-space: nowrap;
-}
-.btn-gold { background: var(--gold); color: var(--black); font-weight: 600; }
-.btn-gold:hover { background: var(--gold-light); }
-.btn-ghost { background: transparent; border: 1px solid rgba(0,0,0,0.12); color: var(--gray-500); }
-.btn-ghost:hover { background: rgba(0,0,0,0.04); color: var(--text); }
-
-/* Hamburger */
 .hamburger {
-  display: none; width: 36px; height: 36px; border: none; background: none;
-  cursor: pointer; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-  padding: 6px;
+  display: none; background: none; border: none; cursor: pointer; padding: 4px;
+  color: var(--gray-500);
 }
-.hamburger span {
-  display: block; width: 20px; height: 2px; background: var(--text); border-radius: 2px;
-  transition: all 0.3s;
-}
+.hamburger svg { width: 22px; height: 22px; }
 
-/* Mobile nav overlay */
-.mobile-nav-overlay {
-  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  z-index: 150; opacity: 0; transition: opacity 0.3s;
-}
-.mobile-nav-overlay.open { opacity: 1; }
-.mobile-nav {
-  position: fixed; top: 0; right: 0; bottom: 0; width: 280px;
-  background: var(--white); z-index: 200;
-  transform: translateX(100%); transition: transform 0.3s ease;
-  padding: 24px; display: flex; flex-direction: column; gap: 8px;
-}
-.mobile-nav.open { transform: translateX(0); }
-.mobile-nav-close {
-  align-self: flex-end; background: none; border: none; cursor: pointer;
-  font-size: 24px; color: var(--gray-500); margin-bottom: 16px; line-height: 1;
-}
-.mobile-nav a {
-  display: block; padding: 12px 16px; font-size: 15px; font-weight: 500;
-  color: var(--text); border-radius: 10px; transition: background 0.15s;
-}
-.mobile-nav a:hover { background: var(--gray-100); }
-.mobile-nav a.active { background: rgba(184,134,11,0.1); color: var(--gold); font-weight: 600; }
-.mobile-nav-btns { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
-.mobile-nav-btns .btn { justify-content: center; padding: 12px; font-size: 14px; }
+/* ─── MAIN ─── */
+.main { margin-left: var(--sidebar-w); padding-top: 64px; min-height: 100vh; }
+.main-inner { max-width: 1400px; margin: 0 auto; }
 
-/* ─── BREADCRUMB BAR ─── */
+/* ─── SECONDARY BREADCRUMB BAR ─── */
 .detail-back-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   padding: 14px 48px;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(30,22,0,0.05);
   background: var(--white);
 }
 .back-btn {
@@ -162,8 +194,6 @@ a { text-decoration: none; color: inherit; }
 
 /* ─── DETAIL WRAP ─── */
 .detail-wrap {
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 28px 48px 80px;
 }
 
@@ -171,7 +201,7 @@ a { text-decoration: none; color: inherit; }
 .detail-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; margin-bottom: 24px; }
 .detail-category-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .detail-category { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold); }
-.detail-status { font-size: 11px; font-weight: 600; color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); padding: 3px 10px; border-radius: 100px; }
+.detail-status { font-size: 11px; font-weight: 600; color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border); padding: 3px 10px; border-radius: var(--radius-pill); }
 .detail-title { font-family: var(--font-heading); font-size: 30px; font-weight: 600; color: var(--black); line-height: 1.2; letter-spacing: -0.02em; margin-bottom: 14px; }
 .detail-meta { display: flex; flex-wrap: wrap; gap: 16px; }
 .detail-meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gray-500); }
@@ -185,7 +215,7 @@ a { text-decoration: none; color: inherit; }
 .detail-gallery { display: grid; grid-template-columns: 1fr 280px; gap: 10px; margin-bottom: 28px; height: 340px; border-radius: var(--radius-lg); overflow: hidden; }
 .gallery-main { position: relative; border-radius: var(--radius-lg) 0 0 var(--radius-lg); overflow: hidden; }
 .gallery-main-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 80px; }
-.gallery-badge { position: absolute; bottom: 14px; left: 14px; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); color: var(--white); padding: 5px 12px; border-radius: 100px; font-size: 11px; font-weight: 500; }
+.gallery-badge { position: absolute; bottom: 14px; left: 14px; background: rgba(0,0,0,0.65); backdrop-filter: blur(6px); color: var(--white); padding: 5px 12px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 500; }
 .gallery-side { display: flex; flex-direction: column; gap: 10px; }
 .gallery-thumb { flex: 1; border-radius: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .gallery-thumb:last-child { border-radius: 0 0 var(--radius-lg) 0; }
@@ -212,7 +242,7 @@ a { text-decoration: none; color: inherit; }
 .fact-label { font-size: 11px; color: var(--gray-400); font-weight: 500; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
 .fact-value { font-size: 14px; font-weight: 600; color: var(--text); }
 .tags-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
-.tag { padding: 6px 14px; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 100px; font-size: 12px; color: var(--gray-600); font-weight: 500; }
+.tag { padding: 6px 14px; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-pill); font-size: 12px; color: var(--gray-600); font-weight: 500; }
 .tag-gold { background: var(--gold-pale); border-color: rgba(184,134,11,0.2); color: var(--gold); font-weight: 600; }
 
 /* Cotas */
@@ -249,53 +279,174 @@ a { text-decoration: none; color: inherit; }
 .canal-reach { font-size: 12px; color: var(--gray-400); }
 
 /* ─── INTEREST CARD (SIDEBAR) ─── */
-.interest-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); padding: 26px; position: sticky; top: 88px; }
-.interest-price { font-family: var(--font-heading); font-size: 28px; font-weight: 600; color: var(--black); margin-bottom: 3px; }
-.interest-price-label { font-size: 12px; color: var(--gray-400); margin-bottom: 18px; }
-.interest-divider { height: 1px; background: var(--gray-200); margin: 16px 0; }
-.interest-info { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+.interest-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  position: sticky;
+  top: 88px;
+}
+.interest-price {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 3px;
+}
+.interest-price-label { font-size: 12px; color: var(--gray-400); margin-bottom: 20px; }
+.interest-divider { height: 1px; background: var(--gray-200); margin: 18px 0; }
+.interest-info { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
 .interest-row { display: flex; justify-content: space-between; align-items: center; }
 .interest-row-label { font-size: 13px; color: var(--gray-400); }
-.interest-row-value { font-size: 13px; font-weight: 600; color: var(--text); }
+.interest-row-value { font-size: 13px; font-weight: 600; color: var(--text); text-align: right; }
 .interest-row-value.deadline { color: var(--orange); }
-.btn-interest { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; background: var(--black); color: var(--white); border: none; border-radius: var(--radius); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-interest {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px; background: var(--black); color: var(--white);
+  border: none; border-radius: var(--radius); font-family: inherit;
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
 .btn-interest:hover { background: var(--gold); color: var(--black); }
-.btn-contact { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; background: transparent; color: var(--text); border: 1.5px solid var(--gray-200); border-radius: var(--radius); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; margin-top: 8px; }
+.btn-contact {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px; background: transparent; color: var(--text);
+  border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+  font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all 0.15s; margin-top: 8px;
+}
 .btn-contact:hover { border-color: var(--gray-300); background: var(--gray-100); }
 .interest-disclaimer { text-align: center; font-size: 11px; color: var(--gray-400); margin-top: 13px; line-height: 1.6; }
-.interest-curadoria { background: var(--gold-pale); border: 1px solid rgba(184,134,11,0.25); border-radius: var(--radius); padding: 13px; margin-top: 14px; font-size: 12px; color: var(--black); line-height: 1.55; }
+.interest-curadoria {
+  background: var(--gold-pale); border: 1px solid rgba(184,134,11,0.25);
+  border-radius: var(--radius); padding: 13px; margin-top: 14px;
+  font-size: 12px; color: var(--black); line-height: 1.55;
+}
 .interest-curadoria strong { color: var(--gold); }
 
-/* Hype score in sidebar */
-.sidebar-hype { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, #0E0E0E, #1a1a1a); border-radius: 11px; padding: 14px; margin-top: 8px; }
-.sidebar-hype-left { flex: 1; }
-.sidebar-hype-label { font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 3px; }
-.sidebar-hype-score { font-family: var(--font-heading); font-size: 26px; font-weight: 600; color: var(--white); line-height: 1; }
-.sidebar-hype-sub { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
-.sidebar-hype-badge { background: rgba(184,134,11,0.15); border: 1px solid rgba(184,134,11,0.3); color: var(--gold-light); padding: 4px 9px; border-radius: 100px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+/* ─── OWNER SECTION ─── */
+.owner-section {
+  margin-top: 52px;
+  padding-top: 52px;
+  border-top: 1px solid var(--gray-200);
+}
+.owner-section-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 24px;
+}
+.owner-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  margin-bottom: 36px;
+}
+.owner-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--gold-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 700; color: var(--black); flex-shrink: 0;
+}
+.owner-info { flex: 1; min-width: 0; }
+.owner-name {
+  font-family: var(--font-heading); font-size: 20px; font-weight: 600;
+  color: var(--black); margin-bottom: 6px;
+}
+.owner-bio {
+  font-size: 13px; color: var(--gray-500); line-height: 1.65;
+  margin-bottom: 16px; max-width: 560px;
+}
+.owner-stats { display: flex; gap: 24px; flex-wrap: wrap; }
+.owner-stat { display: flex; flex-direction: column; gap: 1px; }
+.owner-stat-val { font-size: 16px; font-weight: 700; color: var(--black); }
+.owner-stat-label { font-size: 11px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+.owner-stat-sep { width: 1px; background: var(--gray-200); align-self: stretch; }
 
-/* Mini metrics */
-.sidebar-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
-.sidebar-metric { background: var(--gray-100); border-radius: 9px; padding: 11px 12px; }
-.sidebar-metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--gray-400); font-weight: 500; margin-bottom: 3px; }
-.sidebar-metric-val { font-size: 15px; font-weight: 700; color: var(--black); line-height: 1.1; }
-.sidebar-metric-change { font-size: 10px; font-weight: 600; }
-.sidebar-metric-change.up { color: #10B981; }
+.owner-opps-title {
+  font-family: var(--font-heading); font-size: 17px; font-weight: 600;
+  color: var(--black); margin-bottom: 16px;
+}
+
+/* ─── OPP CARDS (similares + owner opps) ─── */
+.opp-cards-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+.opp-card {
+  display: flex; flex-direction: column;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(30,22,0,0.06);
+  overflow: hidden;
+  transition: box-shadow 0.25s, transform 0.25s;
+  cursor: pointer; text-decoration: none; color: inherit;
+}
+.opp-card:hover {
+  box-shadow: 0 12px 40px rgba(30,22,0,0.1), 0 2px 8px rgba(30,22,0,0.04);
+  transform: translateY(-2px);
+}
+.opp-card-image {
+  position: relative; height: 180px;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.opp-card-image svg { width: 44px; height: 44px; color: rgba(255,255,255,0.18); }
+.opp-card-badge {
+  position: absolute; top: 12px; left: 12px;
+  padding: 4px 10px; border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: var(--white);
+}
+.badge-esporte { background: rgba(34,197,94,0.85); }
+.badge-musica { background: rgba(147,51,234,0.85); }
+.badge-tecnologia { background: rgba(59,130,246,0.85); }
+.badge-cultura { background: rgba(245,158,11,0.85); }
+.badge-midia { background: rgba(6,182,212,0.85); }
+.opp-card-body { padding: 18px; display: flex; flex-direction: column; flex: 1; }
+.opp-card-org { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.opp-card-org-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--gold-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; font-weight: 700; color: var(--black); flex-shrink: 0;
+}
+.opp-card-org-name { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+.opp-card-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.35; margin-bottom: 6px; }
+.opp-card-desc {
+  font-size: 12px; color: var(--gray-500); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin-bottom: 12px;
+}
+.opp-card-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--gray-400); margin-bottom: 14px; }
+.opp-card-meta-item { display: flex; align-items: center; gap: 4px; }
+.opp-card-meta-item svg { width: 12px; height: 12px; flex-shrink: 0; }
+.opp-card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: auto; padding-top: 12px;
+  border-top: 1px solid var(--gray-200);
+}
+.opp-card-price { font-size: 13px; font-weight: 700; color: var(--gold); }
+.opp-card-price small { font-size: 11px; font-weight: 500; color: var(--gray-400); }
+.opp-card-link {
+  font-size: 12px; font-weight: 600; color: var(--gold);
+  display: flex; align-items: center; gap: 4px; transition: gap 0.2s;
+}
+.opp-card:hover .opp-card-link { gap: 8px; }
 
 /* ─── SIMILAR SECTION ─── */
-.similar-section { margin-top: 48px; }
-.similar-title { font-family: var(--font-heading); font-size: 22px; font-weight: 600; color: var(--black); margin-bottom: 20px; }
-.similar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.similar-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; cursor: pointer; transition: all 0.2s; text-decoration: none; color: inherit; display: block; }
-.similar-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--gray-300); }
-.similar-card-img { aspect-ratio: 16/9; background: var(--gray-200); display: flex; align-items: center; justify-content: center; font-size: 44px; overflow: hidden; }
-.similar-card-body { padding: 14px; }
-.similar-card-cat { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
-.similar-card-title { font-size: 13px; font-weight: 600; color: var(--black); line-height: 1.35; margin-bottom: 6px; }
-.similar-card-meta { font-size: 12px; color: var(--gray-400); }
+.similar-section {
+  margin-top: 52px; padding-top: 52px; border-top: 1px solid var(--gray-200);
+}
+.similar-title {
+  font-family: var(--font-heading); font-size: 22px; font-weight: 600;
+  color: var(--black); margin-bottom: 20px;
+}
 
 /* ─── MODAL ─── */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(30,22,0,0.45); backdrop-filter: blur(4px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay.open { display: flex; }
 .modal { background: var(--white); border-radius: var(--radius-lg); width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
 .modal-header { padding: 24px 26px 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -305,11 +456,11 @@ a { text-decoration: none; color: inherit; }
 .modal-body { padding: 0 26px 26px; }
 .form-group { margin-bottom: 16px; }
 .form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
-.form-input, .form-textarea, .form-select { width: 100%; border: 1.5px solid var(--gray-300); border-radius: var(--radius); padding: 11px 13px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
+.form-input, .form-textarea, .form-select { width: 100%; border: 1.5px solid var(--gray-300); border-radius: var(--radius); padding: 11px 13px; font-family: var(--font-body); font-size: 13px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
 .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--gold); }
 .form-input::placeholder, .form-textarea::placeholder { color: var(--gray-400); }
 .form-textarea { resize: vertical; min-height: 85px; }
-.btn-submit { width: 100%; background: var(--black); color: var(--white); border: none; padding: 13px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
+.btn-submit { width: 100%; background: var(--black); color: var(--white); border: none; padding: 13px; border-radius: var(--radius); font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
 .btn-submit:hover { background: var(--gold); color: var(--black); }
 .success-state { text-align: center; padding: 36px 20px; display: none; }
 .success-state.show { display: block; }
@@ -317,273 +468,358 @@ a { text-decoration: none; color: inherit; }
 .success-title { font-family: var(--font-heading); font-size: 20px; margin-bottom: 7px; color: var(--black); }
 .success-text { font-size: 13px; color: var(--gray-500); line-height: 1.6; }
 
-/* ─── FOOTER ─── */
-.site-footer { background: var(--black); padding: 36px 48px; margin-top: 0; }
-.footer-inner { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-.footer-brand { font-family: var(--font-heading); font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-.t-white { color: var(--white); }
-.t-gold { color: var(--gold); font-style: italic; }
-.footer-copy { font-size: 12px; color: var(--gray-500); }
-.footer-links { display: flex; gap: 24px; }
-.footer-links a { font-size: 13px; color: var(--gray-400); transition: color 0.15s; }
-.footer-links a:hover { color: var(--white); }
+/* ─── TOAST ─── */
+.toast-container { position: fixed; top: 80px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  padding: 14px 20px; border-radius: 12px; font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px; animation: slideIn 0.3s ease;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.toast-success { background: #065F46; color: white; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+
+/* ─── SIDEBAR OVERLAY ─── */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 109; backdrop-filter: blur(4px);
+}
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 1024px) {
   .detail-body { grid-template-columns: 1fr; }
   .interest-card { position: static; }
+  .opp-cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .detail-gallery { grid-template-columns: 1fr; grid-template-rows: 300px; height: 300px; }
+  .gallery-side { display: none; }
 }
 @media (max-width: 768px) {
-  .topbar { padding: 0 20px; }
-  .topbar-nav { display: none; }
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .topbar { left: 0; }
+  .topbar-inner { padding: 0 16px; }
+  .topbar-breadcrumb strong { max-width: 160px; }
   .hamburger { display: flex; }
-  .mobile-nav-overlay { display: block; }
-  .detail-back-bar { padding: 0 20px; }
+  .main { margin-left: 0; }
+  .detail-back-bar { padding: 12px 20px; }
   .detail-wrap { padding: 20px 20px 80px; }
   .detail-header { flex-direction: column; gap: 14px; }
   .detail-title { font-size: 24px; }
-  .detail-gallery { grid-template-columns: 1fr; grid-template-rows: 260px; height: 260px; }
-  .gallery-side { display: none; }
   .detail-facts { grid-template-columns: 1fr; }
   .cotas-grid { grid-template-columns: 1fr; }
   .ativacoes-grid { grid-template-columns: 1fr 1fr; }
   .canais-grid { grid-template-columns: 1fr; }
-  .similar-grid { grid-template-columns: 1fr 1fr; }
-  .site-footer { padding: 28px 20px; }
-  .footer-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
-  .footer-links { flex-direction: column; gap: 12px; }
+  .opp-cards-grid { grid-template-columns: 1fr 1fr; }
+  .owner-card { flex-direction: column; gap: 16px; }
+  .owner-stats { gap: 16px; }
+}
+@media (max-width: 480px) {
+  .opp-cards-grid { grid-template-columns: 1fr; }
+  .ativacoes-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 
-<!-- ══ TOPBAR ══ -->
-<header class="topbar">
-  <a href="index.html" class="topbar-logo">
-    <span style="color:var(--text)">Radar</span> <span style="color:var(--gold);font-style:italic">Relevantia</span>
-  </a>
+<!-- Loading -->
+<div id="loadingScreen">
+  <div class="ld-spinner"></div>
+  <div class="ld-text">Carregando...</div>
+</div>
 
-  <nav class="topbar-nav">
-    <a href="index.html">Inicio</a>
-    <a href="oportunidades.html" class="active">Oportunidades</a>
-    <a href="cadastro-marca.html">Para Marcas</a>
-    <a href="cadastro-detentor.html">Para Detentores</a>
+<!-- Sidebar overlay mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div style="display:flex;flex-direction:row;align-items:center;gap:8px;justify-content:center">
+      <svg width="52" height="52" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sb-base" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#6b5a14"/>
+            <stop offset="20%" stop-color="#504510"/>
+            <stop offset="40%" stop-color="#3a340c"/>
+            <stop offset="60%" stop-color="#282208"/>
+            <stop offset="80%" stop-color="#181404"/>
+            <stop offset="100%" stop-color="#0a0802"/>
+          </radialGradient>
+          <linearGradient id="sb-swG" x1="0.5" y1="0" x2="0" y2="0.5">
+            <stop offset="0%" stop-color="#c8a428" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#c8a428" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="sb-dc"><circle cx="140" cy="140" r="118"/></clipPath>
+        </defs>
+        <circle cx="140" cy="140" r="121" fill="#060502"/>
+        <circle cx="140" cy="140" r="118" fill="url(#sb-base)"/>
+        <g clip-path="url(#sb-dc)">
+          <circle cx="140" cy="140" r="116" fill="none" stroke="#9a8828" stroke-width="0.5" opacity="0.55"/>
+          <circle cx="140" cy="140" r="100" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.50"/>
+          <circle cx="140" cy="140" r="80" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.50"/>
+          <circle cx="140" cy="140" r="60" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.52"/>
+          <circle cx="140" cy="140" r="40" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.55"/>
+          <circle cx="140" cy="140" r="20" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.60"/>
+        </g>
+        <circle cx="140" cy="140" r="118" fill="none" stroke="#b89824" stroke-width="1.6" opacity="0.65"/>
+        <circle cx="140" cy="140" r="103" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.55"/>
+        <circle cx="140" cy="140" r="80" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.50"/>
+        <circle cx="140" cy="140" r="52" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.45"/>
+        <circle cx="140" cy="140" r="26" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.42"/>
+        <line x1="140" y1="22" x2="140" y2="258" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+        <line x1="22" y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+        <g clip-path="url(#sb-dc)">
+          <g style="transform-origin:140px 140px;animation:sb-sweep 5s linear infinite">
+            <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#sb-swG)"/>
+            <path d="M140 140 L190 28 A118 118 0 0 0 140 22 Z" fill="#c8a428" opacity="0.16"/>
+            <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
+          </g>
+        </g>
+        <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6" opacity="0.7"/>
+        <circle cx="190" cy="72" r="5" fill="#d8c890" style="animation:sb-dot1 5s linear infinite"/>
+        <circle cx="82" cy="170" r="5" fill="#d8c890" style="animation:sb-dot2 5s linear infinite"/>
+        <circle cx="222" cy="195" r="5" fill="#d8c890" style="animation:sb-dot3 5s linear infinite"/>
+      </svg>
+      <img src="logos/5.png" alt="Radar Relevantia" style="width:100px;display:block">
+    </div>
+    <div class="sidebar-portal-badge">
+      <span class="portal-badge-dot"></span> Portal Marca
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a class="nav-item" href="dashboard-marca.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item active" href="dashboard-marca.html#oportunidades">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      Explorar Oportunidades
+    </a>
+
+    <div class="nav-section-label">Gestão</div>
+    <a class="nav-item" href="dashboard-marca.html#propostas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      Minhas Propostas
+      <span class="nav-badge">4</span>
+    </a>
+
+    <div class="nav-section-label">Conta</div>
+    <a class="nav-item" href="dashboard-marca.html#configuracoes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Configurações
+    </a>
   </nav>
 
-  <div class="topbar-right">
-    <a href="login.html" class="btn btn-ghost">Entrar</a>
-    <a href="cadastro-marca.html" class="btn btn-gold">Cadastre-se</a>
-    <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
-      <span></span><span></span><span></span>
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-user-avatar">NB</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">Nike Brasil</div>
+        <div class="sidebar-user-email">contato@nikebrasil.com</div>
+      </div>
+      <button class="btn-logout-sb" title="Sair">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Topbar -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <button class="hamburger" onclick="openSidebar()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
     </button>
+    <div class="topbar-breadcrumb">
+      <a href="dashboard-marca.html">Portal Marca</a>
+      <span class="topbar-sep">›</span>
+      <a href="dashboard-marca.html#oportunidades">Explorar Oportunidades</a>
+      <span class="topbar-sep">›</span>
+      <strong id="topbarOppTitle">Carregando...</strong>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-avatar">NB</div>
+    </div>
   </div>
 </header>
 
-<!-- Mobile nav -->
-<div class="mobile-nav-overlay" id="mobileOverlay">
-  <nav class="mobile-nav" id="mobileNav">
-    <button class="mobile-nav-close" id="mobileClose">&times;</button>
-    <a href="index.html">Inicio</a>
-    <a href="oportunidades.html" class="active">Oportunidades</a>
-    <a href="cadastro-marca.html">Para Marcas</a>
-    <a href="cadastro-detentor.html">Para Detentores</a>
-    <div class="mobile-nav-btns">
-      <a href="login.html" class="btn btn-ghost">Entrar</a>
-      <a href="cadastro-marca.html" class="btn btn-gold">Cadastre-se</a>
+<!-- Main -->
+<div class="main">
+  <div class="main-inner">
+
+    <!-- Breadcrumb bar secundário (com botão voltar) -->
+    <div class="detail-back-bar">
+      <a href="dashboard-marca.html#oportunidades" class="back-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Explorar Oportunidades
+      </a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-curr" id="breadcrumbTitle">Carregando...</span>
     </div>
-  </nav>
-</div>
 
-<!-- ══ BREADCRUMB ══ -->
-<div class="detail-back-bar">
-  <a href="dashboard-marca.html#oportunidades" class="back-btn" id="backBtn">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    Explorar Oportunidades
-  </a>
-  <span class="breadcrumb-sep">/</span>
-  <span class="breadcrumb-curr" id="breadcrumbTitle">Carregando...</span>
-</div>
+    <!-- Detail content -->
+    <div class="detail-wrap">
 
-<!-- ══ MAIN ══ -->
-<main class="detail-wrap">
-
-  <!-- HEADER -->
-  <div class="detail-header">
-    <div class="detail-header-left">
-      <div class="detail-category-row">
-        <span class="detail-category" id="detailCategory"></span>
-        <span class="detail-status">Aberto</span>
-      </div>
-      <h1 class="detail-title" id="detailTitle"></h1>
-      <div class="detail-meta" id="detailMeta"></div>
-    </div>
-    <div class="detail-header-actions">
-      <button class="action-btn" title="Salvar">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      </button>
-      <button class="action-btn" title="Compartilhar">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- GALLERY -->
-  <div class="detail-gallery">
-    <div class="gallery-main">
-      <div class="gallery-main-placeholder" id="galleryMain"></div>
-      <div class="gallery-badge" id="galleryBadge">Destaque</div>
-    </div>
-    <div class="gallery-side">
-      <div class="gallery-thumb" id="galleryThumb1"></div>
-      <div class="gallery-thumb" id="galleryThumb2"></div>
-    </div>
-  </div>
-
-  <!-- BODY: TABS + SIDEBAR -->
-  <div class="detail-body">
-
-    <!-- LEFT: TABS -->
-    <div>
-      <div class="detail-tabs">
-        <button class="tab-btn active" onclick="switchTab('visao', this)">Visao geral</button>
-        <button class="tab-btn" onclick="switchTab('publico', this)">Publico</button>
-        <button class="tab-btn" onclick="switchTab('cotas', this)">Cotas & Entregas</button>
-        <button class="tab-btn" onclick="switchTab('ativacoes', this)">Ativacoes</button>
-        <button class="tab-btn" onclick="switchTab('canais', this)">Canais</button>
-      </div>
-
-      <div class="tab-content-wrap">
-
-        <!-- TAB: Visao geral -->
-        <div class="tab-panel active" id="tab-visao">
-          <div class="detail-section">
-            <h3 class="detail-section-title">Sobre a oportunidade</h3>
-            <p class="detail-text" id="detailDesc"></p>
+      <!-- HEADER -->
+      <div class="detail-header">
+        <div class="detail-header-left">
+          <div class="detail-category-row">
+            <span class="detail-category" id="detailCategory"></span>
+            <span class="detail-status">Aberto</span>
           </div>
-          <div class="detail-section">
-            <h3 class="detail-section-title">Informacoes gerais</h3>
-            <div class="detail-facts" id="detailFacts"></div>
-          </div>
-          <div class="detail-section">
-            <h3 class="detail-section-title">Segmentos ideais</h3>
-            <div class="tags-wrap" id="detailTags"></div>
-          </div>
+          <h1 class="detail-title" id="detailTitle"></h1>
+          <div class="detail-meta" id="detailMeta"></div>
         </div>
-
-        <!-- TAB: Publico -->
-        <div class="tab-panel" id="tab-publico">
-          <div class="detail-section">
-            <h3 class="detail-section-title">Perfil da audiencia</h3>
-            <p class="detail-text" id="publicoDesc"></p>
-          </div>
-          <div class="detail-section">
-            <h3 class="detail-section-title">Dados do publico</h3>
-            <div class="detail-facts" id="publicoFacts"></div>
-          </div>
-        </div>
-
-        <!-- TAB: Cotas -->
-        <div class="tab-panel" id="tab-cotas">
-          <div class="detail-section">
-            <h3 class="detail-section-title">Cotas disponiveis</h3>
-            <p class="detail-text" style="margin-bottom:0">Cada cota oferece ativacoes exclusivas e diferentes niveis de visibilidade.</p>
-            <div class="cotas-grid" id="cotasGrid"></div>
-          </div>
-          <div class="detail-section">
-            <h3 class="detail-section-title">Formatos comerciais incluidos</h3>
-            <table class="entregas-table">
-              <thead><tr><th>Entrega</th><th>Formato</th><th>Canal</th><th>Descricao</th></tr></thead>
-              <tbody id="entregasBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- TAB: Ativacoes -->
-        <div class="tab-panel" id="tab-ativacoes">
-          <div class="detail-section">
-            <h3 class="detail-section-title">Ativacoes personalizadas</h3>
-            <p class="detail-text" style="margin-bottom:20px">Experiencias exclusivas disponiveis para marcas patrocinadoras.</p>
-            <div class="ativacoes-grid" id="ativacoesGrid"></div>
-          </div>
-        </div>
-
-        <!-- TAB: Canais -->
-        <div class="tab-panel" id="tab-canais">
-          <div class="detail-section">
-            <h3 class="detail-section-title">Canais e redes sociais</h3>
-            <div class="canais-grid" id="canaisGrid"></div>
-          </div>
-        </div>
-
-      </div><!-- /tab-content-wrap -->
-    </div><!-- /tabs left -->
-
-    <!-- RIGHT: SIDEBAR -->
-    <div>
-      <div class="interest-card">
-        <div class="interest-price" id="interestPrice"></div>
-        <div class="interest-price-label">investimento minimo estimado</div>
-
-        <div class="sidebar-hype">
-          <div class="sidebar-hype-left">
-            <div class="sidebar-hype-label">Hype Index</div>
-            <div class="sidebar-hype-score" id="hypeScore">--</div>
-            <div class="sidebar-hype-sub" id="hypeSub"></div>
-          </div>
-          <div class="sidebar-hype-badge" id="hypeBadge"></div>
-        </div>
-
-        <div class="sidebar-metrics" id="sidebarMetrics"></div>
-
-        <div class="interest-divider"></div>
-
-        <div class="interest-info" id="interestInfo"></div>
-
-        <button class="btn-interest" onclick="openModal()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Manifestar interesse
-        </button>
-        <button class="btn-contact">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          Falar com o time
-        </button>
-
-        <div class="interest-disclaimer">Sem compromisso. Nossa equipe entrara em contato em ate 24h.</div>
-
-        <div class="interest-curadoria">
-          <strong>✦ Curadoria Relevantia</strong> — Este ativo foi analisado e aprovado pelo nosso time.
+        <div class="detail-header-actions">
+          <button class="action-btn" title="Salvar">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+          <button class="action-btn" title="Compartilhar">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          </button>
         </div>
       </div>
-    </div>
 
-  </div><!-- /detail-body -->
-
-  <!-- OPORTUNIDADES SIMILARES -->
-  <div class="similar-section">
-    <h2 class="similar-title">Oportunidades similares</h2>
-    <div class="similar-grid" id="similarGrid"></div>
-  </div>
-
-</main>
-
-<!-- ══ FOOTER ══ -->
-<footer class="site-footer">
-  <div class="footer-inner">
-    <div>
-      <div class="footer-brand">
-        <span class="t-white">Radar</span> <span class="t-gold">Relevantia</span>
+      <!-- GALLERY -->
+      <div class="detail-gallery">
+        <div class="gallery-main">
+          <div class="gallery-main-placeholder" id="galleryMain"></div>
+          <div class="gallery-badge" id="galleryBadge">Destaque</div>
+        </div>
+        <div class="gallery-side">
+          <div class="gallery-thumb" id="galleryThumb1"></div>
+          <div class="gallery-thumb" id="galleryThumb2"></div>
+        </div>
       </div>
-      <div class="footer-copy">&copy; 2026 Todos os direitos reservados.</div>
-    </div>
-    <div class="footer-links">
-      <a href="#">Termos de uso</a>
-      <a href="#">Politica de privacidade</a>
-      <a href="#">Contato</a>
-    </div>
-  </div>
-</footer>
 
-<!-- ══ MODAL ══ -->
+      <!-- BODY: TABS + SIDEBAR -->
+      <div class="detail-body">
+
+        <!-- LEFT: TABS -->
+        <div>
+          <div class="detail-tabs">
+            <button class="tab-btn active" onclick="switchTab('visao', this)">Visão geral</button>
+            <button class="tab-btn" onclick="switchTab('publico', this)">Público</button>
+            <button class="tab-btn" onclick="switchTab('cotas', this)">Cotas & Entregas</button>
+            <button class="tab-btn" onclick="switchTab('ativacoes', this)">Ativações</button>
+            <button class="tab-btn" onclick="switchTab('canais', this)">Canais</button>
+          </div>
+
+          <div class="tab-content-wrap">
+
+            <!-- TAB: Visao geral -->
+            <div class="tab-panel active" id="tab-visao">
+              <div class="detail-section">
+                <h3 class="detail-section-title">Sobre a oportunidade</h3>
+                <p class="detail-text" id="detailDesc"></p>
+              </div>
+              <div class="detail-section">
+                <h3 class="detail-section-title">Informações gerais</h3>
+                <div class="detail-facts" id="detailFacts"></div>
+              </div>
+              <div class="detail-section">
+                <h3 class="detail-section-title">Segmentos ideais</h3>
+                <div class="tags-wrap" id="detailTags"></div>
+              </div>
+            </div>
+
+            <!-- TAB: Publico -->
+            <div class="tab-panel" id="tab-publico">
+              <div class="detail-section">
+                <h3 class="detail-section-title">Perfil da audiência</h3>
+                <p class="detail-text" id="publicoDesc"></p>
+              </div>
+              <div class="detail-section">
+                <h3 class="detail-section-title">Dados do público</h3>
+                <div class="detail-facts" id="publicoFacts"></div>
+              </div>
+            </div>
+
+            <!-- TAB: Cotas -->
+            <div class="tab-panel" id="tab-cotas">
+              <div class="detail-section">
+                <h3 class="detail-section-title">Cotas disponíveis</h3>
+                <p class="detail-text" style="margin-bottom:0">Cada cota oferece ativações exclusivas e diferentes níveis de visibilidade.</p>
+                <div class="cotas-grid" id="cotasGrid"></div>
+              </div>
+              <div class="detail-section">
+                <h3 class="detail-section-title">Formatos comerciais incluídos</h3>
+                <table class="entregas-table">
+                  <thead><tr><th>Entrega</th><th>Formato</th><th>Canal</th><th>Descrição</th></tr></thead>
+                  <tbody id="entregasBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- TAB: Ativacoes -->
+            <div class="tab-panel" id="tab-ativacoes">
+              <div class="detail-section">
+                <h3 class="detail-section-title">Ativações personalizadas</h3>
+                <p class="detail-text" style="margin-bottom:20px">Experiências exclusivas disponíveis para marcas patrocinadoras.</p>
+                <div class="ativacoes-grid" id="ativacoesGrid"></div>
+              </div>
+            </div>
+
+            <!-- TAB: Canais -->
+            <div class="tab-panel" id="tab-canais">
+              <div class="detail-section">
+                <h3 class="detail-section-title">Canais e redes sociais</h3>
+                <div class="canais-grid" id="canaisGrid"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT: SIDEBAR CARD -->
+        <div>
+          <div class="interest-card">
+            <div class="interest-price" id="interestPrice"></div>
+            <div class="interest-price-label">investimento mínimo estimado</div>
+
+            <div class="interest-divider"></div>
+
+            <div class="interest-info" id="interestInfo"></div>
+
+            <button class="btn-interest" onclick="openModal()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Manifestar interesse
+            </button>
+            <button class="btn-contact">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Falar com o time
+            </button>
+
+            <div class="interest-disclaimer">Sem compromisso. Nossa equipe entrará em contato em até 24h.</div>
+
+            <div class="interest-curadoria">
+              <strong>✦ Curadoria Relevantia</strong> — Este ativo foi analisado e aprovado pelo nosso time.
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /detail-body -->
+
+      <!-- DONO DA OPORTUNIDADE -->
+      <div class="owner-section">
+        <h2 class="owner-section-title">Sobre o organizador</h2>
+        <div class="owner-card" id="ownerCard"></div>
+        <div class="owner-opps-title" id="ownerOppsTitle"></div>
+        <div class="opp-cards-grid" id="ownerOppsGrid"></div>
+      </div>
+
+      <!-- OPORTUNIDADES SIMILARES -->
+      <div class="similar-section">
+        <h2 class="similar-title">Oportunidades similares</h2>
+        <div class="opp-cards-grid" id="similarGrid"></div>
+      </div>
+
+    </div><!-- /detail-wrap -->
+  </div><!-- /main-inner -->
+</div><!-- /main -->
+
+<!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
     <div id="modal-form-state">
@@ -612,9 +848,9 @@ a { text-decoration: none; color: inherit; }
         </div>
         <div class="form-group">
           <label class="form-label">Mensagem (opcional)</label>
-          <textarea class="form-textarea" placeholder="Conte um pouco sobre seus objetivos com este patrocinio..."></textarea>
+          <textarea class="form-textarea" placeholder="Conte um pouco sobre seus objetivos com este patrocínio..."></textarea>
         </div>
-        <button class="btn-submit" onclick="submitModal()">Enviar manifestacao de interesse</button>
+        <button class="btn-submit" onclick="submitModal()">Enviar manifestação de interesse</button>
       </div>
     </div>
     <div class="success-state" id="modal-success">
@@ -622,200 +858,279 @@ a { text-decoration: none; color: inherit; }
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       </div>
       <div class="success-title">Interesse registrado!</div>
-      <div class="success-text">Nossa equipe entrara em contato em ate 24 horas com mais detalhes sobre esta oportunidade.</div>
+      <div class="success-text">Nossa equipe entrará em contato em até 24 horas com mais detalhes sobre esta oportunidade.</div>
     </div>
   </div>
 </div>
 
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
 <script>
 /* ═══════════════════════════════════════════
-   MOCK DATA — same IDs as oportunidades.html
+   MOCK DATA
    ═══════════════════════════════════════════ */
 const OPPORTUNITIES = [
   {
     id: 1,
-    title: 'Maratona Internacional de Sao Paulo',
+    title: 'Maratona Internacional de São Paulo',
     org: 'SP Marathon Club', orgInitials: 'SM',
-    category: 'Esporte', city: 'Sao Paulo', region: 'Sao Paulo',
+    orgId: 'marathon-sp',
+    category: 'Esporte', city: 'São Paulo', region: 'São Paulo',
     date: 'Jan 2027', price: 50000,
-    desc: 'A Maratona de Sao Paulo e o maior evento de corrida da America Latina, reunindo 35 mil atletas de mais de 60 paises. O patrocinio oficial oferece exposicao de marca para uma audiencia altamente engajada de esportistas, influenciadores fitness e publico geral ao longo de todo o percurso de 42km.',
+    desc: 'A Maratona de São Paulo é o maior evento de corrida da América Latina, reunindo 35 mil atletas de mais de 60 países. O patrocínio oficial oferece exposição de marca para uma audiência altamente engajada de esportistas, influenciadores fitness e público geral ao longo de todo o percurso de 42km.',
     gradient: 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)',
     thumbs: ['#c8d8e8', '#d4e8c8'],
     facts: [
       { icon: '📅', label: 'Data do evento', value: '12 de outubro de 2025' },
-      { icon: '📍', label: 'Local', value: 'Av. Paulista, Sao Paulo' },
+      { icon: '📍', label: 'Local', value: 'Av. Paulista, São Paulo' },
       { icon: '👥', label: 'Participantes', value: '35.000 atletas' },
-      { icon: '🌍', label: 'Paises representados', value: '+60 paises' },
-      { icon: '📺', label: 'Transmissao', value: 'TV aberta + streaming' },
-      { icon: '⏱️', label: 'Prazo de proposta', value: '20 de marco de 2025' }
+      { icon: '🌍', label: 'Países representados', value: '+60 países' },
+      { icon: '📺', label: 'Transmissão', value: 'TV aberta + streaming' },
+      { icon: '⏱️', label: 'Prazo de proposta', value: '20 de março de 2025' }
     ],
-    tags: ['Esportes & Fitness', 'Alimentacao saudavel', 'Tecnologia wearable', 'Suplementacao', 'Vestuario esportivo', 'Bebidas isotonicas'],
-    publico: 'O publico da Maratona de Sao Paulo e composto majoritariamente por adultos de 25 a 45 anos, com nivel de escolaridade superior, renda acima da media e alto poder de influencia nas redes sociais.',
+    tags: ['Esportes & Fitness', 'Alimentação saudável', 'Tecnologia wearable', 'Suplementação', 'Vestuário esportivo', 'Bebidas isotônicas'],
+    publico: 'O público da Maratona de São Paulo é composto majoritariamente por adultos de 25 a 45 anos, com nível de escolaridade superior, renda acima da média e alto poder de influência nas redes sociais.',
     publicoFacts: [
-      { icon: '👤', label: 'Genero predominante', value: '58% masculino, 42% feminino' },
-      { icon: '🎂', label: 'Faixa etaria principal', value: '25-45 anos (72%)' },
-      { icon: '💰', label: 'Classe social', value: 'A/B (68% do publico)' },
-      { icon: '📱', label: 'Presenca digital', value: '92% ativo em redes sociais' },
-      { icon: '🏙️', label: 'Concentracao geografica', value: 'SP (45%), outros (55%)' },
-      { icon: '📊', label: 'Taxa de engajamento', value: '4.2x acima da media' }
+      { icon: '👤', label: 'Gênero predominante', value: '58% masculino, 42% feminino' },
+      { icon: '🎂', label: 'Faixa etária principal', value: '25-45 anos (72%)' },
+      { icon: '💰', label: 'Classe social', value: 'A/B (68% do público)' },
+      { icon: '📱', label: 'Presença digital', value: '92% ativo em redes sociais' },
+      { icon: '🏙️', label: 'Concentração geográfica', value: 'SP (45%), outros (55%)' },
+      { icon: '📊', label: 'Taxa de engajamento', value: '4.2x acima da média' }
     ],
     cotas: [
-      { emoji: '🏆', name: 'Patrocinador Master', desc: 'Logo em naming rights, transmissao, largada e chegada. Ativacao exclusiva na area VIP.', price: 'A partir de R$ 480k' },
-      { emoji: '🥈', name: 'Patrocinador Premium', desc: 'Logo em materiais oficiais, percurso e kit do corredor. Totem de ativacao no evento.', price: 'A partir de R$ 220k' },
-      { emoji: '🥉', name: 'Apoiador Oficial', desc: 'Logo em kit do corredor e comunicacoes digitais. Estande na expo-feira.', price: 'A partir de R$ 85k' }
+      { emoji: '🏆', name: 'Patrocinador Master', desc: 'Logo em naming rights, transmissão, largada e chegada. Ativação exclusiva na área VIP.', price: 'A partir de R$ 480k' },
+      { emoji: '🥈', name: 'Patrocinador Premium', desc: 'Logo em materiais oficiais, percurso e kit do corredor. Totem de ativação no evento.', price: 'A partir de R$ 220k' },
+      { emoji: '🥉', name: 'Apoiador Oficial', desc: 'Logo em kit do corredor e comunicações digitais. Estande na expo-feira.', price: 'A partir de R$ 85k' }
     ],
     entregas: [
-      ['Logo na largada', 'Outdoor 10m2', 'On-site', 'Visibilidade na largada e chegada oficial'],
-      ['Kit do corredor', 'Branding fisico', 'On-site', 'Logo na sacola, camiseta e numero oficial'],
-      ['Social media', 'Posts & Stories', 'Instagram, TikTok', '3 posts pre-evento + 2 durante + 1 pos'],
-      ['Email marketing', 'Destaque', 'Email', 'Insercao na newsletter oficial para 120k inscritos'],
-      ['Transmissao', 'Vinheta 15s', 'TV & Streaming', 'Veiculacao durante transmissao do evento'],
-      ['Relatorio pos-evento', 'Dashboard', 'Digital', 'Metricas consolidadas de alcance e impacto']
+      ['Logo na largada', 'Outdoor 10m²', 'On-site', 'Visibilidade na largada e chegada oficial'],
+      ['Kit do corredor', 'Branding físico', 'On-site', 'Logo na sacola, camiseta e número oficial'],
+      ['Social media', 'Posts & Stories', 'Instagram, TikTok', '3 posts pré-evento + 2 durante + 1 pós'],
+      ['Email marketing', 'Destaque', 'Email', 'Inserção na newsletter oficial para 120k inscritos'],
+      ['Transmissão', 'Vinheta 15s', 'TV & Streaming', 'Veiculação durante transmissão do evento'],
+      ['Relatório pós-evento', 'Dashboard', 'Digital', 'Métricas consolidadas de alcance e impacto']
     ],
     ativacoes: [
-      { emoji: '🏃', name: 'Podio personalizado', desc: 'Cerimonia de premiacao com branding exclusivo' },
+      { emoji: '🏃', name: 'Pódio personalizado', desc: 'Cerimônia de premiação com branding exclusivo' },
       { emoji: '🎽', name: 'Camiseta exclusiva', desc: 'Design colaborativo com sua marca' },
-      { emoji: '📸', name: 'Photopoint VIP', desc: 'Area exclusiva de fotos no percurso' },
-      { emoji: '🎤', name: 'Palco de ativacao', desc: 'Espaco exclusivo na expo-feira pre-evento' },
-      { emoji: '🍹', name: 'Posto de hidratacao', desc: 'Branding nos postos de hidratacao do percurso' },
+      { emoji: '📸', name: 'Photopoint VIP', desc: 'Área exclusiva de fotos no percurso' },
+      { emoji: '🎤', name: 'Palco de ativação', desc: 'Espaço exclusivo na expo-feira pré-evento' },
+      { emoji: '🍹', name: 'Posto de hidratação', desc: 'Branding nos postos de hidratação do percurso' },
       { emoji: '📲', name: 'App challenge', desc: 'Challenge de marca no app oficial da maratona' }
     ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: '285k seguidores · 4.8% engajamento' },
       { icon: '🎵', name: 'TikTok', reach: '140k seguidores · 8.2% engajamento' },
-      { icon: '▶️', name: 'YouTube', reach: '62k inscritos · 220k views/mes' },
+      { icon: '▶️', name: 'YouTube', reach: '62k inscritos · 220k views/mês' },
       { icon: '📘', name: 'Facebook', reach: '480k seguidores · comunidade ativa' },
       { icon: '✉️', name: 'Newsletter', reach: '120k inscritos · 42% open rate' },
-      { icon: '📱', name: 'App oficial', reach: '85k downloads · 3.2 sessoes/semana' }
+      { icon: '📱', name: 'App oficial', reach: '85k downloads · 3.2 sessões/semana' }
     ],
-    hype: 92, hypeSub: 'Top 8% da plataforma', hypeBadge: 'Em alta',
-    metrics: { alcance: '8.5M', mencoes: '14.2k', score: '85/100', fit: '88%' },
     sidebar: { evento: '12 de outubro, 2025', prazo: '5 dias restantes', cotasQty: '3 modalidades', formato: 'Evento presencial + digital', participantes: '35.000 atletas' }
   },
   {
-    id: 2, title: 'Festival de Verao Salvador', org: 'Verao Producoes', orgInitials: 'VP',
-    category: 'Musica', city: 'Salvador', region: 'Bahia', date: 'Fev 2027', price: 80000,
-    desc: 'Associe sua marca ao maior festival de verao do Brasil. 3 dias de shows com publico de 120 mil pessoas e cobertura massiva nas redes sociais e TV nacional.',
+    id: 2, title: 'Festival de Verão Salvador', org: 'Verão Produções', orgInitials: 'VP',
+    orgId: 'verao-producoes',
+    category: 'Música', city: 'Salvador', region: 'Bahia', date: 'Fev 2027', price: 80000,
+    desc: 'Associe sua marca ao maior festival de verão do Brasil. 3 dias de shows com público de 120 mil pessoas e cobertura massiva nas redes sociais e TV nacional.',
     gradient: 'linear-gradient(135deg,#3b1054,#6b21a8)', thumbs: ['#e8c8e8','#d8c8e8'],
     facts: [
       { icon: '📅', label: 'Data do evento', value: 'Fevereiro de 2027' },
       { icon: '📍', label: 'Local', value: 'Salvador, Bahia' },
-      { icon: '👥', label: 'Publico esperado', value: '120.000 pessoas' },
-      { icon: '🎵', label: 'Artistas confirmados', value: '+30 atracoes' },
-      { icon: '📺', label: 'Transmissao', value: 'Multishow + YouTube' },
+      { icon: '👥', label: 'Público esperado', value: '120.000 pessoas' },
+      { icon: '🎵', label: 'Artistas confirmados', value: '+30 atrações' },
+      { icon: '📺', label: 'Transmissão', value: 'Multishow + YouTube' },
       { icon: '⏱️', label: 'Prazo de proposta', value: '15 de outubro de 2026' }
     ],
-    tags: ['Entretenimento', 'Bebidas', 'Moda', 'Telecomunicacoes', 'Cosmeticos'],
-    publico: 'O publico do Festival de Verao Salvador e jovem, entre 18 e 35 anos, predominantemente classes A e B, com alta presenca digital e engajamento social.',
+    tags: ['Entretenimento', 'Bebidas', 'Moda', 'Telecomunicações', 'Cosméticos'],
+    publico: 'O público do Festival de Verão Salvador é jovem, entre 18 e 35 anos, predominantemente classes A e B, com alta presença digital e engajamento social.',
     publicoFacts: [
-      { icon: '👤', label: 'Genero', value: '52% feminino, 48% masculino' },
-      { icon: '🎂', label: 'Faixa etaria', value: '18-35 anos (80%)' },
+      { icon: '👤', label: 'Gênero', value: '52% feminino, 48% masculino' },
+      { icon: '🎂', label: 'Faixa etária', value: '18-35 anos (80%)' },
       { icon: '💰', label: 'Classe social', value: 'A/B (72%)' },
-      { icon: '📱', label: 'Presenca digital', value: '96% ativo em redes' },
+      { icon: '📱', label: 'Presença digital', value: '96% ativo em redes' },
       { icon: '🏙️', label: 'Origem', value: 'Nordeste (60%), Sudeste (30%)' },
-      { icon: '📊', label: 'Engajamento', value: '5.1x acima da media' }
+      { icon: '📊', label: 'Engajamento', value: '5.1x acima da média' }
     ],
     cotas: [
       { emoji: '🏆', name: 'Naming Rights', desc: 'Nome do festival + branding total em todos os pontos.', price: 'A partir de R$ 800k' },
-      { emoji: '🥈', name: 'Patrocinador Ouro', desc: 'Palco secundario + ativacoes exclusivas.', price: 'A partir de R$ 400k' },
-      { emoji: '🥉', name: 'Apoiador', desc: 'Presenca no evento + mencoes digitais.', price: 'A partir de R$ 80k' }
+      { emoji: '🥈', name: 'Patrocinador Ouro', desc: 'Palco secundário + ativações exclusivas.', price: 'A partir de R$ 400k' },
+      { emoji: '🥉', name: 'Apoiador', desc: 'Presença no evento + menções digitais.', price: 'A partir de R$ 80k' }
     ],
     entregas: [
       ['Palco naming', 'Branding', 'On-site', 'Nome da marca no palco principal'],
-      ['Camarote VIP', 'Experiencia', 'On-site', 'Area VIP com branding exclusivo'],
+      ['Camarote VIP', 'Experiência', 'On-site', 'Área VIP com branding exclusivo'],
       ['Social media', 'Posts & Stories', 'Instagram', '5 posts + 10 stories durante festival'],
       ['Email blast', 'Newsletter', 'Email', 'Envio para 200k inscritos']
     ],
     ativacoes: [
-      { emoji: '🎶', name: 'Palco experience', desc: 'Ativacao no palco secundario com sua marca' },
-      { emoji: '📸', name: 'Insta corner', desc: 'Espaco instagramavel personalizado' },
+      { emoji: '🎶', name: 'Palco experience', desc: 'Ativação no palco secundário com sua marca' },
+      { emoji: '📸', name: 'Insta corner', desc: 'Espaço instagramável personalizado' },
       { emoji: '🍹', name: 'Bar exclusivo', desc: 'Ponto de venda com branding total' },
-      { emoji: '📲', name: 'QR challenge', desc: 'Acao interativa via QR code no evento' }
+      { emoji: '📲', name: 'QR challenge', desc: 'Ação interativa via QR code no evento' }
     ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: '520k seguidores · 6.1% engajamento' },
       { icon: '🎵', name: 'TikTok', reach: '310k seguidores · 9.5% engajamento' },
-      { icon: '▶️', name: 'YouTube', reach: '180k inscritos · 500k views/mes' },
+      { icon: '▶️', name: 'YouTube', reach: '180k inscritos · 500k views/mês' },
       { icon: '📘', name: 'Facebook', reach: '340k seguidores' }
     ],
-    hype: 88, hypeSub: 'Top 12% da plataforma', hypeBadge: 'Trending',
-    metrics: { alcance: '12M', mencoes: '22k', score: '88/100', fit: '82%' },
     sidebar: { evento: 'Fevereiro, 2027', prazo: '12 dias restantes', cotasQty: '3 modalidades', formato: 'Festival presencial + digital', participantes: '120.000 pessoas' }
   }
 ];
 
-/* ─── DEFAULT FALLBACK for IDs not in detailed list ─── */
+/* ─── ORGS DATA ─── */
+const ORGS = {
+  'marathon-sp': {
+    name: 'SP Marathon Club',
+    initials: 'SM',
+    bio: 'Organização responsável pela maior maratona da América Latina desde 1994. Com mais de 30 anos de experiência em eventos de corrida de rua, o SP Marathon Club conecta marcas a uma das audiências mais engajadas e qualificadas do esporte nacional.',
+    location: 'São Paulo, SP',
+    founded: '1994',
+    events: 12,
+    category: 'Esporte',
+    otherOpps: [4, 9]
+  },
+  'verao-producoes': {
+    name: 'Verão Produções',
+    initials: 'VP',
+    bio: 'Produtora especializada em festivais de grande porte no Nordeste brasileiro. Responsável por eventos que movimentam milhões de pessoas anualmente, com expertise em branding, ativações ao vivo e cobertura multimídia.',
+    location: 'Salvador, BA',
+    founded: '2008',
+    events: 8,
+    category: 'Música',
+    otherOpps: [6, 7]
+  }
+};
+
+/* ─── DEFAULT FALLBACK ─── */
 function getDefaultOpp(id) {
-  const basic = {
-    3: { title: 'Expo Tech Brasil', category: 'Tecnologia', city: 'Sao Paulo', price: 35000, gradient: 'linear-gradient(135deg,#0c2461,#1e40af)' },
-    4: { title: 'Campeonato de Surf Floripa', category: 'Esporte', city: 'Florianopolis', price: 25000, gradient: 'linear-gradient(135deg,#1a472a,#2d6a3f)' },
-    5: { title: 'Podcast Tech Daily', category: 'Midia Digital', city: 'Online', price: 15000, gradient: 'linear-gradient(135deg,#0e4a6e,#0284c7)' },
-    6: { title: 'Arena Music Curitiba', category: 'Musica', city: 'Curitiba', price: 60000, gradient: 'linear-gradient(135deg,#3b1054,#6b21a8)' },
-    7: { title: 'Mostra Cultural Recife', category: 'Cultura', city: 'Recife', price: 40000, gradient: 'linear-gradient(135deg,#7c2d12,#c2410c)' },
-    8: { title: 'Liga Brasileira de eSports', category: 'Tecnologia', city: 'Online', price: 70000, gradient: 'linear-gradient(135deg,#0c2461,#1e40af)' },
-    9: { title: 'Corrida de Rua BH', category: 'Esporte', city: 'Belo Horizonte', price: 20000, gradient: 'linear-gradient(135deg,#1a472a,#2d6a3f)' },
-    10: { title: 'Feira Gastronomica SP', category: 'Cultura', city: 'Sao Paulo', price: 30000, gradient: 'linear-gradient(135deg,#7c2d12,#c2410c)' }
+  var basic = {
+    3: { title: 'Expo Tech Brasil', org: 'TechConf BR', orgInitials: 'TB', orgId: 'marathon-sp', category: 'Tecnologia', city: 'São Paulo', price: 35000, gradient: 'linear-gradient(135deg,#0c2461,#1e40af)', date: 'Mar 2027', desc: 'Feira de tecnologia e inovação com mais de 50 mil visitantes e 200 expositores. Ideal para marcas de tech.' },
+    4: { title: 'Campeonato de Surf Floripa', org: 'Surf SC', orgInitials: 'SS', orgId: 'marathon-sp', category: 'Esporte', city: 'Florianópolis', price: 25000, gradient: 'linear-gradient(135deg,#1a472a,#2d6a3f)', date: 'Dez 2026', desc: 'Campeonato de surf com etapa nacional. Público jovem e engajado com lifestyle e sustentabilidade.' },
+    5: { title: 'Podcast Tech Daily', org: 'Media Lab', orgInitials: 'ML', orgId: 'marathon-sp', category: 'Mídia Digital', city: 'Online', price: 15000, gradient: 'linear-gradient(135deg,#0e4a6e,#0284c7)', date: 'Contínuo', desc: 'Podcast diário sobre tecnologia com 500 mil ouvintes mensais. Ativação via branded content e menções.' },
+    6: { title: 'Arena Music Curitiba', org: 'Arena Live', orgInitials: 'AL', orgId: 'verao-producoes', category: 'Música', city: 'Curitiba', price: 60000, gradient: 'linear-gradient(135deg,#3b1054,#6b21a8)', date: 'Abr 2027', desc: 'Casa de shows com programação semanal. Naming rights e presença de marca em 200+ eventos anuais.' },
+    7: { title: 'Mostra Cultural Recife', org: 'Cultura PE', orgInitials: 'CP', orgId: 'verao-producoes', category: 'Cultura', city: 'Recife', price: 40000, gradient: 'linear-gradient(135deg,#7c2d12,#c2410c)', date: 'Mai 2027', desc: 'Festival cultural com exposições, teatro e gastronomia. Público qualificado de classes A e B.' },
+    8: { title: 'Liga Brasileira de eSports', org: 'ESL Brasil', orgInitials: 'EB', orgId: 'marathon-sp', category: 'Tecnologia', city: 'Online', price: 70000, gradient: 'linear-gradient(135deg,#0c2461,#1e40af)', date: 'Contínuo', desc: 'Liga profissional de eSports com audiência de 2 milhões de views mensais em streaming.' },
+    9: { title: 'Corrida de Rua BH', org: 'Run MG', orgInitials: 'RM', orgId: 'marathon-sp', category: 'Esporte', city: 'Belo Horizonte', price: 20000, gradient: 'linear-gradient(135deg,#1a472a,#2d6a3f)', date: 'Jun 2027', desc: 'Corrida de rua com 8 mil participantes. Excelente para ativações de saúde e bem-estar.' },
+    10: { title: 'Feira Gastronômica SP', org: 'Gourmet BR', orgInitials: 'GB', orgId: 'marathon-sp', category: 'Cultura', city: 'São Paulo', price: 30000, gradient: 'linear-gradient(135deg,#7c2d12,#c2410c)', date: 'Jul 2027', desc: 'Feira gastronômica com chefs renomados. 40 mil visitantes em 5 dias de evento.' }
   };
   var b = basic[id] || basic[3];
   return {
-    id: id, title: b.title, category: b.category, city: b.city, price: b.price,
-    desc: 'Oportunidade exclusiva de patrocinio com alta visibilidade e publico engajado. Entre em contato para mais detalhes sobre cotas e ativacoes disponiveis.',
-    gradient: b.gradient, thumbs: ['#e0e0e0','#d0d0d0'],
+    id: id, title: b.title, org: b.org, orgInitials: b.orgInitials, orgId: b.orgId || 'marathon-sp',
+    category: b.category, city: b.city, region: b.city, date: b.date, price: b.price,
+    desc: b.desc, gradient: b.gradient, thumbs: ['#e0d8cc','#d0c8b8'],
     facts: [
-      { icon: '📅', label: 'Data', value: '2027' },
+      { icon: '📅', label: 'Data', value: b.date },
       { icon: '📍', label: 'Local', value: b.city },
-      { icon: '👥', label: 'Publico', value: 'Sob consulta' },
+      { icon: '👥', label: 'Público', value: 'Sob consulta' },
       { icon: '📺', label: 'Cobertura', value: 'Digital + presencial' }
     ],
-    tags: [b.category, 'Patrocinio', 'Visibilidade'],
-    publico: 'Publico qualificado com alto potencial de engajamento e conversao para marcas parceiras.',
+    tags: [b.category, 'Patrocínio', 'Visibilidade'],
+    publico: 'Público qualificado com alto potencial de engajamento e conversão para marcas parceiras.',
     publicoFacts: [
       { icon: '👤', label: 'Perfil', value: 'Diversificado' },
-      { icon: '🎂', label: 'Faixa etaria', value: '20-50 anos' },
+      { icon: '🎂', label: 'Faixa etária', value: '20-50 anos' },
       { icon: '💰', label: 'Classe social', value: 'A/B/C' },
-      { icon: '📱', label: 'Presenca digital', value: 'Alta' }
+      { icon: '📱', label: 'Presença digital', value: 'Alta' }
     ],
     cotas: [
-      { emoji: '🏆', name: 'Cota Master', desc: 'Maxima visibilidade e exclusividade.', price: 'Sob consulta' },
-      { emoji: '🥈', name: 'Cota Premium', desc: 'Visibilidade intermediaria.', price: 'Sob consulta' },
-      { emoji: '🥉', name: 'Cota Apoiador', desc: 'Participacao e visibilidade digital.', price: 'A partir de R$ ' + (b.price/1000).toFixed(0) + 'k' }
+      { emoji: '🏆', name: 'Cota Master', desc: 'Máxima visibilidade e exclusividade.', price: 'Sob consulta' },
+      { emoji: '🥈', name: 'Cota Premium', desc: 'Visibilidade intermediária.', price: 'Sob consulta' },
+      { emoji: '🥉', name: 'Cota Apoiador', desc: 'Participação e visibilidade digital.', price: 'A partir de R$ ' + (b.price/1000).toFixed(0) + 'k' }
     ],
     entregas: [
-      ['Branding', 'Logo', 'On-site', 'Presenca de marca no evento'],
-      ['Social media', 'Posts', 'Digital', 'Mencoes nas redes sociais'],
-      ['Relatorio', 'Dashboard', 'Digital', 'Metricas pos-evento']
+      ['Branding', 'Logo', 'On-site', 'Presença de marca no evento'],
+      ['Social media', 'Posts', 'Digital', 'Menções nas redes sociais'],
+      ['Relatório', 'Dashboard', 'Digital', 'Métricas pós-evento']
     ],
     ativacoes: [
-      { emoji: '✨', name: 'Ativacao exclusiva', desc: 'Espaco personalizado para a marca' },
-      { emoji: '📸', name: 'Photopoint', desc: 'Area de fotos com branding' },
-      { emoji: '📲', name: 'Digital', desc: 'Acao interativa online' }
+      { emoji: '✨', name: 'Ativação exclusiva', desc: 'Espaço personalizado para a marca' },
+      { emoji: '📸', name: 'Photopoint', desc: 'Área de fotos com branding' },
+      { emoji: '📲', name: 'Digital', desc: 'Ação interativa online' }
     ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: 'Sob consulta' },
       { icon: '📘', name: 'Facebook', reach: 'Sob consulta' },
       { icon: '▶️', name: 'YouTube', reach: 'Sob consulta' }
     ],
-    hype: 75, hypeSub: 'Acima da media', hypeBadge: 'Destaque',
-    metrics: { alcance: 'N/D', mencoes: 'N/D', score: '75/100', fit: 'N/D' },
-    sidebar: { evento: '2027', prazo: 'Aberto', cotasQty: '3 modalidades', formato: 'Presencial + digital', participantes: 'Sob consulta' }
+    sidebar: { evento: b.date, prazo: 'Aberto', cotasQty: '3 modalidades', formato: 'Presencial + digital', participantes: 'Sob consulta' }
   };
 }
 
-/* ─── GET OPP BY ID ─── */
+function getOppById(id) {
+  return OPPORTUNITIES.find(function(o){ return o.id === id; }) || getDefaultOpp(id);
+}
+
 function getOpp() {
   var params = new URLSearchParams(window.location.search);
   var id = parseInt(params.get('id')) || 1;
-  var found = OPPORTUNITIES.find(function(o){ return o.id === id; });
-  return found || getDefaultOpp(id);
+  return getOppById(id);
+}
+
+/* ─── CATEGORY CONFIG ─── */
+var CAT_CONFIG = {
+  'Esporte':       { gradient: 'linear-gradient(135deg, #1a472a, #2d6a3f)', badge: 'badge-esporte' },
+  'Música':        { gradient: 'linear-gradient(135deg, #3b1054, #6b21a8)', badge: 'badge-musica' },
+  'Tecnologia':    { gradient: 'linear-gradient(135deg, #0c2461, #1e40af)', badge: 'badge-tecnologia' },
+  'Cultura':       { gradient: 'linear-gradient(135deg, #7c2d12, #c2410c)', badge: 'badge-cultura' },
+  'Mídia Digital': { gradient: 'linear-gradient(135deg, #0e4a6e, #0284c7)', badge: 'badge-midia' }
+};
+
+function catIcon(cat) {
+  var icons = {
+    'Esporte': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 000 20M12 2a14.5 14.5 0 010 20M2 12h20"/></svg>',
+    'Música': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+    'Tecnologia': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+    'Cultura': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>',
+    'Mídia Digital': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'
+  };
+  return icons[cat] || icons['Cultura'];
+}
+
+var locSvg = '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>';
+var calSvg = '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>';
+var arrowSvg = '<svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>';
+
+function buildOppCard(o) {
+  var cfg = CAT_CONFIG[o.category] || CAT_CONFIG['Cultura'];
+  var grad = o.gradient || cfg.gradient;
+  return '<a class="opp-card" href="oportunidade-detalhe.html?id=' + o.id + '">' +
+    '<div class="opp-card-image" style="background:' + grad + '">' +
+      catIcon(o.category) +
+      '<span class="opp-card-badge ' + cfg.badge + '">' + o.category + '</span>' +
+    '</div>' +
+    '<div class="opp-card-body">' +
+      '<div class="opp-card-org">' +
+        '<span class="opp-card-org-avatar">' + o.orgInitials + '</span>' +
+        '<span class="opp-card-org-name">' + o.org + '</span>' +
+      '</div>' +
+      '<div class="opp-card-title">' + o.title + '</div>' +
+      '<div class="opp-card-desc">' + o.desc + '</div>' +
+      '<div class="opp-card-meta">' +
+        '<span class="opp-card-meta-item">' + locSvg + o.city + '</span>' +
+        '<span class="opp-card-meta-item">' + calSvg + o.date + '</span>' +
+      '</div>' +
+      '<div class="opp-card-footer">' +
+        '<span class="opp-card-price"><small>A partir de </small>R$ ' + o.price.toLocaleString('pt-BR') + '</span>' +
+        '<span class="opp-card-link">Ver detalhes ' + arrowSvg + '</span>' +
+      '</div>' +
+    '</div>' +
+  '</a>';
 }
 
 /* ─── RENDER PAGE ─── */
 function renderPage() {
   var opp = getOpp();
 
-  // Title and breadcrumb
   document.title = opp.title + ' — Radar Relevantia';
+
+  // Breadcrumb (topbar + secondary bar)
+  document.getElementById('topbarOppTitle').textContent = opp.title;
   document.getElementById('breadcrumbTitle').textContent = opp.title;
+
   document.getElementById('detailTitle').textContent = opp.title;
   document.getElementById('detailCategory').textContent = opp.category;
   document.getElementById('detailDesc').textContent = opp.desc;
@@ -829,19 +1144,9 @@ function renderPage() {
 
   // Gallery
   document.getElementById('galleryBadge').textContent = opp.category;
-  var imgs = opp.images || [];
-  var mainEl = document.getElementById('galleryMain');
-  if (imgs[0]) {
-    mainEl.innerHTML = '<img src="' + imgs[0] + '" alt="' + opp.title + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
-  } else {
-    mainEl.style.background = opp.gradient || '#1a1a2e';
-  }
-  var t1 = document.getElementById('galleryThumb1');
-  var t2 = document.getElementById('galleryThumb2');
-  if (imgs[1]) { t1.innerHTML = '<img src="' + imgs[1] + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">'; }
-  else { t1.style.background = (opp.thumbs && opp.thumbs[0]) || '#e0e0e0'; }
-  if (imgs[2]) { t2.innerHTML = '<img src="' + imgs[2] + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">'; }
-  else { t2.style.background = (opp.thumbs && opp.thumbs[1]) || '#d0d0d0'; }
+  document.getElementById('galleryMain').style.background = opp.gradient || '#1a1a2e';
+  document.getElementById('galleryThumb1').style.background = (opp.thumbs && opp.thumbs[0]) || '#e0d8cc';
+  document.getElementById('galleryThumb2').style.background = (opp.thumbs && opp.thumbs[1]) || '#d0c8b8';
 
   // Facts
   var factsHtml = '';
@@ -885,7 +1190,7 @@ function renderPage() {
   // Ativacoes
   var ativHtml = '';
   opp.ativacoes.forEach(function(a) {
-    ativHtml += '<div class="ativacao-card"><div class="ativacao-img">' + a.emoji + '</div><div class="ativacao-body"><div class="ativacao-name">' + a.name + '</div><div class="ativacao-desc">' + a.desc + '</div></div></div>';
+    ativHtml += '<div class="ativacao-card"><div class="ativacao-img">' + a.emoji + '</div><div><div class="ativacao-name">' + a.name + '</div><div class="ativacao-desc">' + a.desc + '</div></div></div>';
   });
   document.getElementById('ativacoesGrid').innerHTML = ativHtml;
 
@@ -896,23 +1201,12 @@ function renderPage() {
   });
   document.getElementById('canaisGrid').innerHTML = canaisHtml;
 
-  // Sidebar - Interest card
+  // Sidebar card
   document.getElementById('interestPrice').textContent = 'A partir de R$ ' + (opp.price/1000).toFixed(0) + 'k';
-  document.getElementById('hypeScore').textContent = opp.hype;
-  document.getElementById('hypeSub').textContent = opp.hypeSub;
-  document.getElementById('hypeBadge').textContent = opp.hypeBadge;
-
-  var metricsHtml = '';
-  metricsHtml += '<div class="sidebar-metric"><div class="sidebar-metric-label">Alcance</div><div class="sidebar-metric-val">' + opp.metrics.alcance + '</div><div class="sidebar-metric-change up">+12%</div></div>';
-  metricsHtml += '<div class="sidebar-metric"><div class="sidebar-metric-label">Mencoes</div><div class="sidebar-metric-val">' + opp.metrics.mencoes + '</div><div class="sidebar-metric-change up">+121%</div></div>';
-  metricsHtml += '<div class="sidebar-metric"><div class="sidebar-metric-label">Score</div><div class="sidebar-metric-val">' + opp.metrics.score + '</div><div class="sidebar-metric-change up">+5pts</div></div>';
-  metricsHtml += '<div class="sidebar-metric"><div class="sidebar-metric-label">Fit</div><div class="sidebar-metric-val">' + opp.metrics.fit + '</div><div class="sidebar-metric-change up">Excelente</div></div>';
-  document.getElementById('sidebarMetrics').innerHTML = metricsHtml;
-
   var infoHtml = '';
   infoHtml += '<div class="interest-row"><span class="interest-row-label">Evento</span><span class="interest-row-value">' + opp.sidebar.evento + '</span></div>';
   infoHtml += '<div class="interest-row"><span class="interest-row-label">Prazo de proposta</span><span class="interest-row-value deadline">' + opp.sidebar.prazo + '</span></div>';
-  infoHtml += '<div class="interest-row"><span class="interest-row-label">Cotas disponiveis</span><span class="interest-row-value">' + opp.sidebar.cotasQty + '</span></div>';
+  infoHtml += '<div class="interest-row"><span class="interest-row-label">Cotas disponíveis</span><span class="interest-row-value">' + opp.sidebar.cotasQty + '</span></div>';
   infoHtml += '<div class="interest-row"><span class="interest-row-label">Formato</span><span class="interest-row-value">' + opp.sidebar.formato + '</span></div>';
   infoHtml += '<div class="interest-row"><span class="interest-row-label">Participantes</span><span class="interest-row-value">' + opp.sidebar.participantes + '</span></div>';
   document.getElementById('interestInfo').innerHTML = infoHtml;
@@ -924,56 +1218,46 @@ function renderPage() {
   });
   document.getElementById('modalCotaSelect').innerHTML = cotaSelectHtml;
 
-  // Similar opportunities (show 3 random from different IDs)
-  var similarIds = [];
-  for (var s = 1; s <= 10; s++) { if (s !== opp.id) similarIds.push(s); }
-  similarIds.sort(function() { return 0.5 - Math.random(); });
-  similarIds = similarIds.slice(0, 3);
-
-  var simHtml = '';
-  var catGrads = {
-    'Esporte': 'linear-gradient(135deg,#1a472a,#2d6a3f)',
-    'Musica': 'linear-gradient(135deg,#3b1054,#6b21a8)',
-    'Tecnologia': 'linear-gradient(135deg,#0c2461,#1e40af)',
-    'Cultura': 'linear-gradient(135deg,#7c2d12,#c2410c)',
-    'Midia Digital': 'linear-gradient(135deg,#0e4a6e,#0284c7)'
-  };
-  var catEmojis = { 'Esporte': '⚽', 'Musica': '🎵', 'Tecnologia': '💻', 'Cultura': '🎨', 'Midia Digital': '📡' };
-  var basicList = [
-    null,
-    { title: 'Maratona Internacional de SP', cat: 'Esporte', price: 50 },
-    { title: 'Festival de Verao Salvador', cat: 'Musica', price: 80 },
-    { title: 'Expo Tech Brasil', cat: 'Tecnologia', price: 35 },
-    { title: 'Campeonato de Surf Floripa', cat: 'Esporte', price: 25 },
-    { title: 'Podcast Tech Daily', cat: 'Midia Digital', price: 15 },
-    { title: 'Arena Music Curitiba', cat: 'Musica', price: 60 },
-    { title: 'Mostra Cultural Recife', cat: 'Cultura', price: 40 },
-    { title: 'Liga Brasileira de eSports', cat: 'Tecnologia', price: 70 },
-    { title: 'Corrida de Rua BH', cat: 'Esporte', price: 20 },
-    { title: 'Feira Gastronomica SP', cat: 'Cultura', price: 30 }
-  ];
-
-  similarIds.forEach(function(sid) {
-    var si = basicList[sid];
-    var grad = catGrads[si.cat] || catGrads['Cultura'];
-    var emoji = catEmojis[si.cat] || '🎯';
-    simHtml += '<a href="oportunidade-detalhe.html?id=' + sid + '" class="similar-card">';
-    simHtml += '<div class="similar-card-img" style="background:' + grad + ';font-size:44px;display:flex;align-items:center;justify-content:center">' + emoji + '</div>';
-    simHtml += '<div class="similar-card-body">';
-    simHtml += '<div class="similar-card-cat">' + si.cat + '</div>';
-    simHtml += '<div class="similar-card-title">' + si.title + '</div>';
-    simHtml += '<div class="similar-card-meta">A partir de R$ ' + si.price + 'k</div>';
-    simHtml += '</div></a>';
-  });
-  document.getElementById('similarGrid').innerHTML = simHtml;
-
-  // Re-attach cota click handlers
+  // Cota click handlers
   document.querySelectorAll('.cota-card').forEach(function(card) {
     card.addEventListener('click', function() {
       document.querySelectorAll('.cota-card').forEach(function(c) { c.classList.remove('selected'); });
       this.classList.add('selected');
     });
   });
+
+  // Owner section
+  var orgId = opp.orgId || 'marathon-sp';
+  var org = ORGS[orgId] || ORGS['marathon-sp'];
+
+  document.getElementById('ownerCard').innerHTML =
+    '<div class="owner-avatar">' + org.initials + '</div>' +
+    '<div class="owner-info">' +
+      '<div class="owner-name">' + org.name + '</div>' +
+      '<div class="owner-bio">' + org.bio + '</div>' +
+      '<div class="owner-stats">' +
+        '<div class="owner-stat"><div class="owner-stat-val">' + org.events + '</div><div class="owner-stat-label">Oportunidades</div></div>' +
+        '<div class="owner-stat-sep"></div>' +
+        '<div class="owner-stat"><div class="owner-stat-val">' + org.founded + '</div><div class="owner-stat-label">Desde</div></div>' +
+        '<div class="owner-stat-sep"></div>' +
+        '<div class="owner-stat"><div class="owner-stat-val">' + org.category + '</div><div class="owner-stat-label">Categoria</div></div>' +
+        '<div class="owner-stat-sep"></div>' +
+        '<div class="owner-stat"><div class="owner-stat-val">' + org.location + '</div><div class="owner-stat-label">Localização</div></div>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('ownerOppsTitle').textContent = 'Outras oportunidades de ' + org.name;
+  var ownerOppsHtml = '';
+  org.otherOpps.forEach(function(sid) { ownerOppsHtml += buildOppCard(getOppById(sid)); });
+  document.getElementById('ownerOppsGrid').innerHTML = ownerOppsHtml;
+
+  // Similar
+  var allIds = [];
+  for (var s = 1; s <= 10; s++) { if (s !== opp.id) allIds.push(s); }
+  allIds.sort(function() { return 0.5 - Math.random(); });
+  var simHtml = '';
+  allIds.slice(0, 3).forEach(function(sid) { simHtml += buildOppCard(getOppById(sid)); });
+  document.getElementById('similarGrid').innerHTML = simHtml;
 }
 
 /* ─── TABS ─── */
@@ -1002,35 +1286,24 @@ function submitModal() {
   setTimeout(closeModal, 3000);
 }
 
-/* ─── HAMBURGER ─── */
-var hamburgerBtn = document.getElementById('hamburgerBtn');
-var mobileOverlay = document.getElementById('mobileOverlay');
-var mobileNav = document.getElementById('mobileNav');
-var mobileClose = document.getElementById('mobileClose');
-
-if (hamburgerBtn) {
-  hamburgerBtn.addEventListener('click', function() {
-    mobileOverlay.classList.add('open');
-    mobileNav.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  });
+/* ─── SIDEBAR MOBILE ─── */
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
-if (mobileClose) {
-  mobileClose.addEventListener('click', closeMobile);
-}
-if (mobileOverlay) {
-  mobileOverlay.addEventListener('click', function(e) {
-    if (e.target === mobileOverlay) closeMobile();
-  });
-}
-function closeMobile() {
-  mobileOverlay.classList.remove('open');
-  mobileNav.classList.remove('open');
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
   document.body.style.overflow = '';
 }
 
 /* ─── INIT ─── */
 renderPage();
+setTimeout(function() {
+  var ls = document.getElementById('loadingScreen');
+  if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.3s'; setTimeout(function(){ ls.style.display = 'none'; }, 300); }
+}, 400);
 </script>
 </body>
 </html>
