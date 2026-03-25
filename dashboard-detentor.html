@@ -5,23 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portal do Detentor — Radar Relevantia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --gold: #C9A43A;
-  --gold-light: #E8C96A;
+  --gold: #B8860B;
+  --gold-gradient: linear-gradient(135deg, #B8860B, #C8A84B);
+  --gold-light: #C8A84B;
   --gold-pale: #FBF5E6;
-  --black: #0E0E0E;
-  --black-2: #1A1A1A;
+  --black: #1A1200;
+  --black-2: #2A2200;
   --white: #FFFFFF;
-  --gray-100: #F7F7F7;
-  --gray-200: #EBEBEB;
-  --gray-300: #DDDDDD;
-  --gray-400: #9A9A9A;
-  --gray-500: #717171;
-  --gray-600: #4A4A4A;
-  --text: #1A1A1A;
+  --white-warm: #FFFDF7;
+  --gray-body: #FAF8F5;
+  --gray-1: #F5F0E8;
+  --gray-2: #E0D8CC;
+  --gray-3: #A89880;
+  --gray-4: #5C4C38;
+  --gray-100: #F5F0E8;
+  --gray-200: #E0D8CC;
+  --gray-300: #C8BCA8;
+  --gray-400: #A89880;
+  --gray-500: #7A6A58;
+  --gray-600: #5C4C38;
+  --font-heading: 'Poppins', sans-serif;
+  --font-italic: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --italic-color: #7A5C1E;
+  --text: #1A1200;
   --green: #22C55E;
   --green-bg: rgba(34,197,94,0.08);
   --green-border: rgba(34,197,94,0.2);
@@ -46,9 +57,27 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
   background: var(--black);
 }
-.ld-spinner { width: 28px; height: 28px; border: 2.5px solid rgba(201,164,58,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+.ld-spinner { width: 28px; height: 28px; border: 2.5px solid rgba(184,134,11,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .ld-text { font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.06em; }
+
+/* ─── SIDEBAR RADAR ANIMATION ─── */
+@keyframes sb-sweep {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes sb-dot1 {
+  0%, 100% { opacity: 0.06; }
+  28%, 48% { opacity: 1; }
+}
+@keyframes sb-dot2 {
+  0%, 100% { opacity: 0.06; }
+  48%, 66% { opacity: 1; }
+}
+@keyframes sb-dot3 {
+  0%, 100% { opacity: 0.06; }
+  66%, 80% { opacity: 1; }
+}
 
 /* ─── SIDEBAR ─── */
 .sidebar {
@@ -62,13 +91,13 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   display: flex; flex-direction: column; align-items: center; gap: 4px;
 }
 .sidebar-logo-title {
-  font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; line-height: 1.3; text-align: center;
+  font-family: var(--font-heading); font-size: 16px; font-weight: 700; line-height: 1.3; text-align: center;
 }
 .sidebar-logo-title .t-white { color: var(--white); }
 .sidebar-logo-title .t-gold { color: var(--gold); font-style: italic; font-weight: 400; }
 .sidebar-portal-badge {
   display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(201,164,58,0.12); border: 1px solid rgba(201,164,58,0.25);
+  background: rgba(184,134,11,0.12); border: 1px solid rgba(184,134,11,0.25);
   border-radius: 100px; padding: 3px 10px;
   font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold);
   margin-top: 6px;
@@ -92,7 +121,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   color: rgba(255,255,255,0.4); font-size: 13.5px; font-weight: 500; position: relative;
 }
 .nav-item:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
-.nav-item.active { color: var(--white); background: rgba(201,164,58,0.12); font-weight: 600; }
+.nav-item.active { color: var(--white); background: rgba(184,134,11,0.12); font-weight: 600; }
 .nav-item.active::before {
   content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
   border-radius: 0 3px 3px 0; background: var(--gold);
@@ -100,7 +129,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.5; }
 .nav-item.active svg { opacity: 1; color: var(--gold); }
 .nav-badge {
-  margin-left: auto; background: rgba(201,164,58,0.2); color: var(--gold);
+  margin-left: auto; background: rgba(184,134,11,0.2); color: var(--gold);
   font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 100px;
 }
 
@@ -152,13 +181,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 /* ─── PAGE HEADER ─── */
 .page-header { margin-bottom: 28px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .page-header-left { flex: 1; }
-.page-eyebrow {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
-}
-.eyebrow-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); animation: pulse 2s ease infinite; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 600; color: var(--black); letter-spacing: -0.025em; line-height: 1.15; }
-.page-title em { font-style: italic; font-weight: 400; color: var(--gold); }
+.page-title { font-family: var(--font-heading); font-size: 28px; font-weight: 600; color: var(--black); letter-spacing: -0.025em; line-height: 1.15; }
+.page-title em { font-family: var(--font-heading); font-style: normal; font-weight: 600; color: inherit; }
 .page-subtitle { font-size: 14px; color: var(--gray-500); margin-top: 6px; line-height: 1.5; }
 
 /* ─── SECTIONS ─── */
@@ -173,10 +197,10 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   padding: 22px; display: flex; flex-direction: column; gap: 10px;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
-.kpi-card:hover { border-color: rgba(201,164,58,0.25); box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+.kpi-card:hover { border-color: rgba(184,134,11,0.25); box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
 .kpi-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 .kpi-icon svg { width: 18px; height: 18px; }
-.kpi-icon.gold { background: rgba(201,164,58,0.1); color: var(--gold); }
+.kpi-icon.gold { background: rgba(184,134,11,0.1); color: var(--gold); }
 .kpi-icon.green { background: var(--green-bg); color: var(--green); }
 .kpi-icon.blue { background: var(--blue-bg); color: var(--blue); }
 .kpi-value { font-size: 32px; font-weight: 700; color: var(--text); line-height: 1; }
@@ -188,8 +212,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   padding: 24px; margin-bottom: 20px;
 }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-.card-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: var(--text); }
-.card-title em { font-style: italic; color: var(--gold); }
+.card-title { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--text); }
+.card-title em { font-family: var(--font-heading); font-style: normal; font-weight: 600; color: inherit; }
 
 /* ─── BUTTONS ─── */
 .btn {
@@ -197,8 +221,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; border: none;
   transition: all 0.2s; white-space: nowrap; text-decoration: none;
 }
-.btn-gold { background: var(--gold); color: var(--black); }
-.btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); }
+.btn-gold { background: #503A00; color: #FFFFFF; }
+.btn-gold:hover { background: var(--gold-gradient); color: #FFFFFF; transform: translateY(-1px); }
 .btn-black { background: var(--black); color: var(--white); }
 .btn-black:hover { background: var(--gold); color: var(--black); }
 .btn-ghost { background: transparent; border: 1px solid rgba(0,0,0,0.1); color: var(--gray-500); }
@@ -217,7 +241,7 @@ thead th {
 }
 tbody td { padding: 14px; border-bottom: 1px solid rgba(0,0,0,0.04); vertical-align: middle; }
 tbody tr { transition: background 0.15s; }
-tbody tr:hover { background: rgba(201,164,58,0.02); }
+tbody tr:hover { background: rgba(184,134,11,0.02); }
 tbody tr:last-child td { border-bottom: none; }
 
 /* ─── BADGES ─── */
@@ -229,14 +253,14 @@ tbody tr:last-child td { border-bottom: none; }
 .badge-orange { background: var(--orange-bg); color: #92400E; border: 1px solid var(--orange-border); }
 .badge-gray { background: rgba(0,0,0,0.04); color: var(--gray-500); border: 1px solid rgba(0,0,0,0.08); }
 .badge-blue { background: var(--blue-bg); color: #1E40AF; border: 1px solid var(--blue-border); }
-.badge-gold { background: rgba(201,164,58,0.1); color: #8B6914; border: 1px solid rgba(201,164,58,0.2); }
+.badge-gold { background: rgba(184,134,11,0.1); color: var(--gold); border: 1px solid rgba(184,134,11,0.2); }
 
 /* ─── EMPTY STATE ─── */
 .empty-state {
   text-align: center; padding: 48px 24px;
 }
 .empty-state-icon { font-size: 40px; margin-bottom: 16px; opacity: 0.3; }
-.empty-state-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.empty-state-title { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
 .empty-state-text { font-size: 14px; color: var(--gray-400); margin-bottom: 20px; line-height: 1.5; }
 
 /* ─── FORMS ─── */
@@ -249,7 +273,7 @@ tbody tr:last-child td { border-bottom: none; }
   font-size: 14px; font-family: inherit; color: var(--text); background: var(--white);
   outline: none; transition: border-color 0.2s, box-shadow 0.2s;
 }
-.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,164,58,0.1); }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,134,11,0.1); }
 .form-input::placeholder, .form-textarea::placeholder { color: var(--gray-400); }
 .form-input:disabled, .form-select:disabled, .form-textarea:disabled { background: var(--gray-100); color: var(--gray-400); cursor: not-allowed; }
 .form-textarea { resize: vertical; min-height: 80px; }
@@ -268,7 +292,7 @@ tbody tr:last-child td { border-bottom: none; }
   width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
   justify-content: center; flex-shrink: 0; font-size: 14px;
 }
-.tl-dot.gold { background: rgba(201,164,58,0.12); }
+.tl-dot.gold { background: rgba(184,134,11,0.12); }
 .tl-dot.green { background: var(--green-bg); }
 .tl-body { flex: 1; }
 .tl-text { font-size: 13px; color: var(--text); line-height: 1.5; }
@@ -319,7 +343,13 @@ tbody tr:last-child td { border-bottom: none; }
   .form-grid { grid-template-columns: 1fr; }
   .bottom-nav { display: flex; }
   .page-title { font-size: 22px; }
-  .page-header { flex-direction: column; }
+  .page-header { flex-direction: row; align-items: center; flex-wrap: wrap; }
+  .page-header-left { flex: 1; min-width: 0; }
+  .page-header-left .page-subtitle { display: none; }
+  .page-subtitle-mobile { display: block !important; }
+  .page-header .btn-gold { flex-shrink: 0; }
+  .table-wrap { margin: 0 -16px; padding: 0 16px; }
+  .form-textarea { max-height: 120px; overflow-y: auto; }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -341,8 +371,55 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="sidebar-logo-title">
-      <span class="t-white">Radar</span> <span class="t-gold">Relevantia</span>
+    <!-- Radar + Wordmark lado a lado, alinhados pelo centro -->
+    <div style="display:flex;flex-direction:row;align-items:center;gap:8px;justify-content:center">
+      <svg width="52" height="52" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sb-base" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#6b5a14"/>
+            <stop offset="20%" stop-color="#504510"/>
+            <stop offset="40%" stop-color="#3a340c"/>
+            <stop offset="60%" stop-color="#282208"/>
+            <stop offset="80%" stop-color="#181404"/>
+            <stop offset="100%" stop-color="#0a0802"/>
+          </radialGradient>
+          <linearGradient id="sb-swG" x1="0.5" y1="0" x2="0" y2="0.5">
+            <stop offset="0%" stop-color="#c8a428" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#c8a428" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="sb-dc"><circle cx="140" cy="140" r="118"/></clipPath>
+        </defs>
+        <circle cx="140" cy="140" r="121" fill="#060502"/>
+        <circle cx="140" cy="140" r="118" fill="url(#sb-base)"/>
+        <g clip-path="url(#sb-dc)">
+          <circle cx="140" cy="140" r="116" fill="none" stroke="#9a8828" stroke-width="0.5" opacity="0.55"/>
+          <circle cx="140" cy="140" r="100" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.50"/>
+          <circle cx="140" cy="140" r="80" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.50"/>
+          <circle cx="140" cy="140" r="60" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.52"/>
+          <circle cx="140" cy="140" r="40" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.55"/>
+          <circle cx="140" cy="140" r="20" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.60"/>
+        </g>
+        <circle cx="140" cy="140" r="118" fill="none" stroke="#b89824" stroke-width="1.6" opacity="0.65"/>
+        <circle cx="140" cy="140" r="103" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.55"/>
+        <circle cx="140" cy="140" r="80" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.50"/>
+        <circle cx="140" cy="140" r="52" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.45"/>
+        <circle cx="140" cy="140" r="26" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.42"/>
+        <line x1="140" y1="22" x2="140" y2="258" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+        <line x1="22" y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+        <g clip-path="url(#sb-dc)">
+          <g style="transform-origin:140px 140px;animation:sb-sweep 5s linear infinite">
+            <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#sb-swG)"/>
+            <path d="M140 140 L190 28 A118 118 0 0 0 140 22 Z" fill="#c8a428" opacity="0.16"/>
+            <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
+          </g>
+        </g>
+        <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6" opacity="0.7"/>
+        <circle cx="190" cy="72" r="5" fill="#d8c890" style="animation:sb-dot1 5s linear infinite"/>
+        <circle cx="82" cy="170" r="5" fill="#d8c890" style="animation:sb-dot2 5s linear infinite"/>
+        <circle cx="222" cy="195" r="5" fill="#d8c890" style="animation:sb-dot3 5s linear infinite"/>
+      </svg>
+      <!-- Wordmark -->
+      <img src="logos/5.png" alt="Radar Relevantia" style="width:100px;display:block">
     </div>
     <div class="sidebar-portal-badge">
       <span class="portal-badge-dot"></span> Portal Detentor
@@ -409,15 +486,15 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="section active" id="sec-dashboard">
       <div class="page-header">
         <div class="page-header-left">
-          <div class="page-eyebrow"><span class="eyebrow-dot"></span> Portal Detentor</div>
           <h1 class="page-title">Olá, <em id="welcomeName">Isaac</em></h1>
-          <p class="page-subtitle">Gerencie suas oportunidades de patrocínio e naming rights</p>
+          <p class="page-subtitle">Visão geral da sua conta</p>
         </div>
         <a href="criar-oportunidade.html" class="btn btn-gold">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           Nova oportunidade
         </a>
       </div>
+      <p class="page-subtitle-mobile" style="display:none;font-size:14px;color:var(--gray-500);margin-top:6px;margin-bottom:28px;line-height:1.5">Visão geral da sua conta</p>
 
       <!-- KPIs -->
       <div class="kpi-grid">
@@ -447,7 +524,7 @@ tbody tr:last-child td { border-bottom: none; }
       <!-- Atividade recente -->
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Atividade <em>recente</em></div>
+          <div class="card-title">Atividade recente</div>
         </div>
         <div class="timeline">
           <div class="tl-item">
@@ -479,15 +556,15 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="section" id="sec-oportunidades">
       <div class="page-header">
         <div class="page-header-left">
-          <div class="page-eyebrow"><span class="eyebrow-dot"></span> Oportunidades</div>
-          <h1 class="page-title">Minhas <em>Oportunidades</em></h1>
-          <p class="page-subtitle">Gerencie as oportunidades que você publicou na plataforma</p>
+          <h1 class="page-title">Minhas Oportunidades</h1>
+          <p class="page-subtitle">Publique e acompanhe seus ativos</p>
         </div>
         <a href="criar-oportunidade.html" class="btn btn-gold">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           Criar oportunidade
         </a>
       </div>
+      <p class="page-subtitle-mobile" style="display:none;font-size:14px;color:var(--gray-500);margin-top:6px;margin-bottom:28px;line-height:1.5">Publique e acompanhe seus ativos</p>
 
       <div class="card">
         <div class="table-wrap">
@@ -537,15 +614,14 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="section" id="sec-empresa">
       <div class="page-header">
         <div class="page-header-left">
-          <div class="page-eyebrow"><span class="eyebrow-dot"></span> Configurações</div>
-          <h1 class="page-title">Minha <em>Empresa</em></h1>
+          <h1 class="page-title">Minha Empresa</h1>
           <p class="page-subtitle">Informações da sua organização na plataforma</p>
         </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Dados da <em>empresa</em></div>
+          <div class="card-title">Dados da empresa</div>
           <button class="btn btn-ghost btn-sm" id="btnEditEmpresa" onclick="toggleEditEmpresa()">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
             Editar
@@ -600,15 +676,14 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="section" id="sec-perfil">
       <div class="page-header">
         <div class="page-header-left">
-          <div class="page-eyebrow"><span class="eyebrow-dot"></span> Configurações</div>
-          <h1 class="page-title">Meu <em>Perfil</em></h1>
+          <h1 class="page-title">Meu Perfil</h1>
           <p class="page-subtitle">Suas informações pessoais e preferências da conta</p>
         </div>
       </div>
 
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Dados <em>pessoais</em></div>
+          <div class="card-title">Dados pessoais</div>
           <button class="btn btn-ghost btn-sm" id="btnEditPerfil" onclick="toggleEditPerfil()">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
             Editar

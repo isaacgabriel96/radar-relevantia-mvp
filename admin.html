@@ -4,15 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Radar Relevantia</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --gold: #C9A43A; --gold-light: #E8C96A; --gold-pale: #FBF5E6;
-  --black: #0E0E0E; --black-2: #1A1A1A; --white: #FFFFFF;
-  --gray-1: #F7F7F7; --gray-2: #EBEBEB; --gray-3: #DDDDDD;
-  --gray-5: #717171; --text: #1A1A1A;
+  --gold: #B8860B; --gold-gradient: linear-gradient(135deg, #B8860B, #C8A84B); --gold-light: #C8A84B; --gold-pale: #FBF5E6;
+  --black: #1A1200; --black-2: #1A1200; --white: #FFFFFF; --white-warm: #FFFDF7;
+  --gray-body: #FAF8F5; --gray-1: #F5F0E8; --gray-2: #E0D8CC; --gray-3: #DDDDDD;
+  --gray-5: #717171; --text: #1A1200;
   --green: #10B981; --red: #EF4444; --blue: #3B82F6;
+  --font-heading: 'Poppins', sans-serif; --font-body: 'DM Sans', sans-serif;
   --sidebar-w: 240px;
 }
 html { scroll-behavior: smooth; }
@@ -161,7 +162,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-1); color: var
 
 /* Page Header */
 .page-header { margin-bottom: 28px; }
-.page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
+.page-title { font-family: var(--font-heading); font-size: 26px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
 .page-sub { font-size: 13px; color: var(--gray-5); }
 
 /* =========================================================
@@ -169,7 +170,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-1); color: var
    ========================================================= */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
 .stat-card {
-  background: var(--white); border: 1px solid var(--gray-2); border-radius: 14px;
+  background: var(--white); border: 1px solid var(--gray-2); border-radius: 16px;
   padding: 20px 22px;
 }
 .stat-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-5); margin-bottom: 8px; }
@@ -182,7 +183,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-1); color: var
    TABLE
    ========================================================= */
 .table-card {
-  background: var(--white); border: 1px solid var(--gray-2); border-radius: 14px;
+  background: var(--white); border: 1px solid var(--gray-2); border-radius: 16px;
   overflow: hidden; margin-bottom: 24px;
 }
 .table-header {
@@ -341,7 +342,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
   font-size: 20px; font-weight: 700; color: #7A6020; flex-shrink: 0;
 }
 .modal-profile-info { flex: 1; }
-.modal-profile-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
+.modal-profile-name { font-family: var(--font-heading); font-size: 20px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
 .modal-profile-meta { font-size: 13px; color: var(--gray-5); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .modal-section-title {
   font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
@@ -860,28 +861,14 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
             <div class="page-card">
               <div class="page-card-top">
                 <div>
-                  <div class="page-card-name">Criar Oportunidade v1</div>
+                  <div class="page-card-name">Criar Oportunidade</div>
                   <div class="page-card-file">criar-oportunidade.html</div>
                 </div>
                 <div class="page-status-dot exists" title="Página existe"></div>
               </div>
-              <div class="page-card-desc">Formulário de publicação de ativo de patrocínio (v1).</div>
+              <div class="page-card-desc">Formulário de publicação de ativo de patrocínio (v3 — versão atual).</div>
               <div class="page-card-actions">
                 <a href="criar-oportunidade.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
-                <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Criar Oportunidade v2</div>
-                  <div class="page-card-file">criar-oportunidade-v2.html</div>
-                </div>
-                <div class="page-status-dot exists" title="Página existe"></div>
-              </div>
-              <div class="page-card-desc">Versão 2 do formulário de criação de oportunidade.</div>
-              <div class="page-card-actions">
-                <a href="criar-oportunidade-v2.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
                 <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
               </div>
             </div>
