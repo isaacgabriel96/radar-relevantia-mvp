@@ -371,9 +371,9 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <!-- Radar animado -->
-    <div style="width:72px;height:72px;display:flex;align-items:center;justify-content:center">
-      <svg width="72" height="72" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+    <!-- Radar + Wordmark lado a lado, alinhados pelo bottom -->
+    <div style="display:flex;flex-direction:row;align-items:flex-end;gap:8px;justify-content:center">
+      <svg width="52" height="52" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <radialGradient id="sb-base" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stop-color="#6b5a14"/>
@@ -418,9 +418,9 @@ tbody tr:last-child td { border-bottom: none; }
         <circle cx="82" cy="170" r="5" fill="#d8c890" style="animation:sb-dot2 5s linear infinite"/>
         <circle cx="222" cy="195" r="5" fill="#d8c890" style="animation:sb-dot3 5s linear infinite"/>
       </svg>
+      <!-- Wordmark -->
+      <img src="logos/5.png" alt="Radar Relevantia" style="width:100px;display:block">
     </div>
-    <!-- Wordmark -->
-    <img src="logos/5.png" alt="Radar Relevantia" style="width:110px;margin-top:6px;display:block">
     <div class="sidebar-portal-badge">
       <span class="portal-badge-dot"></span> Portal Detentor
     </div>
