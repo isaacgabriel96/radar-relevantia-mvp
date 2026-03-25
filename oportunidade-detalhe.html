@@ -396,9 +396,9 @@ a { text-decoration: none; color: inherit; }
 
 <!-- ══ BREADCRUMB ══ -->
 <div class="detail-back-bar">
-  <a href="oportunidades.html" class="back-btn">
+  <a href="dashboard-marca.html#oportunidades" class="back-btn" id="backBtn">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    Oportunidades
+    Explorar Oportunidades
   </a>
   <span class="breadcrumb-sep">/</span>
   <span class="breadcrumb-curr" id="breadcrumbTitle">Carregando...</span>
@@ -828,11 +828,20 @@ function renderPage() {
   document.getElementById('detailMeta').innerHTML = metaHtml;
 
   // Gallery
-  document.getElementById('galleryMain').style.background = opp.gradient;
-  document.getElementById('galleryMain').style.fontSize = '80px';
   document.getElementById('galleryBadge').textContent = opp.category;
-  document.getElementById('galleryThumb1').style.background = opp.thumbs[0];
-  document.getElementById('galleryThumb2').style.background = opp.thumbs[1];
+  var imgs = opp.images || [];
+  var mainEl = document.getElementById('galleryMain');
+  if (imgs[0]) {
+    mainEl.innerHTML = '<img src="' + imgs[0] + '" alt="' + opp.title + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
+  } else {
+    mainEl.style.background = opp.gradient || '#1a1a2e';
+  }
+  var t1 = document.getElementById('galleryThumb1');
+  var t2 = document.getElementById('galleryThumb2');
+  if (imgs[1]) { t1.innerHTML = '<img src="' + imgs[1] + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">'; }
+  else { t1.style.background = (opp.thumbs && opp.thumbs[0]) || '#e0e0e0'; }
+  if (imgs[2]) { t2.innerHTML = '<img src="' + imgs[2] + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">'; }
+  else { t2.style.background = (opp.thumbs && opp.thumbs[1]) || '#d0d0d0'; }
 
   // Facts
   var factsHtml = '';

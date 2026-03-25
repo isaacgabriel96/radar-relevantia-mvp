@@ -308,21 +308,50 @@ tbody tr:last-child td { border-bottom: none; }
 .filter-bar .form-input { flex: 1; min-width: 200px; }
 .filter-bar .form-select { min-width: 160px; }
 
+/* ─── OPP GRID + CARD VISUAL ─── */
 .opp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .opp-card {
-  background: var(--white); border: 1px solid rgba(0,0,0,0.06); border-radius: 16px;
-  padding: 24px; display: flex; flex-direction: column; gap: 14px;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+  background: var(--white); border: 1px solid rgba(26,18,0,0.07); border-radius: 16px;
+  display: flex; flex-direction: column; overflow: hidden; cursor: pointer;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  text-decoration: none; color: inherit;
 }
-.opp-card:hover { border-color: rgba(184,134,11,0.25); box-shadow: 0 8px 30px rgba(0,0,0,0.06); transform: translateY(-2px); }
-.opp-card-badge { align-self: flex-start; }
-.opp-card-title { font-family: var(--font-heading); font-size: 17px; font-weight: 600; color: var(--text); line-height: 1.3; }
-.opp-card-desc { font-size: 13px; color: var(--gray-500); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.opp-card-meta { display: flex; flex-direction: column; gap: 6px; }
-.opp-card-meta-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-400); }
-.opp-card-meta-row svg { width: 14px; height: 14px; flex-shrink: 0; }
-.opp-card-price { font-size: 14px; font-weight: 700; color: var(--gold); }
-.opp-card-footer { margin-top: auto; padding-top: 4px; }
+.opp-card:hover { border-color: rgba(184,134,11,0.28); box-shadow: 0 4px 20px rgba(184,134,11,0.08), 0 1px 4px rgba(0,0,0,0.04); transform: translateY(-2px); }
+.opp-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gold-gradient); opacity: 0; transition: opacity 0.22s; border-radius: 16px 16px 0 0; }
+.opp-card { position: relative; }
+.opp-card:hover::before { opacity: 1; }
+
+/* Hero carrossel interno */
+.olc-hero { position: relative; width: 100%; height: 220px; overflow: hidden; flex-shrink: 0; }
+.olc-hero-track { display: flex; height: 100%; transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+.olc-hero-slide { flex-shrink: 0; width: 100%; height: 100%; }
+.olc-hero-slide img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; user-select: none; }
+.olc-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.22) 100%); pointer-events: none; z-index: 1; }
+.olc-hero-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 4; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.88); backdrop-filter: blur(8px); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.18s, background 0.18s; pointer-events: none; }
+.olc-hero-nav svg { width: 12px; height: 12px; color: var(--black); }
+.olc-hero-nav.prev { left: 8px; }
+.olc-hero-nav.next { right: 8px; }
+.olc-hero:hover .olc-hero-nav { opacity: 1; pointer-events: auto; }
+.olc-hero-nav:hover { background: rgba(255,255,255,1); }
+.olc-hero-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 4; }
+.olc-hero-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: background 0.22s, transform 0.22s; cursor: pointer; border: none; padding: 0; flex-shrink: 0; }
+.olc-hero-dot.active { background: rgba(255,255,255,0.95); transform: scale(1.3); }
+.olc-hero-tag { position: absolute; top: 12px; right: 12px; z-index: 3; background: rgba(255,255,255,0.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.28); border-radius: 100px; padding: 4px 11px; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.95); letter-spacing: 0.01em; }
+.olc-hero-count { position: absolute; top: 10px; left: 10px; z-index: 3; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border-radius: 100px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 4px; }
+.olc-hero-count svg { width: 10px; height: 10px; }
+
+/* Corpo do card */
+.opp-card-body { padding: 20px 20px 18px; display: flex; flex-direction: column; flex: 1; gap: 0; }
+.opp-card-title { font-family: var(--font-heading); font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.3; margin-bottom: 8px; }
+.opp-card-desc { font-size: 13px; color: var(--gray-500); line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; flex: 1; margin-bottom: 16px; }
+.opp-card-divider { height: 1px; background: rgba(26,18,0,0.06); margin-bottom: 14px; }
+.opp-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.olc-brand-row { display: flex; align-items: center; gap: 7px; }
+.olc-logo { width: 26px; height: 26px; border-radius: 7px; background: var(--gray-1); border: 1px solid rgba(26,18,0,0.07); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: var(--gray-600); flex-shrink: 0; }
+.olc-brand-name { font-size: 12px; font-weight: 600; color: var(--gray-500); }
+.olc-arrow-btn { width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(26,18,0,0.1); background: transparent; display: flex; align-items: center; justify-content: center; color: var(--gray-400); transition: all 0.18s; flex-shrink: 0; }
+.opp-card:hover .olc-arrow-btn { border-color: var(--gold); color: var(--gold); background: rgba(184,134,11,0.06); }
+.olc-arrow-btn svg { width: 13px; height: 13px; }
 
 /* ─── SUMMARY CARD ─── */
 .summary-grid {
@@ -378,6 +407,7 @@ tbody tr:last-child td { border-bottom: none; }
   .form-grid { grid-template-columns: 1fr; }
   .two-col { grid-template-columns: 1fr; }
   .opp-grid { grid-template-columns: 1fr; }
+  .olc-hero { height: 180px; }
   .summary-grid { grid-template-columns: 1fr 1fr; }
   .bottom-nav { display: flex; }
   .page-title { font-size: 22px; }
@@ -926,7 +956,14 @@ const MOCK_OPPORTUNITIES = [
     city: 'São Paulo',
     date: 'Jan 2027',
     price: 'R$ 50.000',
-    desc: 'Patrocínio oficial da maior maratona da América Latina. Visibilidade para mais de 35.000 corredores e 500.000 espectadores.'
+    desc: 'Patrocínio oficial da maior maratona da América Latina. Visibilidade para mais de 35.000 corredores e 500.000 espectadores.',
+    organizador: 'SP Marathon Club',
+    orgInitials: 'SP',
+    images: [
+      'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=800&q=80',
+      'https://images.unsplash.com/photo-1461897104016-0b3b00cc81ee?w=800&q=80',
+      'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80'
+    ]
   },
   {
     id: 2,
@@ -936,7 +973,14 @@ const MOCK_OPPORTUNITIES = [
     city: 'Salvador',
     date: 'Fev 2027',
     price: 'R$ 80.000',
-    desc: 'Festival de música com alcance nacional, palcos temáticos e ativações de marca imersivas no litoral baiano.'
+    desc: 'Festival de música com alcance nacional, palcos temáticos e ativações de marca imersivas no litoral baiano.',
+    organizador: 'Verão Produções',
+    orgInitials: 'VP',
+    images: [
+      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
+      'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80',
+      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80'
+    ]
   },
   {
     id: 3,
@@ -946,7 +990,14 @@ const MOCK_OPPORTUNITIES = [
     city: 'São Paulo',
     date: 'Mar 2027',
     price: 'R$ 35.000',
-    desc: 'Feira de inovação e tecnologia com mais de 200 expositores e 80.000 visitantes qualificados do setor.'
+    desc: 'Feira de inovação e tecnologia com mais de 200 expositores e 80.000 visitantes qualificados do setor.',
+    organizador: 'Tech Events BR',
+    orgInitials: 'TE',
+    images: [
+      'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
+      'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=800&q=80',
+      'https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=800&q=80'
+    ]
   },
   {
     id: 4,
@@ -956,7 +1007,14 @@ const MOCK_OPPORTUNITIES = [
     city: 'Florianópolis',
     date: 'Dez 2026',
     price: 'R$ 25.000',
-    desc: 'Campeonato de surf com cobertura ao vivo, naming rights de etapas e ativações na praia.'
+    desc: 'Campeonato de surf com cobertura ao vivo, naming rights de etapas e ativações na praia.',
+    organizador: 'Floripa Surf Pro',
+    orgInitials: 'FS',
+    images: [
+      'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&q=80',
+      'https://images.unsplash.com/photo-1455264745730-cb3b76250dd8?w=800&q=80',
+      'https://images.unsplash.com/photo-1519092437468-9c52af2af38c?w=800&q=80'
+    ]
   },
   {
     id: 5,
@@ -966,7 +1024,14 @@ const MOCK_OPPORTUNITIES = [
     city: 'Online',
     date: 'Contínuo',
     price: 'R$ 15.000',
-    desc: 'Podcast líder em tecnologia com 200.000 ouvintes mensais. Formatos: pre-roll, mid-roll e branded content.'
+    desc: 'Podcast líder em tecnologia com 200.000 ouvintes mensais. Formatos: pre-roll, mid-roll e branded content.',
+    organizador: 'Tech Media Co.',
+    orgInitials: 'TM',
+    images: [
+      'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800&q=80',
+      'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&q=80',
+      'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80'
+    ]
   },
   {
     id: 6,
@@ -976,7 +1041,14 @@ const MOCK_OPPORTUNITIES = [
     city: 'Curitiba',
     date: 'Abr 2027',
     price: 'R$ 60.000',
-    desc: 'Naming rights de arena multiuso com capacidade para 15.000 pessoas. Shows e eventos durante todo o ano.'
+    desc: 'Naming rights de arena multiuso com capacidade para 15.000 pessoas. Shows e eventos durante todo o ano.',
+    organizador: 'Arena Curitiba',
+    orgInitials: 'AC',
+    images: [
+      'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80',
+      'https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=800&q=80',
+      'https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=800&q=80'
+    ]
   }
 ];
 
@@ -1081,29 +1153,77 @@ function closeSidebar() {
 // ─── RENDER OPPORTUNITIES ───
 function renderOpportunities(opps) {
   const grid = document.getElementById('oppGrid');
-  grid.innerHTML = opps.map(opp => `
-    <div class="opp-card" data-category="${opp.category}" data-city="${opp.city}">
-      <div class="opp-card-badge">
-        <span class="badge ${opp.badgeClass}">${opp.category}</span>
-      </div>
-      <div class="opp-card-title">${opp.title}</div>
-      <div class="opp-card-desc">${opp.desc}</div>
-      <div class="opp-card-meta">
-        <div class="opp-card-meta-row">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
-          ${opp.city}
+  grid.innerHTML = opps.map(opp => {
+    const imgs = opp.images || [];
+    const slides = imgs.map(src => `
+      <div class="olc-hero-slide">
+        <img src="${src}" alt="${opp.title}" loading="lazy">
+      </div>`).join('');
+    const dots = imgs.map((_, i) => `
+      <button class="olc-hero-dot${i === 0 ? ' active' : ''}" onclick="heroSlide(event, this, ${i})"></button>`).join('');
+    const total = imgs.length;
+    return `
+    <a class="opp-card" href="oportunidade-detalhe.html" data-category="${opp.category}" data-city="${opp.city}">
+      <div class="olc-hero" data-idx="0">
+        <div class="olc-hero-track">${slides}</div>
+        ${total > 1 ? `
+        <button class="olc-hero-nav prev" onclick="heroNav(event, this, -1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="olc-hero-nav next" onclick="heroNav(event, this, 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>` : ''}
+        <div class="olc-hero-count">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span class="olc-hero-count-cur">1</span>/${total}
         </div>
-        <div class="opp-card-meta-row">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/></svg>
-          ${opp.date}
+        <div class="olc-hero-tag">${opp.category}</div>
+        ${total > 1 ? `<div class="olc-hero-dots">${dots}</div>` : ''}
+      </div>
+      <div class="opp-card-body">
+        <div class="opp-card-title">${opp.title}</div>
+        <div class="opp-card-desc">${opp.desc}</div>
+        <div class="opp-card-divider"></div>
+        <div class="opp-card-footer">
+          <div class="olc-brand-row">
+            <div class="olc-logo">${opp.orgInitials}</div>
+            <span class="olc-brand-name">${opp.organizador}</span>
+          </div>
+          <div class="olc-arrow-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </div>
         </div>
       </div>
-      <div class="opp-card-price">A partir de ${opp.price}</div>
-      <div class="opp-card-footer">
-        <button class="btn btn-ghost btn-sm" onclick="showToast('Detalhes da oportunidade em breve', 'success')">Ver detalhes</button>
-      </div>
-    </div>
-  `).join('');
+    </a>`;
+  }).join('');
+}
+
+// ─── HERO CAROUSEL CONTROLS ───
+function heroNav(e, btn, dir) {
+  e.preventDefault();
+  e.stopPropagation();
+  const hero = btn.closest('.olc-hero');
+  const track = hero.querySelector('.olc-hero-track');
+  const dots = hero.querySelectorAll('.olc-hero-dot');
+  const total = hero.querySelectorAll('.olc-hero-slide').length;
+  let idx = parseInt(hero.dataset.idx) || 0;
+  idx = (idx + dir + total) % total;
+  hero.dataset.idx = idx;
+  track.style.transform = `translateX(-${idx * 100}%)`;
+  dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  hero.querySelector('.olc-hero-count-cur').textContent = idx + 1;
+}
+
+function heroSlide(e, dot, idx) {
+  e.preventDefault();
+  e.stopPropagation();
+  const hero = dot.closest('.olc-hero');
+  const track = hero.querySelector('.olc-hero-track');
+  const dots = hero.querySelectorAll('.olc-hero-dot');
+  hero.dataset.idx = idx;
+  track.style.transform = `translateX(-${idx * 100}%)`;
+  dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+  hero.querySelector('.olc-hero-count-cur').textContent = idx + 1;
 }
 
 // ─── FILTER OPPORTUNITIES ───
