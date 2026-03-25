@@ -297,6 +297,32 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-prop-next { font-size: 12px; color: var(--gray-500); line-height: 1.6; }
 .modal-prop-next strong { color: var(--text); display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
 
+/* ─── THREAD DE MENSAGENS ─── */
+.msg-thread-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-400); margin-bottom: 10px; }
+.msg-thread { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; max-height: 260px; overflow-y: auto; padding-right: 2px; }
+.msg-thread::-webkit-scrollbar { width: 4px; }
+.msg-thread::-webkit-scrollbar-track { background: transparent; }
+.msg-thread::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+.msg-bubble { display: flex; flex-direction: column; gap: 4px; max-width: 90%; }
+.msg-bubble.marca { align-self: flex-end; align-items: flex-end; }
+.msg-bubble.detentor { align-self: flex-start; align-items: flex-start; }
+.msg-bubble-author { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-400); }
+.msg-bubble-text { padding: 10px 13px; border-radius: 12px; font-size: 13px; line-height: 1.55; color: var(--text); }
+.msg-bubble.marca .msg-bubble-text { background: var(--black); color: var(--white); border-bottom-right-radius: 4px; }
+.msg-bubble.detentor .msg-bubble-text { background: var(--gray-1); border: 1px solid var(--gray-200); border-bottom-left-radius: 4px; }
+.msg-bubble-time { font-size: 10px; color: var(--gray-400); }
+.msg-empty { font-size: 13px; color: var(--gray-400); font-style: italic; text-align: center; padding: 16px 0; }
+
+/* ─── COMPOSE NOVA MENSAGEM ─── */
+.msg-compose { display: flex; flex-direction: column; gap: 8px; }
+.msg-compose-textarea { width: 100%; padding: 10px 13px; border: 1.5px solid var(--gray-200); border-radius: 10px; font-family: var(--font-body); font-size: 13px; color: var(--text); background: var(--white); outline: none; resize: none; min-height: 70px; transition: border-color 0.15s; line-height: 1.5; }
+.msg-compose-textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,134,11,0.08); }
+.msg-compose-textarea::placeholder { color: var(--gray-400); }
+.msg-compose-footer { display: flex; justify-content: flex-end; }
+.btn-send-msg { background: var(--black); color: var(--white); border: none; padding: 9px 20px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 7px; }
+.btn-send-msg:hover { background: var(--gold); color: var(--black); }
+.btn-send-msg:disabled { background: var(--gray-200); color: var(--gray-400); cursor: not-allowed; }
+
 /* ─── EMPTY STATE ─── */
 .empty-state {
   text-align: center; padding: 48px 24px;
@@ -1367,54 +1393,86 @@ const PROPOSTAS = [
     opp: 'Maratona Internacional SP',
     cota: 'Patrocinador Premium',
     assunto: 'Quero negociar esta cota',
-    mensagem: 'Temos grande interesse nesta oportunidade. Gostaríamos de discutir os detalhes do pacote Premium e entender melhor as possibilidades de ativação.',
     valor: 'R$ 55.000',
     enviadaEm: '15/03/2026',
     status: 'pendente',
     statusLabel: 'Pendente',
-    statusHint: 'Aguardando retorno do organizador'
+    statusHint: 'Aguardando retorno do organizador',
+    thread: [
+      { autor: 'marca', nome: 'Nike Brasil', texto: 'Temos grande interesse nesta oportunidade. Gostaríamos de discutir os detalhes do pacote Premium e entender melhor as possibilidades de ativação.', data: '15/03 · 10:22' }
+    ]
   },
   {
     id: 2,
     opp: 'Festival de Verão Salvador',
     cota: 'Patrocinador Master',
     assunto: 'Gostaria de fazer uma proposta',
-    mensagem: 'Acreditamos que nossa marca tem alto alinhamento com o público do festival. Enviamos uma proposta formal para análise.',
     valor: 'R$ 90.000',
     enviadaEm: '12/03/2026',
     status: 'aceita',
     statusLabel: 'Aceita',
-    statusHint: 'Proposta aprovada pelo organizador'
+    statusHint: 'Proposta aprovada pelo organizador',
+    thread: [
+      { autor: 'marca',    nome: 'Nike Brasil',               texto: 'Acreditamos que nossa marca tem alto alinhamento com o público do festival. Enviamos uma proposta formal para análise.', data: '12/03 · 09:15' },
+      { autor: 'detentor', nome: 'Festival de Verão Salvador', texto: 'Olá! Recebemos sua proposta e ficamos muito animados com o potencial desta parceria. Vamos alinhar os detalhes em breve.', data: '13/03 · 14:40' },
+      { autor: 'marca',    nome: 'Nike Brasil',               texto: 'Ótimo! Podemos agendar uma call para a próxima semana?', data: '13/03 · 16:05' }
+    ]
   },
   {
     id: 3,
     opp: 'Expo Tech Brasil',
     cota: 'Apoiador Oficial',
     assunto: 'Tenho interesse, mas preciso de mais informações',
-    mensagem: 'Precisamos entender melhor os dados de público e os entregáveis antes de avançar com a proposta.',
     valor: 'R$ 40.000',
     enviadaEm: '10/03/2026',
     status: 'analise',
     statusLabel: 'Em análise',
-    statusHint: 'O time da Relevantia está avaliando'
+    statusHint: 'O time da Relevantia está avaliando',
+    thread: [
+      { autor: 'marca',    nome: 'Nike Brasil',  texto: 'Precisamos entender melhor os dados de público e os entregáveis antes de avançar com a proposta.', data: '10/03 · 11:30' },
+      { autor: 'detentor', nome: 'Expo Tech BR', texto: 'Claro! Temos um media kit completo. Posso te enviar por aqui ou prefere por e-mail?', data: '11/03 · 08:55' }
+    ]
   },
   {
     id: 4,
     opp: 'Arena Music Curitiba',
     cota: 'Patrocinador Premium',
     assunto: 'Quero negociar esta cota',
-    mensagem: '',
     valor: 'R$ 65.000',
     enviadaEm: '05/03/2026',
     status: 'recusada',
     statusLabel: 'Recusada',
-    statusHint: 'Não foi possível avançar neste momento'
+    statusHint: 'Não foi possível avançar neste momento',
+    thread: [
+      { autor: 'marca',    nome: 'Nike Brasil',         texto: 'Gostaríamos de negociar essa cota. Temos flexibilidade nos valores e nos entregáveis.', data: '05/03 · 13:00' },
+      { autor: 'detentor', nome: 'Arena Music Curitiba', texto: 'Agradecemos o interesse, mas a cota já foi fechada com outro parceiro. Manteremos contato para futuras edições.', data: '07/03 · 10:15' }
+    ]
   }
 ];
+
+let _propostaAtiva = null;
+
+function renderMsgThread(thread) {
+  const el = document.getElementById('mp-thread');
+  if (!thread || thread.length === 0) {
+    el.innerHTML = '<div class="msg-empty">Nenhuma mensagem ainda.</div>';
+    return;
+  }
+  el.innerHTML = thread.map(m => `
+    <div class="msg-bubble ${m.autor}">
+      <span class="msg-bubble-author">${m.nome}</span>
+      <div class="msg-bubble-text">${m.texto}</div>
+      <span class="msg-bubble-time">${m.data}</span>
+    </div>
+  `).join('');
+  // scroll to bottom
+  el.scrollTop = el.scrollHeight;
+}
 
 function openPropostaModal(id) {
   const p = PROPOSTAS.find(x => x.id === id);
   if (!p) return;
+  _propostaAtiva = p;
 
   document.getElementById('mp-opp').textContent = p.opp;
   document.getElementById('mp-status-wrap').className = 'modal-prop-status ' + p.status;
@@ -1425,13 +1483,13 @@ function openPropostaModal(id) {
   document.getElementById('mp-valor').textContent = p.valor;
   document.getElementById('mp-enviada').textContent = p.enviadaEm;
 
-  const msgEl = document.getElementById('mp-msg-wrap');
-  if (p.mensagem) {
-    document.getElementById('mp-msg').textContent = '"' + p.mensagem + '"';
-    msgEl.style.display = '';
-  } else {
-    msgEl.style.display = 'none';
-  }
+  renderMsgThread(p.thread);
+
+  // reset compose
+  const ta = document.getElementById('mp-compose-input');
+  if (ta) { ta.value = ''; }
+  const btn = document.getElementById('mp-send-btn');
+  if (btn) btn.disabled = true;
 
   document.getElementById('modal-proposta').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1440,6 +1498,26 @@ function openPropostaModal(id) {
 function closePropostaModal() {
   document.getElementById('modal-proposta').classList.remove('open');
   document.body.style.overflow = '';
+  _propostaAtiva = null;
+}
+
+function sendPropostaMsg() {
+  const ta = document.getElementById('mp-compose-input');
+  const text = ta ? ta.value.trim() : '';
+  if (!text || !_propostaAtiva) return;
+
+  const now = new Date();
+  const data = now.getDate().toString().padStart(2,'0') + '/' +
+               (now.getMonth()+1).toString().padStart(2,'0') + ' · ' +
+               now.getHours().toString().padStart(2,'0') + ':' +
+               now.getMinutes().toString().padStart(2,'0');
+
+  _propostaAtiva.thread.push({ autor: 'marca', nome: 'Nike Brasil', texto: text, data });
+  renderMsgThread(_propostaAtiva.thread);
+
+  ta.value = '';
+  document.getElementById('mp-send-btn').disabled = true;
+  showToast('Mensagem enviada!', 'success');
 }
 </script>
 
@@ -1482,16 +1560,29 @@ function closePropostaModal() {
         </div>
       </div>
 
-      <!-- Mensagem (se houver) -->
-      <div id="mp-msg-wrap">
-        <div class="modal-prop-msg" id="mp-msg"></div>
-      </div>
-
       <hr class="modal-prop-divider">
 
-      <div class="modal-prop-next">
-        <strong>Próximos passos</strong>
-        O time da Relevantia acompanha esta negociação e entrará em contato para alinhar os próximos passos com o organizador.
+      <!-- Thread de mensagens -->
+      <div class="msg-thread-label">Mensagens</div>
+      <div class="msg-thread" id="mp-thread">
+        <!-- preenchido por JS -->
+      </div>
+
+      <!-- Compor nova mensagem -->
+      <div class="msg-compose">
+        <textarea
+          class="msg-compose-textarea"
+          id="mp-compose-input"
+          placeholder="Escreva uma mensagem para o organizador…"
+          rows="3"
+          oninput="document.getElementById('mp-send-btn').disabled = !this.value.trim()"
+        ></textarea>
+        <div class="msg-compose-footer">
+          <button class="btn-send-msg" id="mp-send-btn" onclick="sendPropostaMsg()" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12zm0 0h7.5"/></svg>
+            Enviar
+          </button>
+        </div>
       </div>
 
     </div>
