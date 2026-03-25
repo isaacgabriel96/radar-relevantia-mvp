@@ -204,6 +204,38 @@ a { text-decoration: none; color: inherit; }
 .gallery-thumb:last-child { border-radius: 0 0 var(--radius-lg) 0; }
 .gallery-thumb:first-child { border-radius: 0 var(--radius-lg) 0 0; }
 
+/* ─── GALLERY MOBILE STRIP (scroll horizontal de mídias) ─── */
+.gallery-mobile-strip {
+  display: none;
+}
+.gallery-strip-track {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.gallery-strip-track::-webkit-scrollbar { display: none; }
+.gallery-strip-item {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  position: relative;
+  height: 240px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.gallery-strip-item .gallery-badge { left: 14px; bottom: 14px; }
+.gallery-strip-dots {
+  display: flex; justify-content: center; gap: 5px; margin-top: 8px;
+}
+.gallery-strip-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gray-300); transition: background 0.2s, width 0.2s;
+}
+.gallery-strip-dot.active { background: var(--gold); width: 14px; border-radius: 3px; }
+
 /* ─── BODY LAYOUT ─── */
 .detail-body { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start; }
 
@@ -287,14 +319,14 @@ a { text-decoration: none; color: inherit; }
 .btn-interest {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
   padding: 14px; background: var(--black); color: var(--white);
-  border: none; border-radius: var(--radius); font-family: inherit;
+  border: none; border-radius: var(--radius-pill); font-family: inherit;
   font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
 }
-.btn-interest:hover { background: var(--gold); color: var(--black); }
+.btn-interest:hover { background: var(--black-2); }
 .btn-contact {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
   padding: 12px; background: transparent; color: var(--text);
-  border: 1.5px solid var(--gray-200); border-radius: var(--radius);
+  border: 1.5px solid var(--gray-200); border-radius: var(--radius-pill);
   font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
   transition: all 0.15s; margin-top: 8px;
 }
@@ -505,10 +537,9 @@ a { text-decoration: none; color: inherit; }
 @media (max-width: 1024px) {
   .detail-body { grid-template-columns: 1fr; }
   .opp-cards-grid { grid-template-columns: repeat(2, 1fr); }
-  .detail-gallery { grid-template-columns: 1fr; grid-template-rows: 300px; height: 300px; }
-  .gallery-side { display: none; }
-  .gallery-main { border-radius: var(--radius-lg); }
-  /* extra padding bottom para não ficar atrás da barra fixa */
+  /* gallery desktop oculta, strip mobile ativa */
+  .detail-gallery { display: none; }
+  .gallery-mobile-strip { display: block; margin-bottom: 20px; }
   .detail-wrap { padding-bottom: 120px; }
 }
 @media (max-width: 768px) {
@@ -518,16 +549,26 @@ a { text-decoration: none; color: inherit; }
   .topbar { left: 0; }
   .topbar-inner { padding: 0 16px; }
   .topbar-breadcrumb strong { max-width: 140px; }
-  .topbar-breadcrumb a:first-child { display: none; } /* esconde "Portal Marca" em telas pequenas */
+  .topbar-breadcrumb a:first-child { display: none; }
   .topbar-sep:first-of-type { display: none; }
   .hamburger { display: flex; }
   .main { margin-left: 0; }
-  .detail-wrap { padding: 20px 16px 120px; }
-  .detail-header { flex-direction: column; gap: 10px; }
+  /* detail-wrap: sem padding lateral — galeria vai de borda a borda */
+  .detail-wrap { padding: 0 0 120px; }
+  /* conteúdo interno com padding horizontal, exceto galeria */
+  .detail-header,
+  .detail-body,
+  .owner-section,
+  .similar-section { padding-left: 16px; padding-right: 16px; }
+  .detail-header { flex-direction: column; gap: 10px; padding-top: 20px; }
   .detail-header-actions { align-self: flex-end; margin-top: -8px; }
   .detail-title { font-size: 22px; }
   .detail-meta { gap: 10px; }
-  .detail-gallery { height: 240px; grid-template-rows: 240px; margin-bottom: 20px; }
+  /* strip mobile ocupa 100% */
+  .gallery-mobile-strip { margin-left: 0; margin-right: 0; }
+  .gallery-strip-item { height: 220px; border-radius: 0; }
+  .gallery-strip-dots { padding: 0 16px; }
+  .gallery-strip-track { gap: 0; }
   .detail-facts { grid-template-columns: 1fr 1fr; }
   .cotas-grid { grid-template-columns: 1fr 1fr; }
   .ativacoes-grid { grid-template-columns: 1fr 1fr; }
@@ -542,9 +583,12 @@ a { text-decoration: none; color: inherit; }
   .entregas-table thead th, .entregas-table tbody td { padding: 9px 10px; }
 }
 @media (max-width: 480px) {
-  .detail-wrap { padding: 16px 14px 120px; }
+  .detail-header,
+  .detail-body,
+  .owner-section,
+  .similar-section { padding-left: 14px; padding-right: 14px; }
   .detail-title { font-size: 20px; }
-  .detail-gallery { height: 200px; grid-template-rows: 200px; }
+  .gallery-strip-item { height: 200px; }
   .detail-facts { grid-template-columns: 1fr; }
   .cotas-grid { grid-template-columns: 1fr; }
   .ativacoes-grid { grid-template-columns: 1fr; }
@@ -706,7 +750,7 @@ a { text-decoration: none; color: inherit; }
         </div>
       </div>
 
-      <!-- GALLERY -->
+      <!-- GALLERY (desktop) -->
       <div class="detail-gallery">
         <div class="gallery-main">
           <div class="gallery-main-placeholder" id="galleryMain"></div>
@@ -716,6 +760,14 @@ a { text-decoration: none; color: inherit; }
           <div class="gallery-thumb" id="galleryThumb1"></div>
           <div class="gallery-thumb" id="galleryThumb2"></div>
         </div>
+      </div>
+
+      <!-- GALLERY MOBILE (scroll snap, edge-to-edge) -->
+      <div class="gallery-mobile-strip">
+        <div class="gallery-strip-track" id="galleryStripTrack">
+          <!-- items injetados via JS -->
+        </div>
+        <div class="gallery-strip-dots" id="galleryStripDots"></div>
       </div>
 
       <!-- BODY: TABS + SIDEBAR -->
@@ -891,15 +943,15 @@ a { text-decoration: none; color: inherit; }
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- Mobile CTA bar (visível apenas em ≤1024px) -->
+<!-- Mobile CTA bar (visível apenas em ≤1024px) — contact esquerda, interest direita -->
 <div class="mobile-cta-bar">
-  <button class="btn-interest" onclick="openModal()">
-    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    Manifestar interesse
-  </button>
   <button class="btn-contact">
     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
     Falar com o time
+  </button>
+  <button class="btn-interest" onclick="openModal()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Manifestar interesse
   </button>
 </div>
 
@@ -1179,11 +1231,35 @@ function renderPage() {
   metaHtml += '<div class="detail-meta-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>A partir de R$ ' + (opp.price/1000).toFixed(0) + 'k</div>';
   document.getElementById('detailMeta').innerHTML = metaHtml;
 
-  // Gallery
+  // Gallery (desktop)
   document.getElementById('galleryBadge').textContent = opp.category;
   document.getElementById('galleryMain').style.background = opp.gradient || '#1a1a2e';
   document.getElementById('galleryThumb1').style.background = (opp.thumbs && opp.thumbs[0]) || '#e0d8cc';
   document.getElementById('galleryThumb2').style.background = (opp.thumbs && opp.thumbs[1]) || '#d0c8b8';
+
+  // Gallery strip mobile (scroll snap, edge-to-edge)
+  var stripTrack = document.getElementById('galleryStripTrack');
+  var stripDots  = document.getElementById('galleryStripDots');
+  // monta slides: gradiente principal + thumbs como slides extras
+  var slides = [{ bg: opp.gradient || '#1a1a2e', label: opp.category }];
+  if (opp.thumbs) {
+    opp.thumbs.forEach(function(t) { slides.push({ bg: t, label: null }); });
+  }
+  stripTrack.innerHTML = slides.map(function(s, i) {
+    return '<div class="gallery-strip-item" style="background:' + s.bg + '">' +
+      (i === 0 ? '<div class="gallery-badge">' + s.label + '</div>' : '') +
+    '</div>';
+  }).join('');
+  stripDots.innerHTML = slides.map(function(_, i) {
+    return '<div class="gallery-strip-dot' + (i === 0 ? ' active' : '') + '"></div>';
+  }).join('');
+  // atualiza dots ao scroll
+  stripTrack.addEventListener('scroll', function() {
+    var idx = Math.round(stripTrack.scrollLeft / stripTrack.offsetWidth);
+    stripDots.querySelectorAll('.gallery-strip-dot').forEach(function(d, i) {
+      d.classList.toggle('active', i === idx);
+    });
+  }, { passive: true });
 
   // Facts
   var factsHtml = '';
