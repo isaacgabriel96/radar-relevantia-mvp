@@ -193,7 +193,9 @@ a { text-decoration: none; color: inherit; }
 .detail-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
 .action-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--gray-200); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
 .action-btn:hover { border-color: var(--gray-300); background: var(--gray-100); }
-.action-btn svg { width: 18px; height: 18px; color: var(--gray-500); }
+.action-btn svg { width: 18px; height: 18px; color: var(--gray-500); transition: all 0.18s; }
+.action-btn.fav-active { border-color: #fca5a5; background: #fff1f2; }
+.action-btn.fav-active svg { color: #e11d48; fill: #e11d48; }
 
 /* ─── GALLERY ─── */
 .detail-gallery { display: grid; grid-template-columns: 1fr 280px; gap: 10px; margin-bottom: 28px; height: 340px; border-radius: var(--radius-lg); overflow: hidden; }
@@ -789,7 +791,7 @@ a { text-decoration: none; color: inherit; }
         <div class="sidebar-user-name">Nike Brasil</div>
         <div class="sidebar-user-email">contato@nikebrasil.com</div>
       </div>
-      <button class="btn-logout-sb" title="Sair">
+      <button class="btn-logout-sb" onclick="doLogout()" title="Sair">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
       </button>
     </div>
@@ -833,11 +835,8 @@ a { text-decoration: none; color: inherit; }
           <div class="detail-meta" id="detailMeta"></div>
         </div>
         <div class="detail-header-actions">
-          <button class="action-btn" title="Salvar">
+          <button class="action-btn" id="favBtn" title="Salvar nos favoritos" onclick="toggleDetailFav()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          </button>
-          <button class="action-btn" title="Compartilhar">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           </button>
         </div>
       </div>
@@ -1608,12 +1607,50 @@ function closeSidebar() {
   document.body.style.overflow = '';
 }
 
+/* ─── FAVORITOS ─── */
+var FAV_KEY = 'rr_favoritos_v1';
+
+function getFavIds() {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; } catch(e) { return []; }
+}
+
+function saveFavIds(ids) {
+  localStorage.setItem(FAV_KEY, JSON.stringify(ids));
+}
+
+function toggleDetailFav() {
+  var opp = getOpp();
+  var ids = getFavIds();
+  var idx = ids.indexOf(opp.id);
+  if (idx === -1) { ids.push(opp.id); } else { ids.splice(idx, 1); }
+  saveFavIds(ids);
+  updateFavBtnState(ids.indexOf(opp.id) !== -1);
+}
+
+function updateFavBtnState(isFav) {
+  var btn = document.getElementById('favBtn');
+  if (!btn) return;
+  btn.classList.toggle('fav-active', isFav);
+  btn.title = isFav ? 'Remover dos favoritos' : 'Salvar nos favoritos';
+}
+
 /* ─── INIT ─── */
 renderPage();
+// Inicializa estado do botão de favorito
+(function() {
+  var opp = getOpp();
+  updateFavBtnState(getFavIds().indexOf(opp.id) !== -1);
+})();
 setTimeout(function() {
   var ls = document.getElementById('loadingScreen');
   if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.3s'; setTimeout(function(){ ls.style.display = 'none'; }, 300); }
 }, 400);
+
+function doLogout() {
+  localStorage.removeItem('sb_detentor_session');
+  localStorage.removeItem('sb_marca_session');
+  window.location.href = 'index.html';
+}
 </script>
 </body>
 </html>

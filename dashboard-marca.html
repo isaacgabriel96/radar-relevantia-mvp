@@ -222,8 +222,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; border: none;
   transition: all 0.2s; white-space: nowrap; text-decoration: none;
 }
-.btn-gold { background: var(--gold); color: var(--black); }
-.btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); }
+.btn-gold { background: var(--gold-gradient); color: var(--white); }
+.btn-gold:hover { opacity: 0.9; transform: translateY(-1px); }
 .btn-black { background: var(--black); color: var(--white); }
 .btn-black:hover { background: var(--gold); color: var(--black); }
 .btn-ghost { background: transparent; border: 1px solid rgba(0,0,0,0.1); color: var(--gray-500); }
@@ -538,13 +538,13 @@ tbody tr:last-child td { border-bottom: none; }
 
 /* ─── SUMMARY CARD ─── */
 .summary-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px;
+  display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px;
 }
 .summary-item {
-  background: var(--gray-100); border-radius: 12px; padding: 18px; text-align: center;
+  flex: 1; min-width: 80px; background: var(--gray-100); border-radius: 12px; padding: 14px 12px; text-align: center;
 }
-.summary-item-value { font-size: 24px; font-weight: 700; color: var(--text); }
-.summary-item-label { font-size: 11px; color: var(--gray-400); font-weight: 500; margin-top: 4px; }
+.summary-item-value { font-size: 22px; font-weight: 700; color: var(--text); }
+.summary-item-label { font-size: 11px; color: var(--gray-400); font-weight: 500; margin-top: 3px; }
 
 /* ─── TOAST ─── */
 .toast-container { position: fixed; top: 80px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
@@ -1509,6 +1509,7 @@ function renderOpportunities(opps) {
   }
   grid.innerHTML = opps.map(opp => {
     const imgs = opp.images || [];
+    const hasBg = !imgs.length && opp._bgGradient;
     const slides = imgs.map(src => `
       <div class="olc-hero-slide">
         <img src="${src}" alt="${opp.title}" loading="lazy">
@@ -1517,23 +1518,27 @@ function renderOpportunities(opps) {
       <button class="olc-hero-dot${i === 0 ? ' active' : ''}" onclick="heroSlide(event, this, ${i})"></button>`).join('');
     const total = imgs.length;
     const isFav = _favIds.includes(opp.id);
-    return `
-    <a class="opp-card" href="oportunidade-detalhe.html" data-category="${opp.category}" data-city="${opp.city}">
-      <div class="olc-hero" data-idx="0">
-        <div class="olc-hero-track">${slides}</div>
-        ${total > 1 ? `
+    const heroInner = hasBg
+      ? `<div style="width:100%;height:100%;background:${opp._bgGradient};display:flex;align-items:center;justify-content:center">
+           <span style="font-size:52px;line-height:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.4))">${opp._icon || ''}</span>
+         </div>`
+      : `<div class="olc-hero-track">${slides}</div>${total > 1 ? `
         <button class="olc-hero-nav prev" onclick="heroNav(event, this, -1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <button class="olc-hero-nav next" onclick="heroNav(event, this, 1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>` : ''}
-        <div class="olc-hero-count">
+        </button>` : ''}`;
+    return `
+    <a class="opp-card" href="oportunidade-detalhe.html" data-id="${opp.id}" data-category="${opp.category}" data-city="${opp.city}">
+      <div class="olc-hero" data-idx="0">
+        ${heroInner}
+        ${!hasBg ? `<div class="olc-hero-count">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           <span class="olc-hero-count-cur">1</span>/${total}
-        </div>
+        </div>` : ''}
         <div class="olc-hero-tag">${opp.category}</div>
-        ${total > 1 ? `<div class="olc-hero-dots">${dots}</div>` : ''}
+        ${!hasBg && total > 1 ? `<div class="olc-hero-dots">${dots}</div>` : ''}
         <button class="opp-fav-btn${isFav ? ' active' : ''}" data-id="${opp.id}" onclick="toggleFav(event, ${opp.id})" title="${isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
@@ -2136,7 +2141,7 @@ function renderPropostasTable() {
          </div>`;
 
     const dealBtns = p.status === 'aceita'
-      ? `<button class="btn btn-sm" style="background:var(--gold-gradient);color:#fff;border:none;font-size:12px;padding:6px 12px" onclick="switchPropostasTab('deals')">Ver deal</button>
+      ? `<button class="btn btn-gold btn-sm" onclick="switchPropostasTab('deals')">Ver deal</button>
          <button class="btn btn-ghost btn-sm" onclick="openPropostaModal(${p.id})">Negociação</button>`
       : `<button class="btn btn-ghost btn-sm" style="width:100%" onclick="openPropostaModal(${p.id})">Ver negociação</button>`;
 
@@ -2144,7 +2149,7 @@ function renderPropostasTable() {
       <div class="olc-hero" data-idx="0" style="height:200px">
         ${heroContent}
         <div class="olc-hero-tag">${cfg.label}</div>
-        <div class="olc-hero-count" style="left:auto;right:10px;bottom:10px;font-size:11px;background:rgba(0,0,0,0.55)">
+        <div class="olc-hero-count" style="top:auto;left:auto;right:10px;bottom:10px;font-size:10px;background:rgba(0,0,0,0.55)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
           ${p.enviadaEm}
         </div>
