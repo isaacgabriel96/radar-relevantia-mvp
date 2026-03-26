@@ -1844,9 +1844,9 @@ function addContrapartidaDet() {
   const n = _negAtiva;
   if (!n) return;
   const desc  = document.getElementById('mn-cp-desc').value.trim();
-  const valor = parseFloat(document.getElementById('mn-cp-valor').value);
-  const prazo = document.getElementById('mn-cp-prazo').value.trim();
-  if (!desc || !valor || !prazo) { showToast('Preencha todos os campos.', 'error'); return; }
+  const valor = parseFloat(document.getElementById('mn-cp-valor').value) || 0;
+  const prazo = document.getElementById('mn-cp-prazo').value.trim() || '';
+  if (!desc) { showToast('Preencha a descrição da contrapartida.', 'error'); return; }
 
   const newId = n.contrapartidas.length ? Math.max(...n.contrapartidas.map(c=>c.id)) + 1 : 1;
   n.contrapartidas.push({ id: newId, descricao: desc, valor, prazo, status:'proposta', propostoPor:'detentor' });
