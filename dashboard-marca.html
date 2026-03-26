@@ -290,8 +290,19 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-prop-rows { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
 .modal-prop-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--gray-200); }
 .modal-prop-row:last-child { border-bottom: none; }
-.modal-prop-row-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-400); min-width: 90px; padding-top: 1px; }
+.modal-prop-row-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-400); min-width: 90px; padding-top: 1px; flex-shrink: 0; }
 .modal-prop-row-value { font-size: 13px; color: var(--text); line-height: 1.5; }
+/* ─── VALOR EDITÁVEL ─── */
+.modal-prop-row--valor { flex-direction: column; align-items: stretch; }
+.modal-prop-row--valor .modal-prop-row-label { padding-top: 0; margin-bottom: 6px; }
+.mp-valor-display { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mp-valor-pending { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #92400E; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.25); border-radius: 6px; padding: 3px 8px; }
+.mp-btn-propor-valor { display: inline-flex; align-items: center; gap: 5px; background: none; border: 1px solid var(--gray-200); border-radius: 6px; padding: 4px 10px; font-family: var(--font-body); font-size: 11px; font-weight: 600; color: var(--gray-400); cursor: pointer; transition: all 0.15s; }
+.mp-btn-propor-valor:hover { border-color: var(--gold); color: var(--gold); }
+.mp-valor-edit { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; background: var(--gray-1); border-radius: 8px; border: 1px solid var(--gray-200); }
+.mp-valor-input { font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text); background: var(--white); border: 1.5px solid var(--gray-200); border-radius: 8px; padding: 8px 12px; outline: none; width: 100%; box-sizing: border-box; }
+.mp-valor-input:focus { border-color: var(--gold); }
+.mp-valor-edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .modal-prop-msg { background: var(--gray-1); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--text); line-height: 1.6; font-style: italic; margin-bottom: 16px; border-left: 3px solid var(--gray-300); }
 .modal-prop-divider { border: none; border-top: 1px solid var(--gray-200); margin: 16px 0; }
 .modal-prop-next { font-size: 12px; color: var(--gray-500); line-height: 1.6; }
@@ -1775,8 +1786,8 @@ function openPropostaModal(id) {
   document.getElementById('mp-status-hint').textContent = p.statusHint;
   document.getElementById('mp-cota').textContent = p.cota;
   document.getElementById('mp-assunto').textContent = p.assunto;
-  document.getElementById('mp-valor').textContent = p.valor;
   document.getElementById('mp-enviada').textContent = p.enviadaEm;
+  _renderValorRow(p);
 
   renderMsgThread(p.thread);
   renderContrapartidas(p.contrapartidas || []);
@@ -1801,6 +1812,14 @@ function openPropostaModal(id) {
   // hide cp form
   const cpForm = document.getElementById('mp-cp-form');
   if (cpForm) cpForm.classList.remove('open');
+  // reset valor edit state
+  const veEdit = document.getElementById('mp-valor-edit');
+  const veDisp = document.getElementById('mp-valor-display');
+  if (veEdit) veEdit.style.display = 'none';
+  if (veDisp) veDisp.style.display = 'flex';
+  // remove detentor action block if leftover
+  const prevAct = document.getElementById('mp-valor-detentor-actions');
+  if (prevAct) prevAct.remove();
 
   _updatePropostaDealFooter();
 
@@ -1848,7 +1867,7 @@ function renderContrapartidas(list) {
     }).join('');
   }
 
-  const total = list.filter(c => c.status === 'aceita').reduce((s, c) => s + c.valor, 0);
+  const total = list.filter(c => c.status === 'aceita').reduce((s, c) => s + (c.valor || 0), 0);
   if (totalEl) totalEl.textContent = formatValorCp(total);
 }
 
@@ -1896,20 +1915,16 @@ function toggleCpForm() {
 function addContrapartidaMarca() {
   const p = _propostaAtiva;
   if (!p) return;
-  const desc  = document.getElementById('mp-cp-desc').value.trim();
-  const valor = parseFloat(document.getElementById('mp-cp-valor').value);
-  const prazo = document.getElementById('mp-cp-prazo').value.trim();
-  if (!desc || !valor || !prazo) { showToast('Preencha todos os campos.', 'error'); return; }
+  const desc = document.getElementById('mp-cp-desc').value.trim();
+  if (!desc) { showToast('Preencha a descrição da contrapartida.', 'error'); return; }
 
   const newId = p.contrapartidas.length ? Math.max(...p.contrapartidas.map(c=>c.id)) + 1 : 1;
-  p.contrapartidas.push({ id: newId, descricao: desc, valor, prazo, status:'proposta', propostoPor:'marca' });
+  p.contrapartidas.push({ id: newId, descricao: desc, status:'proposta', propostoPor:'marca' });
   SharedNeg.save();
   renderContrapartidas(p.contrapartidas);
 
   // reset form
   document.getElementById('mp-cp-desc').value = '';
-  document.getElementById('mp-cp-valor').value = '';
-  document.getElementById('mp-cp-prazo').value = '';
   document.getElementById('mp-cp-form').classList.remove('open');
   showToast('Contrapartida adicionada!', 'success');
 }
@@ -1932,6 +1947,140 @@ function closePropostaModal() {
   document.getElementById('modal-proposta').classList.remove('open');
   document.body.style.overflow = '';
   _propostaAtiva = null;
+}
+
+// ─── VALOR DA PROPOSTA ────────────────────────────────────────────────────────
+// valorStatus pode ser: undefined | 'pendente_detentor' | 'pendente_marca'
+// pendente_detentor = marca propôs, aguardando detentor aceitar
+// pendente_marca    = detentor contrapropos, aguardando marca aceitar
+
+function _renderValorRow(p) {
+  const valEl      = document.getElementById('mp-valor');
+  const pendEl     = document.getElementById('mp-valor-pending');
+  const btnPropor  = document.getElementById('mp-btn-propor-valor');
+  const editDiv    = document.getElementById('mp-valor-edit');
+  const displayDiv = document.getElementById('mp-valor-display');
+  if (!valEl) return;
+
+  // Mostra o valor atual (pode ter sido atualizado)
+  valEl.textContent = p.valor;
+
+  // Oculta o edit inline ao re-renderizar
+  if (editDiv) editDiv.style.display = 'none';
+  if (displayDiv) displayDiv.style.display = 'flex';
+
+  const canEdit = p.status !== 'recusada' && p.status !== 'aceita';
+
+  // Indicador pendente
+  if (pendEl) {
+    if (p.valorStatus === 'pendente_detentor') {
+      pendEl.style.display = 'inline-flex';
+      pendEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Aguardando aceite do organizador`;
+    } else if (p.valorStatus === 'pendente_marca') {
+      pendEl.style.display = 'inline-flex';
+      pendEl.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Organizador propôs novo valor — ação necessária`;
+      pendEl.style.background = 'rgba(251,146,60,0.12)';
+      pendEl.style.color = '#EA580C';
+      pendEl.style.borderColor = 'rgba(251,146,60,0.35)';
+    } else {
+      pendEl.style.display = 'none';
+    }
+  }
+
+  // Botão "Propor novo valor"
+  if (btnPropor) {
+    btnPropor.style.display = canEdit && p.valorStatus !== 'pendente_detentor' ? 'inline-flex' : 'none';
+  }
+
+  // Se há proposta pendente do detentor → mostra botões de aceitar/recusar valor
+  _renderValorDetentorActions(p);
+}
+
+function _renderValorDetentorActions(p) {
+  // Remove bloco anterior se existir
+  const existing = document.getElementById('mp-valor-detentor-actions');
+  if (existing) existing.remove();
+
+  if (p.valorStatus !== 'pendente_marca' || !p.valorProposto) return;
+
+  const row = document.getElementById('mp-valor-row');
+  if (!row) return;
+
+  const actDiv = document.createElement('div');
+  actDiv.id = 'mp-valor-detentor-actions';
+  actDiv.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;';
+  actDiv.innerHTML = `
+    <span style="font-size:12px;color:var(--gray-400)">Novo valor proposto: <strong style="color:var(--text)">${p.valorProposto}</strong></span>
+    <button class="cp-btn accept" onclick="aceitarValorDetentor()">Aceitar valor</button>
+    <button class="cp-btn reject" onclick="recusarValorDetentor()">Recusar</button>
+  `;
+  row.appendChild(actDiv);
+}
+
+function showValorEdit() {
+  const p = _propostaAtiva;
+  if (!p) return;
+  const editDiv    = document.getElementById('mp-valor-edit');
+  const displayDiv = document.getElementById('mp-valor-display');
+  const input      = document.getElementById('mp-valor-input');
+  if (!editDiv || !displayDiv) return;
+  displayDiv.style.display = 'none';
+  editDiv.style.display = 'flex';
+  if (input) { input.value = p.valor; input.focus(); input.select(); }
+}
+
+function cancelValorEdit() {
+  const editDiv    = document.getElementById('mp-valor-edit');
+  const displayDiv = document.getElementById('mp-valor-display');
+  if (editDiv)    editDiv.style.display = 'none';
+  if (displayDiv) displayDiv.style.display = 'flex';
+}
+
+function confirmarNovoValor() {
+  const p = _propostaAtiva;
+  if (!p) return;
+  const input = document.getElementById('mp-valor-input');
+  const raw = input ? input.value.trim() : '';
+  if (!raw) { showToast('Insira um valor.', 'error'); return; }
+
+  // Normaliza: aceita "55000", "R$ 55.000", "55.000"
+  const clean = raw.replace(/[^0-9,.]/g, '').replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(clean);
+  if (isNaN(num) || num <= 0) { showToast('Valor inválido. Use o formato R$ 55.000', 'error'); return; }
+
+  const formatted = 'R$ ' + num.toLocaleString('pt-BR');
+
+  p.valorProposto  = formatted;
+  p.valorStatus    = 'pendente_detentor';
+  SharedNeg.save();
+
+  _renderValorRow(p);
+  renderPropostasTable();
+  showToast('Novo valor proposto! Aguardando aceite do organizador.', 'success');
+}
+
+// Simula aceite do detentor (usado quando o organizador aceita via dashboard-detentor)
+// Aqui exposto como helper para demo/teste
+function aceitarValorDetentor() {
+  const p = _propostaAtiva;
+  if (!p || !p.valorProposto) return;
+  p.valor       = p.valorProposto;
+  p.valorProposto  = null;
+  p.valorStatus    = null;
+  SharedNeg.save();
+  _renderValorRow(p);
+  renderPropostasTable();
+  showToast('Valor aceito pelo organizador!', 'success');
+}
+
+function recusarValorDetentor() {
+  const p = _propostaAtiva;
+  if (!p) return;
+  p.valorProposto  = null;
+  p.valorStatus    = null;
+  SharedNeg.save();
+  _renderValorRow(p);
+  showToast('Proposta de valor recusada.', 'error');
 }
 
 function sendPropostaMsg() {
@@ -2361,9 +2510,29 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="modal-prop-row-label">Assunto</span>
           <span class="modal-prop-row-value" id="mp-assunto"></span>
         </div>
-        <div class="modal-prop-row">
-          <span class="modal-prop-row-label">Valor</span>
-          <span class="modal-prop-row-value" id="mp-valor"></span>
+        <div class="modal-prop-row modal-prop-row--valor" id="mp-valor-row">
+          <span class="modal-prop-row-label">Valor proposto</span>
+          <div class="mp-valor-display" id="mp-valor-display">
+            <span class="modal-prop-row-value" id="mp-valor"></span>
+            <!-- Estado: pendente de aceite detentor -->
+            <span class="mp-valor-pending" id="mp-valor-pending" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Aguardando aceite do organizador
+            </span>
+            <!-- Botão propor (só aparece quando status ≠ recusada/aceita) -->
+            <button class="mp-btn-propor-valor" id="mp-btn-propor-valor" onclick="showValorEdit()" title="Propor novo valor">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Propor novo valor
+            </button>
+          </div>
+          <!-- Inline edit -->
+          <div class="mp-valor-edit" id="mp-valor-edit" style="display:none">
+            <input class="mp-valor-input" id="mp-valor-input" type="text" placeholder="Ex: R$ 55.000">
+            <div class="mp-valor-edit-actions">
+              <button class="cp-form-btn-cancel" onclick="cancelValorEdit()">Cancelar</button>
+              <button class="cp-form-btn-add" onclick="confirmarNovoValor()">Confirmar proposta</button>
+            </div>
+          </div>
         </div>
         <div class="modal-prop-row">
           <span class="modal-prop-row-label">Enviada em</span>
@@ -2419,18 +2588,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Form adicionar -->
         <div class="cp-form" id="mp-cp-form">
           <div>
-            <label class="cp-form-label">Descrição</label>
+            <label class="cp-form-label">Descrição da contrapartida</label>
             <input class="cp-form-input" id="mp-cp-desc" type="text" placeholder="Ex: Logo na camiseta oficial">
-          </div>
-          <div class="cp-form-row">
-            <div>
-              <label class="cp-form-label">Valor (R$)</label>
-              <input class="cp-form-input" id="mp-cp-valor" type="number" placeholder="15000">
-            </div>
-            <div>
-              <label class="cp-form-label">Prazo de entrega</label>
-              <input class="cp-form-input" id="mp-cp-prazo" type="text" placeholder="DD/MM/AAAA">
-            </div>
           </div>
           <div class="cp-form-actions">
             <button class="cp-form-btn-cancel" onclick="toggleCpForm()">Cancelar</button>
