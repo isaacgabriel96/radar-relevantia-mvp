@@ -2201,93 +2201,6 @@ async function doLogout() {
 }
 
 /* ══════════════════════════════════════════════
-   PRÉ-PREENCHIMENTO EM MODO EDIÇÃO
-══════════════════════════════════════════════ */
-function maybePreFillEdit() {
-  const params = new URLSearchParams(window.location.search);
-  if (!params.has('edit')) return;
-
-  const raw = sessionStorage.getItem('edit_opp');
-  if (!raw) return;
-
-  let opp;
-  try { opp = JSON.parse(raw); } catch(e) { return; }
-
-  // Atualiza título da topbar
-  const topbarTitle = document.querySelector('.topbar-title');
-  if (topbarTitle) topbarTitle.textContent = 'Editar Oportunidade';
-
-  // Mapeamento: categoria → template key
-  const CAT_TO_TPL = {
-    'Esporte':    'evento',
-    'Cultura':    'evento',
-    'Arte':       'artista',
-    'Mídia':      'midia',
-    'Personalidade': 'personalidade',
-    'Evento':     'evento',
-  };
-  const tplKey = CAT_TO_TPL[opp.categoria] || 'evento';
-
-  // --- Passo 1: selecionar template ---
-  const tplCard = document.querySelector(`.template-card[data-template="${tplKey}"]`);
-  if (tplCard) selectTemplate(tplCard);
-
-  // --- Pular direto para o passo 2 ---
-  nextStep(2);
-
-  // --- Passo 2: informações básicas ---
-  const nomeEl = document.getElementById('opp-nome');
-  if (nomeEl && opp.titulo) { nomeEl.value = opp.titulo; }
-
-  const descEl = document.getElementById('opp-desc');
-  if (descEl && opp.descricao) {
-    descEl.value = opp.descricao;
-    updateChar(descEl, 'descCount', 300);
-  }
-
-  // Cidade: tenta extrair estado e cidade de "Cidade, UF"
-  if (opp.cidade) {
-    const parts = opp.cidade.split(',').map(s => s.trim());
-    const cidade = parts[0] || '';
-    const uf = parts[1] || '';
-    const estadoEl = document.getElementById('opp-estado');
-    if (estadoEl && uf) {
-      estadoEl.value = uf;
-      // Dispara o populate de cidades
-      updateOppCidades(uf);
-      // Aguarda renderização das opções e tenta setar a cidade
-      setTimeout(() => {
-        const cidadeEl = document.getElementById('opp-cidade');
-        if (cidadeEl && cidade) {
-          // Procura opção que contenha o texto da cidade
-          const opt = Array.from(cidadeEl.options).find(o =>
-            o.text.toLowerCase().includes(cidade.toLowerCase()) ||
-            o.value.toLowerCase().includes(cidade.toLowerCase())
-          );
-          if (opt) cidadeEl.value = opt.value;
-        }
-      }, 50);
-    }
-  }
-
-  // Mapeamento de "data" (ex: "Abr 2026") → abrangência aproximada (não temos campo direto)
-  // Abrangência: se o opp tiver campo, usar
-  if (opp.abrangencia) {
-    const abr = document.getElementById('opp-abrangencia');
-    if (abr) abr.value = opp.abrangencia;
-  }
-
-  // Link externo
-  if (opp.linkExterno) {
-    const linkEl = document.getElementById('opp-link-externo');
-    if (linkEl) linkEl.value = opp.linkExterno;
-  }
-
-  // Limpa o sessionStorage após usar
-  sessionStorage.removeItem('edit_opp');
-}
-
-/* ══════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════ */
 async function init() {
@@ -2295,7 +2208,6 @@ async function init() {
   window.applyTranslations?.();
   requireAuth('rightsholder', 'login.html');
   initSession();
-  maybePreFillEdit();
 }
 init();
 </script>
