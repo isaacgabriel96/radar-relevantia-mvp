@@ -30,6 +30,8 @@
       thread: [
         { autor:'marca', nome:'Nike Brasil', texto:'Temos grande interesse em fortalecer nossa presença neste evento. Gostaríamos de entender os entregáveis e condições de pagamento.', data:'15/03 · 10:22' }
       ],
+      aceitaNovasPropostas: true,
+      valorDeal: { proposto: null, propostoPor: null, status: 'sem_proposta' },
       contrapartidas: [
         { id:1, descricao:'Logo na largada e chegada',   categoria:'branding', valor:18000, prazo:'20/04/2026', status:'proposta', propostoPor:'marca' },
         { id:2, descricao:'Estande de ativação 4m²',     categoria:'ativacao', valor:12000, prazo:'20/04/2026', status:'proposta', propostoPor:'detentor' }

@@ -506,6 +506,48 @@ tbody tr:last-child td { border-bottom: none; }
 .cp-form-btn-add-det:hover { background: var(--gold); color: var(--black); }
 .cp-form-btn-cancel-det { background: transparent; border: 1px solid var(--gray-200); color: var(--gray-500); padding: 8px 14px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; cursor: pointer; }
 
+/* ─── TOGGLE ACEITAR PROPOSTAS ─── */
+.propostas-toggle-row { display: flex; align-items: center; justify-content: space-between; background: var(--gray-1); border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; gap: 12px; }
+.propostas-toggle-info { display: flex; flex-direction: column; gap: 2px; }
+.propostas-toggle-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.propostas-toggle-hint  { font-size: 11px; color: var(--gray-400); }
+.toggle-sw { position: relative; width: 40px; height: 22px; flex-shrink: 0; cursor: pointer; }
+.toggle-sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-sw-track { position: absolute; inset: 0; background: var(--gray-200); border-radius: 100px; transition: background 0.2s; }
+.toggle-sw input:checked + .toggle-sw-track { background: #059669; }
+.toggle-sw-knob { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: var(--white); border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+.toggle-sw input:checked ~ .toggle-sw-knob { transform: translateX(18px); }
+
+/* ─── SEÇÃO VALOR DO DEAL ─── */
+.valor-deal-section { border: 1.5px solid var(--gray-200); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+.valor-deal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.valor-deal-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-400); }
+.valor-deal-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 100px; }
+.valor-deal-badge.sem_proposta  { background: var(--gray-1); color: var(--gray-400); }
+.valor-deal-badge.aguardando_marca     { background: #FEF3C7; color: #B45309; }
+.valor-deal-badge.aguardando_detentor  { background: #DBEAFE; color: #1D4ED8; }
+.valor-deal-badge.aceito        { background: #D1FAE5; color: #065F46; }
+/* estado atual: valor proposto + quem propôs */
+.valor-deal-estado { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.valor-deal-valor-atual { font-size: 22px; font-weight: 700; color: var(--text); font-family: var(--font-heading); }
+.valor-deal-autor { font-size: 12px; color: var(--gray-400); }
+/* input para propor novo valor */
+.valor-deal-input-row { display: flex; gap: 8px; align-items: center; }
+.valor-deal-input-wrap { position: relative; flex: 1; }
+.valor-deal-input-prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: var(--gray-400); pointer-events: none; }
+.valor-deal-input { width: 100%; padding: 8px 11px 8px 32px; border: 1.5px solid var(--gray-200); border-radius: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
+.valor-deal-input:focus { border-color: var(--gold); }
+.valor-deal-input::placeholder { color: var(--gray-400); font-weight: 400; }
+.btn-propor-valor { background: var(--black); color: var(--white); border: none; padding: 8px 16px; border-radius: 8px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0; }
+.btn-propor-valor:hover { background: var(--gold); color: var(--black); }
+.btn-propor-valor:disabled { opacity: 0.4; cursor: default; background: var(--black); color: var(--white); }
+/* botões aceitar/contrapropor quando a marca propõe */
+.valor-deal-actions { display: flex; gap: 8px; margin-top: 10px; }
+.btn-aceitar-valor  { background: #059669; color: var(--white); border: none; padding: 8px 16px; border-radius: 8px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; transition: background 0.15s; }
+.btn-aceitar-valor:hover { background: #047857; }
+.btn-contrapropor-valor { background: transparent; border: 1.5px solid var(--gray-200); color: var(--text); padding: 8px 16px; border-radius: 8px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; transition: all 0.15s; }
+.btn-contrapropor-valor:hover { border-color: var(--gold); color: var(--gold); }
+
 /* ─── THREAD MENSAGENS (detentor) ─── */
 .msg-thread-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-400); margin-bottom: 10px; }
 .msg-thread { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; max-height: 240px; overflow-y: auto; padding-right: 2px; }
@@ -1728,9 +1770,10 @@ function openNegModal(id) {
   const sel = document.getElementById('mn-status-select');
   if (sel) sel.value = n.status;
 
-  // thread + contrapartidas
+  // thread + contrapartidas + valor deal
   renderNegThread(n.thread);
   renderContrapartidasDet(n.contrapartidas || []);
+  renderValorDeal();
 
   // reset compose
   const ta = document.getElementById('mn-compose-input');
@@ -1832,6 +1875,160 @@ function rejectCpDet(cpId) {
   if (cp) { cp.status = 'recusada'; SharedNeg.save(); renderContrapartidasDet(n.contrapartidas); showToast('Contrapartida recusada.', 'error'); }
 }
 
+/* ══════════════════════════════════════════════
+   TOGGLE ACEITAR PROPOSTAS
+══════════════════════════════════════════════ */
+function toggleAceitaPropostas(checked) {
+  if (!_negAtiva) return;
+  _negAtiva.aceitaNovasPropostas = checked;
+  SharedNeg.save();
+  const hint = document.getElementById('mn-toggle-hint');
+  if (hint) hint.textContent = checked
+    ? 'A marca pode sugerir novos itens e valores'
+    : 'Negociação fechada para novas propostas da marca';
+  showToast(checked ? 'Aberto para novas propostas.' : 'Novas propostas desativadas.', 'success');
+}
+
+/* ══════════════════════════════════════════════
+   VALOR DO DEAL — renderização
+══════════════════════════════════════════════ */
+function _fmtValor(v) {
+  if (!v && v !== 0) return '—';
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function renderValorDeal() {
+  const n = _negAtiva;
+  if (!n) return;
+
+  // garantir campo existe (negociações antigas no localStorage)
+  if (!n.valorDeal) n.valorDeal = { proposto: null, propostoPor: null, status: 'sem_proposta' };
+  if (typeof n.aceitaNovasPropostas === 'undefined') n.aceitaNovasPropostas = true;
+
+  const vd = n.valorDeal;
+  const isBlocked = (n.status === 'recusada' || n.status === 'aceita');
+
+  // toggle
+  const toggleEl = document.getElementById('mn-aceita-propostas');
+  if (toggleEl) {
+    toggleEl.checked = !!n.aceitaNovasPropostas;
+    toggleEl.disabled = isBlocked;
+  }
+  const hint = document.getElementById('mn-toggle-hint');
+  if (hint) hint.textContent = n.aceitaNovasPropostas
+    ? 'A marca pode sugerir novos itens e valores'
+    : 'Negociação fechada para novas propostas da marca';
+
+  // badge
+  const badge = document.getElementById('mn-valor-badge');
+  const badgeLabels = {
+    sem_proposta:       'Sem proposta',
+    aguardando_marca:    'Aguardando marca',
+    aguardando_detentor: 'Aguardando você',
+    aceito:              'Valor acordado ✓'
+  };
+  if (badge) {
+    badge.textContent = badgeLabels[vd.status] || '';
+    badge.className = 'valor-deal-badge ' + vd.status;
+  }
+
+  // estado atual
+  const estadoEl = document.getElementById('mn-valor-estado');
+  if (estadoEl) {
+    if (vd.status === 'sem_proposta') {
+      estadoEl.innerHTML = '';
+    } else {
+      const quem = vd.propostoPor === 'detentor' ? 'Você propôs' : 'A marca propôs';
+      estadoEl.innerHTML = `
+        <div class="valor-deal-estado">
+          <div class="valor-deal-valor-atual">${_fmtValor(vd.proposto)}</div>
+          <div class="valor-deal-autor">${quem} este valor${vd.status === 'aceito' ? ' — aceito por ambos' : ''}</div>
+        </div>`;
+    }
+  }
+
+  // input row: mostrar sempre, exceto se aceito ou bloqueado
+  const inputRow  = document.getElementById('mn-valor-input-row');
+  const actionsEl = document.getElementById('mn-valor-actions');
+  const btnPropor = document.getElementById('mn-btn-propor-valor');
+  const inputEl   = document.getElementById('mn-valor-input');
+
+  if (vd.status === 'aceito' || isBlocked) {
+    if (inputRow)  inputRow.style.display  = 'none';
+    if (actionsEl) actionsEl.style.display = 'none';
+  } else if (vd.status === 'aguardando_detentor') {
+    // marca propôs — mostrar aceitar/contrapropor, esconder input sozinho
+    if (inputRow)  inputRow.style.display  = 'none';
+    if (actionsEl) actionsEl.style.display = 'flex';
+  } else {
+    // sem_proposta ou aguardando_marca (detentor já propôs, aguarda marca)
+    if (inputRow)  inputRow.style.display  = 'flex';
+    if (actionsEl) actionsEl.style.display = 'none';
+    if (inputEl)   inputEl.value = '';
+    if (btnPropor) {
+      btnPropor.disabled  = isBlocked;
+      btnPropor.textContent = vd.status === 'aguardando_marca' ? 'Alterar proposta' : 'Propor valor';
+    }
+  }
+}
+
+function proporValorDeal() {
+  const n = _negAtiva;
+  if (!n) return;
+  const inputEl = document.getElementById('mn-valor-input');
+  const val = parseFloat(inputEl ? inputEl.value : 0);
+  if (!val || val <= 0) { showToast('Informe um valor válido.', 'error'); return; }
+  if (!n.valorDeal) n.valorDeal = {};
+  n.valorDeal.proposto   = val;
+  n.valorDeal.propostoPor = 'detentor';
+  n.valorDeal.status      = 'aguardando_marca';
+  SharedNeg.save();
+  renderValorDeal();
+  showToast('Valor de ' + _fmtValor(val) + ' proposto. Aguardando resposta da marca.', 'success');
+}
+
+function aceitarValorDeal() {
+  const n = _negAtiva;
+  if (!n || !n.valorDeal) return;
+  n.valorDeal.status = 'aceito';
+  SharedNeg.save();
+  renderValorDeal();
+  showToast('Valor de ' + _fmtValor(n.valorDeal.proposto) + ' aceito! 🎉', 'success');
+}
+
+function contraproporValorDeal() {
+  const n = _negAtiva;
+  if (!n) return;
+  // exibe o input row para digitar contraoferta
+  const inputRow  = document.getElementById('mn-valor-input-row');
+  const actionsEl = document.getElementById('mn-valor-actions');
+  const btnPropor = document.getElementById('mn-btn-propor-valor');
+  if (inputRow)  inputRow.style.display  = 'flex';
+  if (actionsEl) actionsEl.style.display = 'none';
+  if (btnPropor) btnPropor.textContent   = 'Enviar contraoferta';
+  const inputEl = document.getElementById('mn-valor-input');
+  if (inputEl) { inputEl.value = n.valorDeal?.proposto || ''; inputEl.focus(); }
+  // redireciona o clique do botão para confirmar contraoferta
+  if (btnPropor) btnPropor.onclick = function() { confirmarContraoferta(); };
+}
+
+function confirmarContraoferta() {
+  const n = _negAtiva;
+  if (!n) return;
+  const inputEl = document.getElementById('mn-valor-input');
+  const val = parseFloat(inputEl ? inputEl.value : 0);
+  if (!val || val <= 0) { showToast('Informe um valor válido.', 'error'); return; }
+  n.valorDeal.proposto    = val;
+  n.valorDeal.propostoPor = 'detentor';
+  n.valorDeal.status      = 'aguardando_marca';
+  SharedNeg.save();
+  // restaura onclick original
+  const btnPropor = document.getElementById('mn-btn-propor-valor');
+  if (btnPropor) btnPropor.onclick = function() { proporValorDeal(); };
+  renderValorDeal();
+  showToast('Contraoferta de ' + _fmtValor(val) + ' enviada para a marca.', 'success');
+}
+
 function closeNegModal() {
   document.getElementById('modal-neg').classList.remove('open');
   document.body.style.overflow = '';
@@ -1882,6 +2079,9 @@ function _updateDealFooterState() {
     composeDet.style.opacity = isBlocked ? '0.45' : '';
     composeDet.style.pointerEvents = isBlocked ? 'none' : '';
   }
+
+  // re-renderiza seção de valor do deal (reflete bloqueio por status)
+  renderValorDeal();
 }
 
 function recusarNegociacao() {
@@ -2292,6 +2492,43 @@ function escapeHtml(str) {
 
       <!-- PAINEL: Proposta (contrapartidas) -->
       <div class="modal-tab-panel-det active" data-panel="proposta">
+
+        <!-- Toggle: aceitar novas propostas -->
+        <div class="propostas-toggle-row">
+          <div class="propostas-toggle-info">
+            <span class="propostas-toggle-label">Aceitar novas propostas</span>
+            <span class="propostas-toggle-hint" id="mn-toggle-hint">A marca pode sugerir novos itens e valores</span>
+          </div>
+          <label class="toggle-sw">
+            <input type="checkbox" id="mn-aceita-propostas" onchange="toggleAceitaPropostas(this.checked)">
+            <span class="toggle-sw-track"></span>
+            <span class="toggle-sw-knob"></span>
+          </label>
+        </div>
+
+        <!-- Seção: Valor do deal -->
+        <div class="valor-deal-section">
+          <div class="valor-deal-header">
+            <span class="valor-deal-title">Valor do deal</span>
+            <span class="valor-deal-badge sem_proposta" id="mn-valor-badge">Sem proposta</span>
+          </div>
+          <!-- Estado atual (preenchido por JS) -->
+          <div id="mn-valor-estado"></div>
+          <!-- Input para propor / contrapropor -->
+          <div class="valor-deal-input-row" id="mn-valor-input-row">
+            <div class="valor-deal-input-wrap">
+              <span class="valor-deal-input-prefix">R$</span>
+              <input type="number" class="valor-deal-input" id="mn-valor-input" placeholder="0,00" min="0" step="100">
+            </div>
+            <button class="btn-propor-valor" id="mn-btn-propor-valor" onclick="proporValorDeal()">Propor valor</button>
+          </div>
+          <!-- Ações quando há proposta da marca aguardando -->
+          <div class="valor-deal-actions" id="mn-valor-actions" style="display:none">
+            <button class="btn-aceitar-valor"    onclick="aceitarValorDeal()">Aceitar valor</button>
+            <button class="btn-contrapropor-valor" onclick="contraproporValorDeal()">Contrapropor</button>
+          </div>
+        </div>
+
         <div class="cp-total-row">
           <span class="cp-total-label">Total aceito</span>
           <span class="cp-total-value" id="mn-cp-total">R$ 0<span>(apenas itens aceitos)</span></span>
