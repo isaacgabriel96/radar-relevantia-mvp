@@ -815,7 +815,10 @@ tbody tr:last-child td { border-bottom: none; }
                   <td><span class="badge badge-green">Publicada</span></td>
                   <td style="font-weight:600">4</td>
                   <td style="color:var(--gray-400)">18 mar 2026</td>
-                  <td><a href="oportunidade-detalhe.html?id=1" class="btn btn-ghost btn-sm">Ver →</a></td>
+                  <td style="display:flex;gap:6px;justify-content:flex-end">
+                    <a href="criar-oportunidade.html?edit=1" class="btn btn-ghost btn-sm">Editar</a>
+                    <a href="oportunidade-detalhe.html?id=1" class="btn btn-ghost btn-sm">Ver →</a>
+                  </td>
                 </tr>
                 <tr>
                   <td style="font-weight:600">Naming Rights — Arena Esportiva</td>
@@ -823,7 +826,10 @@ tbody tr:last-child td { border-bottom: none; }
                   <td><span class="badge badge-green">Publicada</span></td>
                   <td style="font-weight:600">6</td>
                   <td style="color:var(--gray-400)">20 mar 2026</td>
-                  <td><a href="oportunidade-detalhe.html?id=2" class="btn btn-ghost btn-sm">Ver →</a></td>
+                  <td style="display:flex;gap:6px;justify-content:flex-end">
+                    <a href="criar-oportunidade.html?edit=2" class="btn btn-ghost btn-sm">Editar</a>
+                    <a href="oportunidade-detalhe.html?id=2" class="btn btn-ghost btn-sm">Ver →</a>
+                  </td>
                 </tr>
                 <tr>
                   <td style="font-weight:600">Festival Cultural do Recife</td>
@@ -831,7 +837,9 @@ tbody tr:last-child td { border-bottom: none; }
                   <td><span class="badge badge-orange">Rascunho</span></td>
                   <td style="font-weight:600;color:var(--gray-400)">—</td>
                   <td style="color:var(--gray-400)">21 mar 2026</td>
-                  <td><a href="criar-oportunidade.html?edit=3" class="btn btn-ghost btn-sm">Editar →</a></td>
+                  <td style="display:flex;gap:6px;justify-content:flex-end">
+                    <a href="criar-oportunidade.html?edit=3" class="btn btn-ghost btn-sm">Editar →</a>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -877,6 +885,18 @@ tbody tr:last-child td { border-bottom: none; }
 
       <!-- Painel: Deals Fechados -->
       <div class="sub-panel" id="subpanel-deals">
+        <!-- Filtros -->
+        <div class="neg-filter-bar" id="deals-filter-bar">
+          <span class="neg-filter-label">Oportunidade</span>
+          <select class="neg-filter-select" id="deals-filter-opp" onchange="filterDeals()">
+            <option value="">Todas</option>
+          </select>
+          <span class="neg-filter-label" style="margin-left:8px">Marca</span>
+          <select class="neg-filter-select" id="deals-filter-marca" onchange="filterDeals()">
+            <option value="">Todas</option>
+          </select>
+          <span class="neg-count" id="deals-count-label"></span>
+        </div>
         <div class="deals-grid" id="deals-grid-container">
           <!-- preenchido por renderDeals() -->
         </div>
@@ -1486,6 +1506,10 @@ const NEGOCIACOES = [
   }
 ];
 
+// Taxa padrão da plataforma Relevantia (20%)
+// Para alterar, acesse o painel Admin — não modifique aqui diretamente.
+const PLATAFORMA_TAXA = 0.20;
+
 function switchSubTab(tab) {
   document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
@@ -1609,7 +1633,7 @@ function renderContrapartidasDet(list) {
   if (!tbody) return;
 
   if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray-4);padding:20px;font-size:13px;">Nenhuma contrapartida adicionada ainda.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-4);padding:20px;font-size:13px;">Nenhuma contrapartida adicionada ainda.</td></tr>';
   } else {
     tbody.innerHTML = list.map(cp => {
       const statusLabel = cp.status === 'proposta' ? 'Proposta' : cp.status === 'aceita' ? 'Aceita' : 'Recusada';
@@ -1623,8 +1647,6 @@ function renderContrapartidasDet(list) {
         : '';
       return `<tr>
         <td>${cp.descricao}</td>
-        <td style="white-space:nowrap">${formatValorCpDet(cp.valor)}</td>
-        <td style="white-space:nowrap">${cp.prazo}</td>
         <td><span class="cp-status ${cp.status}">${statusLabel}</span></td>
         <td>${actions}</td>
       </tr>`;
@@ -1706,16 +1728,105 @@ function sendNegMsg() {
   showToast('Mensagem enviada!', 'success');
 }
 
-function renderDeals() {
+function _buildDealCard(n) {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
+  const aceitos = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+  const totalBruto = aceitos.reduce((s, c) => s + c.valor, 0);
+  const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
+  const liquido    = totalBruto - taxa;
+  const prazos     = aceitos.filter(c => c.prazo).map(c => c.prazo).sort();
+  const prazoProximo = prazos.length ? prazos[0] : '—';
+
+  const cpRows = aceitos.map(cp => `
+    <div class="deal-card-cp-item">
+      <span class="deal-card-cp-desc">${cp.descricao}</span>
+      <span class="deal-card-cp-val">${fmt(cp.valor)}</span>
+    </div>`).join('');
+
+  return `<div class="deal-card">
+    <div class="deal-card-header">
+      <div>
+        <div class="deal-card-brand">${n.marca}</div>
+        <div class="deal-card-opp">${n.opp} · ${n.cota}</div>
+      </div>
+      <span class="deal-card-badge">Aceito</span>
+    </div>
+    <div class="deal-card-metrics">
+      <div class="deal-metric">
+        <div class="deal-metric-label">Total bruto</div>
+        <div class="deal-metric-value">${fmt(totalBruto)}</div>
+      </div>
+      <div class="deal-metric">
+        <div class="deal-metric-label">Taxa Relevantia (${Math.round(PLATAFORMA_TAXA*100)}%)</div>
+        <div class="deal-metric-value amber">− ${fmt(taxa)}</div>
+      </div>
+      <div class="deal-metric" style="grid-column:1/-1;background:var(--gray-1)">
+        <div class="deal-metric-label">Você recebe (líquido)</div>
+        <div class="deal-metric-value green" style="font-size:20px">${fmt(liquido)}</div>
+      </div>
+    </div>
+    <div class="deal-card-cp">
+      <div class="deal-card-cp-title">Contrapartidas aceitas · prazo próximo: ${prazoProximo}</div>
+      ${cpRows || '<div style="font-size:12px;color:var(--gray-400)">Nenhuma contrapartida aceita.</div>'}
+    </div>
+  </div>`;
+}
+
+function _buildDealsFilterOptions() {
+  const deals = NEGOCIACOES.filter(n => n.status === 'aceita');
+  const oppSel   = document.getElementById('deals-filter-opp');
+  const marcaSel = document.getElementById('deals-filter-marca');
+  if (!oppSel || !marcaSel) return;
+
+  const opps   = [...new Map(deals.map(n => [n.opp_id, n.opp])).entries()];
+  const marcas = [...new Set(deals.map(n => n.marca))];
+
+  oppSel.innerHTML   = '<option value="">Todas</option>' + opps.map(([id,opp]) => `<option value="${id}">${opp}</option>`).join('');
+  marcaSel.innerHTML = '<option value="">Todas</option>' + marcas.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+
+function filterDeals() {
+  const oppVal   = document.getElementById('deals-filter-opp').value;
+  const marcaVal = document.getElementById('deals-filter-marca').value;
+  const deals    = NEGOCIACOES.filter(n => n.status === 'aceita');
+  const filtered = deals.filter(n =>
+    (!oppVal   || String(n.opp_id) === oppVal) &&
+    (!marcaVal || n.marca === marcaVal)
+  );
+  const container = document.getElementById('deals-grid-container');
+  const countEl   = document.getElementById('deals-count-label');
+  if (countEl) countEl.textContent = filtered.length + ' deal' + (filtered.length !== 1 ? 's' : '');
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="deal-empty" style="grid-column:1/-1">
+      <div class="deal-empty-icon">🔍</div>
+      <div class="deal-empty-title">Nenhum deal encontrado</div>
+      <div class="deal-empty-text">Tente ajustar os filtros.</div>
+    </div>`;
+  } else {
+    container.innerHTML = filtered.map(_buildDealCard).join('');
+  }
+}
+
+function renderDeals() {
   const deals = NEGOCIACOES.filter(n => n.status === 'aceita');
 
   // Atualizar badge
   const badge = document.getElementById('deals-badge-count');
   if (badge) badge.textContent = deals.length;
 
+  // Preencher opções dos filtros
+  _buildDealsFilterOptions();
+
   const container = document.getElementById('deals-grid-container');
   if (!container) return;
+
+  // Exibir/ocultar barra de filtros
+  const filterBar = document.getElementById('deals-filter-bar');
+  if (filterBar) filterBar.style.display = deals.length === 0 ? 'none' : '';
+
+  const countEl = document.getElementById('deals-count-label');
+  if (countEl) countEl.textContent = deals.length + ' deal' + (deals.length !== 1 ? 's' : '');
 
   if (deals.length === 0) {
     container.innerHTML = `<div class="deal-empty" style="grid-column:1/-1">
@@ -1726,51 +1837,7 @@ function renderDeals() {
     return;
   }
 
-  container.innerHTML = deals.map(n => {
-    const aceitos = (n.contrapartidas || []).filter(c => c.status === 'aceita');
-    const emNeg   = (n.contrapartidas || []).filter(c => c.status === 'proposta');
-    const totalAceito = aceitos.reduce((s, c) => s + c.valor, 0);
-    const prazos = aceitos.filter(c => c.prazo).map(c => c.prazo).sort();
-    const prazoProximo = prazos.length ? prazos[0] : '—';
-
-    const cpRows = aceitos.map(cp => `
-      <div class="deal-card-cp-item">
-        <span class="deal-card-cp-desc">${cp.descricao}</span>
-        <span class="deal-card-cp-val">${fmt(cp.valor)}</span>
-      </div>`).join('');
-
-    return `<div class="deal-card">
-      <div class="deal-card-header">
-        <div>
-          <div class="deal-card-brand">${n.marca}</div>
-          <div class="deal-card-opp">${n.opp} · ${n.cota}</div>
-        </div>
-        <span class="deal-card-badge">Aceito</span>
-      </div>
-      <div class="deal-card-metrics">
-        <div class="deal-metric">
-          <div class="deal-metric-label">Total aceito</div>
-          <div class="deal-metric-value green">${fmt(totalAceito)}</div>
-        </div>
-        <div class="deal-metric">
-          <div class="deal-metric-label">Itens aceitos</div>
-          <div class="deal-metric-value">${aceitos.length}</div>
-        </div>
-        <div class="deal-metric">
-          <div class="deal-metric-label">Em negociação</div>
-          <div class="deal-metric-value amber">${emNeg.length}</div>
-        </div>
-        <div class="deal-metric">
-          <div class="deal-metric-label">Prazo próximo</div>
-          <div class="deal-metric-value" style="font-size:13px">${prazoProximo}</div>
-        </div>
-      </div>
-      <div class="deal-card-cp">
-        <div class="deal-card-cp-title">Contrapartidas aceitas</div>
-        ${cpRows || '<div style="font-size:12px;color:var(--gray-400)">Nenhuma contrapartida aceita.</div>'}
-      </div>
-    </div>`;
-  }).join('');
+  container.innerHTML = deals.map(_buildDealCard).join('');
 }
 
 // Init negociações table on load
@@ -1989,8 +2056,6 @@ function escapeHtml(str) {
             <thead>
               <tr>
                 <th>Descrição</th>
-                <th>Valor</th>
-                <th>Prazo</th>
                 <th>Status</th>
                 <th></th>
               </tr>
