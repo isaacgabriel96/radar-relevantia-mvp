@@ -627,6 +627,16 @@ tbody tr:last-child td { border-bottom: none; }
 .cp-btn.accept:hover { background: #ECFDF5; }
 .cp-btn.reject { border-color: rgba(220,38,38,0.4); color: #DC2626; }
 .cp-btn.reject:hover { background: #FEF2F2; }
+.cp-recusadas-toggle { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; padding: 8px 0 4px; font-family: var(--font-body); font-size: 12px; font-weight: 500; color: var(--gray-400); transition: color 0.15s; width: 100%; }
+.cp-recusadas-toggle:hover { color: var(--gray-500); }
+.cp-recusadas-toggle svg { transition: transform 0.2s ease; flex-shrink: 0; }
+.cp-recusadas-toggle.open svg { transform: rotate(180deg); }
+.cp-recusadas-count { background: var(--gray-200); color: var(--gray-500); border-radius: 100px; padding: 1px 7px; font-size: 10px; font-weight: 700; }
+.cp-recusadas-list { overflow: hidden; max-height: 0; transition: max-height 0.25s ease; }
+.cp-recusadas-list.open { max-height: 400px; }
+.cp-recusadas-list .cp-table tbody tr { opacity: 0.6; }
+.cp-recusadas-list .cp-table tbody tr td { padding: 8px 12px; }
+.cp-recusadas-list .cp-table { border-top: 1px solid var(--gray-200); border-radius: 0 0 10px 10px; }
 .cp-total-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--gray-1); border-radius: 10px; margin-bottom: 14px; }
 .cp-total-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-400); }
 .cp-total-value { font-size: 16px; font-weight: 700; color: var(--black); font-family: var(--font-heading); }
@@ -2150,31 +2160,71 @@ function formatValorCpDet(v) {
 function renderContrapartidasDet(list) {
   const tbody = document.getElementById('mn-cp-tbody');
   const totalEl = document.getElementById('mn-cp-total');
+  const tableWrap = document.querySelector('.cp-table-wrap');
   if (!tbody) return;
+
+  // Separate active from refused
+  const ativas    = list.filter(cp => cp.status !== 'recusada');
+  const recusadas = list.filter(cp => cp.status === 'recusada');
+
+  function cpRowHtml(cp) {
+    const statusLabel = cp.status === 'proposta' ? 'Proposta' : cp.status === 'aceita' ? 'Aceita' : 'Recusada';
+    const canAct = cp.propostoPor === 'marca' && cp.status === 'proposta';
+    const actions = canAct
+      ? `<div class="cp-actions">
+          <button class="cp-btn accept" onclick="acceptCpDet(${cp.id})">Aceitar</button>
+          <button class="cp-btn reject" onclick="rejectCpDet(${cp.id})">Recusar</button>
+         </div>`
+      : '';
+    return `<tr>
+      <td>${cp.descricao}</td>
+      <td><span class="cp-status ${cp.status}">${statusLabel}</span></td>
+      <td>${actions}</td>
+    </tr>`;
+  }
 
   if (list.length === 0) {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-4);padding:20px;font-size:13px;">Nenhuma contrapartida adicionada ainda.</td></tr>';
+    // Remove any existing recusadas section
+    const old = tableWrap ? tableWrap.querySelector('.cp-recusadas-section') : null;
+    if (old) old.remove();
   } else {
-    tbody.innerHTML = list.map(cp => {
-      const statusLabel = cp.status === 'proposta' ? 'Proposta' : cp.status === 'aceita' ? 'Aceita' : 'Recusada';
-      // detentor can act on items proposed by marca that are still "proposta"
-      const canAct = cp.propostoPor === 'marca' && cp.status === 'proposta';
-      const actions = canAct
-        ? `<div class="cp-actions">
-            <button class="cp-btn accept" onclick="acceptCpDet(${cp.id})">Aceitar</button>
-            <button class="cp-btn reject" onclick="rejectCpDet(${cp.id})">Recusar</button>
-           </div>`
-        : '';
-      return `<tr>
-        <td>${cp.descricao}</td>
-        <td><span class="cp-status ${cp.status}">${statusLabel}</span></td>
-        <td>${actions}</td>
-      </tr>`;
-    }).join('');
+    // Render active rows
+    tbody.innerHTML = ativas.length
+      ? ativas.map(cpRowHtml).join('')
+      : '<tr><td colspan="3" style="text-align:center;color:var(--gray-4);padding:20px;font-size:13px;">Nenhuma contrapartida ativa.</td></tr>';
+
+    // Remove old recusadas section if exists
+    const old = tableWrap ? tableWrap.querySelector('.cp-recusadas-section') : null;
+    if (old) old.remove();
+
+    // Render collapse section for refused items
+    if (recusadas.length > 0 && tableWrap) {
+      const section = document.createElement('div');
+      section.className = 'cp-recusadas-section';
+      section.innerHTML = `
+        <button class="cp-recusadas-toggle" onclick="toggleCpRecusadas(this)">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+          <span>Ver ${recusadas.length} recusada${recusadas.length > 1 ? 's' : ''}</span>
+          <span class="cp-recusadas-count">${recusadas.length}</span>
+        </button>
+        <div class="cp-recusadas-list">
+          <table class="cp-table">
+            <tbody>${recusadas.map(cpRowHtml).join('')}</tbody>
+          </table>
+        </div>`;
+      tableWrap.appendChild(section);
+    }
   }
 
-  const total = list.filter(c => c.status === 'aceita').reduce((s, c) => s + c.valor, 0);
+  const total = list.filter(c => c.status === 'aceita').reduce((s, c) => s + (c.valor || 0), 0);
   if (totalEl) totalEl.textContent = formatValorCpDet(total);
+}
+
+function toggleCpRecusadas(btn) {
+  btn.classList.toggle('open');
+  const list = btn.nextElementSibling;
+  if (list) list.classList.toggle('open');
 }
 
 function toggleCpFormDet() {
