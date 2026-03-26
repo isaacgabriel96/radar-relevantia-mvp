@@ -266,26 +266,26 @@ tbody tr:last-child td { border-bottom: none; }
 .sub-panel.active { display: block; }
 
 /* ─── CARDS DE DEAL ─── */
-.deals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 640px) { .deals-grid { grid-template-columns: 1fr; } }
-.deal-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 16px; overflow: hidden; }
-.deal-card-header { padding: 16px 18px 14px; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.deal-card-brand { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); line-height: 1.3; }
-.deal-card-opp { font-size: 11px; color: var(--gray-400); margin-top: 3px; line-height: 1.4; }
-.deal-card-badge { background: #ECFDF5; color: #059669; border: 1px solid rgba(5,150,105,0.2); border-radius: 100px; font-size: 10px; font-weight: 700; padding: 2px 9px; white-space: nowrap; flex-shrink: 0; }
-.deal-card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--gray-200); border-bottom: 1px solid var(--gray-200); }
-.deal-metric { background: var(--white); padding: 12px 14px; }
-.deal-metric-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-400); margin-bottom: 3px; }
-.deal-metric-value { font-family: var(--font-heading); font-size: 16px; font-weight: 700; color: var(--black); }
-.deal-metric-value.green { color: #059669; }
-.deal-metric-value.amber { color: #B45309; }
-.deal-card-cp { padding: 12px 18px 16px; }
-.deal-card-cp-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-400); margin-bottom: 8px; }
-.deal-card-cp-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--gray-200); gap: 8px; }
-.deal-card-cp-item:last-child { border-bottom: none; }
-.deal-card-cp-desc { color: var(--text); flex: 1; }
-.deal-card-cp-val { font-weight: 600; color: var(--black); white-space: nowrap; }
-.deal-empty { text-align: center; padding: 48px 24px; color: var(--gray-400); }
+.deals-grid { display: flex; flex-direction: column; gap: 1px; background: var(--gray-200); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
+.deal-card { background: var(--white); padding: 18px 20px; }
+.deal-card:first-child { border-radius: 14px 14px 0 0; }
+.deal-card:last-child { border-radius: 0 0 14px 14px; }
+.deal-card:only-child { border-radius: 14px; }
+.deal-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.deal-card-info { flex: 1; }
+.deal-card-brand { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--black); line-height: 1.3; }
+.deal-card-opp { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.deal-card-valor { text-align: right; flex-shrink: 0; }
+.deal-card-valor-label { font-size: 10px; color: var(--gray-400); font-weight: 500; margin-bottom: 2px; }
+.deal-card-valor-num { font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: #059669; letter-spacing: -0.02em; }
+.deal-card-badge { display: inline-flex; align-items: center; gap: 4px; background: #ECFDF5; color: #059669; border-radius: 100px; font-size: 10px; font-weight: 700; padding: 2px 8px; margin-bottom: 4px; }
+.deal-card-cp { border-top: 1px solid var(--gray-200); padding-top: 12px; display: flex; flex-direction: column; gap: 7px; }
+.deal-card-cp-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; gap: 8px; }
+.deal-card-cp-desc { color: var(--gray-400); flex: 1; }
+.deal-card-cp-desc::before { content: '–  '; }
+.deal-card-cp-val { font-weight: 500; color: var(--text); white-space: nowrap; }
+.deal-card-taxa { font-size: 11px; color: var(--gray-400); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--gray-200); }
+.deal-empty { text-align: center; padding: 48px 24px; color: var(--gray-400); background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200); }
 .deal-empty-icon { font-size: 32px; margin-bottom: 12px; }
 .deal-empty-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
 .deal-empty-text { font-size: 13px; line-height: 1.6; }
@@ -300,7 +300,7 @@ tbody tr:last-child td { border-bottom: none; }
 /* ─── MODAL NEGOCIAÇÃO (detentor) ─── */
 .modal-overlay-det { position: fixed; inset: 0; background: rgba(30,22,0,0.45); backdrop-filter: blur(4px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay-det.open { display: flex; }
-.modal-neg { background: var(--white); border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(30,22,0,0.18); }
+.modal-neg { background: var(--white); border-radius: 16px; width: 100%; max-width: 740px; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(30,22,0,0.18); }
 .modal-neg-header { padding: 22px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; }
 .modal-neg-title { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--black); }
 .modal-neg-opp { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
@@ -657,7 +657,7 @@ tbody tr:last-child td { border-bottom: none; }
       Meu Perfil
     </a>
     <a class="nav-item" data-section="voz" onclick="showSection('voz')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8z"/><circle cx="17" cy="7" r="1" fill="currentColor" stroke="none"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
       Fale com o Radar
     </a>
   </nav>
@@ -838,7 +838,8 @@ tbody tr:last-child td { border-bottom: none; }
                   <td style="font-weight:600;color:var(--gray-400)">—</td>
                   <td style="color:var(--gray-400)">21 mar 2026</td>
                   <td style="display:flex;gap:6px;justify-content:flex-end">
-                    <a href="criar-oportunidade.html?edit=3" class="btn btn-ghost btn-sm">Editar →</a>
+                    <a href="criar-oportunidade.html?edit=3" class="btn btn-ghost btn-sm">Editar</a>
+                    <button class="btn btn-gold btn-sm" onclick="publishOportunidade(3)">Publicar</button>
                   </td>
                 </tr>
               </tbody>
@@ -850,13 +851,17 @@ tbody tr:last-child td { border-bottom: none; }
       <!-- Painel: Negociações -->
       <div class="sub-panel" id="subpanel-negociacoes">
 
-        <!-- Filtro por oportunidade -->
+        <!-- Filtros -->
         <div class="neg-filter-bar">
           <span class="neg-filter-label">Oportunidade</span>
           <select class="neg-filter-select" id="neg-filter" onchange="filterNegociacoes()">
             <option value="">Todas</option>
             <option value="1">Maratona Internacional SP 2026</option>
             <option value="2">Festival Cultura Viva 2026</option>
+          </select>
+          <span class="neg-filter-label" style="margin-left:4px">Marca</span>
+          <select class="neg-filter-select" id="neg-filter-marca" onchange="filterNegociacoes()">
+            <option value="">Todas</option>
           </select>
           <span class="neg-count" id="neg-count-label">10 negociações</span>
         </div>
@@ -1194,7 +1199,7 @@ tbody tr:last-child td { border-bottom: none; }
     <span>Perfil</span>
   </button>
   <button class="bottom-nav-item" id="bn-voz" onclick="showSection('voz')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 01-7.743 5.743L10 14l-1 1-1 1H6v2H2v-4l4.257-4.257A6 6 0 1118 8z"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     <span>Voz</span>
   </button>
 </nav>
@@ -1510,6 +1515,23 @@ const NEGOCIACOES = [
 // Para alterar, acesse o painel Admin — não modifique aqui diretamente.
 const PLATAFORMA_TAXA = 0.20;
 
+function publishOportunidade(id) {
+  // Mock: simula publicação do rascunho
+  showToast('Oportunidade publicada com sucesso!', 'success');
+  // Atualiza visualmente o badge e o status da linha
+  const rows = document.querySelectorAll('#subpanel-publicadas tbody tr');
+  rows.forEach(row => {
+    if (row.querySelector('a[href*="edit=' + id + '"]')) {
+      const statusCell = row.cells[2];
+      if (statusCell) statusCell.innerHTML = '<span class="badge badge-green">Publicada</span>';
+      const actionsCell = row.cells[5];
+      if (actionsCell) {
+        actionsCell.innerHTML = '<a href="criar-oportunidade.html?edit=' + id + '" class="btn btn-ghost btn-sm">Editar</a><a href="oportunidade-detalhe.html?id=' + id + '" class="btn btn-ghost btn-sm">Ver →</a>';
+      }
+    }
+  });
+}
+
 function switchSubTab(tab) {
   document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
@@ -1540,9 +1562,20 @@ function renderNegociacoes(data) {
   }).join('');
 }
 
+function _buildNegMarcaOptions() {
+  const sel = document.getElementById('neg-filter-marca');
+  if (!sel) return;
+  const marcas = [...new Set(NEGOCIACOES.map(n => n.marca))].sort();
+  sel.innerHTML = '<option value="">Todas</option>' + marcas.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+
 function filterNegociacoes() {
-  const val = document.getElementById('neg-filter') ? document.getElementById('neg-filter').value : '';
-  const filtered = val ? NEGOCIACOES.filter(n => String(n.opp_id) === val) : NEGOCIACOES;
+  const oppVal   = document.getElementById('neg-filter')       ? document.getElementById('neg-filter').value       : '';
+  const marcaVal = document.getElementById('neg-filter-marca') ? document.getElementById('neg-filter-marca').value : '';
+  const filtered = NEGOCIACOES.filter(n =>
+    (!oppVal   || String(n.opp_id) === oppVal) &&
+    (!marcaVal || n.marca === marcaVal)
+  );
   renderNegociacoes(filtered);
   const label = document.getElementById('neg-count-label');
   if (label) label.textContent = filtered.length + ' negociação' + (filtered.length !== 1 ? 'ões' : '');
@@ -1730,12 +1763,10 @@ function sendNegMsg() {
 
 function _buildDealCard(n) {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
-  const aceitos = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+  const aceitos    = (n.contrapartidas || []).filter(c => c.status === 'aceita');
   const totalBruto = aceitos.reduce((s, c) => s + c.valor, 0);
   const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
   const liquido    = totalBruto - taxa;
-  const prazos     = aceitos.filter(c => c.prazo).map(c => c.prazo).sort();
-  const prazoProximo = prazos.length ? prazos[0] : '—';
 
   const cpRows = aceitos.map(cp => `
     <div class="deal-card-cp-item">
@@ -1745,30 +1776,17 @@ function _buildDealCard(n) {
 
   return `<div class="deal-card">
     <div class="deal-card-header">
-      <div>
+      <div class="deal-card-info">
         <div class="deal-card-brand">${n.marca}</div>
         <div class="deal-card-opp">${n.opp} · ${n.cota}</div>
       </div>
-      <span class="deal-card-badge">Aceito</span>
-    </div>
-    <div class="deal-card-metrics">
-      <div class="deal-metric">
-        <div class="deal-metric-label">Total bruto</div>
-        <div class="deal-metric-value">${fmt(totalBruto)}</div>
-      </div>
-      <div class="deal-metric">
-        <div class="deal-metric-label">Taxa Relevantia (${Math.round(PLATAFORMA_TAXA*100)}%)</div>
-        <div class="deal-metric-value amber">− ${fmt(taxa)}</div>
-      </div>
-      <div class="deal-metric" style="grid-column:1/-1;background:var(--gray-1)">
-        <div class="deal-metric-label">Você recebe (líquido)</div>
-        <div class="deal-metric-value green" style="font-size:20px">${fmt(liquido)}</div>
+      <div class="deal-card-valor">
+        <div class="deal-card-valor-label">Você recebe</div>
+        <div class="deal-card-valor-num">${fmt(liquido)}</div>
       </div>
     </div>
-    <div class="deal-card-cp">
-      <div class="deal-card-cp-title">Contrapartidas aceitas · prazo próximo: ${prazoProximo}</div>
-      ${cpRows || '<div style="font-size:12px;color:var(--gray-400)">Nenhuma contrapartida aceita.</div>'}
-    </div>
+    ${aceitos.length ? `<div class="deal-card-cp">${cpRows}</div>` : ''}
+    <div class="deal-card-taxa">Taxa de plataforma (${Math.round(PLATAFORMA_TAXA*100)}%): ${fmt(taxa)} · Bruto: ${fmt(totalBruto)}</div>
   </div>`;
 }
 
@@ -1798,7 +1816,7 @@ function filterDeals() {
   if (countEl) countEl.textContent = filtered.length + ' deal' + (filtered.length !== 1 ? 's' : '');
 
   if (filtered.length === 0) {
-    container.innerHTML = `<div class="deal-empty" style="grid-column:1/-1">
+    container.innerHTML = `<div class="deal-empty" style="">
       <div class="deal-empty-icon">🔍</div>
       <div class="deal-empty-title">Nenhum deal encontrado</div>
       <div class="deal-empty-text">Tente ajustar os filtros.</div>
@@ -1829,7 +1847,7 @@ function renderDeals() {
   if (countEl) countEl.textContent = deals.length + ' deal' + (deals.length !== 1 ? 's' : '');
 
   if (deals.length === 0) {
-    container.innerHTML = `<div class="deal-empty" style="grid-column:1/-1">
+    container.innerHTML = `<div class="deal-empty" style="">
       <div class="deal-empty-icon">🤝</div>
       <div class="deal-empty-title">Nenhum deal fechado ainda</div>
       <div class="deal-empty-text">Quando uma negociação for concluída com sucesso,<br>ela aparecerá aqui como base para o contrato.</div>
@@ -1842,6 +1860,7 @@ function renderDeals() {
 
 // Init negociações table on load
 document.addEventListener('DOMContentLoaded', function() {
+  _buildNegMarcaOptions();
   renderNegociacoes(NEGOCIACOES);
   renderDeals();
   const label = document.getElementById('neg-count-label');
@@ -2066,19 +2085,12 @@ function escapeHtml(str) {
 
         <div class="cp-form-det" id="mn-cp-form">
           <div>
-            <label class="cp-form-label-det">Descrição</label>
-            <input class="cp-form-input-det" id="mn-cp-desc" type="text" placeholder="Ex: Estande 6m² no evento">
+            <label class="cp-form-label-det">Descrição da contrapartida</label>
+            <input class="cp-form-input-det" id="mn-cp-desc" type="text" placeholder="Ex: Estande 6m² no evento, logo na camiseta…">
           </div>
-          <div class="cp-form-row-det">
-            <div>
-              <label class="cp-form-label-det">Valor (R$)</label>
-              <input class="cp-form-input-det" id="mn-cp-valor" type="number" placeholder="20000">
-            </div>
-            <div>
-              <label class="cp-form-label-det">Prazo de entrega</label>
-              <input class="cp-form-input-det" id="mn-cp-prazo" type="text" placeholder="DD/MM/AAAA">
-            </div>
-          </div>
+          <!-- valor e prazo capturados internamente pelo processo de negociação -->
+          <input type="hidden" id="mn-cp-valor" value="0">
+          <input type="hidden" id="mn-cp-prazo" value="">
           <div class="cp-form-actions-det">
             <button class="cp-form-btn-cancel-det" onclick="toggleCpFormDet()">Cancelar</button>
             <button class="cp-form-btn-add-det" onclick="addContrapartidaDet()">Adicionar</button>
