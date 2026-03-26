@@ -372,6 +372,13 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-send-msg:hover { background: var(--gold); color: var(--black); }
 .btn-send-msg:disabled { background: var(--gray-200); color: var(--gray-400); cursor: not-allowed; }
 
+/* ─── DEAL FOOTER (MODAL PROPOSTA) ─── */
+.modal-deal-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding-top: 18px; margin-top: 4px; border-top: 1px solid var(--gray-200); }
+.btn-deal-cancelar { background: transparent; border: 1.5px solid #FECACA; color: #DC2626; padding: 9px 20px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.btn-deal-cancelar:hover { background: #FEF2F2; border-color: #DC2626; }
+.btn-deal-cancelar:disabled { opacity: 0.4; cursor: default; }
+.btn-deal-aceito { background: #059669; color: var(--white); border: none; padding: 9px 22px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: default; display: flex; align-items: center; gap: 7px; }
+
 /* ─── EMPTY STATE ─── */
 .empty-state {
   text-align: center; padding: 48px 24px;
@@ -1677,6 +1684,8 @@ function openPropostaModal(id) {
   const cpForm = document.getElementById('mp-cp-form');
   if (cpForm) cpForm.classList.remove('open');
 
+  _updatePropostaDealFooter();
+
   document.getElementById('modal-proposta').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -1715,8 +1724,6 @@ function renderContrapartidas(list) {
         : '';
       return `<tr>
         <td>${cp.descricao}</td>
-        <td style="white-space:nowrap">${formatValorCp(cp.valor)}</td>
-        <td style="white-space:nowrap">${cp.prazo}</td>
         <td><span class="cp-status ${statusClass}">${statusLabel}</span></td>
         <td>${actions}</td>
       </tr>`;
@@ -1725,6 +1732,42 @@ function renderContrapartidas(list) {
 
   const total = list.filter(c => c.status === 'aceita').reduce((s, c) => s + c.valor, 0);
   if (totalEl) totalEl.textContent = formatValorCp(total);
+}
+
+function _updatePropostaDealFooter() {
+  const footer = document.getElementById('mp-deal-footer');
+  const btnAddCp = document.getElementById('mp-btn-add-cp');
+  if (!footer || !_propostaAtiva) return;
+  const st = _propostaAtiva.status;
+  if (st === 'aceita') {
+    footer.innerHTML = `<button class="btn-deal-aceito" disabled>✓ Deal confirmado pelo organizador</button>`;
+    if (btnAddCp) btnAddCp.style.display = 'none';
+  } else if (st === 'recusada') {
+    footer.innerHTML = '';
+    if (btnAddCp) btnAddCp.style.display = 'none';
+  } else {
+    footer.innerHTML = `<button class="btn-deal-cancelar" onclick="cancelarPropostaMarca()">Cancelar proposta</button>`;
+    if (btnAddCp) btnAddCp.style.display = '';
+  }
+}
+
+function cancelarPropostaMarca() {
+  if (!_propostaAtiva) return;
+  if (!confirm('Tem certeza que deseja cancelar esta proposta para ' + _propostaAtiva.opp + '?')) return;
+  _propostaAtiva.status = 'recusada';
+  _propostaAtiva.statusLabel = 'Recusada';
+  _propostaAtiva.statusHint = 'Proposta cancelada pela marca';
+  SharedNeg.save();
+  // atualiza badge de status no modal
+  document.getElementById('mp-status-wrap').className = 'modal-prop-status recusada';
+  document.getElementById('mp-status-label').textContent = 'Recusada';
+  document.getElementById('mp-status-hint').textContent = 'Proposta cancelada pela marca';
+  // desabilita compose
+  const ta = document.getElementById('mp-compose-input');
+  if (ta) { ta.disabled = true; ta.placeholder = 'Não é possível enviar mensagens em propostas recusadas.'; }
+  _updatePropostaDealFooter();
+  renderPropostasTable();
+  showToast('Proposta cancelada.', 'error');
 }
 
 function toggleCpForm() {
@@ -2171,8 +2214,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <thead>
               <tr>
                 <th>Descrição</th>
-                <th>Valor</th>
-                <th>Prazo</th>
                 <th>Status</th>
                 <th></th>
               </tr>
@@ -2203,10 +2244,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <button class="btn-add-cp" onclick="toggleCpForm()">
+        <button class="btn-add-cp" id="mp-btn-add-cp" onclick="toggleCpForm()">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           Adicionar contrapartida
         </button>
+
+        <div class="modal-deal-footer" id="mp-deal-footer"></div>
       </div>
 
     </div>
