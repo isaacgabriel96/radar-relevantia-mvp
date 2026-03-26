@@ -527,6 +527,39 @@ tbody tr:last-child td { border-bottom: none; }
 .deals-item-valor { font-family: var(--font-heading); font-size: 13px; font-weight: 700; color: #059669; white-space: nowrap; }
 .deals-item-taxa { font-size: 11px; color: var(--gray-400); white-space: nowrap; }
 
+/* ─── DEALS FECHADOS — TWO-VIEW PATTERN ─── */
+.deals-list-view { display: flex; flex-direction: column; gap: 0; }
+.deals-list-view.hidden { display: none; }
+.deals-detail-view { display: none; flex-direction: column; gap: 0; }
+.deals-detail-view.active { display: flex; }
+/* Oportunidade cards (VIEW 1) */
+.deals-opp-cards { display: flex; flex-direction: column; gap: 10px; }
+.deals-opp-card-v2 { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: box-shadow 0.18s, border-color 0.18s; }
+.deals-opp-card-v2:hover { box-shadow: 0 4px 20px rgba(30,22,0,0.09); border-color: var(--gray-300); }
+.deals-opp-card-v2 .neg-opp-info { flex: 1; min-width: 0; }
+.deals-opp-card-v2-total { text-align: right; flex-shrink: 0; }
+.deals-opp-card-v2-total-label { font-size: 10px; color: var(--gray-400); font-weight: 500; }
+.deals-opp-card-v2-total-num { font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: #059669; letter-spacing: -0.02em; }
+/* Header total no detalhe */
+.deals-detail-total { text-align: right; flex-shrink: 0; margin-left: auto; }
+.deals-detail-total-label { font-size: 10px; color: var(--gray-400); font-weight: 500; }
+.deals-detail-total-num { font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: #059669; letter-spacing: -0.02em; }
+/* Card individual de deal (VIEW 2) */
+.deals-card-list { display: flex; flex-direction: column; gap: 8px; }
+.deal-item-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: box-shadow 0.15s; }
+.deal-item-card:hover { box-shadow: 0 2px 12px rgba(30,22,0,0.07); }
+.deal-item-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--gold-gradient); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--black); flex-shrink: 0; }
+.deal-item-body { flex: 1; min-width: 0; }
+.deal-item-name { font-size: 13px; font-weight: 600; color: var(--black); }
+.deal-item-cota { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.deal-item-badge { display: inline-flex; align-items: center; gap: 3px; background: #ECFDF5; color: #059669; border-radius: 100px; font-size: 10px; font-weight: 700; padding: 2px 7px; margin-top: 4px; border: 1px solid rgba(5,150,105,0.18); }
+.deal-item-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.deal-item-valores { text-align: right; }
+.deal-item-liquido { font-family: var(--font-heading); font-size: 14px; font-weight: 700; color: #059669; }
+.deal-item-bruto { font-size: 11px; color: var(--gray-400); }
+.deal-item-cta { padding: 6px 14px; border-radius: 8px; font-family: var(--font-body); font-size: 12px; font-weight: 700; border: 1px solid var(--gray-200); background: none; color: var(--gray-500); cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.deal-item-cta:hover { background: var(--gray-1); }
+
 /* ─── MODAL DEAL DETALHE ─── */
 .modal-deal-det-overlay { position: fixed; inset: 0; background: rgba(30,22,0,0.45); backdrop-filter: blur(4px); z-index: 600; display: none; align-items: center; justify-content: center; padding: 20px; }
 .modal-deal-det-overlay.open { display: flex; }
@@ -1219,9 +1252,38 @@ tbody tr:last-child td { border-bottom: none; }
 
       <!-- Painel: Deals Fechados -->
       <div class="sub-panel" id="subpanel-deals">
-        <div class="deals-opp-group" id="deals-opp-group-container">
-          <!-- preenchido por renderDeals() -->
+
+        <!-- VIEW 1: Lista de oportunidades com deals -->
+        <div class="deals-list-view" id="deals-list-view">
+          <div class="deals-opp-cards" id="deals-opp-cards-container">
+            <!-- preenchido por renderDeals() -->
+          </div>
         </div>
+
+        <!-- VIEW 2: Detalhe dos deals de uma oportunidade -->
+        <div class="deals-detail-view" id="deals-detail-view">
+          <!-- Header com back -->
+          <div class="neg-detail-header">
+            <button class="neg-detail-back" onclick="backToDealList()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+              Voltar
+            </button>
+            <div style="display:flex;align-items:center;gap:10px;flex:1">
+              <div class="neg-detail-cover" id="deals-detail-cover"></div>
+              <div>
+                <div class="neg-detail-opp-title" id="deals-detail-opp-title"></div>
+                <div class="neg-detail-opp-sub"   id="deals-detail-opp-sub"></div>
+              </div>
+            </div>
+            <!-- Resumo financeiro no header -->
+            <div class="deals-detail-total" id="deals-detail-total"></div>
+          </div>
+          <!-- Cards de deals -->
+          <div class="deals-card-list" id="deals-card-list">
+            <!-- preenchido por renderDealCards() -->
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -2724,6 +2786,9 @@ function sendNegMsg() {
   showToast('Mensagem enviada!', 'success');
 }
 
+// ─── DEALS FECHADOS — STATE ───
+let _dealOppAtiva = null;
+
 function renderDeals() {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
   const deals = NEGOCIACOES.filter(n => n.status === 'aceita');
@@ -2732,7 +2797,7 @@ function renderDeals() {
   const badge = document.getElementById('deals-badge-count');
   if (badge) badge.textContent = deals.length;
 
-  const container = document.getElementById('deals-opp-group-container');
+  const container = document.getElementById('deals-opp-cards-container');
   if (!container) return;
 
   if (deals.length === 0) {
@@ -2752,7 +2817,7 @@ function renderDeals() {
   });
 
   container.innerHTML = Object.values(groups).map(g => {
-    const cfg = OPP_CAT[g.opp_id === 1 ? 'Esporte' : 'Cultura'] || OPP_CAT['Esporte'];
+    const cfg = _oppCfg(g.opp_id);
     // total líquido do grupo
     const totalLiquido = g.items.reduce((sum, n) => {
       const aceitos = (n.contrapartidas || []).filter(c => c.status === 'aceita');
@@ -2760,51 +2825,105 @@ function renderDeals() {
       return sum + (bruto - Math.round(bruto * PLATAFORMA_TAXA));
     }, 0);
 
-    const listItems = g.items.map(n => {
-      const aceitos    = (n.contrapartidas || []).filter(c => c.status === 'aceita');
-      const totalBruto = aceitos.reduce((s, c) => s + c.valor, 0);
-      const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
-      const liquido    = totalBruto - taxa;
-      return `<div class="deals-opp-list-item">
-        <div class="deals-item-avatar">${_initials(n.marca)}</div>
-        <div style="flex:1;min-width:0">
-          <div class="deals-item-name">${n.marca}</div>
-          <div class="neg-marca-cota">${n.cota}</div>
-        </div>
-        <div style="text-align:right;margin-right:12px">
-          <div class="deals-item-valor">${fmt(liquido)}</div>
-          <div class="deals-item-taxa">bruto ${fmt(totalBruto)}</div>
-        </div>
-        <button class="btn-sm-outline" onclick="openDealDetModal(${n.id})">Ver detalhes</button>
-      </div>`;
-    }).join('');
+    const arrowSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="neg-opp-arrow" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>';
 
-    return `<div class="deals-opp-accordion" id="deal-acc-${g.opp_id}">
-      <div class="deals-opp-header" onclick="toggleDealAcc(${g.opp_id})">
-        <div class="deals-opp-cover" style="background:${cfg.gradient}">${cfg.icon}</div>
-        <div class="deals-opp-info">
-          <div class="deals-opp-title">${g.opp}</div>
-          <div class="deals-opp-subtitle">${g.items.length} deal${g.items.length !== 1 ? 's' : ''}</div>
-        </div>
-        <div class="deals-opp-total">
-          <div class="deals-opp-total-label">Você recebe</div>
-          <div class="deals-opp-total-num">${fmt(totalLiquido)}</div>
-        </div>
-        ${chevronSvgDeal}
+    return `<div class="deals-opp-card-v2" onclick="openDealOppDetail(${g.opp_id})">
+      <div class="neg-opp-cover" style="background:${cfg.gradient}">${cfg.icon}</div>
+      <div class="neg-opp-info">
+        <div class="neg-opp-title">${g.opp}</div>
+        <div class="neg-opp-subtitle">${g.items.length} deal${g.items.length !== 1 ? 's' : ''} fechado${g.items.length !== 1 ? 's' : ''}</div>
       </div>
-      <div class="deals-opp-list" style="display:none">${listItems}</div>
+      <div class="deals-opp-card-v2-total">
+        <div class="deals-opp-card-v2-total-label">Você recebe</div>
+        <div class="deals-opp-card-v2-total-num">${fmt(totalLiquido)}</div>
+      </div>
+      ${arrowSvg}
     </div>`;
   }).join('');
 }
 
-function toggleDealAcc(oppId) {
-  const acc = document.getElementById('deal-acc-' + oppId);
-  if (!acc) return;
-  const list = acc.querySelector('.deals-opp-list');
-  const isOpen = acc.classList.contains('open');
-  acc.classList.toggle('open', !isOpen);
-  list.style.display = isOpen ? 'none' : 'block';
+// Navega VIEW 1 → VIEW 2
+function openDealOppDetail(oppId) {
+  _dealOppAtiva = oppId;
+  const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
+  const deals = NEGOCIACOES.filter(n => n.status === 'aceita' && n.opp_id === oppId);
+  if (!deals.length) return;
+
+  const cfg = _oppCfg(oppId);
+
+  // Preenche o header
+  const coverEl = document.getElementById('deals-detail-cover');
+  if (coverEl) {
+    coverEl.style.background = cfg.gradient;
+    coverEl.innerHTML = cfg.icon;
+  }
+  const titleEl = document.getElementById('deals-detail-opp-title');
+  if (titleEl) titleEl.textContent = deals[0].opp;
+  const subEl = document.getElementById('deals-detail-opp-sub');
+  if (subEl) subEl.textContent = deals.length + ' deal' + (deals.length !== 1 ? 's' : '') + ' fechado' + (deals.length !== 1 ? 's' : '');
+
+  // Preenche total no header
+  const totalLiquido = deals.reduce((sum, n) => {
+    const aceitos = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+    const bruto = aceitos.reduce((s, c) => s + c.valor, 0);
+    return sum + (bruto - Math.round(bruto * PLATAFORMA_TAXA));
+  }, 0);
+  const totalEl = document.getElementById('deals-detail-total');
+  if (totalEl) totalEl.innerHTML = `<div class="deals-detail-total-label">Total líquido</div><div class="deals-detail-total-num">${fmt(totalLiquido)}</div>`;
+
+  // Troca views
+  document.getElementById('deals-list-view').classList.add('hidden');
+  document.getElementById('deals-detail-view').classList.add('active');
+  renderDealCards();
 }
+
+// Volta VIEW 2 → VIEW 1
+function backToDealList() {
+  _dealOppAtiva = null;
+  document.getElementById('deals-detail-view').classList.remove('active');
+  document.getElementById('deals-list-view').classList.remove('hidden');
+}
+
+// Renderiza os cards de deal na VIEW 2
+function renderDealCards() {
+  const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
+  const container = document.getElementById('deals-card-list');
+  if (!container) return;
+
+  const deals = NEGOCIACOES.filter(n => n.status === 'aceita' && n.opp_id === _dealOppAtiva);
+
+  if (!deals.length) {
+    container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--gray-400);font-size:13px">Nenhum deal nesta oportunidade.</div>';
+    return;
+  }
+
+  container.innerHTML = deals.map(n => {
+    const aceitos    = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+    const totalBruto = aceitos.reduce((s, c) => s + c.valor, 0);
+    const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
+    const liquido    = totalBruto - taxa;
+    const entregasLabel = aceitos.length + ' entrega' + (aceitos.length !== 1 ? 's' : '') + ' acordada' + (aceitos.length !== 1 ? 's' : '');
+
+    return `<div class="deal-item-card">
+      <div class="deal-item-avatar">${_initials(n.marca)}</div>
+      <div class="deal-item-body">
+        <div class="deal-item-name">${n.marca}</div>
+        <div class="deal-item-cota">${n.cota}</div>
+        <div class="deal-item-badge">✓ ${entregasLabel}</div>
+      </div>
+      <div class="deal-item-right">
+        <div class="deal-item-valores">
+          <div class="deal-item-liquido">${fmt(liquido)}</div>
+          <div class="deal-item-bruto">bruto ${fmt(totalBruto)}</div>
+        </div>
+        <button class="deal-item-cta" onclick="openDealDetModal(${n.id})">Ver detalhes</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Legado — toggleDealAcc agora redireciona para openDealOppDetail
+function toggleDealAcc(oppId) { openDealOppDetail(oppId); }
 
 function openDealDetModal(negId) {
   const n = NEGOCIACOES.find(x => x.id === negId);
@@ -2834,6 +2953,11 @@ function openDealDetModal(negId) {
 
 function closeDealDetModal() {
   document.getElementById('modal-deal-det').classList.remove('open');
+  if (_dealOppAtiva !== null) {
+    renderDealCards();
+  } else {
+    renderDeals();
+  }
 }
 
 function filterDeals() { renderDeals(); }
