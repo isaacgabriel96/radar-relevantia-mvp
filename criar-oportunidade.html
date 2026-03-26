@@ -73,6 +73,10 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
   animation: pulse 2s ease infinite;
 }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+@keyframes sb-sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes sb-dot1 { 0%, 100% { opacity: 0.06; } 28%, 48% { opacity: 1; } }
+@keyframes sb-dot2 { 0%, 100% { opacity: 0.06; } 48%, 66% { opacity: 1; } }
+@keyframes sb-dot3 { 0%, 100% { opacity: 0.06; } 66%, 80% { opacity: 1; } }
 .sidebar-nav {
   flex: 1; padding: 16px 12px; overflow-y: auto; display: flex; flex-direction: column;
   gap: 2px; scrollbar-width: none;
@@ -665,8 +669,53 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="sidebar-logo-title">
-      <span class="t-white">Radar</span> <span class="t-gold">Relevantia</span>
+    <div style="display:flex;flex-direction:row;align-items:center;gap:8px;justify-content:center">
+      <svg width="52" height="52" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="sb-base" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#6b5a14"/>
+            <stop offset="20%" stop-color="#504510"/>
+            <stop offset="40%" stop-color="#3a340c"/>
+            <stop offset="60%" stop-color="#282208"/>
+            <stop offset="80%" stop-color="#181404"/>
+            <stop offset="100%" stop-color="#0a0802"/>
+          </radialGradient>
+          <linearGradient id="sb-swG" x1="0.5" y1="0" x2="0" y2="0.5">
+            <stop offset="0%" stop-color="#c8a428" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#c8a428" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="sb-dc"><circle cx="140" cy="140" r="118"/></clipPath>
+        </defs>
+        <circle cx="140" cy="140" r="121" fill="#060502"/>
+        <circle cx="140" cy="140" r="118" fill="url(#sb-base)"/>
+        <g clip-path="url(#sb-dc)">
+          <circle cx="140" cy="140" r="116" fill="none" stroke="#9a8828" stroke-width="0.5" opacity="0.55"/>
+          <circle cx="140" cy="140" r="100" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.50"/>
+          <circle cx="140" cy="140" r="80" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.50"/>
+          <circle cx="140" cy="140" r="60" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.52"/>
+          <circle cx="140" cy="140" r="40" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.55"/>
+          <circle cx="140" cy="140" r="20" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.60"/>
+        </g>
+        <circle cx="140" cy="140" r="118" fill="none" stroke="#b89824" stroke-width="1.6" opacity="0.65"/>
+        <circle cx="140" cy="140" r="103" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.55"/>
+        <circle cx="140" cy="140" r="80" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.50"/>
+        <circle cx="140" cy="140" r="52" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.45"/>
+        <circle cx="140" cy="140" r="26" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.42"/>
+        <line x1="140" y1="22" x2="140" y2="258" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+        <line x1="22" y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+        <g clip-path="url(#sb-dc)">
+          <g style="transform-origin:140px 140px;animation:sb-sweep 5s linear infinite">
+            <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#sb-swG)"/>
+            <path d="M140 140 L190 28 A118 118 0 0 0 140 22 Z" fill="#c8a428" opacity="0.16"/>
+            <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
+          </g>
+        </g>
+        <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6" opacity="0.7"/>
+        <circle cx="190" cy="72" r="5" fill="#d8c890" style="animation:sb-dot1 5s linear infinite"/>
+        <circle cx="82" cy="170" r="5" fill="#d8c890" style="animation:sb-dot2 5s linear infinite"/>
+        <circle cx="222" cy="195" r="5" fill="#d8c890" style="animation:sb-dot3 5s linear infinite"/>
+      </svg>
+      <img src="logos/5.png" alt="Radar Relevantia" style="width:100px;display:block">
     </div>
     <div class="sidebar-portal-badge">
       <span class="portal-badge-dot"></span> Portal Detentor
