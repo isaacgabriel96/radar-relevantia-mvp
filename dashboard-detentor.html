@@ -535,7 +535,9 @@ tbody tr:last-child td { border-bottom: none; }
 .valor-deal-input-row { display: flex; gap: 8px; align-items: center; }
 .valor-deal-input-wrap { position: relative; flex: 1; }
 .valor-deal-input-prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; font-weight: 600; color: var(--gray-400); pointer-events: none; }
-.valor-deal-input { width: 100%; padding: 8px 11px 8px 32px; border: 1.5px solid var(--gray-200); border-radius: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
+.valor-deal-input { width: 100%; padding: 8px 11px 8px 32px; border: 1.5px solid var(--gray-200); border-radius: 8px; font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; -moz-appearance: textfield; appearance: textfield; }
+.valor-deal-input::-webkit-outer-spin-button,
+.valor-deal-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .valor-deal-input:focus { border-color: var(--gold); }
 .valor-deal-input::placeholder { color: var(--gray-400); font-weight: 400; }
 .btn-propor-valor { background: var(--black); color: var(--white); border: none; padding: 8px 16px; border-radius: 8px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0; }
@@ -1851,7 +1853,7 @@ function addContrapartidaDet() {
 
   const newId = n.contrapartidas.length ? Math.max(...n.contrapartidas.map(c=>c.id)) + 1 : 1;
   n.contrapartidas.push({ id: newId, descricao: desc, valor, prazo, status:'proposta', propostoPor:'detentor' });
-  SharedNeg.save();
+  _autoStatus(n);
   renderContrapartidasDet(n.contrapartidas);
 
   document.getElementById('mn-cp-desc').value = '';
@@ -1865,14 +1867,14 @@ function acceptCpDet(cpId) {
   const n = _negAtiva;
   if (!n) return;
   const cp = n.contrapartidas.find(c => c.id === cpId);
-  if (cp) { cp.status = 'aceita'; SharedNeg.save(); renderContrapartidasDet(n.contrapartidas); showToast('Contrapartida aceita!', 'success'); }
+  if (cp) { cp.status = 'aceita'; _autoStatus(n); renderContrapartidasDet(n.contrapartidas); showToast('Contrapartida aceita!', 'success'); }
 }
 
 function rejectCpDet(cpId) {
   const n = _negAtiva;
   if (!n) return;
   const cp = n.contrapartidas.find(c => c.id === cpId);
-  if (cp) { cp.status = 'recusada'; SharedNeg.save(); renderContrapartidasDet(n.contrapartidas); showToast('Contrapartida recusada.', 'error'); }
+  if (cp) { cp.status = 'recusada'; _autoStatus(n); renderContrapartidasDet(n.contrapartidas); showToast('Contrapartida recusada.', 'error'); }
 }
 
 /* ══════════════════════════════════════════════
@@ -1972,17 +1974,73 @@ function renderValorDeal() {
   }
 }
 
+/* ══════════════════════════════════════════════
+   STATUS AUTOMÁTICO
+   Chamado após qualquer ação do detentor.
+   Regra:
+     • Detentor age → detentor: analise, marca: pendente
+       (indica "estou avaliando / tomei uma ação, aguardo sua resposta")
+     • Recusar / Fechar deal são tratados nas próprias funções
+══════════════════════════════════════════════ */
+function _autoStatus(n) {
+  if (!n) return;
+  // Não altera status se já finalizado
+  if (n.status === 'aceita' || n.status === 'recusada') return;
+  n.status      = 'analise';
+  n.statusLabel = 'Em análise';
+  n.statusHint  = 'O time da Relevantia está mediando';
+  // Atualiza badge no modal se estiver aberto
+  const wrap = document.getElementById('mn-status-wrap');
+  if (wrap) {
+    wrap.className = 'modal-neg-status analise';
+    const lbl = document.getElementById('mn-status-label');
+    const hint = document.getElementById('mn-status-hint');
+    if (lbl)  lbl.textContent  = 'Em análise';
+    if (hint) hint.textContent = 'O time da Relevantia está mediando';
+  }
+  // Mantém select oculto sincronizado
+  const sel = document.getElementById('mn-status-select');
+  if (sel) sel.value = 'analise';
+  SharedNeg.save();
+  renderNegociacoes(NEGOCIACOES);
+}
+
+/* ──────────────────────────────────────────────
+   MÁSCARA MONETÁRIA PARA CAMPO DE VALOR DO DEAL
+   Ex: digitar "100000" → exibe "100.000,00"
+────────────────────────────────────────────── */
+function maskValorDeal(el) {
+  // mantém apenas dígitos
+  let raw = el.value.replace(/\D/g, '');
+  if (raw === '') { el.value = ''; return; }
+  // interpreta como centavos
+  let cents = parseInt(raw, 10);
+  // formata: divide por 100, usa locale pt-BR
+  let formatted = (cents / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  el.value = formatted;
+}
+
+function _parseValorInput(el) {
+  if (!el) return 0;
+  // remove pontos de milhar e troca vírgula por ponto
+  const raw = el.value.replace(/\./g, '').replace(',', '.');
+  return parseFloat(raw) || 0;
+}
+
 function proporValorDeal() {
   const n = _negAtiva;
   if (!n) return;
   const inputEl = document.getElementById('mn-valor-input');
-  const val = parseFloat(inputEl ? inputEl.value : 0);
+  const val = _parseValorInput(inputEl);
   if (!val || val <= 0) { showToast('Informe um valor válido.', 'error'); return; }
   if (!n.valorDeal) n.valorDeal = {};
-  n.valorDeal.proposto   = val;
+  n.valorDeal.proposto    = val;
   n.valorDeal.propostoPor = 'detentor';
   n.valorDeal.status      = 'aguardando_marca';
-  SharedNeg.save();
+  _autoStatus(n);
   renderValorDeal();
   showToast('Valor de ' + _fmtValor(val) + ' proposto. Aguardando resposta da marca.', 'success');
 }
@@ -1991,7 +2049,7 @@ function aceitarValorDeal() {
   const n = _negAtiva;
   if (!n || !n.valorDeal) return;
   n.valorDeal.status = 'aceito';
-  SharedNeg.save();
+  _autoStatus(n);
   renderValorDeal();
   showToast('Valor de ' + _fmtValor(n.valorDeal.proposto) + ' aceito! 🎉', 'success');
 }
@@ -2007,7 +2065,12 @@ function contraproporValorDeal() {
   if (actionsEl) actionsEl.style.display = 'none';
   if (btnPropor) btnPropor.textContent   = 'Enviar contraoferta';
   const inputEl = document.getElementById('mn-valor-input');
-  if (inputEl) { inputEl.value = n.valorDeal?.proposto || ''; inputEl.focus(); }
+  if (inputEl) {
+    // pré-preenche com valor formatado
+    const v = n.valorDeal?.proposto || 0;
+    inputEl.value = v ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+    inputEl.focus();
+  }
   // redireciona o clique do botão para confirmar contraoferta
   if (btnPropor) btnPropor.onclick = function() { confirmarContraoferta(); };
 }
@@ -2016,12 +2079,12 @@ function confirmarContraoferta() {
   const n = _negAtiva;
   if (!n) return;
   const inputEl = document.getElementById('mn-valor-input');
-  const val = parseFloat(inputEl ? inputEl.value : 0);
+  const val = _parseValorInput(inputEl);
   if (!val || val <= 0) { showToast('Informe um valor válido.', 'error'); return; }
   n.valorDeal.proposto    = val;
   n.valorDeal.propostoPor = 'detentor';
   n.valorDeal.status      = 'aguardando_marca';
-  SharedNeg.save();
+  _autoStatus(n);
   // restaura onclick original
   const btnPropor = document.getElementById('mn-btn-propor-valor');
   if (btnPropor) btnPropor.onclick = function() { proporValorDeal(); };
@@ -2139,7 +2202,7 @@ function sendNegMsg() {
                now.getMinutes().toString().padStart(2,'0');
 
   _negAtiva.thread.push({ autor:'detentor', nome: _negAtiva.opp, texto: text, data });
-  SharedNeg.save();
+  _autoStatus(_negAtiva);
   renderNegThread(_negAtiva.thread);
 
   ta.value = '';
@@ -2470,24 +2533,13 @@ function escapeHtml(str) {
           </div>
         </div>
 
-        <hr class="modal-neg-divider">
-
-        <!-- Ação: atualizar status -->
-        <div class="modal-neg-action">
-          <div class="modal-neg-row-label" style="margin-bottom:8px;text-transform:uppercase;font-size:11px;letter-spacing:0.07em;">Atualizar status</div>
-          <div style="display:flex;gap:10px;align-items:center;">
-            <select id="mn-status-select" class="neg-filter-select" style="flex:1;">
-              <option value="pendente">Pendente</option>
-              <option value="analise">Em análise</option>
-              <option value="aceita">Aceita</option>
-              <option value="recusada">Recusada</option>
-            </select>
-            <button class="btn-neg-save" onclick="saveNegStatus()">Salvar</button>
-          </div>
-          <div class="modal-neg-next">
-            💡 Após aceitar, a Relevantia entrará em contato para intermediar o fechamento.
-          </div>
-        </div>
+        <!-- select oculto mantido apenas para compatibilidade interna do JS -->
+        <select id="mn-status-select" style="display:none">
+          <option value="pendente">Pendente</option>
+          <option value="analise">Em análise</option>
+          <option value="aceita">Aceita</option>
+          <option value="recusada">Recusada</option>
+        </select>
       </div>
 
       <!-- PAINEL: Proposta (contrapartidas) -->
@@ -2518,7 +2570,7 @@ function escapeHtml(str) {
           <div class="valor-deal-input-row" id="mn-valor-input-row">
             <div class="valor-deal-input-wrap">
               <span class="valor-deal-input-prefix">R$</span>
-              <input type="number" class="valor-deal-input" id="mn-valor-input" placeholder="0,00" min="0" step="100">
+              <input type="text" inputmode="numeric" class="valor-deal-input" id="mn-valor-input" placeholder="0,00" oninput="maskValorDeal(this)">
             </div>
             <button class="btn-propor-valor" id="mn-btn-propor-valor" onclick="proporValorDeal()">Propor valor</button>
           </div>
