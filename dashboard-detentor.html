@@ -387,6 +387,15 @@ tbody tr:last-child td { border-bottom: none; }
 .cp-total-value span { font-size: 11px; font-weight: 500; color: var(--gray-400); margin-left: 4px; }
 .btn-add-cp-det { display: flex; align-items: center; gap: 7px; background: transparent; border: 1.5px dashed var(--gray-200); color: var(--gray-400); padding: 9px 14px; border-radius: 10px; font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; width: 100%; justify-content: center; transition: all 0.15s; margin-bottom: 14px; }
 .btn-add-cp-det:hover { border-color: var(--gold); color: var(--gold); background: rgba(184,134,11,0.05); }
+/* ─── MODAL DEAL FOOTER ─── */
+.modal-deal-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding-top: 18px; margin-top: 4px; border-top: 1px solid var(--gray-200); }
+.btn-deal-recusar { background: transparent; border: 1.5px solid #FECACA; color: #DC2626; padding: 9px 20px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.btn-deal-recusar:hover { background: #FEF2F2; border-color: #DC2626; }
+.btn-deal-recusar:disabled { opacity: 0.4; cursor: default; }
+.btn-deal-fechar { background: #059669; color: var(--white); border: none; padding: 9px 22px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.btn-deal-fechar:hover { background: #047857; }
+.btn-deal-fechar:disabled { opacity: 0.4; cursor: default; }
+.btn-deal-fechar.aceito { background: var(--gray-200); color: var(--gray-400); cursor: default; }
 .cp-form-det { background: var(--gray-1); border-radius: 10px; padding: 14px; margin-bottom: 14px; display: none; flex-direction: column; gap: 10px; }
 .cp-form-det.open { display: flex; }
 .cp-form-row-det { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1643,6 +1652,9 @@ function openNegModal(id) {
   const cpForm = document.getElementById('mn-cp-form');
   if (cpForm) cpForm.classList.remove('open');
 
+  // estado dos botões de deal no footer
+  _updateDealFooterState();
+
   document.getElementById('modal-neg').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -1740,6 +1752,63 @@ function saveNegStatus() {
   if (_negAtiva) _negAtiva.status = sel.value;
   showToast('Status atualizado para "' + sel.options[sel.selectedIndex].text + '"', 'success');
   closeNegModal();
+}
+
+function _updateDealFooterState() {
+  const btnRecusar = document.getElementById('mn-btn-recusar');
+  const btnFechar  = document.getElementById('mn-btn-fechar');
+  if (!btnRecusar || !btnFechar || !_negAtiva) return;
+  const st = _negAtiva.status;
+  btnRecusar.disabled = (st === 'recusada');
+  if (st === 'aceita') {
+    btnFechar.classList.add('aceito');
+    btnFechar.disabled = true;
+    btnFechar.textContent = 'Deal fechado ✓';
+  } else {
+    btnFechar.classList.remove('aceito');
+    btnFechar.disabled = false;
+    btnFechar.textContent = 'Fechar deal ✓';
+  }
+}
+
+function recusarNegociacao() {
+  if (!_negAtiva) return;
+  if (!confirm('Tem certeza que deseja recusar esta negociação com ' + _negAtiva.marca + '?')) return;
+  _negAtiva.status = 'recusada';
+  const sel = document.getElementById('mn-status-select');
+  if (sel) sel.value = 'recusada';
+  // atualiza badge de status no modal
+  const wrap = document.getElementById('mn-status-wrap');
+  if (wrap) {
+    wrap.className = 'modal-neg-status recusada';
+    document.getElementById('mn-status-label').textContent = 'Recusada';
+    document.getElementById('mn-status-hint').textContent = 'Não foi possível avançar neste momento';
+  }
+  _updateDealFooterState();
+  renderNegociacoes(NEGOCIACOES);
+  renderDeals();
+  showToast('Negociação recusada.', 'success');
+}
+
+function fecharDeal() {
+  if (!_negAtiva || _negAtiva.status === 'aceita') return;
+  _negAtiva.status = 'aceita';
+  const sel = document.getElementById('mn-status-select');
+  if (sel) sel.value = 'aceita';
+  // atualiza badge de status no modal
+  const wrap = document.getElementById('mn-status-wrap');
+  if (wrap) {
+    wrap.className = 'modal-neg-status aceita';
+    document.getElementById('mn-status-label').textContent = 'Aceita';
+    document.getElementById('mn-status-hint').textContent = 'Proposta aprovada. Entre em contato com a marca.';
+  }
+  _updateDealFooterState();
+  renderNegociacoes(NEGOCIACOES);
+  renderDeals();
+  // atualiza badge da aba Deals Fechados
+  const badge = document.getElementById('deals-badge-count');
+  if (badge) badge.textContent = NEGOCIACOES.filter(n => n.status === 'aceita').length;
+  showToast('Deal fechado com sucesso! 🎉', 'success');
 }
 
 function sendNegMsg() {
@@ -2101,6 +2170,11 @@ function escapeHtml(str) {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           Adicionar contrapartida
         </button>
+
+        <div class="modal-deal-footer">
+          <button class="btn-deal-recusar" id="mn-btn-recusar" onclick="recusarNegociacao()">Recusar negociação</button>
+          <button class="btn-deal-fechar"  id="mn-btn-fechar"  onclick="fecharDeal()">Fechar deal ✓</button>
+        </div>
       </div>
 
     </div>
