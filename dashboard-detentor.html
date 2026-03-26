@@ -287,6 +287,92 @@ tbody tr:last-child td { border-bottom: none; }
 .deal-empty-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
 .deal-empty-text { font-size: 13px; line-height: 1.6; }
 
+/* ─── CARDS DE OPORTUNIDADES (aba Publicadas) ─── */
+.pub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+.pub-opp-card { display: flex; flex-direction: column; background: var(--white); border-radius: 16px; border: 1px solid var(--gray-200); overflow: hidden; transition: box-shadow 0.2s, transform 0.2s; }
+.pub-opp-card:hover { box-shadow: 0 8px 32px rgba(30,22,0,0.1); transform: translateY(-2px); }
+.pub-card-image { position: relative; height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.pub-card-image svg { width: 40px; height: 40px; color: rgba(255,255,255,0.2); }
+.pub-card-status-badge { position: absolute; top: 10px; left: 10px; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+.pub-card-status-badge.publicada { background: rgba(5,150,105,0.85); color: #fff; }
+.pub-card-status-badge.rascunho  { background: rgba(217,119,6,0.85);  color: #fff; }
+.pub-card-body { padding: 16px 18px; flex: 1; display: flex; flex-direction: column; }
+.pub-card-category { font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.pub-card-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); line-height: 1.35; margin-bottom: 8px; }
+.pub-card-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--gray-400); margin-bottom: 14px; }
+.pub-card-meta-item { display: flex; align-items: center; gap: 4px; }
+.pub-card-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--gray-200); margin-top: auto; }
+
+/* ─── NEGOCIAÇÕES AGRUPADAS POR OPORTUNIDADE ─── */
+.neg-opp-group { display: flex; flex-direction: column; gap: 12px; }
+.neg-opp-accordion { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; transition: box-shadow 0.2s; }
+.neg-opp-accordion.open { box-shadow: 0 4px 20px rgba(30,22,0,0.08); }
+.neg-opp-header { display: flex; align-items: center; gap: 14px; padding: 16px 20px; cursor: pointer; user-select: none; }
+.neg-opp-header:hover { background: var(--gray-1); }
+.neg-opp-cover { width: 52px; height: 52px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.neg-opp-cover svg { width: 22px; height: 22px; color: rgba(255,255,255,0.25); }
+.neg-opp-info { flex: 1; }
+.neg-opp-title { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--black); line-height: 1.3; }
+.neg-opp-subtitle { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.neg-opp-chevron { width: 20px; height: 20px; color: var(--gray-400); transition: transform 0.2s; flex-shrink: 0; }
+.neg-opp-accordion.open .neg-opp-chevron { transform: rotate(180deg); }
+.neg-opp-list { border-top: 1px solid var(--gray-200); }
+.neg-opp-list-item { display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--gray-100); }
+.neg-opp-list-item:last-child { border-bottom: none; }
+.neg-opp-list-item:hover { background: var(--gray-1); }
+.neg-marca-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gold-gradient); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--black); flex-shrink: 0; }
+.neg-marca-name { font-size: 13px; font-weight: 600; color: var(--black); flex: 1; }
+.neg-marca-cota { font-size: 11px; color: var(--gray-400); }
+.neg-marca-meta { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+/* ─── DEALS FECHADOS — ACCORDION POR OPP ─── */
+.deals-opp-group { display: flex; flex-direction: column; gap: 12px; }
+.deals-opp-accordion { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
+.deals-opp-accordion.open { box-shadow: 0 4px 20px rgba(30,22,0,0.08); }
+.deals-opp-header { display: flex; align-items: center; gap: 14px; padding: 16px 20px; cursor: pointer; user-select: none; }
+.deals-opp-header:hover { background: var(--gray-1); }
+.deals-opp-cover { width: 52px; height: 52px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.deals-opp-cover svg { width: 22px; height: 22px; color: rgba(255,255,255,0.25); }
+.deals-opp-info { flex: 1; }
+.deals-opp-title { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--black); }
+.deals-opp-subtitle { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.deals-opp-total { text-align: right; flex-shrink: 0; }
+.deals-opp-total-label { font-size: 10px; color: var(--gray-400); font-weight: 500; }
+.deals-opp-total-num { font-family: var(--font-heading); font-size: 16px; font-weight: 700; color: #059669; }
+.deals-opp-chevron { width: 20px; height: 20px; color: var(--gray-400); transition: transform 0.2s; flex-shrink: 0; }
+.deals-opp-accordion.open .deals-opp-chevron { transform: rotate(180deg); }
+.deals-opp-list { border-top: 1px solid var(--gray-200); }
+.deals-opp-list-item { display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--gray-100); }
+.deals-opp-list-item:last-child { border-bottom: none; }
+.deals-opp-list-item:hover { background: var(--gray-1); }
+.deals-item-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gold-gradient); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--black); flex-shrink: 0; }
+.deals-item-name { font-size: 13px; font-weight: 600; color: var(--black); }
+.deals-item-cota { font-size: 11px; color: var(--gray-400); }
+.deals-item-valor { font-family: var(--font-heading); font-size: 13px; font-weight: 700; color: #059669; white-space: nowrap; }
+.deals-item-taxa { font-size: 11px; color: var(--gray-400); white-space: nowrap; }
+
+/* ─── MODAL DEAL DETALHE ─── */
+.modal-deal-det-overlay { position: fixed; inset: 0; background: rgba(30,22,0,0.45); backdrop-filter: blur(4px); z-index: 600; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-deal-det-overlay.open { display: flex; }
+.modal-deal-det { background: var(--white); border-radius: 16px; width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(30,22,0,0.18); }
+.modal-deal-det-header { padding: 22px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+.modal-deal-det-title { font-family: var(--font-heading); font-size: 17px; font-weight: 600; color: var(--black); }
+.modal-deal-det-sub { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.modal-deal-det-close { background: var(--gray-100); border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); flex-shrink: 0; transition: background 0.15s; }
+.modal-deal-det-close:hover { background: var(--gray-200); color: var(--black); }
+.modal-deal-det-body { padding: 20px 24px 24px; }
+.modal-deal-det-section { margin-bottom: 20px; }
+.modal-deal-det-section-title { font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+.modal-deal-det-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--gray-100); font-size: 13px; gap: 12px; }
+.modal-deal-det-row:last-child { border-bottom: none; }
+.modal-deal-det-row-label { color: var(--gray-400); flex: 1; }
+.modal-deal-det-row-val { font-weight: 600; color: var(--black); text-align: right; }
+.modal-deal-det-financeiro { background: var(--gray-1); border-radius: 10px; padding: 14px 16px; }
+.modal-deal-det-financeiro-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.modal-deal-det-financeiro-row.total { border-top: 1px solid var(--gray-200); margin-top: 8px; padding-top: 10px; font-weight: 700; font-size: 15px; color: #059669; }
+.modal-deal-det-financeiro-row .lbl { color: var(--gray-400); }
+.modal-deal-det-financeiro-row.total .lbl { color: var(--black); }
+
 /* ─── FILTRO OPORTUNIDADE ─── */
 .neg-filter-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
 .neg-filter-label { font-size: 12px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
@@ -801,114 +887,21 @@ tbody tr:last-child td { border-bottom: none; }
 
       <!-- Painel: Publicadas -->
       <div class="sub-panel active" id="subpanel-publicadas">
-        <div class="card">
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Título</th>
-                  <th>Categoria</th>
-                  <th>Status</th>
-                  <th>Interesses</th>
-                  <th>Criada em</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="font-weight:600">Maratona de São Paulo 2026</td>
-                  <td><span class="badge badge-blue">Esporte</span></td>
-                  <td><span class="badge badge-green">Publicada</span></td>
-                  <td style="font-weight:600">4</td>
-                  <td style="color:var(--gray-400)">18 mar 2026</td>
-                  <td style="display:flex;gap:6px;justify-content:flex-end">
-                    <a href="criar-oportunidade.html?edit=1" class="btn btn-ghost btn-sm">Editar</a>
-                    <a href="oportunidade-detalhe.html?id=1" class="btn btn-ghost btn-sm">Ver →</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="font-weight:600">Naming Rights — Arena Esportiva</td>
-                  <td><span class="badge badge-blue">Esporte</span></td>
-                  <td><span class="badge badge-green">Publicada</span></td>
-                  <td style="font-weight:600">6</td>
-                  <td style="color:var(--gray-400)">20 mar 2026</td>
-                  <td style="display:flex;gap:6px;justify-content:flex-end">
-                    <a href="criar-oportunidade.html?edit=2" class="btn btn-ghost btn-sm">Editar</a>
-                    <a href="oportunidade-detalhe.html?id=2" class="btn btn-ghost btn-sm">Ver →</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="font-weight:600">Festival Cultural do Recife</td>
-                  <td><span class="badge badge-gold">Cultura</span></td>
-                  <td><span class="badge badge-orange">Rascunho</span></td>
-                  <td style="font-weight:600;color:var(--gray-400)">—</td>
-                  <td style="color:var(--gray-400)">21 mar 2026</td>
-                  <td style="display:flex;gap:6px;justify-content:flex-end">
-                    <a href="criar-oportunidade.html?edit=3" class="btn btn-ghost btn-sm">Editar</a>
-                    <button class="btn btn-gold btn-sm" onclick="publishOportunidade(3)">Publicar</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="pub-grid" id="pub-grid-container">
+          <!-- preenchido por renderPublicadas() -->
         </div>
       </div>
 
       <!-- Painel: Negociações -->
       <div class="sub-panel" id="subpanel-negociacoes">
-
-        <!-- Filtros -->
-        <div class="neg-filter-bar">
-          <span class="neg-filter-label">Oportunidade</span>
-          <select class="neg-filter-select" id="neg-filter" onchange="filterNegociacoes()">
-            <option value="">Todas</option>
-            <option value="1">Maratona Internacional SP 2026</option>
-            <option value="2">Festival Cultura Viva 2026</option>
-          </select>
-          <span class="neg-filter-label" style="margin-left:4px">Marca</span>
-          <select class="neg-filter-select" id="neg-filter-marca" onchange="filterNegociacoes()">
-            <option value="">Todas</option>
-          </select>
-          <span class="neg-count" id="neg-count-label">10 negociações</span>
+        <div class="neg-opp-group" id="neg-opp-group-container">
+          <!-- preenchido por renderNegociacoes() -->
         </div>
-
-        <div class="card">
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Marca</th>
-                  <th>Oportunidade</th>
-                  <th>Assunto</th>
-                  <th>Status</th>
-                  <th>Recebida em</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="neg-tbody">
-                <!-- preenchido por JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
 
       <!-- Painel: Deals Fechados -->
       <div class="sub-panel" id="subpanel-deals">
-        <!-- Filtros -->
-        <div class="neg-filter-bar" id="deals-filter-bar">
-          <span class="neg-filter-label">Oportunidade</span>
-          <select class="neg-filter-select" id="deals-filter-opp" onchange="filterDeals()">
-            <option value="">Todas</option>
-          </select>
-          <span class="neg-filter-label" style="margin-left:8px">Marca</span>
-          <select class="neg-filter-select" id="deals-filter-marca" onchange="filterDeals()">
-            <option value="">Todas</option>
-          </select>
-          <span class="neg-count" id="deals-count-label"></span>
-        </div>
-        <div class="deals-grid" id="deals-grid-container">
+        <div class="deals-opp-group" id="deals-opp-group-container">
           <!-- preenchido por renderDeals() -->
         </div>
       </div>
@@ -1521,21 +1514,58 @@ const NEGOCIACOES = [
 // Para alterar, acesse o painel Admin — não modifique aqui diretamente.
 const PLATAFORMA_TAXA = 0.20;
 
+// ─── DADOS MOCK: OPORTUNIDADES PUBLICADAS/RASCUNHOS ───
+const OPP_CAT = {
+  'Esporte':        { gradient: 'linear-gradient(135deg,#16A34A,#22C55E)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><path d="M2 12h20"/></svg>' },
+  'Cultura':        { gradient: 'linear-gradient(135deg,#D97706,#F59E0B)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/></svg>' },
+  'Tecnologia':     { gradient: 'linear-gradient(135deg,#2563EB,#60A5FA)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>' },
+  'Entretenimento': { gradient: 'linear-gradient(135deg,#7C3AED,#A78BFA)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>' }
+};
+const MINHAS_OPPS = [
+  { id:1, titulo:'Maratona Internacional SP 2026', categoria:'Esporte',  status:'publicada', interesses:4, criadaEm:'18 mar 2026', cidade:'São Paulo, SP', data:'Abr 2026' },
+  { id:2, titulo:'Naming Rights — Arena Esportiva', categoria:'Esporte',  status:'publicada', interesses:6, criadaEm:'20 mar 2026', cidade:'São Paulo, SP', data:'Jun 2026' },
+  { id:3, titulo:'Festival Cultural do Recife',    categoria:'Cultura',  status:'rascunho',  interesses:0, criadaEm:'21 mar 2026', cidade:'Recife, PE',    data:'Jul 2026' }
+];
+
 function publishOportunidade(id) {
-  // Mock: simula publicação do rascunho
+  const opp = MINHAS_OPPS.find(o => o.id === id);
+  if (!opp) return;
+  opp.status = 'publicada';
+  renderPublicadas();
   showToast('Oportunidade publicada com sucesso!', 'success');
-  // Atualiza visualmente o badge e o status da linha
-  const rows = document.querySelectorAll('#subpanel-publicadas tbody tr');
-  rows.forEach(row => {
-    if (row.querySelector('a[href*="edit=' + id + '"]')) {
-      const statusCell = row.cells[2];
-      if (statusCell) statusCell.innerHTML = '<span class="badge badge-green">Publicada</span>';
-      const actionsCell = row.cells[5];
-      if (actionsCell) {
-        actionsCell.innerHTML = '<a href="criar-oportunidade.html?edit=' + id + '" class="btn btn-ghost btn-sm">Editar</a><a href="oportunidade-detalhe.html?id=' + id + '" class="btn btn-ghost btn-sm">Ver →</a>';
-      }
-    }
-  });
+}
+
+const calSvgPub = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+const locSvgPub = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" fill="none"/></svg>';
+
+function renderPublicadas() {
+  const container = document.getElementById('pub-grid-container');
+  if (!container) return;
+  container.innerHTML = MINHAS_OPPS.map(o => {
+    const cfg = OPP_CAT[o.categoria] || OPP_CAT['Cultura'];
+    const isPublicada = o.status === 'publicada';
+    const actions = isPublicada
+      ? `<a href="criar-oportunidade.html?edit=${o.id}" class="btn btn-ghost btn-sm">Editar</a>
+         <a href="oportunidade-detalhe.html?id=${o.id}" class="btn btn-ghost btn-sm">Ver →</a>`
+      : `<a href="criar-oportunidade.html?edit=${o.id}" class="btn btn-ghost btn-sm">Editar</a>
+         <button class="btn btn-gold btn-sm" onclick="publishOportunidade(${o.id})">Publicar</button>`;
+    return `<div class="pub-opp-card">
+      <div class="pub-card-image" style="background:${cfg.gradient}">
+        ${cfg.icon}
+        <span class="pub-card-status-badge ${o.status}">${isPublicada ? 'Publicada' : 'Rascunho'}</span>
+      </div>
+      <div class="pub-card-body">
+        <div class="pub-card-category">${o.categoria}</div>
+        <div class="pub-card-title">${o.titulo}</div>
+        <div class="pub-card-meta">
+          <span class="pub-card-meta-item">${locSvgPub} ${o.cidade}</span>
+          <span class="pub-card-meta-item">${calSvgPub} ${o.data}</span>
+          ${isPublicada ? `<span class="pub-card-meta-item" style="color:var(--gold);font-weight:600">${o.interesses} interesses</span>` : ''}
+        </div>
+        <div class="pub-card-footer">${actions}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function switchSubTab(tab) {
@@ -1545,47 +1575,75 @@ function switchSubTab(tab) {
   document.getElementById('subpanel-' + tab).classList.add('active');
 }
 
+const chevronSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="neg-opp-chevron"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const chevronSvgDeal = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="deals-opp-chevron"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+function _initials(name) {
+  return name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+
 function renderNegociacoes(data) {
-  const tbody = document.getElementById('neg-tbody');
-  if (!tbody) return;
+  const container = document.getElementById('neg-opp-group-container');
+  if (!container) return;
+
+  // atualiza badge
+  const badge = document.getElementById('neg-badge-count');
+  if (badge) badge.textContent = data.length;
+
   if (data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray-3);padding:32px 0;">Nenhuma negociação encontrada.</td></tr>';
+    container.innerHTML = '<div class="deal-empty"><div class="deal-empty-icon">💬</div><div class="deal-empty-title">Nenhuma negociação</div><div class="deal-empty-text">Quando marcas demonstrarem interesse,<br>aparecerão aqui.</div></div>';
     return;
   }
-  tbody.innerHTML = data.map(n => {
-    const statusClass = { pendente:'neg-status-pendente', aceita:'neg-status-aceita', analise:'neg-status-analise', recusada:'neg-status-recusada' }[n.status] || '';
-    return `<tr>
-      <td style="font-weight:500">${n.marca}</td>
-      <td style="color:var(--gray-4);font-size:13px">${n.opp}</td>
-      <td style="color:var(--gray-4);font-size:13px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n.assunto}</td>
-      <td><span class="neg-status ${statusClass}">${n.statusLabel}</span></td>
-      <td style="color:var(--gray-4);font-size:13px">${n.enviadaEm}</td>
-      <td style="text-align:right;display:flex;gap:6px;justify-content:flex-end">
-        ${n.status === 'aceita' ? `<button class="btn-sm-outline" style="border-color:rgba(5,150,105,0.4);color:#059669" onclick="switchSubTab('deals')">Deal</button>` : ''}
-        <button class="btn-sm-outline" onclick="openNegModal(${n.id})">Ver</button>
-      </td>
-    </tr>`;
+
+  // Agrupa por oportunidade
+  const groups = {};
+  data.forEach(n => {
+    if (!groups[n.opp_id]) groups[n.opp_id] = { opp_id: n.opp_id, opp: n.opp, items: [] };
+    groups[n.opp_id].items.push(n);
+  });
+
+  const statusClass = { pendente:'neg-status-pendente', aceita:'neg-status-aceita', analise:'neg-status-analise', recusada:'neg-status-recusada' };
+
+  container.innerHTML = Object.values(groups).map(g => {
+    const cfg = OPP_CAT[g.opp_id === 1 ? 'Esporte' : 'Cultura'] || OPP_CAT['Esporte'];
+    const total = g.items.length;
+    const listItems = g.items.map(n => `
+      <div class="neg-opp-list-item">
+        <div class="neg-marca-avatar">${_initials(n.marca)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="neg-marca-name">${n.marca}</div>
+          <div class="neg-marca-cota">${n.cota} · ${n.enviadaEm}</div>
+        </div>
+        <div class="neg-marca-meta">
+          <span class="neg-status ${statusClass[n.status] || ''}">${n.statusLabel}</span>
+          <button class="btn-sm-outline" onclick="openNegModal(${n.id})">Ver</button>
+        </div>
+      </div>`).join('');
+    return `<div class="neg-opp-accordion" id="neg-acc-${g.opp_id}">
+      <div class="neg-opp-header" onclick="toggleNegAcc(${g.opp_id})">
+        <div class="neg-opp-cover" style="background:${cfg.gradient}">${cfg.icon}</div>
+        <div class="neg-opp-info">
+          <div class="neg-opp-title">${g.opp}</div>
+          <div class="neg-opp-subtitle">${total} negociação${total !== 1 ? 'ões' : ''}</div>
+        </div>
+        ${chevronSvg}
+      </div>
+      <div class="neg-opp-list" style="display:none">${listItems}</div>
+    </div>`;
   }).join('');
 }
 
-function _buildNegMarcaOptions() {
-  const sel = document.getElementById('neg-filter-marca');
-  if (!sel) return;
-  const marcas = [...new Set(NEGOCIACOES.map(n => n.marca))].sort();
-  sel.innerHTML = '<option value="">Todas</option>' + marcas.map(m => `<option value="${m}">${m}</option>`).join('');
+function toggleNegAcc(oppId) {
+  const acc = document.getElementById('neg-acc-' + oppId);
+  if (!acc) return;
+  const list = acc.querySelector('.neg-opp-list');
+  const isOpen = acc.classList.contains('open');
+  acc.classList.toggle('open', !isOpen);
+  list.style.display = isOpen ? 'none' : 'block';
 }
 
-function filterNegociacoes() {
-  const oppVal   = document.getElementById('neg-filter')       ? document.getElementById('neg-filter').value       : '';
-  const marcaVal = document.getElementById('neg-filter-marca') ? document.getElementById('neg-filter-marca').value : '';
-  const filtered = NEGOCIACOES.filter(n =>
-    (!oppVal   || String(n.opp_id) === oppVal) &&
-    (!marcaVal || n.marca === marcaVal)
-  );
-  renderNegociacoes(filtered);
-  const label = document.getElementById('neg-count-label');
-  if (label) label.textContent = filtered.length + ' negociação' + (filtered.length !== 1 ? 'ões' : '');
-}
+function _buildNegMarcaOptions() { /* legado — mantido para compatibilidade */ }
+function filterNegociacoes() { renderNegociacoes(NEGOCIACOES); }
 
 let _negAtiva = null;
 
@@ -1827,93 +1885,19 @@ function sendNegMsg() {
   showToast('Mensagem enviada!', 'success');
 }
 
-function _buildDealCard(n) {
-  const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
-  const aceitos    = (n.contrapartidas || []).filter(c => c.status === 'aceita');
-  const totalBruto = aceitos.reduce((s, c) => s + c.valor, 0);
-  const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
-  const liquido    = totalBruto - taxa;
-
-  const cpRows = aceitos.map(cp => `
-    <div class="deal-card-cp-item">
-      <span class="deal-card-cp-desc">${cp.descricao}</span>
-      <span class="deal-card-cp-val">${fmt(cp.valor)}</span>
-    </div>`).join('');
-
-  return `<div class="deal-card">
-    <div class="deal-card-header">
-      <div class="deal-card-info">
-        <div class="deal-card-brand">${n.marca}</div>
-        <div class="deal-card-opp">${n.opp} · ${n.cota}</div>
-      </div>
-      <div class="deal-card-valor">
-        <div class="deal-card-valor-label">Você recebe</div>
-        <div class="deal-card-valor-num">${fmt(liquido)}</div>
-      </div>
-    </div>
-    ${aceitos.length ? `<div class="deal-card-cp">${cpRows}</div>` : ''}
-    <div class="deal-card-taxa">Taxa de plataforma (${Math.round(PLATAFORMA_TAXA*100)}%): ${fmt(taxa)} · Bruto: ${fmt(totalBruto)}</div>
-  </div>`;
-}
-
-function _buildDealsFilterOptions() {
-  const deals = NEGOCIACOES.filter(n => n.status === 'aceita');
-  const oppSel   = document.getElementById('deals-filter-opp');
-  const marcaSel = document.getElementById('deals-filter-marca');
-  if (!oppSel || !marcaSel) return;
-
-  const opps   = [...new Map(deals.map(n => [n.opp_id, n.opp])).entries()];
-  const marcas = [...new Set(deals.map(n => n.marca))];
-
-  oppSel.innerHTML   = '<option value="">Todas</option>' + opps.map(([id,opp]) => `<option value="${id}">${opp}</option>`).join('');
-  marcaSel.innerHTML = '<option value="">Todas</option>' + marcas.map(m => `<option value="${m}">${m}</option>`).join('');
-}
-
-function filterDeals() {
-  const oppVal   = document.getElementById('deals-filter-opp').value;
-  const marcaVal = document.getElementById('deals-filter-marca').value;
-  const deals    = NEGOCIACOES.filter(n => n.status === 'aceita');
-  const filtered = deals.filter(n =>
-    (!oppVal   || String(n.opp_id) === oppVal) &&
-    (!marcaVal || n.marca === marcaVal)
-  );
-  const container = document.getElementById('deals-grid-container');
-  const countEl   = document.getElementById('deals-count-label');
-  if (countEl) countEl.textContent = filtered.length + ' deal' + (filtered.length !== 1 ? 's' : '');
-
-  if (filtered.length === 0) {
-    container.innerHTML = `<div class="deal-empty" style="">
-      <div class="deal-empty-icon">🔍</div>
-      <div class="deal-empty-title">Nenhum deal encontrado</div>
-      <div class="deal-empty-text">Tente ajustar os filtros.</div>
-    </div>`;
-  } else {
-    container.innerHTML = filtered.map(_buildDealCard).join('');
-  }
-}
-
 function renderDeals() {
+  const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
   const deals = NEGOCIACOES.filter(n => n.status === 'aceita');
 
   // Atualizar badge
   const badge = document.getElementById('deals-badge-count');
   if (badge) badge.textContent = deals.length;
 
-  // Preencher opções dos filtros
-  _buildDealsFilterOptions();
-
-  const container = document.getElementById('deals-grid-container');
+  const container = document.getElementById('deals-opp-group-container');
   if (!container) return;
 
-  // Exibir/ocultar barra de filtros
-  const filterBar = document.getElementById('deals-filter-bar');
-  if (filterBar) filterBar.style.display = deals.length === 0 ? 'none' : '';
-
-  const countEl = document.getElementById('deals-count-label');
-  if (countEl) countEl.textContent = deals.length + ' deal' + (deals.length !== 1 ? 's' : '');
-
   if (deals.length === 0) {
-    container.innerHTML = `<div class="deal-empty" style="">
+    container.innerHTML = `<div class="deal-empty">
       <div class="deal-empty-icon">🤝</div>
       <div class="deal-empty-title">Nenhum deal fechado ainda</div>
       <div class="deal-empty-text">Quando uma negociação for concluída com sucesso,<br>ela aparecerá aqui como base para o contrato.</div>
@@ -1921,16 +1905,107 @@ function renderDeals() {
     return;
   }
 
-  container.innerHTML = deals.map(_buildDealCard).join('');
+  // Agrupa por oportunidade
+  const groups = {};
+  deals.forEach(n => {
+    if (!groups[n.opp_id]) groups[n.opp_id] = { opp_id: n.opp_id, opp: n.opp, items: [] };
+    groups[n.opp_id].items.push(n);
+  });
+
+  container.innerHTML = Object.values(groups).map(g => {
+    const cfg = OPP_CAT[g.opp_id === 1 ? 'Esporte' : 'Cultura'] || OPP_CAT['Esporte'];
+    // total líquido do grupo
+    const totalLiquido = g.items.reduce((sum, n) => {
+      const aceitos = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+      const bruto = aceitos.reduce((s, c) => s + c.valor, 0);
+      return sum + (bruto - Math.round(bruto * PLATAFORMA_TAXA));
+    }, 0);
+
+    const listItems = g.items.map(n => {
+      const aceitos    = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+      const totalBruto = aceitos.reduce((s, c) => s + c.valor, 0);
+      const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
+      const liquido    = totalBruto - taxa;
+      return `<div class="deals-opp-list-item">
+        <div class="deals-item-avatar">${_initials(n.marca)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="deals-item-name">${n.marca}</div>
+          <div class="neg-marca-cota">${n.cota}</div>
+        </div>
+        <div style="text-align:right;margin-right:12px">
+          <div class="deals-item-valor">${fmt(liquido)}</div>
+          <div class="deals-item-taxa">bruto ${fmt(totalBruto)}</div>
+        </div>
+        <button class="btn-sm-outline" onclick="openDealDetModal(${n.id})">Ver detalhes</button>
+      </div>`;
+    }).join('');
+
+    return `<div class="deals-opp-accordion" id="deal-acc-${g.opp_id}">
+      <div class="deals-opp-header" onclick="toggleDealAcc(${g.opp_id})">
+        <div class="deals-opp-cover" style="background:${cfg.gradient}">${cfg.icon}</div>
+        <div class="deals-opp-info">
+          <div class="deals-opp-title">${g.opp}</div>
+          <div class="deals-opp-subtitle">${g.items.length} deal${g.items.length !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="deals-opp-total">
+          <div class="deals-opp-total-label">Você recebe</div>
+          <div class="deals-opp-total-num">${fmt(totalLiquido)}</div>
+        </div>
+        ${chevronSvgDeal}
+      </div>
+      <div class="deals-opp-list" style="display:none">${listItems}</div>
+    </div>`;
+  }).join('');
 }
 
-// Init negociações table on load
+function toggleDealAcc(oppId) {
+  const acc = document.getElementById('deal-acc-' + oppId);
+  if (!acc) return;
+  const list = acc.querySelector('.deals-opp-list');
+  const isOpen = acc.classList.contains('open');
+  acc.classList.toggle('open', !isOpen);
+  list.style.display = isOpen ? 'none' : 'block';
+}
+
+function openDealDetModal(negId) {
+  const n = NEGOCIACOES.find(x => x.id === negId);
+  if (!n) return;
+  const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
+  const aceitos    = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+  const totalBruto = aceitos.reduce((s, c) => s + c.valor, 0);
+  const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
+  const liquido    = totalBruto - taxa;
+
+  document.getElementById('ddet-title').textContent = n.marca;
+  document.getElementById('ddet-sub').textContent   = n.opp + ' · ' + n.cota;
+
+  document.getElementById('ddet-entregas').innerHTML = aceitos.length
+    ? aceitos.map(cp => `<div class="modal-deal-det-row">
+        <span class="modal-deal-det-row-label">${cp.descricao}</span>
+        <span class="modal-deal-det-row-val">${fmt(cp.valor)}</span>
+      </div>`).join('')
+    : '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>';
+
+  document.getElementById('ddet-financeiro').innerHTML = `
+    <div class="modal-deal-det-financeiro-row"><span class="lbl">Valor bruto</span><span>${fmt(totalBruto)}</span></div>
+    <div class="modal-deal-det-financeiro-row"><span class="lbl">Taxa Relevantia (${Math.round(PLATAFORMA_TAXA*100)}%)</span><span style="color:#DC2626">− ${fmt(taxa)}</span></div>
+    <div class="modal-deal-det-financeiro-row total"><span class="lbl">Você recebe</span><span>${fmt(liquido)}</span></div>`;
+
+  document.getElementById('modal-deal-det').classList.add('open');
+}
+
+function closeDealDetModal() {
+  document.getElementById('modal-deal-det').classList.remove('open');
+}
+
+function filterDeals() { renderDeals(); }
+function _buildDealsFilterOptions() { /* legado */ }
+
+// Init on load
 document.addEventListener('DOMContentLoaded', function() {
-  _buildNegMarcaOptions();
+  renderPublicadas();
   renderNegociacoes(NEGOCIACOES);
   renderDeals();
-  const label = document.getElementById('neg-count-label');
-  if (label) label.textContent = NEGOCIACOES.length + ' negociações';
   renderVozHistorico();
   const ta = document.getElementById('vozMensagem');
   if (ta) {
@@ -2039,6 +2114,31 @@ function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 </script>
+
+<!-- ═══════════════════ MODAL DEAL DETALHE ═══════════════════ -->
+<div class="modal-deal-det-overlay" id="modal-deal-det" onclick="if(event.target===this)closeDealDetModal()">
+  <div class="modal-deal-det">
+    <div class="modal-deal-det-header">
+      <div>
+        <div class="modal-deal-det-title" id="ddet-title">—</div>
+        <div class="modal-deal-det-sub" id="ddet-sub">—</div>
+      </div>
+      <button class="modal-deal-det-close" onclick="closeDealDetModal()">✕</button>
+    </div>
+    <div class="modal-deal-det-body">
+      <!-- Entregas -->
+      <div class="modal-deal-det-section">
+        <div class="modal-deal-det-section-title">Entregas acordadas</div>
+        <div id="ddet-entregas">—</div>
+      </div>
+      <!-- Financeiro -->
+      <div class="modal-deal-det-section">
+        <div class="modal-deal-det-section-title">Financeiro</div>
+        <div class="modal-deal-det-financeiro" id="ddet-financeiro">—</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════ MODAL NEGOCIAÇÃO (DETENTOR) ═══════════════════ -->
 <div class="modal-overlay-det" id="modal-neg" onclick="if(event.target===this)closeNegModal()">
