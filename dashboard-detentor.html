@@ -191,13 +191,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 .notif-badge.hidden { display: none; }
 
 .notif-panel {
-  position: absolute; top: calc(100% + 12px); right: 0;
+  /* Desktop: posicionado via JS (getBoundingClientRect do sino) */
+  position: fixed;
   width: 380px; max-height: 520px;
   background: var(--white); border: 1px solid var(--gray-200);
   border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
   display: none; flex-direction: column; overflow: hidden;
   animation: notifSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 200;
+  z-index: 900;
 }
 .notif-panel.open { display: flex; }
 
@@ -979,19 +980,19 @@ tbody tr:last-child td { border-bottom: none; }
   .deal-card-header { gap: 8px; }
   .deal-card-valor-num { font-size: 16px; }
 
-  /* ── Modais → full-screen bottom sheet ── */
-  .modal-overlay-det { align-items: flex-end; padding: 0; }
+  /* ── Modais mobile: centralizado com margens, scroll interno ── */
+  .modal-overlay-det { align-items: center; padding: 16px; }
   .modal-neg {
-    border-radius: 20px 20px 0 0; max-width: 100%; width: 100%;
-    max-height: 92vh; margin: 0;
+    border-radius: 16px; max-width: 100%; width: 100%;
+    max-height: 85vh; margin: 0;
   }
-  .modal-neg-header { padding: 16px 18px 12px; }
-  .modal-neg-body { padding: 0 18px 16px; }
+  .modal-neg-header { padding: 14px 16px 10px; }
+  .modal-neg-body { padding: 0 16px 16px; }
 
-  .modal-deal-det-overlay { align-items: flex-end; padding: 0; }
+  .modal-deal-det-overlay { align-items: center; padding: 16px; }
   .modal-deal-det {
-    border-radius: 20px 20px 0 0; max-width: 100%; width: 100%;
-    max-height: 90vh; margin: 0;
+    border-radius: 16px; max-width: 100%; width: 100%;
+    max-height: 85vh; margin: 0;
   }
 
   /* ── Seção Voz ── */
@@ -1163,20 +1164,22 @@ tbody tr:last-child td { border-bottom: none; }
         </svg>
         <span class="notif-badge" id="notifBadge">3</span>
       </button>
-      <div class="notif-panel" id="notifPanel">
-        <div class="notif-panel-header">
-          <span class="notif-panel-title">Notificações</span>
-          <button class="notif-mark-all" onclick="markAllRead()">Marcar todas como lidas</button>
-        </div>
-        <div class="notif-list" id="notifList"></div>
-        <div class="notif-panel-footer">
-          <button class="notif-see-all" onclick="closeNotifPanel()">Ver todas as notificações</button>
-        </div>
-      </div>
     </div>
     <div class="topbar-avatar" id="topbarAvatar" style="display:none">IG</div>
   </div>
 </header>
+
+<!-- Painel de notificações — fora do header para evitar stacking context do backdrop-filter -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-header">
+    <span class="notif-panel-title">Notificações</span>
+    <button class="notif-mark-all" onclick="markAllRead()">Marcar todas como lidas</button>
+  </div>
+  <div class="notif-list" id="notifList"></div>
+  <div class="notif-panel-footer">
+    <button class="notif-see-all" onclick="closeNotifPanel()">Ver todas as notificações</button>
+  </div>
+</div>
 
 <!-- Main content -->
 <div class="main" id="mainContent">
@@ -1658,7 +1661,7 @@ tbody tr:last-child td { border-bottom: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
     <span>Oportunidades</span>
   </button>
-  <button class="bottom-nav-item" id="bn-negociacoes" onclick="showSection('negociacoes')">
+  <button class="bottom-nav-item" id="bn-negociacoes" onclick="showSectionTab('oportunidades','negociacoes')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     <span>Negociações</span>
   </button>
@@ -1685,10 +1688,28 @@ const MOCK_EMPRESA = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detento
 const SECTION_TITLES = {
   dashboard: 'Dashboard',
   oportunidades: 'Minhas Oportunidades',
+  negociacoes: 'Negociações',
   empresa: 'Minha Empresa',
   perfil: 'Meu Perfil',
   voz: 'Fale com o Radar'
 };
+
+// Atalho: vai para uma seção E ativa uma sub-tab específica
+function showSectionTab(sectionId, subTab) {
+  showSection(sectionId);
+  // Aguarda o DOM atualizar antes de trocar a sub-tab
+  setTimeout(() => {
+    if (typeof switchSubTab === 'function') switchSubTab(subTab);
+  }, 50);
+  // Marca o botão correto no bottom nav (sobrescreve o que showSection fez)
+  setTimeout(() => {
+    document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('bn-' + subTab);
+    if (btn) btn.classList.add('active');
+  }, 10);
+  // Atualiza hash para o subTab (permite deep-link)
+  window.location.hash = subTab;
+}
 
 // ─── INIT ───
 function init() {
@@ -1714,7 +1735,10 @@ function init() {
 
   // Check hash for deep linking
   const hash = window.location.hash.replace('#', '');
-  if (hash && SECTION_TITLES[hash]) {
+  if (hash === 'negociacoes') {
+    // Negociações é uma sub-tab dentro de Oportunidades
+    showSectionTab('oportunidades', 'negociacoes');
+  } else if (hash && SECTION_TITLES[hash]) {
     showSection(hash);
   }
 
@@ -1906,19 +1930,30 @@ function toggleNotifPanel() {
 function openNotifPanel() {
   _notifOpen = true;
   const panel = document.getElementById('notifPanel');
+  const btn   = document.getElementById('notifBtn');
   const isMobile = window.innerWidth <= 768;
 
   if (isMobile) {
-    // Add mobile-sheet BEFORE open so animation plays correctly
+    // Bottom sheet — sem posicionamento absoluto, fica fixo na base
     panel.classList.add('mobile-sheet');
+    panel.style.top    = '';
+    panel.style.right  = '';
+    panel.style.left   = '';
+    panel.style.bottom = '';
     document.getElementById('notifOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   } else {
+    // Desktop: posicionar abaixo do sino via getBoundingClientRect
     panel.classList.remove('mobile-sheet');
+    const rect = btn.getBoundingClientRect();
+    panel.style.top   = (rect.bottom + 10) + 'px';
+    panel.style.right = (window.innerWidth - rect.right) + 'px';
+    panel.style.left  = 'auto';
+    panel.style.bottom = 'auto';
   }
 
   panel.classList.add('open');
-  document.getElementById('notifBtn').classList.add('active');
+  btn.classList.add('active');
 }
 
 function closeNotifPanel() {
@@ -1936,7 +1971,10 @@ document.addEventListener('click', function(e) {
   if (!_notifOpen) return;
   if (window.innerWidth <= 768) return;
   const wrapper = document.querySelector('.notif-wrapper');
-  if (wrapper && !wrapper.contains(e.target)) {
+  const panel   = document.getElementById('notifPanel');
+  const inWrapper = wrapper && wrapper.contains(e.target);
+  const inPanel   = panel   && panel.contains(e.target);
+  if (!inWrapper && !inPanel) {
     closeNotifPanel();
   }
 });
