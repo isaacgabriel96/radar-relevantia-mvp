@@ -280,24 +280,26 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 }
 .notif-see-all:hover { background: var(--gray-200); color: var(--black); }
 
-/* Mobile: notif panel ocupa largura total e fica embaixo */
-@media (max-width: 768px) {
-  .notif-panel {
-    position: fixed; top: auto; bottom: 0; left: 0; right: 0;
-    width: 100%; max-height: 75vh;
-    border-radius: 20px 20px 0 0;
-    border: none; border-top: 1px solid var(--gray-200);
-    animation: notifSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .notif-panel::before {
-    content: ''; display: block; width: 36px; height: 4px;
-    background: var(--gray-200); border-radius: 2px;
-    margin: 10px auto 0;
-  }
-  @keyframes notifSlideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+/* Mobile: notif bottom-sheet — controlado via JS (.mobile-sheet) para evitar
+   stacking-context do backdrop-filter do topbar */
+.notif-panel.mobile-sheet {
+  position: fixed !important;
+  top: auto !important; bottom: 0 !important;
+  left: 0 !important; right: 0 !important;
+  width: 100% !important; max-height: 75vh !important;
+  border-radius: 20px 20px 0 0 !important;
+  border: none !important; border-top: 1px solid var(--gray-200) !important;
+  z-index: 900 !important;
+  animation: notifSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.notif-panel.mobile-sheet::before {
+  content: ''; display: block; width: 36px; height: 4px;
+  background: var(--gray-200); border-radius: 2px;
+  margin: 10px auto 0;
+}
+@keyframes notifSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Wrapper relativo para posicionar o panel */
@@ -308,7 +310,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 /* Overlay mobile para fechar notificações ao tocar fora */
 .notif-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.3); z-index: 199;
+  background: rgba(0,0,0,0.3); z-index: 800;
   backdrop-filter: blur(2px);
 }
 .notif-overlay.open { display: block; }
@@ -1845,18 +1847,27 @@ function toggleNotifPanel() {
 
 function openNotifPanel() {
   _notifOpen = true;
-  document.getElementById('notifPanel').classList.add('open');
-  document.getElementById('notifBtn').classList.add('active');
+  const panel = document.getElementById('notifPanel');
+  const isMobile = window.innerWidth <= 768;
 
-  if (window.innerWidth <= 768) {
+  if (isMobile) {
+    // Add mobile-sheet BEFORE open so animation plays correctly
+    panel.classList.add('mobile-sheet');
     document.getElementById('notifOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
+  } else {
+    panel.classList.remove('mobile-sheet');
   }
+
+  panel.classList.add('open');
+  document.getElementById('notifBtn').classList.add('active');
 }
 
 function closeNotifPanel() {
   _notifOpen = false;
-  document.getElementById('notifPanel').classList.remove('open');
+  const panel = document.getElementById('notifPanel');
+  panel.classList.remove('open');
+  panel.classList.remove('mobile-sheet');
   document.getElementById('notifBtn').classList.remove('active');
   document.getElementById('notifOverlay').classList.remove('open');
   document.body.style.overflow = '';

@@ -287,20 +287,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 /* Mobile: notif panel ocupa largura total e fica embaixo */
 @media (max-width: 768px) {
   .notif-panel {
-    position: fixed; top: auto; bottom: 0; left: 0; right: 0;
-    width: 100%; max-height: 75vh;
-    border-radius: 20px 20px 0 0;
-    border: none; border-top: 1px solid var(--gray-200);
-    animation: notifSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .notif-panel::before {
-    content: ''; display: block; width: 36px; height: 4px;
-    background: var(--gray-200); border-radius: 2px;
-    margin: 10px auto 0;
-  }
-  @keyframes notifSlideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
+    /* No mobile o panel vira bottom sheet via JS (classe .mobile-sheet) */
+    /* O CSS padrão (desktop dropdown) continua sendo anulado via JS */
   }
 }
 
@@ -312,10 +300,33 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 /* Overlay mobile para fechar notificações ao tocar fora */
 .notif-overlay {
   display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.3); z-index: 199;
+  background: rgba(0,0,0,0.3); z-index: 800;
   backdrop-filter: blur(2px);
 }
 .notif-overlay.open { display: block; }
+
+/* Bottom sheet mobile — aplicado via JS */
+.notif-panel.mobile-sheet {
+  position: fixed !important;
+  top: auto !important; bottom: 0 !important;
+  left: 0 !important; right: 0 !important;
+  width: 100% !important;
+  max-height: 75vh !important;
+  border-radius: 20px 20px 0 0 !important;
+  border: none !important;
+  border-top: 1px solid var(--gray-200) !important;
+  z-index: 900 !important;
+  animation: notifSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.notif-panel.mobile-sheet::before {
+  content: ''; display: block; width: 36px; height: 4px;
+  background: var(--gray-200); border-radius: 2px;
+  margin: 10px auto 0;
+}
+@keyframes notifSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .hamburger {
   display: none; background: none; border: none; cursor: pointer; padding: 4px;
   color: var(--gray-500);
@@ -907,28 +918,106 @@ tbody tr:last-child td { border-bottom: none; }
 }
 
 @media (max-width: 768px) {
-  .sidebar { transform: translateX(-100%); }
+  /* ── Layout base ── */
+  .sidebar { transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
   .sidebar.open { transform: translateX(0); }
   .sidebar-overlay.open { display: block; }
-  .topbar { left: 0; padding: 0 16px; }
+  .topbar { left: 0; }
+  .topbar-inner { padding: 0 16px; }
   .hamburger { display: flex; }
-  .main { margin-left: 0; padding-bottom: 80px; }
-  .main-inner { padding: 20px 16px; }
-  .kpi-grid { grid-template-columns: 1fr; }
-  .form-grid { grid-template-columns: 1fr; }
-  .bottom-nav { display: flex; }
-  .page-title { font-size: 22px; }
-  .page-header { flex-direction: row; align-items: center; flex-wrap: wrap; }
+  .main { margin-left: 0; padding-bottom: 88px; }
+  .main-inner { padding: 16px 16px 24px; }
+
+  /* ── Tipografia ── */
+  .page-title { font-size: 20px; }
+  .card-title { font-size: 16px; }
+
+  /* ── Page header ── */
+  .page-header { flex-direction: row; align-items: center; flex-wrap: nowrap; gap: 10px; margin-bottom: 20px; }
   .page-header-left { flex: 1; min-width: 0; }
   .page-header-left .page-subtitle { display: none; }
-  .page-subtitle-mobile { display: block !important; }
-  .page-header .btn-gold { flex-shrink: 0; }
-  .table-wrap { margin: 0 -16px; padding: 0 16px; }
+  .page-subtitle-mobile { display: block !important; margin-top: 4px; margin-bottom: 20px; font-size: 13px; color: var(--gray-400); line-height: 1.5; }
+  .page-header .btn { padding: 8px 14px; font-size: 12px; flex-shrink: 0; white-space: nowrap; }
+
+  /* ── Bottom nav ── */
+  .bottom-nav { display: flex; }
+
+  /* ── KPIs ── */
+  .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .kpi-card { padding: 16px; gap: 8px; }
+  .kpi-value { font-size: 26px; }
+
+  /* ── Cards ── */
+  .card { padding: 16px; margin-bottom: 14px; }
+  .card-header { margin-bottom: 14px; }
+
+  /* ── Formulários ── */
+  .form-grid { grid-template-columns: 1fr; gap: 12px; }
   .form-textarea { max-height: 120px; overflow-y: auto; }
+
+  /* ── Tabelas → scroll horizontal ── */
+  .table-wrap { margin: 0 -16px; padding: 0 16px; -webkit-overflow-scrolling: touch; }
+
+  /* ── Sub-tabs (Oportunidades/Negociações) ── */
+  .sub-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-wrap: nowrap; }
+  .sub-tabs::-webkit-scrollbar { display: none; }
+  .sub-tab { flex-shrink: 0; padding: 10px 14px; font-size: 12px; }
+
+  /* ── Oportunidades grid → 1 coluna ── */
+  .pub-grid { grid-template-columns: 1fr; gap: 14px; }
+  .pub-card-image { height: 140px; }
+
+  /* ── Negociações cards ── */
+  .neg-opp-card { padding: 14px; }
+  .neg-opp-header { gap: 10px; }
+  .neg-opp-valor { font-size: 17px; }
+  .neg-card-actions { flex-wrap: wrap; gap: 8px; }
+  .neg-card-actions .btn { flex: 1; justify-content: center; min-width: 0; }
+
+  /* ── Deals cards ── */
+  .deal-card { padding: 14px 16px; }
+  .deal-card-header { gap: 8px; }
+  .deal-card-valor-num { font-size: 16px; }
+
+  /* ── Modais → full-screen bottom sheet ── */
+  .modal-overlay-det { align-items: flex-end; padding: 0; }
+  .modal-neg {
+    border-radius: 20px 20px 0 0; max-width: 100%; width: 100%;
+    max-height: 92vh; margin: 0;
+  }
+  .modal-neg-header { padding: 16px 18px 12px; }
+  .modal-neg-body { padding: 0 18px 16px; }
+
+  .modal-deal-det-overlay { align-items: flex-end; padding: 0; }
+  .modal-deal-det {
+    border-radius: 20px 20px 0 0; max-width: 100%; width: 100%;
+    max-height: 90vh; margin: 0;
+  }
+
+  /* ── Seção Voz ── */
+  .voz-layout-grid { grid-template-columns: 1fr !important; }
+  .voz-layout-grid > div:last-child { display: none; }
+  .voz-cat-btn { font-size: 11px; padding: 5px 12px; }
+
+  /* ── cp-form (modal negociação) ── */
+  .cp-form-row-det { grid-template-columns: 1fr; }
+
+  /* ── Valor deal ── */
+  .valor-deal-input-row { flex-direction: column; gap: 8px; }
+  .btn-propor-valor { width: 100%; justify-content: center; }
+  .valor-deal-actions { flex-direction: column; }
+
+  /* ── Timeline ── */
+  .tl-item { gap: 10px; }
+  .tl-body { padding-bottom: 14px; }
+
+  /* ── Perfil / Empresa forms ── */
+  .form-section { padding: 16px; margin-bottom: 14px; }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .pub-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 }
 </style>
 </head>
@@ -1426,7 +1515,7 @@ tbody tr:last-child td { border-bottom: none; }
       <p class="page-subtitle">Compartilhe o que pensa. Cada mensagem alimenta diretamente o roadmap do Radar.</p>
     </div>
   </div>
-  <div style="display:grid; grid-template-columns: 1fr 340px; gap:24px; align-items:start">
+  <div class="voz-layout-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:24px; align-items:start">
 
     <!-- Formulário principal -->
     <div class="card">
@@ -1565,21 +1654,17 @@ tbody tr:last-child td { border-bottom: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
     <span>Dashboard</span>
   </button>
-  <button class="bottom-nav-item" id="bn-oportunidades" onclick="showSection('oportunidades')" style="position:relative">
+  <button class="bottom-nav-item" id="bn-oportunidades" onclick="showSection('oportunidades')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
     <span>Oportunidades</span>
   </button>
-  <button class="bottom-nav-item" id="bn-empresa" onclick="showSection('empresa')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V7l9-4 9 4v14"/><path d="M9 21v-6h6v6"/></svg>
-    <span>Empresa</span>
+  <button class="bottom-nav-item" id="bn-negociacoes" onclick="showSection('negociacoes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span>Negociações</span>
   </button>
   <button class="bottom-nav-item" id="bn-perfil" onclick="showSection('perfil')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
     <span>Perfil</span>
-  </button>
-  <button class="bottom-nav-item" id="bn-voz" onclick="showSection('voz')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-    <span>Voz</span>
   </button>
 </nav>
 
@@ -1820,18 +1905,27 @@ function toggleNotifPanel() {
 
 function openNotifPanel() {
   _notifOpen = true;
-  document.getElementById('notifPanel').classList.add('open');
-  document.getElementById('notifBtn').classList.add('active');
+  const panel = document.getElementById('notifPanel');
+  const isMobile = window.innerWidth <= 768;
 
-  if (window.innerWidth <= 768) {
+  if (isMobile) {
+    // Add mobile-sheet BEFORE open so animation plays correctly
+    panel.classList.add('mobile-sheet');
     document.getElementById('notifOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
+  } else {
+    panel.classList.remove('mobile-sheet');
   }
+
+  panel.classList.add('open');
+  document.getElementById('notifBtn').classList.add('active');
 }
 
 function closeNotifPanel() {
   _notifOpen = false;
-  document.getElementById('notifPanel').classList.remove('open');
+  const panel = document.getElementById('notifPanel');
+  panel.classList.remove('open');
+  panel.classList.remove('mobile-sheet');
   document.getElementById('notifBtn').classList.remove('active');
   document.getElementById('notifOverlay').classList.remove('open');
   document.body.style.overflow = '';
