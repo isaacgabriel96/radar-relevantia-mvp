@@ -873,6 +873,18 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- Notificações overlay mobile -->
 <div class="notif-overlay" id="notifOverlay" onclick="closeNotifPanel()"></div>
 
+<!-- Notif panel fora do topbar para evitar stacking context do backdrop-filter -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-header">
+    <span class="notif-panel-title">Notificações</span>
+    <button class="notif-mark-all" onclick="markAllRead()">Marcar todas como lidas</button>
+  </div>
+  <div class="notif-list" id="notifList"></div>
+  <div class="notif-panel-footer">
+    <button class="notif-see-all" onclick="closeNotifPanel()">Ver todas as notificações</button>
+  </div>
+</div>
+
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
@@ -992,16 +1004,6 @@ tbody tr:last-child td { border-bottom: none; }
           </svg>
           <span class="notif-badge" id="notifBadge">3</span>
         </button>
-        <div class="notif-panel" id="notifPanel">
-          <div class="notif-panel-header">
-            <span class="notif-panel-title">Notificações</span>
-            <button class="notif-mark-all" onclick="markAllRead()">Marcar todas como lidas</button>
-          </div>
-          <div class="notif-list" id="notifList"></div>
-          <div class="notif-panel-footer">
-            <button class="notif-see-all" onclick="closeNotifPanel()">Ver todas as notificações</button>
-          </div>
-        </div>
       </div>
       <div class="topbar-avatar" id="topbarAvatar" style="display:none">NB</div>
     </div>
@@ -1859,11 +1861,13 @@ function closeNotifPanel() {
 }
 
 // Fechar ao clicar fora (desktop)
+// Verifica btn + panel (panel agora está fora do .notif-wrapper no DOM)
 document.addEventListener('click', function(e) {
   if (!_notifOpen) return;
   if (window.innerWidth <= 768) return; // mobile usa overlay
-  const wrapper = document.querySelector('.notif-wrapper');
-  if (wrapper && !wrapper.contains(e.target)) {
+  const btn   = document.getElementById('notifBtn');
+  const panel = document.getElementById('notifPanel');
+  if (btn && !btn.contains(e.target) && panel && !panel.contains(e.target)) {
     closeNotifPanel();
   }
 });
