@@ -187,7 +187,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 .notif-badge.hidden { display: none; }
 
 .notif-panel {
-  position: fixed; top: 76px; right: 16px;
+  /* Desktop: posicionado via JS (getBoundingClientRect do sino) */
+  position: fixed;
   width: 380px; max-height: 520px;
   background: var(--white); border: 1px solid var(--gray-200);
   border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
@@ -1821,19 +1822,30 @@ function toggleNotifPanel() {
 function openNotifPanel() {
   _notifOpen = true;
   const panel = document.getElementById('notifPanel');
+  const btn   = document.getElementById('notifBtn');
   const isMobile = window.innerWidth <= 768;
 
   if (isMobile) {
-    // Add mobile-sheet BEFORE open so animation plays correctly
     panel.classList.add('mobile-sheet');
+    // Limpa estilos inline do desktop para o CSS do mobile-sheet assumir
+    panel.style.top    = '';
+    panel.style.right  = '';
+    panel.style.left   = '';
+    panel.style.bottom = '';
     document.getElementById('notifOverlay').classList.add('open');
     document.body.style.overflow = 'hidden';
   } else {
     panel.classList.remove('mobile-sheet');
+    // Posiciona dinamicamente abaixo do botão do sino
+    const rect = btn.getBoundingClientRect();
+    panel.style.top    = (rect.bottom + 10) + 'px';
+    panel.style.right  = (window.innerWidth - rect.right) + 'px';
+    panel.style.left   = 'auto';
+    panel.style.bottom = 'auto';
   }
 
   panel.classList.add('open');
-  document.getElementById('notifBtn').classList.add('active');
+  btn.classList.add('active');
 }
 
 function closeNotifPanel() {
