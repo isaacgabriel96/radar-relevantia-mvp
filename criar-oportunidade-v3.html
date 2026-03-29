@@ -2248,12 +2248,15 @@ async function saveDraft() {
    PUBLICAR
 ══════════════════════════════════════════════ */
 async function publishOpportunity() {
+  console.log('[Publish] Starting...');
   const data = collectOppData();
+  console.log('[Publish] Data collected:', data);
   if (!data.titulo) { showToast('Preencha o nome da oportunidade.', 'error'); return; }
   if (!data.categoria) { showToast('Selecione o tipo da oportunidade.', 'error'); return; }
 
   const token = await _getWriteToken();
   const userId = await getAuthUserId();
+  console.log('[Publish] token:', token ? 'OK' : 'NULL', 'userId:', userId);
   if (!token || !userId) {
     showToast('Sessão expirada. Faça login novamente.', 'error');
     return;
@@ -2267,7 +2270,11 @@ async function publishOpportunity() {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json', 'Prefer': 'return=representation' }
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res.ok) {
+      const errBody = await res.text();
+      console.error('[Publish] Error:', res.status, errBody);
+      throw new Error('HTTP ' + res.status + ': ' + errBody);
+    }
     console.log('[Publish] Opportunity created in Supabase');
     document.getElementById('successModal').classList.add('open');
   } catch (err) {
