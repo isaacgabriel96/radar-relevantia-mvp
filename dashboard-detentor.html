@@ -1713,46 +1713,53 @@ function showSectionTab(sectionId, subTab) {
 
 // ─── INIT ───
 async function init() {
-  // Demo mode banner
-  showDemoBannerIfActive();
+  try {
+    // Demo mode banner
+    showDemoBannerIfActive();
 
-  // Tentar pegar dados da sessão se existir
-  const stored = localStorage.getItem('sb_detentor_session');
-  if (stored) {
-    try {
-      const session = JSON.parse(stored);
-      const meta = session.user?.user_metadata || {};
-      const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
-      const email = session.user?.email || MOCK_USER.email;
-      setUserInfo(nome, email);
-    } catch {
+    // Tentar pegar dados da sessão se existir
+    const stored = localStorage.getItem('sb_detentor_session');
+    if (stored) {
+      try {
+        const session = JSON.parse(stored);
+        const meta = session.user?.user_metadata || {};
+        const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
+        const email = session.user?.email || MOCK_USER.email;
+        setUserInfo(nome, email);
+      } catch {
+        setUserInfo(MOCK_USER.nome, MOCK_USER.email);
+      }
+    } else {
       setUserInfo(MOCK_USER.nome, MOCK_USER.email);
     }
-  } else {
-    // Sem sessão — usa dados mockados (MVP sem autenticação obrigatória por enquanto)
-    setUserInfo(MOCK_USER.nome, MOCK_USER.email);
+
+    // Load negotiations from Supabase (or fallback to SharedNeg)
+    try {
+      await loadNegociacoes();
+    } catch (e) {
+      console.error('[init] loadNegociacoes failed, using SharedNeg fallback:', e);
+      NEGOCIACOES = SharedNeg.all();
+    }
+
+    // Render all views that depend on NEGOCIACOES
+    renderNegociacoes(NEGOCIACOES);
+    renderDeals();
+
+    // Check hash for deep linking
+    const hash = window.location.hash.replace('#', '');
+    if (hash === 'negociacoes') {
+      showSectionTab('oportunidades', 'negociacoes');
+    } else if (hash && SECTION_TITLES[hash]) {
+      showSection(hash);
+    }
+  } catch (e) {
+    console.error('[init] Critical error:', e);
+  } finally {
+    // ALWAYS hide loading screen, even on error
+    setTimeout(() => {
+      document.getElementById('loadingScreen').style.display = 'none';
+    }, 600);
   }
-
-  // Load negotiations from Supabase (or fallback to SharedNeg)
-  await loadNegociacoes();
-
-  // Render all views that depend on NEGOCIACOES
-  renderNegociacoes(NEGOCIACOES);
-  renderDeals();
-
-  // Check hash for deep linking
-  const hash = window.location.hash.replace('#', '');
-  if (hash === 'negociacoes') {
-    // Negociações é uma sub-tab dentro de Oportunidades
-    showSectionTab('oportunidades', 'negociacoes');
-  } else if (hash && SECTION_TITLES[hash]) {
-    showSection(hash);
-  }
-
-  // Hide loading
-  setTimeout(() => {
-    document.getElementById('loadingScreen').style.display = 'none';
-  }, 600);
 }
 
 function setUserInfo(nome, email) {
