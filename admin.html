@@ -489,6 +489,13 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
           Páginas do Site
         </div>
       </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Ferramentas</div>
+        <div class="sidebar-item" onclick="showSection('demo', this)">
+          <span class="sidebar-item-icon">🎭</span>
+          Modo Demo
+        </div>
+      </div>
     </aside>
 
     <!-- Content -->
@@ -1094,6 +1101,35 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
 
       </div><!-- /section-paginas -->
 
+      <!-- DEMO MODE -->
+      <div id="section-demo" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Modo Demonstração</h1>
+          <p class="page-sub">Acesse os dashboards com dados fictícios para apresentações de onboarding</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:680px;margin-top:8px">
+          <!-- Demo como Marca -->
+          <div style="background:#fff;border:1px solid var(--gray-2);border-radius:16px;padding:28px 24px;text-align:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px">🏷️</div>
+            <h3 style="font-family:var(--font-heading);font-size:16px;font-weight:600;margin-bottom:6px">Demo como Marca</h3>
+            <p style="font-size:13px;color:var(--gray-5);margin-bottom:20px;line-height:1.5">Simula a experiência do patrocinador: explorar oportunidades, enviar propostas, acompanhar negociações.</p>
+            <button onclick="startDemo('brand')" style="background:var(--black);color:var(--white);border:none;padding:10px 28px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">Iniciar Demo Marca →</button>
+          </div>
+          <!-- Demo como Detentor -->
+          <div style="background:#fff;border:1px solid var(--gray-2);border-radius:16px;padding:28px 24px;text-align:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px">🏟️</div>
+            <h3 style="font-family:var(--font-heading);font-size:16px;font-weight:600;margin-bottom:6px">Demo como Detentor</h3>
+            <p style="font-size:13px;color:var(--gray-5);margin-bottom:20px;line-height:1.5">Simula a experiência do detentor de direitos: publicar oportunidades, receber propostas, gerenciar negociações.</p>
+            <button onclick="startDemo('rightsholder')" style="background:var(--black);color:var(--white);border:none;padding:10px 28px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)">Iniciar Demo Detentor →</button>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;padding:16px 20px;background:var(--gold-pale);border-radius:12px;max-width:680px;font-size:13px;color:var(--gray-5);line-height:1.6">
+          <strong style="color:var(--text)">Como funciona:</strong> O modo demo cria uma sessão fictícia com dados de exemplo. Todas as chamadas ao banco são bloqueadas — nenhum dado real é alterado. Um banner dourado no topo indica que o demo está ativo. Para sair, clique em "Sair do demo" no banner.
+        </div>
+      </div><!-- /section-demo -->
+
     </main>
   </div>
 </div><!-- /dashboard -->
@@ -1169,6 +1205,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
 <!-- =========================================================
      JAVASCRIPT
      ========================================================= -->
+<script src="js/demo-data.js"></script>
 <script>
 const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
@@ -1178,6 +1215,31 @@ let currentSession = null;
 let marcasFilter = 'pendente';
 let detentoresFilter = 'pendente';
 let allEmbaixadores = [];
+
+// ── Demo Mode (for onboarding presentations) ────────────────
+function startDemo(role) {
+  // role: 'brand' or 'rightsholder'
+  const tipo = role === 'brand' ? 'marca' : 'detentor';
+  const demoData = (window.DEMO && tipo === 'marca') ? window.DEMO.marca : (window.DEMO ? window.DEMO.detentor : {});
+  const user = demoData.user || {};
+
+  const fakeSession = {
+    access_token: 'DEMO_TOKEN',
+    expires_at: Math.floor(Date.now() / 1000) + 86400 * 365,
+    user: {
+      id: 'demo-' + tipo + '-001',
+      email: user.email || 'demo@radar.com',
+      user_metadata: { tipo: tipo, nome: user.nome || 'Demo User', _demo: true }
+    }
+  };
+
+  const key = role === 'brand' ? 'sb_marca_session' : 'sb_detentor_session';
+  localStorage.setItem(key, JSON.stringify(fakeSession));
+  localStorage.setItem('rr_demo_mode', tipo);
+
+  const target = role === 'brand' ? 'dashboard-marca.html' : 'dashboard-detentor.html';
+  window.location.href = target;
+}
 
 // ── Session helpers ──────────────────────────────────────────
 async function getSession() {
