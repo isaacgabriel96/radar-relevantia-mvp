@@ -1742,7 +1742,11 @@ async function init() {
       NEGOCIACOES = SharedNeg.all();
     }
 
-    // Render all views that depend on NEGOCIACOES
+    // Load detentor's own opportunities from Supabase
+    try { await loadMinhasOpps(); } catch (e) { console.error('[init] loadMinhasOpps failed:', e); }
+
+    // Render all views that depend on NEGOCIACOES + MINHAS_OPPS
+    renderPublicadas();
     renderNegociacoes(NEGOCIACOES);
     renderDeals();
 
@@ -2167,33 +2171,93 @@ const OPP_CAT = {
   'Esporte':        { gradient: 'linear-gradient(135deg,#16A34A,#22C55E)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/><path d="M2 12h20"/></svg>' },
   'Cultura':        { gradient: 'linear-gradient(135deg,#D97706,#F59E0B)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/></svg>' },
   'Tecnologia':     { gradient: 'linear-gradient(135deg,#2563EB,#60A5FA)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>' },
-  'Entretenimento': { gradient: 'linear-gradient(135deg,#7C3AED,#A78BFA)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>' }
+  'Entretenimento': { gradient: 'linear-gradient(135deg,#7C3AED,#A78BFA)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>' },
+  'Evento':         { gradient: 'linear-gradient(135deg,#0D2137,#1A3A5C)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>' },
+  'Celebridade':    { gradient: 'linear-gradient(135deg,#3d1f00,#7a3e00)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>' },
+  'Midia Digital':  { gradient: 'linear-gradient(135deg,#0e4a6e,#0284c7)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>' },
+  'Artista Musical':{ gradient: 'linear-gradient(135deg,#3b1054,#6b21a8)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/></svg>' }
 };
-const MINHAS_OPPS = (window.DEMO && window.DEMO.detentor) ? [...window.DEMO.detentor.oportunidades] : [];
+var MINHAS_OPPS = (window.DEMO && window.DEMO.detentor) ? [...window.DEMO.detentor.oportunidades] : [];
 
-function publishOportunidade(id) {
+/**
+ * Load detentor's opportunities from Supabase.
+ */
+async function loadMinhasOpps() {
+  if (isDemoMode()) return;
+  const token = await getValidToken();
+  const userId = await getAuthUserId();
+  if (!token || !userId) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,titulo,categoria,localizacao,alcance,status,ativo,bg_gradient,criado_em&detentor_id=eq.' + userId + '&order=criado_em.desc', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    MINHAS_OPPS = rows.map(r => ({
+      id: r.id,
+      titulo: r.titulo || '',
+      categoria: r.categoria || '',
+      cidade: extractCity(r.localizacao),
+      data: r.alcance || '',
+      status: r.status === 'publicada' ? 'publicada' : (r.ativo === false ? 'rascunho' : (r.status || 'publicada')),
+      interesses: 0,
+      bg_gradient: r.bg_gradient
+    }));
+    // Count interesses (negociações) per oportunidade
+    NEGOCIACOES.forEach(n => {
+      const opp = MINHAS_OPPS.find(o => o.id === n.opp_id);
+      if (opp) opp.interesses++;
+    });
+    console.log('[Opps] Loaded', MINHAS_OPPS.length, 'opportunities from Supabase');
+  } catch (err) {
+    console.error('[Opps] Failed:', err);
+  }
+}
+
+async function publishOportunidade(id) {
   const opp = MINHAS_OPPS.find(o => o.id === id);
   if (!opp) return;
   opp.status = 'publicada';
   renderPublicadas();
+  if (!isDemoMode()) {
+    const token = await _getWriteToken();
+    if (token) await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + id, {
+      method: 'PATCH', body: JSON.stringify({ status: 'publicada', ativo: true }),
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+    });
+  }
   showToast('Oportunidade publicada com sucesso!', 'success');
 }
 
-function encerrarOportunidade(id) {
+async function encerrarOportunidade(id) {
   if (!confirm('Deseja encerrar esta oportunidade? Ela será retirada do ar e não receberá novos interesses.')) return;
   const opp = MINHAS_OPPS.find(o => o.id === id);
   if (!opp) return;
   opp.status = 'finalizada';
   renderPublicadas();
+  if (!isDemoMode()) {
+    const token = await _getWriteToken();
+    if (token) await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + id, {
+      method: 'PATCH', body: JSON.stringify({ status: 'finalizada', ativo: false }),
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+    });
+  }
   showToast('Oportunidade encerrada e retirada do ar.', 'success');
 }
 
-function excluirOportunidade(id) {
+async function excluirOportunidade(id) {
   if (!confirm('Deseja excluir este rascunho? Esta ação não pode ser desfeita.')) return;
   const idx = MINHAS_OPPS.findIndex(o => o.id === id);
   if (idx === -1) return;
   MINHAS_OPPS.splice(idx, 1);
   renderPublicadas();
+  if (!isDemoMode()) {
+    const token = await _getWriteToken();
+    if (token) await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Prefer': 'return=minimal' }
+    });
+  }
   showToast('Rascunho excluído.', 'success');
 }
 
@@ -2259,7 +2323,7 @@ function renderPublicadas() {
     }
     const cardStyle = isFinalizada ? 'opacity:0.65;' : '';
     return `<div class="pub-opp-card" style="${cardStyle}">
-      <div class="pub-card-image" style="background:${cfg.gradient}${isFinalizada ? ';filter:grayscale(0.5)' : ''}">
+      <div class="pub-card-image" style="background:${o.bg_gradient || cfg.gradient}${isFinalizada ? ';filter:grayscale(0.5)' : ''}">
         ${cfg.icon}
         <span class="pub-card-status-badge ${o.status}">${statusLabel[o.status] || o.status}</span>
       </div>
@@ -3188,8 +3252,7 @@ function _buildDealsFilterOptions() { /* legado */ }
 
 // Init on load
 document.addEventListener('DOMContentLoaded', function() {
-  renderPublicadas();
-  // Note: renderNegociacoes + renderDeals are called from init() AFTER loadNegociacoes() completes
+  // Note: renderPublicadas, renderNegociacoes, renderDeals all called from init() after async loads
   renderVozHistorico();
   const ta = document.getElementById('vozMensagem');
   if (ta) {
