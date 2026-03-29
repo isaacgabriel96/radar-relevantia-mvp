@@ -1712,7 +1712,7 @@ function showSectionTab(sectionId, subTab) {
 }
 
 // ─── INIT ───
-function init() {
+async function init() {
   // Demo mode banner
   showDemoBannerIfActive();
 
@@ -1732,6 +1732,13 @@ function init() {
     // Sem sessão — usa dados mockados (MVP sem autenticação obrigatória por enquanto)
     setUserInfo(MOCK_USER.nome, MOCK_USER.email);
   }
+
+  // Load negotiations from Supabase (or fallback to SharedNeg)
+  await loadNegociacoes();
+
+  // Render all views that depend on NEGOCIACOES
+  renderNegociacoes(NEGOCIACOES);
+  renderDeals();
 
   // Check hash for deep linking
   const hash = window.location.hash.replace('#', '');
@@ -2097,9 +2104,54 @@ init();
 //   propostoPor   : 'marca' | 'detentor'
 //   — futuros: responsavel, evidencia_entrega, data_entrega_real, pago, data_pagamento
 //
-// NEGOCIACOES agora usa SharedNeg como fonte única de verdade (shared-state.js)
-// Qualquer mutação deve chamar SharedNeg.save() para persistir no localStorage
-const NEGOCIACOES = SharedNeg.all();
+// NEGOCIACOES: loaded from Supabase (real) or SharedNeg (demo fallback).
+// Mutations call _persistNeg() which routes to Supabase API or SharedNeg.save().
+let NEGOCIACOES = [];
+let _negToken = null; // cached auth token for API calls
+
+/**
+ * Load negotiations: Supabase real → SharedNeg fallback.
+ * Called once from init().
+ */
+async function loadNegociacoes() {
+  // Try real data if not demo
+  if (!isDemoMode()) {
+    const session = getSession('rightsholder');
+    if (session && session.access_token && session.access_token !== 'DEMO_TOKEN') {
+      _negToken = session.access_token;
+      const real = await fetchNegociacoesDetentor(_negToken);
+      if (real && real.length >= 0) {
+        NEGOCIACOES = real;
+        console.log('[Neg] Loaded', real.length, 'negotiations from Supabase');
+        return;
+      }
+    }
+  }
+  // Fallback: demo data
+  NEGOCIACOES = SharedNeg.all();
+  console.log('[Neg] Using SharedNeg (demo/fallback),', NEGOCIACOES.length, 'negotiations');
+}
+
+/**
+ * Persist a negotiation change. Routes to Supabase or SharedNeg.
+ * @param {object} neg — the mutated negotiation object
+ * @param {object} [fields] — specific fields to PATCH (for Supabase)
+ */
+async function _persistNeg(neg, fields) {
+  if (_negToken && neg._supaId) {
+    // Real mode: PATCH to Supabase
+    const ok = await updateNegociacao(neg._supaId, fields || {
+      status: neg.status,
+      status_label: neg.statusLabel,
+      status_hint: neg.statusHint,
+      aceita_novas_propostas: neg.aceitaNovasPropostas
+    }, _negToken);
+    if (!ok) showToast('Erro ao salvar. Tente novamente.', 'error');
+  } else {
+    // Demo fallback
+    SharedNeg.save();
+  }
+}
 
 // Taxa padrão da plataforma Relevantia (20%)
 // Para alterar, acesse o painel Admin — não modifique aqui diretamente.
@@ -2585,7 +2637,7 @@ function rejectCpDet(cpId) {
 function toggleAceitaPropostas(checked) {
   if (!_negAtiva) return;
   _negAtiva.aceitaNovasPropostas = checked;
-  SharedNeg.save();
+  _persistNeg(_negAtiva, { aceita_novas_propostas: checked });
   const hint = document.getElementById('mn-toggle-hint');
   if (hint) hint.textContent = checked
     ? 'A marca pode sugerir novos itens e valores'
@@ -2703,7 +2755,7 @@ function _autoStatus(n) {
   // Mantém select oculto sincronizado
   const sel = document.getElementById('mn-status-select');
   if (sel) sel.value = 'analise';
-  SharedNeg.save();
+  _persistNeg(n, { status: 'analise', status_label: 'Em análise', status_hint: 'O time da Relevantia está mediando' });
   renderNegociacoes(NEGOCIACOES);
 }
 
@@ -2868,7 +2920,7 @@ function recusarNegociacao() {
     document.getElementById('mn-status-label').textContent = 'Recusada';
     document.getElementById('mn-status-hint').textContent = 'Não foi possível avançar neste momento';
   }
-  SharedNeg.save();
+  _persistNeg(_negAtiva, { status: 'recusada', status_label: 'Recusada', status_hint: 'Não foi possível avançar neste momento' });
   _updateDealFooterState();
   renderNegociacoes(NEGOCIACOES);
   renderDeals();
@@ -2888,7 +2940,7 @@ function fecharDeal() {
     document.getElementById('mn-status-label').textContent = 'Aceita';
     document.getElementById('mn-status-hint').textContent = 'Proposta aprovada. Entre em contato com a marca.';
   }
-  SharedNeg.save();
+  _persistNeg(_negAtiva, { status: 'aceita', status_label: 'Aceita', status_hint: 'Proposta aprovada. Entre em contato com a marca.' });
   _updateDealFooterState();
   renderNegociacoes(NEGOCIACOES);
   renderDeals();
@@ -2898,7 +2950,7 @@ function fecharDeal() {
   showToast('Deal fechado com sucesso! 🎉', 'success');
 }
 
-function sendNegMsg() {
+async function sendNegMsg() {
   const ta = document.getElementById('mn-compose-input');
   const text = ta ? ta.value.trim() : '';
   if (!text || !_negAtiva) return;
@@ -2909,12 +2961,27 @@ function sendNegMsg() {
                now.getHours().toString().padStart(2,'0') + ':' +
                now.getMinutes().toString().padStart(2,'0');
 
+  // Add to local thread immediately (optimistic)
   _negAtiva.thread.push({ autor:'detentor', nome: _negAtiva.opp, texto: text, data });
   _autoStatus(_negAtiva);
   renderNegThread(_negAtiva.thread);
-
   ta.value = '';
   document.getElementById('mn-send-btn').disabled = true;
+
+  // Persist to Supabase
+  if (_negToken && _negAtiva._supaId) {
+    const session = getSession('rightsholder');
+    const userId = session?.user?.id;
+    await sendMensagem({
+      negociacao_id: _negAtiva._supaId,
+      autor_id: userId,
+      autor_role: 'detentor',
+      autor_nome: _negAtiva.opp,
+      texto: text
+    }, _negToken);
+  } else {
+    SharedNeg.save();
+  }
   showToast('Mensagem enviada!', 'success');
 }
 
@@ -3095,8 +3162,7 @@ function _buildDealsFilterOptions() { /* legado */ }
 // Init on load
 document.addEventListener('DOMContentLoaded', function() {
   renderPublicadas();
-  renderNegociacoes(NEGOCIACOES);
-  renderDeals();
+  // Note: renderNegociacoes + renderDeals are called from init() AFTER loadNegociacoes() completes
   renderVozHistorico();
   const ta = document.getElementById('vozMensagem');
   if (ta) {

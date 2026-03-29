@@ -528,28 +528,21 @@ a { text-decoration: none; color: inherit; }
   </div>
 </footer>
 
+<script src="js/core.js"></script>
+<script src="js/demo-data.js"></script>
 <script>
-/* ─── MOCK DATA ─── */
-const OPPORTUNITIES = [
-  { id: 1, title: 'Maratona Internacional de Sao Paulo', org: 'SP Marathon Club', orgInitials: 'SM', category: 'Esporte', city: 'Sao Paulo', region: 'Sao Paulo', date: 'Jan 2027', price: 50000, desc: 'Patrocinio oficial da maior maratona da America Latina, com visibilidade para 35 mil atletas e cobertura nacional de midia.' },
-  { id: 2, title: 'Festival de Verao Salvador', org: 'Verao Producoes', orgInitials: 'VP', category: 'Musica', city: 'Salvador', region: 'Bahia', date: 'Fev 2027', price: 80000, desc: 'Associe sua marca ao maior festival de verao do Brasil. 3 dias de shows com publico de 120 mil pessoas.' },
-  { id: 3, title: 'Expo Tech Brasil', org: 'TechConf BR', orgInitials: 'TB', category: 'Tecnologia', city: 'Sao Paulo', region: 'Sao Paulo', date: 'Mar 2027', price: 35000, desc: 'Feira de tecnologia e inovacao com mais de 50 mil visitantes e 200 expositores. Ideal para marcas de tech.' },
-  { id: 4, title: 'Campeonato de Surf Floripa', org: 'Surf SC', orgInitials: 'SS', category: 'Esporte', city: 'Florianopolis', region: 'Parana', date: 'Dez 2026', price: 25000, desc: 'Campeonato de surf com etapa nacional. Publico jovem e engajado com lifestyle e sustentabilidade.' },
-  { id: 5, title: 'Podcast Tech Daily', org: 'Media Lab', orgInitials: 'ML', category: 'Midia Digital', city: 'Online', region: 'Online', date: 'Continuo', price: 15000, desc: 'Podcast diario sobre tecnologia com 500 mil ouvintes mensais. Ativacao via branded content e mencoes.' },
-  { id: 6, title: 'Arena Music Curitiba', org: 'Arena Live', orgInitials: 'AL', category: 'Musica', city: 'Curitiba', region: 'Parana', date: 'Abr 2027', price: 60000, desc: 'Casa de shows com programacao semanal. Naming rights e presenca de marca em 200+ eventos anuais.' },
-  { id: 7, title: 'Mostra Cultural Recife', org: 'Cultura PE', orgInitials: 'CP', category: 'Cultura', city: 'Recife', region: 'Bahia', date: 'Mai 2027', price: 40000, desc: 'Festival cultural com exposicoes, teatro e gastronomia. Publico qualificado de classes A e B.' },
-  { id: 8, title: 'Liga Brasileira de eSports', org: 'ESL Brasil', orgInitials: 'EB', category: 'Tecnologia', city: 'Online', region: 'Online', date: 'Continuo', price: 70000, desc: 'Liga profissional de eSports com audiencia de 2 milhoes de views mensais em streaming.' },
-  { id: 9, title: 'Corrida de Rua BH', org: 'Run MG', orgInitials: 'RM', category: 'Esporte', city: 'Belo Horizonte', region: 'Minas Gerais', date: 'Jun 2027', price: 20000, desc: 'Corrida de rua com 8 mil participantes. Excelente para ativacoes de saude e bem-estar.' },
-  { id: 10, title: 'Feira Gastronomica SP', org: 'Gourmet BR', orgInitials: 'GB', category: 'Cultura', city: 'Sao Paulo', region: 'Sao Paulo', date: 'Jul 2027', price: 30000, desc: 'Feira gastronomica com chefs renomados. 40 mil visitantes em 5 dias de evento.' }
-];
+/* ─── DATA (Supabase real → fallback demo-data.js) ─── */
+let OPPORTUNITIES = [];
 
 /* ─── CATEGORY CONFIG ─── */
 const CAT_CONFIG = {
-  'Esporte':      { gradient: 'linear-gradient(135deg, #1a472a, #2d6a3f)', badge: 'badge-esporte',    icon: esporteIcon },
-  'Musica':       { gradient: 'linear-gradient(135deg, #3b1054, #6b21a8)', badge: 'badge-musica',     icon: musicaIcon },
-  'Tecnologia':   { gradient: 'linear-gradient(135deg, #0c2461, #1e40af)', badge: 'badge-tecnologia', icon: tecnologiaIcon },
-  'Cultura':      { gradient: 'linear-gradient(135deg, #7c2d12, #c2410c)', badge: 'badge-cultura',    icon: culturaIcon },
-  'Midia Digital': { gradient: 'linear-gradient(135deg, #0e4a6e, #0284c7)', badge: 'badge-midia',     icon: midiaIcon }
+  'Esporte':       { gradient: 'linear-gradient(135deg, #1a472a, #2d6a3f)', badge: 'badge-esporte',      icon: esporteIcon },
+  'Musica':        { gradient: 'linear-gradient(135deg, #3b1054, #6b21a8)', badge: 'badge-musica',       icon: musicaIcon },
+  'Tecnologia':    { gradient: 'linear-gradient(135deg, #0c2461, #1e40af)', badge: 'badge-tecnologia',   icon: tecnologiaIcon },
+  'Cultura':       { gradient: 'linear-gradient(135deg, #7c2d12, #c2410c)', badge: 'badge-cultura',      icon: culturaIcon },
+  'Midia Digital': { gradient: 'linear-gradient(135deg, #0e4a6e, #0284c7)', badge: 'badge-midia',        icon: midiaIcon },
+  'Evento':        { gradient: 'linear-gradient(135deg, #1a1a2e, #16213e)', badge: 'badge-evento',       icon: culturaIcon },
+  'Celebridade':   { gradient: 'linear-gradient(135deg, #3d1f00, #7a3e00)', badge: 'badge-celebridade',  icon: esporteIcon }
 };
 
 /* ─── SVG ICONS ─── */
@@ -614,8 +607,9 @@ function renderCards() {
 
   grid.innerHTML = filtered.map(o => {
     const cfg = CAT_CONFIG[o.category] || CAT_CONFIG['Cultura'];
+    const cardGradient = o.gradient || cfg.gradient;
     return '<a class="opp-card" href="oportunidade-detalhe.html?id=' + o.id + '">' +
-      '<div class="card-image" style="background:' + cfg.gradient + '">' +
+      '<div class="card-image" style="background:' + cardGradient + '">' +
         cfg.icon() +
         '<span class="card-badge ' + cfg.badge + '">' + o.category + '</span>' +
       '</div>' +
@@ -669,7 +663,22 @@ mobileOverlay.addEventListener('click', function(e) {
 });
 
 /* ─── INIT ─── */
-renderCards();
+(async function init() {
+  // 1. Try Supabase real data (public, no auth needed)
+  if (typeof fetchCatalog === 'function') {
+    const real = await fetchCatalog();
+    if (real && real.length > 0) {
+      OPPORTUNITIES = real;
+      console.log('[Catalog] Loaded', real.length, 'opportunities from Supabase');
+      renderCards();
+      return;
+    }
+  }
+  // 2. Fallback: demo data
+  OPPORTUNITIES = (window.DEMO && window.DEMO.catalog) ? window.DEMO.catalog : [];
+  console.log('[Catalog] Using demo data,', OPPORTUNITIES.length, 'opportunities');
+  renderCards();
+})();
 </script>
 </body>
 </html>
