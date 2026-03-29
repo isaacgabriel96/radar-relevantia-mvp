@@ -1193,7 +1193,7 @@ tbody tr:last-child td { border-bottom: none; }
           <h1 class="page-title">Olá, <em id="welcomeName">Isaac</em></h1>
           <p class="page-subtitle">Visão geral da sua conta</p>
         </div>
-        <a href="criar-oportunidade-v3.html" class="btn btn-gold">
+        <a href="criar-oportunidade.html" class="btn btn-gold">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           Nova oportunidade
         </a>
@@ -1263,7 +1263,7 @@ tbody tr:last-child td { border-bottom: none; }
           <h1 class="page-title">Minhas Oportunidades</h1>
           <p class="page-subtitle">Publique, acompanhe e gerencie negociações</p>
         </div>
-        <a href="criar-oportunidade-v3.html" class="btn btn-gold">
+        <a href="criar-oportunidade.html" class="btn btn-gold">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
           Criar oportunidade
         </a>
@@ -2265,7 +2265,7 @@ function editarOportunidade(id) {
   const opp = MINHAS_OPPS.find(o => o.id === id);
   if (!opp) return;
   sessionStorage.setItem('edit_opp', JSON.stringify(opp));
-  window.location.href = 'criar-oportunidade-v3.html?edit=' + id;
+  window.location.href = 'criar-oportunidade.html?edit=' + id;
 }
 
 const calSvgPub = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
