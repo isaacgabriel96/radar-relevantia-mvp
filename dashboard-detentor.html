@@ -2568,7 +2568,7 @@ function toggleCpFormDet() {
   if (form) form.classList.toggle('open');
 }
 
-function addContrapartidaDet() {
+async function addContrapartidaDet() {
   const n = _negAtiva;
   if (!n) return;
   const desc  = document.getElementById('mn-cp-desc').value.trim();
@@ -2576,8 +2576,10 @@ function addContrapartidaDet() {
   const prazo = document.getElementById('mn-cp-prazo').value.trim() || '';
   if (!desc) { showToast('Preencha a descrição da contrapartida.', 'error'); return; }
 
-  const newId = n.contrapartidas.length ? Math.max(...n.contrapartidas.map(c=>c.id)) + 1 : 1;
-  n.contrapartidas.push({ id: newId, descricao: desc, valor, prazo, status:'proposta', propostoPor:'detentor' });
+  // Optimistic: add locally and render immediately
+  const tempId = 'temp-' + Date.now();
+  const newCp = { id: tempId, descricao: desc, valor, prazo, status:'proposta', propostoPor:'detentor' };
+  n.contrapartidas.push(newCp);
   _autoStatus(n);
   renderContrapartidasDet(n.contrapartidas);
 
@@ -2585,21 +2587,42 @@ function addContrapartidaDet() {
   document.getElementById('mn-cp-valor').value = '';
   document.getElementById('mn-cp-prazo').value = '';
   document.getElementById('mn-cp-form').classList.remove('open');
+
+  // Persist to Supabase
+  if (n._supaId && !isDemoMode()) {
+    const created = await createContrapartida({
+      negociacao_id: n._supaId, descricao: desc, valor, prazo: prazo || null,
+      status: 'proposta', proposto_por: 'detentor'
+    });
+    if (created) { newCp.id = created.id; } // replace temp ID with real UUID
+  } else { SharedNeg.save(); }
   showToast('Contrapartida adicionada!', 'success');
 }
 
-function acceptCpDet(cpId) {
+async function acceptCpDet(cpId) {
   const n = _negAtiva;
   if (!n) return;
   const cp = n.contrapartidas.find(c => c.id === cpId);
-  if (cp) { cp.status = 'aceita'; _autoStatus(n); renderContrapartidasDet(n.contrapartidas); showToast('Contrapartida aceita!', 'success'); }
+  if (!cp) return;
+  cp.status = 'aceita';
+  _autoStatus(n);
+  renderContrapartidasDet(n.contrapartidas);
+  if (n._supaId && !isDemoMode()) { await updateContrapartida(cpId, { status: 'aceita' }); }
+  else { SharedNeg.save(); }
+  showToast('Contrapartida aceita!', 'success');
 }
 
-function rejectCpDet(cpId) {
+async function rejectCpDet(cpId) {
   const n = _negAtiva;
   if (!n) return;
   const cp = n.contrapartidas.find(c => c.id === cpId);
-  if (cp) { cp.status = 'recusada'; _autoStatus(n); renderContrapartidasDet(n.contrapartidas); showToast('Contrapartida recusada.', 'error'); }
+  if (!cp) return;
+  cp.status = 'recusada';
+  _autoStatus(n);
+  renderContrapartidasDet(n.contrapartidas);
+  if (n._supaId && !isDemoMode()) { await updateContrapartida(cpId, { status: 'recusada' }); }
+  else { SharedNeg.save(); }
+  showToast('Contrapartida recusada.', 'error');
 }
 
 /* ══════════════════════════════════════════════
