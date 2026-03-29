@@ -2417,7 +2417,7 @@ function renderNegCards() {
 
   container.innerHTML = list.map(n => {
     const cta  = _negCtaConfig(n);
-    return `<div class="neg-card${n.status === 'recusada' ? ' recusada-card' : ''}" style="cursor:pointer" onclick="openNegModal(${n.id})">
+    return `<div class="neg-card${n.status === 'recusada' ? ' recusada-card' : ''}" style="cursor:pointer" onclick="openNegModal('${n.id}')">
       <div class="neg-card-avatar">${_initials(n.marca)}</div>
       <div class="neg-card-body">
         <div class="neg-card-name">${n.marca}</div>
@@ -2426,7 +2426,7 @@ function renderNegCards() {
       </div>
       <div class="neg-card-right">
         <span class="neg-status ${statusClass[n.status] || ''}">${n.statusLabel}</span>
-        <button class="neg-cta ${cta.cls}" onclick="event.stopPropagation();openNegModal(${n.id})">${cta.label}</button>
+        <button class="neg-cta ${cta.cls}" onclick="event.stopPropagation();openNegModal('${n.id}')">${cta.label}</button>
       </div>
     </div>`;
   }).join('');
@@ -2544,8 +2544,8 @@ function renderContrapartidasDet(list) {
     const canAct = cp.propostoPor === 'marca' && cp.status === 'proposta';
     const actions = canAct
       ? `<div class="cp-actions">
-          <button class="cp-btn accept" onclick="acceptCpDet(${cp.id})">Aceitar</button>
-          <button class="cp-btn reject" onclick="rejectCpDet(${cp.id})">Recusar</button>
+          <button class="cp-btn accept" onclick="acceptCpDet('${cp.id}')">Aceitar</button>
+          <button class="cp-btn reject" onclick="rejectCpDet('${cp.id}')">Recusar</button>
          </div>`
       : '';
     return `<tr>
@@ -3119,7 +3119,7 @@ function renderDealCards() {
       </div>
       <div class="deal-item-right">
         <div class="deal-item-liquido">${fmt(liquido)}</div>
-        <button class="deal-item-cta" onclick="openDealDetModal(${n.id})">Ver detalhes</button>
+        <button class="deal-item-cta" onclick="openDealDetModal('${n.id}')">Ver detalhes</button>
       </div>
     </div>`;
   }).join('');
