@@ -1601,40 +1601,52 @@ const SECTION_TITLES = {
 };
 
 // ─── INIT ───
-function init() {
-  // Demo mode banner
-  showDemoBannerIfActive();
+async function init() {
+  try {
+    // Demo mode banner
+    showDemoBannerIfActive();
 
-  // Tentar pegar dados da sessão se existir
-  const stored = localStorage.getItem('sb_marca_session');
-  if (stored) {
-    try {
-      const session = JSON.parse(stored);
-      const meta = session.user?.user_metadata || {};
-      const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
-      const email = session.user?.email || MOCK_USER.email;
-      setUserInfo(nome, email);
-    } catch {
+    // Tentar pegar dados da sessão se existir
+    const stored = localStorage.getItem('sb_marca_session');
+    if (stored) {
+      try {
+        const session = JSON.parse(stored);
+        const meta = session.user?.user_metadata || {};
+        const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
+        const email = session.user?.email || MOCK_USER.email;
+        setUserInfo(nome, email);
+      } catch {
+        setUserInfo(MOCK_USER.nome, MOCK_USER.email);
+      }
+    } else {
       setUserInfo(MOCK_USER.nome, MOCK_USER.email);
     }
-  } else {
-    // Sem sessão — usa dados mockados (MVP sem autenticação obrigatória por enquanto)
-    setUserInfo(MOCK_USER.nome, MOCK_USER.email);
+
+    // Render opportunities (loads from Supabase or CATALOG in demo mode)
+    loadOpportunities(opps => renderOpportunities(opps));
+
+    // Load proposals from Supabase (or SharedNeg fallback)
+    try {
+      await loadPropostas();
+    } catch (e) {
+      console.error('[init] loadPropostas failed:', e);
+      PROPOSTAS = SharedNeg.byMarca('nike-brasil');
+    }
+    renderPropostasTable();
+
+    // Check hash for deep linking
+    const hash = window.location.hash.replace('#', '');
+    if (hash && SECTION_TITLES[hash]) {
+      showSection(hash);
+    }
+  } catch (e) {
+    console.error('[init] Critical error:', e);
+  } finally {
+    // ALWAYS hide loading screen
+    setTimeout(() => {
+      document.getElementById('loadingScreen').style.display = 'none';
+    }, 600);
   }
-
-  // Render opportunities (loads from Supabase or CATALOG in demo mode)
-  loadOpportunities(opps => renderOpportunities(opps));
-
-  // Check hash for deep linking
-  const hash = window.location.hash.replace('#', '');
-  if (hash && SECTION_TITLES[hash]) {
-    showSection(hash);
-  }
-
-  // Hide loading
-  setTimeout(() => {
-    document.getElementById('loadingScreen').style.display = 'none';
-  }, 600);
 }
 
 function setUserInfo(nome, email) {
@@ -2131,9 +2143,33 @@ init();
 //   propostoPor   : 'marca' | 'detentor'
 //   — futuros campos: responsavel, evidencia_entrega, data_entrega_real, pago, data_pagamento
 //
-// PROPOSTAS agora usa SharedNeg como fonte única de verdade (shared-state.js)
-// Filtrado por marca_id 'nike-brasil' — mesma visão sincronizada com o detentor
-const PROPOSTAS = SharedNeg.byMarca('nike-brasil');
+// PROPOSTAS: loaded from Supabase (real) or SharedNeg (demo fallback).
+var PROPOSTAS = [];
+
+async function loadPropostas() {
+  if (!isDemoMode()) {
+    const real = await fetchNegociacoesMarca();
+    if (real && real.length >= 0) {
+      PROPOSTAS = real;
+      console.log('[Prop] Loaded', real.length, 'proposals from Supabase');
+      return;
+    }
+  }
+  PROPOSTAS = SharedNeg.byMarca('nike-brasil');
+  console.log('[Prop] Using SharedNeg (demo/fallback),', PROPOSTAS.length, 'proposals');
+}
+
+async function _persistProp(p, fields) {
+  if (p._supaId && !isDemoMode()) {
+    const ok = await updateNegociacao(p._supaId, fields || {
+      status: p.status, status_label: p.statusLabel,
+      status_hint: p.statusHint, aceita_novas_propostas: p.aceitaNovasPropostas
+    });
+    if (!ok) showToast('Erro ao salvar. Tente novamente.', 'error');
+  } else {
+    SharedNeg.save();
+  }
+}
 
 let _propostaAtiva = null;
 
@@ -2237,8 +2273,8 @@ function renderContrapartidas(list) {
     const canAct = cp.propostoPor === 'detentor' && cp.status === 'proposta';
     const actions = canAct
       ? `<div class="cp-actions">
-          <button class="cp-btn accept" onclick="acceptCpMarca(${cp.id})">Aceitar</button>
-          <button class="cp-btn reject" onclick="rejectCpMarca(${cp.id})">Recusar</button>
+          <button class="cp-btn accept" onclick="acceptCpMarca('${cp.id}')">Aceitar</button>
+          <button class="cp-btn reject" onclick="rejectCpMarca('${cp.id}')">Recusar</button>
          </div>`
       : '';
     return `<tr>
@@ -2313,7 +2349,7 @@ function cancelarPropostaMarca() {
   _propostaAtiva.status = 'recusada';
   _propostaAtiva.statusLabel = 'Recusada';
   _propostaAtiva.statusHint = 'Proposta cancelada pela marca';
-  SharedNeg.save();
+  _persistProp(_propostaAtiva, { status: 'recusada', status_label: 'Recusada', status_hint: 'Proposta cancelada pela marca' });
   // atualiza badge de status no modal
   document.getElementById('mp-status-wrap').className = 'modal-prop-status recusada';
   document.getElementById('mp-status-label').textContent = 'Recusada';
@@ -2331,35 +2367,48 @@ function toggleCpForm() {
   if (form) form.classList.toggle('open');
 }
 
-function addContrapartidaMarca() {
+async function addContrapartidaMarca() {
   const p = _propostaAtiva;
   if (!p) return;
   const desc = document.getElementById('mp-cp-desc').value.trim();
   if (!desc) { showToast('Preencha a descrição da contrapartida.', 'error'); return; }
 
-  const newId = p.contrapartidas.length ? Math.max(...p.contrapartidas.map(c=>c.id)) + 1 : 1;
-  p.contrapartidas.push({ id: newId, descricao: desc, status:'proposta', propostoPor:'marca' });
-  SharedNeg.save();
+  const tempId = 'temp-' + Date.now();
+  const newCp = { id: tempId, descricao: desc, status:'proposta', propostoPor:'marca' };
+  p.contrapartidas.push(newCp);
   renderContrapartidas(p.contrapartidas);
-
-  // reset form
   document.getElementById('mp-cp-desc').value = '';
   document.getElementById('mp-cp-form').classList.remove('open');
+
+  if (p._supaId && !isDemoMode()) {
+    const created = await createContrapartida({ negociacao_id: p._supaId, descricao: desc, status: 'proposta', proposto_por: 'marca' });
+    if (created) newCp.id = created.id;
+  } else { SharedNeg.save(); }
   showToast('Contrapartida adicionada!', 'success');
 }
 
-function acceptCpMarca(cpId) {
+async function acceptCpMarca(cpId) {
   const p = _propostaAtiva;
   if (!p) return;
   const cp = p.contrapartidas.find(c => c.id === cpId);
-  if (cp) { cp.status = 'aceita'; SharedNeg.save(); renderContrapartidas(p.contrapartidas); showToast('Contrapartida aceita!', 'success'); }
+  if (!cp) return;
+  cp.status = 'aceita';
+  renderContrapartidas(p.contrapartidas);
+  if (p._supaId && !isDemoMode()) { await updateContrapartida(cpId, { status: 'aceita' }); }
+  else { SharedNeg.save(); }
+  showToast('Contrapartida aceita!', 'success');
 }
 
-function rejectCpMarca(cpId) {
+async function rejectCpMarca(cpId) {
   const p = _propostaAtiva;
   if (!p) return;
   const cp = p.contrapartidas.find(c => c.id === cpId);
-  if (cp) { cp.status = 'recusada'; SharedNeg.save(); renderContrapartidas(p.contrapartidas); showToast('Contrapartida recusada.', 'error'); }
+  if (!cp) return;
+  cp.status = 'recusada';
+  renderContrapartidas(p.contrapartidas);
+  if (p._supaId && !isDemoMode()) { await updateContrapartida(cpId, { status: 'recusada' }); }
+  else { SharedNeg.save(); }
+  showToast('Contrapartida recusada.', 'error');
 }
 
 function closePropostaModal() {
@@ -2471,22 +2520,20 @@ function confirmarNovoValor() {
 
   p.valorProposto  = formatted;
   p.valorStatus    = 'pendente_detentor';
-  SharedNeg.save();
+  _persistProp(p);
 
   _renderValorRow(p);
   renderPropostasTable();
   showToast('Novo valor proposto! Aguardando aceite do organizador.', 'success');
 }
 
-// Simula aceite do detentor (usado quando o organizador aceita via dashboard-detentor)
-// Aqui exposto como helper para demo/teste
 function aceitarValorDetentor() {
   const p = _propostaAtiva;
   if (!p || !p.valorProposto) return;
   p.valor       = p.valorProposto;
   p.valorProposto  = null;
   p.valorStatus    = null;
-  SharedNeg.save();
+  _persistProp(p);
   _renderValorRow(p);
   renderPropostasTable();
   showToast('Valor aceito pelo organizador!', 'success');
@@ -2497,7 +2544,7 @@ function recusarValorDetentor() {
   if (!p) return;
   p.valorProposto  = null;
   p.valorStatus    = null;
-  SharedNeg.save();
+  _persistProp(p);
   _renderValorRow(p);
   showToast('Proposta de valor recusada.', 'error');
 }
@@ -2593,7 +2640,7 @@ function proporValorDealMarca() {
   p.valorDeal.proposto    = formatted;
   p.valorDeal.propostoPor = 'marca';
   p.valorDeal.status      = 'aguardando_detentor';
-  SharedNeg.save();
+  _persistProp(p);
   _renderValorDealM(p);
   showToast('Valor proposto! Aguardando resposta do organizador.', 'success');
 }
@@ -2602,7 +2649,7 @@ function aceitarValorDealMarca() {
   const p = _propostaAtiva;
   if (!p || !p.valorDeal) return;
   p.valorDeal.status = 'aceito';
-  SharedNeg.save();
+  _persistProp(p);
   _renderValorDealM(p);
   showToast('Valor aceito!', 'success');
 }
@@ -2610,17 +2657,16 @@ function aceitarValorDealMarca() {
 function contraproporValorDealMarca() {
   const p = _propostaAtiva;
   if (!p || !p.valorDeal) return;
-  // Volta para estado sem_proposta para a marca poder digitar nova proposta
   p.valorDeal.status = 'sem_proposta';
   p.valorDeal.proposto = null;
   p.valorDeal.propostoPor = null;
-  SharedNeg.save();
+  _persistProp(p);
   _renderValorDealM(p);
   const input = document.getElementById('mp-vd-input');
   if (input) { input.value = ''; input.focus(); }
 }
 
-function sendPropostaMsg() {
+async function sendPropostaMsg() {
   const ta = document.getElementById('mp-compose-input');
   const text = ta ? ta.value.trim() : '';
   if (!text || !_propostaAtiva) return;
@@ -2631,9 +2677,19 @@ function sendPropostaMsg() {
                now.getHours().toString().padStart(2,'0') + ':' +
                now.getMinutes().toString().padStart(2,'0');
 
-  _propostaAtiva.thread.push({ autor: 'marca', nome: 'Nike Brasil', texto: text, data });
-  SharedNeg.save();
+  _propostaAtiva.thread.push({ autor: 'marca', nome: _propostaAtiva.marca || 'Marca', texto: text, data });
   renderMsgThread(_propostaAtiva.thread);
+
+  if (_propostaAtiva._supaId && !isDemoMode()) {
+    const userId = await getAuthUserId();
+    await sendMensagem({
+      negociacao_id: _propostaAtiva._supaId,
+      autor_id: userId || _propostaAtiva.marca_id,
+      autor_role: 'marca',
+      autor_nome: _propostaAtiva.marca || 'Marca',
+      texto: text
+    });
+  } else { SharedNeg.save(); }
 
   ta.value = '';
   document.getElementById('mp-send-btn').disabled = true;
@@ -2845,7 +2901,7 @@ function renderPropostasTable() {
         <div style="font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--text);margin:6px 0 14px">${p.valor}</div>
         <div class="opp-card-divider"></div>
         <div class="opp-card-footer" style="align-items:center;justify-content:space-between">
-          <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:8px" onclick="openPropostaModal(${p.id})">
+          <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:8px" onclick="openPropostaModal('${p.id}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             Ver negociação
             ${unreadDot}
@@ -2961,7 +3017,7 @@ function renderDealsPropostas() {
     const rows = group.items.map(p => {
       const aceitos = (p.contrapartidas || []).filter(c => c.status === 'aceita');
       const totalP  = aceitos.reduce((s, c) => s + c.valor, 0);
-      return `<div class="deals-opp-list-item" style="cursor:pointer" onclick="openPropostaModal(${p.id})">
+      return `<div class="deals-opp-list-item" style="cursor:pointer" onclick="openPropostaModal('${p.id}')">
         <div class="deals-item-avatar" style="background:${cat.bg}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;color:rgba(255,255,255,0.7)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </div>
