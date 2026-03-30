@@ -1080,9 +1080,11 @@ a { text-decoration: none; color: inherit; }
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core.js"></script>
 <script>
 /* ═══════════════════════════════════════════
-   MOCK DATA
+   MOCK DATA (fallback for opportunities not yet in Supabase detail)
    ═══════════════════════════════════════════ */
 const OPPORTUNITIES = [
   {
@@ -1284,6 +1286,137 @@ function getOpp() {
   return getOppById(id);
 }
 
+/**
+ * Fetch opportunity from Supabase with all related data.
+ * Transforms DB row into the format renderPage() expects.
+ */
+async function fetchOppFromSupabase(id) {
+  try {
+    const path = '/rest/v1/oportunidades?select=' +
+      'id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
+      'preco_minimo,formato,bg_gradient,imagens,imagem_capa,tags,publico_descricao,' +
+      'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,' +
+      'perfis:detentor_id(nome,empresa,descricao,website),' +
+      'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
+      'cotas(nome,preco,icone,ordem),' +
+      'entregas(nome,formato,canal,descricao,ordem),' +
+      'ativacoes(icone,nome,descricao,ordem),' +
+      'canais(icone,label,valor,ordem)' +
+      '&id=eq.' + id +
+      '&oportunidade_fatos.order=ordem.asc' +
+      '&cotas.order=ordem.asc' +
+      '&entregas.order=ordem.asc' +
+      '&ativacoes.order=ordem.asc' +
+      '&canais.order=ordem.asc';
+    const res = await sbPublicFetch(path);
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!rows || rows.length === 0) return null;
+    const r = rows[0];
+
+    const orgData = r.perfis || {};
+    const orgName = orgData.empresa || orgData.nome || '';
+    const city = r.localizacao ? r.localizacao.split(',')[0].trim() : '';
+
+    // Build facts from oportunidade_fatos table
+    const facts = (r.oportunidade_fatos || []).map(f => ({
+      icon: f.icone || '📌', label: f.label || '', value: f.valor || ''
+    }));
+
+    // Build publico facts from fatos with tipo='publico'
+    const publicoFacts = (r.oportunidade_fatos || [])
+      .filter(f => f.tipo === 'publico')
+      .map(f => ({ icon: f.icone || '👤', label: f.label || '', value: f.valor || '' }));
+
+    // General facts (non-publico)
+    const generalFacts = (r.oportunidade_fatos || [])
+      .filter(f => f.tipo !== 'publico')
+      .map(f => ({ icon: f.icone || '📌', label: f.label || '', value: f.valor || '' }));
+
+    // If no facts in DB, generate from detalhes JSON
+    if (generalFacts.length === 0 && r.detalhes) {
+      Object.entries(r.detalhes).forEach(([label, value]) => {
+        if (typeof value === 'string') generalFacts.push({ icon: '📋', label, value });
+        else if (Array.isArray(value)) generalFacts.push({ icon: '📋', label, value: value.map(v => typeof v === 'object' ? v.data + ' — ' + v.local : v).join(', ') });
+      });
+    }
+
+    // Cotas — from cotas table or cotas_data JSON
+    let cotasArr = (r.cotas || []).map(c => ({
+      emoji: c.icone || '🏆', name: c.nome || '', desc: '', price: c.preco || ''
+    }));
+    if (cotasArr.length === 0 && r.cotas_data) {
+      cotasArr = r.cotas_data.map((c, i) => ({
+        emoji: ['🏆','🥈','🥉','⭐'][i] || '⭐',
+        name: c.nome || 'Cota ' + (i+1),
+        desc: (c.beneficios || []).join(', '),
+        price: c.valor ? 'R$ ' + Number(c.valor).toLocaleString('pt-BR') : ''
+      }));
+    }
+
+    // Entregas
+    const entregas = (r.entregas || []).map(e => [e.nome || '', e.formato || '', e.canal || '', e.descricao || '']);
+
+    // Ativações
+    const ativacoes = (r.ativacoes || []).map(a => ({
+      emoji: a.icone || '🎯', name: a.nome || '', desc: a.descricao || ''
+    }));
+
+    // Canais — from canais table or redes_sociais JSON
+    let canaisArr = (r.canais || []).map(c => ({
+      icon: c.icone || '📱', name: c.label || '', reach: c.valor || ''
+    }));
+    if (canaisArr.length === 0 && r.redes_sociais) {
+      const iconMap = { instagram:'📸', tiktok:'🎵', youtube:'▶️', linkedin:'💼', facebook:'📘' };
+      Object.entries(r.redes_sociais).forEach(([net, handles]) => {
+        canaisArr.push({ icon: iconMap[net] || '📱', name: net.charAt(0).toUpperCase() + net.slice(1), reach: handles.join(', ') });
+      });
+    }
+
+    // Images for gallery
+    const imgs = r.imagens || [];
+    const thumbColors = ['#c8d8e8', '#d4e8c8'];
+
+    return {
+      id: r.id,
+      title: r.titulo || '',
+      org: orgName,
+      orgInitials: orgName ? orgName.split(' ').filter(w=>w.length>2).slice(0,2).map(w=>w[0]).join('').toUpperCase() : '??',
+      orgId: 'org-' + r.id,
+      category: r.categoria || '',
+      city: city,
+      region: r.localizacao || '',
+      date: r.alcance || '',
+      price: parsePreco(r.preco_minimo),
+      desc: r.descricao_completa || r.descricao_curta || '',
+      gradient: r.bg_gradient || 'linear-gradient(135deg, #1a1a2e, #16213e)',
+      thumbs: thumbColors,
+      images: imgs,
+      imagem_capa: r.imagem_capa || null,
+      facts: generalFacts.length > 0 ? generalFacts : undefined,
+      tags: r.tags || [],
+      publico: r.publico_descricao || '',
+      publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
+      cotas: cotasArr.length > 0 ? cotasArr : undefined,
+      entregas: entregas.length > 0 ? entregas : undefined,
+      ativacoes: ativacoes.length > 0 ? ativacoes : undefined,
+      canais: canaisArr.length > 0 ? canaisArr : undefined,
+      sidebar: {
+        evento: r.alcance || '',
+        prazo: '',
+        cotasQty: cotasArr.length > 0 ? cotasArr.length + ' modalidade' + (cotasArr.length > 1 ? 's' : '') : '',
+        formato: r.formato || '',
+        participantes: r.alcance || ''
+      },
+      // Org data for owner section
+      _orgData: orgData
+    };
+  } catch (err) {
+    console.error('[fetchOppDetail] Failed:', err);
+    return null;
+  }
+}
+
 /* ─── CATEGORY CONFIG ─── */
 var CAT_CONFIG = {
   'Esporte':       { gradient: 'linear-gradient(135deg, #1a472a, #2d6a3f)', badge: 'badge-esporte' },
@@ -1336,8 +1469,8 @@ function buildOppCard(o) {
 }
 
 /* ─── RENDER PAGE ─── */
-function renderPage() {
-  var opp = getOpp();
+function renderPage(oppOverride) {
+  var opp = oppOverride || getOpp();
 
   document.title = opp.title + ' — Radar Relevantia';
 
@@ -1355,11 +1488,18 @@ function renderPage() {
   metaHtml += '<div class="detail-meta-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>A partir de R$ ' + (opp.price/1000).toFixed(0) + 'k</div>';
   document.getElementById('detailMeta').innerHTML = metaHtml;
 
-  // Gallery (desktop)
+  // Gallery (desktop) — show real images if available
   document.getElementById('galleryBadge').textContent = opp.category;
-  document.getElementById('galleryMain').style.background = opp.gradient || '#1a1a2e';
-  document.getElementById('galleryThumb1').style.background = (opp.thumbs && opp.thumbs[0]) || '#e0d8cc';
-  document.getElementById('galleryThumb2').style.background = (opp.thumbs && opp.thumbs[1]) || '#d0c8b8';
+  var imgs = opp.images || [];
+  if (imgs.length > 0) {
+    document.getElementById('galleryMain').style.background = 'url(' + (opp.imagem_capa || imgs[0]) + ') center/cover no-repeat';
+    document.getElementById('galleryThumb1').style.background = imgs[1] ? 'url(' + imgs[1] + ') center/cover no-repeat' : (opp.gradient || '#1a1a2e');
+    document.getElementById('galleryThumb2').style.background = imgs[2] ? 'url(' + imgs[2] + ') center/cover no-repeat' : ((opp.thumbs && opp.thumbs[1]) || '#d0c8b8');
+  } else {
+    document.getElementById('galleryMain').style.background = opp.gradient || '#1a1a2e';
+    document.getElementById('galleryThumb1').style.background = (opp.thumbs && opp.thumbs[0]) || '#e0d8cc';
+    document.getElementById('galleryThumb2').style.background = (opp.thumbs && opp.thumbs[1]) || '#d0c8b8';
+  }
 
   // Gallery strip mobile (scroll snap, edge-to-edge)
   var stripTrack = document.getElementById('galleryStripTrack');
@@ -1635,16 +1775,34 @@ function updateFavBtnState(isFav) {
 }
 
 /* ─── INIT ─── */
-renderPage();
-// Inicializa estado do botão de favorito
-(function() {
-  var opp = getOpp();
+(async function initDetail() {
+  var params = new URLSearchParams(window.location.search);
+  var id = parseInt(params.get('id')) || 1;
+
+  // Try Supabase first
+  var oppData = null;
+  if (typeof fetchOppFromSupabase === 'function') {
+    oppData = await fetchOppFromSupabase(id);
+  }
+
+  if (oppData) {
+    console.log('[Detail] Loaded from Supabase:', oppData.title);
+    renderPage(oppData);
+  } else {
+    console.log('[Detail] Using mock data for id:', id);
+    renderPage();
+  }
+
+  // Favorito state
+  var opp = oppData || getOpp();
   updateFavBtnState(getFavIds().indexOf(opp.id) !== -1);
+
+  // Hide loading
+  setTimeout(function() {
+    var ls = document.getElementById('loadingScreen');
+    if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.3s'; setTimeout(function(){ ls.style.display = 'none'; }, 300); }
+  }, 400);
 })();
-setTimeout(function() {
-  var ls = document.getElementById('loadingScreen');
-  if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.3s'; setTimeout(function(){ ls.style.display = 'none'; }, 300); }
-}, 400);
 
 function doLogout() {
   localStorage.removeItem('sb_detentor_session');
