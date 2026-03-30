@@ -1290,10 +1290,11 @@ function getOpp() {
  * Fetch opportunity from Supabase with all related data.
  * Transforms DB row into the format renderPage() expects.
  */
-async function fetchOppFromSupabase(id) {
+async function fetchOppFromSupabase(idOrSlug) {
   try {
+    var filter = (typeof idOrSlug === 'number') ? '&id=eq.' + idOrSlug : '&slug=eq.' + encodeURIComponent(idOrSlug);
     const path = '/rest/v1/oportunidades?select=' +
-      'id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
+      'id,slug,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
       'preco_minimo,formato,bg_gradient,imagens,imagem_capa,tags,publico_descricao,' +
       'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,' +
       'perfis:detentor_id(nome,empresa,descricao,website),' +
@@ -1302,7 +1303,7 @@ async function fetchOppFromSupabase(id) {
       'entregas(nome,formato,canal,descricao,ordem),' +
       'ativacoes(icone,nome,descricao,ordem),' +
       'canais(icone,label,valor,ordem)' +
-      '&id=eq.' + id +
+      filter +
       '&oportunidade_fatos.order=ordem.asc' +
       '&cotas.order=ordem.asc' +
       '&entregas.order=ordem.asc' +
@@ -1379,6 +1380,7 @@ async function fetchOppFromSupabase(id) {
 
     return {
       id: r.id,
+      slug: r.slug || null,
       title: r.titulo || '',
       org: orgName,
       orgInitials: orgName ? orgName.split(' ').filter(w=>w.length>2).slice(0,2).map(w=>w[0]).join('').toUpperCase() : '??',
@@ -1444,7 +1446,8 @@ var arrowSvg = '<svg width="12" height="12" viewBox="0 0 20 20" fill="currentCol
 function buildOppCard(o) {
   var cfg = CAT_CONFIG[o.category] || CAT_CONFIG['Cultura'];
   var grad = o.gradient || cfg.gradient;
-  return '<a class="opp-card" href="oportunidade-detalhe.html?id=' + o.id + '">' +
+  var oppHref = o.slug ? 'oportunidade-detalhe.html?@' + o.slug : 'oportunidade-detalhe.html?id=' + o.id;
+  return '<a class="opp-card" href="' + oppHref + '">' +
     '<div class="opp-card-image" style="background:' + grad + '">' +
       catIcon(o.category) +
       '<span class="opp-card-badge ' + cfg.badge + '">' + o.category + '</span>' +
@@ -1777,12 +1780,15 @@ function updateFavBtnState(isFav) {
 /* ─── INIT ─── */
 (async function initDetail() {
   var params = new URLSearchParams(window.location.search);
-  var id = parseInt(params.get('id')) || 1;
+  var slug = params.get('slug') || params.keys().next().value;
+  // Support ?@nattan → key is "@nattan", strip the @
+  if (slug && slug.startsWith('@')) slug = slug.substring(1);
+  var id = !slug ? (parseInt(params.get('id')) || 1) : null;
 
   // Try Supabase first
   var oppData = null;
   if (typeof fetchOppFromSupabase === 'function') {
-    oppData = await fetchOppFromSupabase(id);
+    oppData = await fetchOppFromSupabase(slug || id);
   }
 
   if (oppData) {

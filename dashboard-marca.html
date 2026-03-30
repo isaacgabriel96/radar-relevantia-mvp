@@ -1544,6 +1544,7 @@ function mapDbOpp(row) {
   // Usa icone + bg_gradient como hero visual (sem fotos reais por enquanto)
   return {
     id:          row.id,
+    slug:        row.slug || null,
     title:       row.titulo,
     desc:        row.descricao_curta || (row.tags ? row.tags.slice(0, 3).join(' · ') : ''),
     category:    row.categoria,
@@ -1573,7 +1574,7 @@ function loadOpportunities(callback) {
   }
 
   // Produção: busca do Supabase
-  fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,titulo,categoria,localizacao,alcance,preco_minimo,icone,bg_gradient,imagens,imagem_capa,tags,descricao_curta,rating&ativo=eq.true&order=id.asc', {
+  fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,preco_minimo,icone,bg_gradient,imagens,imagem_capa,tags,descricao_curta,rating&ativo=eq.true&order=id.asc', {
     headers: {
       'apikey': SUPABASE_KEY,
       'Content-Type': 'application/json'
@@ -1933,7 +1934,7 @@ function renderOpportunities(opps) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>` : ''}`;
     return `
-    <a class="opp-card" href="oportunidade-detalhe.html?id=${opp.id}" data-id="${opp.id}" data-category="${opp.category}" data-city="${opp.city}">
+    <a class="opp-card" href="oportunidade-detalhe.html?${opp.slug ? '@' + opp.slug : 'id=' + opp.id}" data-id="${opp.id}" data-category="${opp.category}" data-city="${opp.city}">
       <div class="olc-hero" data-idx="0">
         ${heroInner}
         ${!hasBg ? `<div class="olc-hero-count">

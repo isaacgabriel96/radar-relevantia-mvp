@@ -611,7 +611,8 @@ function renderCards() {
     const cardBg = o.imagem_capa
       ? 'url(' + o.imagem_capa + ') center/cover no-repeat'
       : (o.gradient || cfg.gradient);
-    return '<a class="opp-card" href="oportunidade-detalhe.html?id=' + o.id + '">' +
+    var oppHref = o.slug ? 'oportunidade-detalhe.html?@' + o.slug : 'oportunidade-detalhe.html?id=' + o.id;
+    return '<a class="opp-card" href="' + oppHref + '">' +
       '<div class="card-image" style="background:' + cardBg + '">' +
         (o.imagem_capa ? '' : cfg.icon()) +
         '<span class="card-badge ' + cfg.badge + '">' + o.category + '</span>' +

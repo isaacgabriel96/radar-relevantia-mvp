@@ -264,7 +264,7 @@ function makeInitials(name) {
 function rowToCatalogItem(row) {
   const orgNome = (row.perfis && row.perfis.empresa) ? row.perfis.empresa : '';
   return {
-    id: row.id, title: row.titulo || '', category: row.categoria || '',
+    id: row.id, slug: row.slug || null, title: row.titulo || '', category: row.categoria || '',
     city: extractCity(row.localizacao), region: extractRegion(row.localizacao),
     org: orgNome, orgInitials: makeInitials(orgNome),
     desc: row.descricao_curta || '', price: parsePreco(row.preco_minimo),
@@ -275,7 +275,7 @@ function rowToCatalogItem(row) {
 
 async function fetchCatalog() {
   try {
-    const path = '/rest/v1/oportunidades?select=id,titulo,categoria,localizacao,preco_minimo,descricao_curta,alcance,bg_gradient,imagem_capa,perfis:detentor_id(empresa)&ativo=eq.true&order=id.asc';
+    const path = '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,preco_minimo,descricao_curta,alcance,bg_gradient,imagem_capa,perfis:detentor_id(empresa)&ativo=eq.true&order=id.asc';
     const res = await sbPublicFetch(path);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
