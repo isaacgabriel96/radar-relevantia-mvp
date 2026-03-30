@@ -2520,6 +2520,8 @@ function _buildNegMarcaOptions() { /* legado */ }
 function filterNegociacoes() { renderNegOppCards(); }
 
 let _negAtiva = null;
+let _modoContraproposta = false;  // flag: detentor está editando entregas na contraproposta
+let _prefilledCpIds = [];         // IDs das entregas pré-aceitas pelo prefill (para reverter se cancelar)
 
 function renderNegThread(thread) {
   const el = document.getElementById('mn-thread');
@@ -2542,6 +2544,7 @@ async function openNegModal(id) {
   const n = NEGOCIACOES.find(x => x.id === id);
   if (!n) return;
   _negAtiva = n;
+  _modoContraproposta = false;
 
   document.getElementById('mn-marca').textContent = n.marca;
   // Brand header compacto
@@ -2647,13 +2650,21 @@ function renderContrapartidasDet(list) {
 
   function cpRowHtml(cp) {
     const statusLabel = cp.status === 'proposta' ? 'Proposta' : cp.status === 'aceita' ? 'Aceita' : 'Recusada';
-    const canAct = cp.propostoPor === 'marca' && cp.status === 'proposta';
-    const actions = canAct
-      ? `<div class="cp-actions">
+    // Só mostra ações quando detentor está em modo contraproposta
+    let actions = '';
+    if (_modoContraproposta && cp.propostoPor === 'marca') {
+      if (cp.status === 'proposta') {
+        actions = `<div class="cp-actions">
           <button class="cp-btn accept" onclick="acceptCpDet('${cp.id}')">Aceitar</button>
           <button class="cp-btn reject" onclick="rejectCpDet('${cp.id}')">Recusar</button>
-         </div>`
-      : '';
+         </div>`;
+      } else if (cp.status === 'aceita') {
+        // Pré-aceita pelo prefill — permite recusar
+        actions = `<div class="cp-actions">
+          <button class="cp-btn reject" onclick="rejectCpDet('${cp.id}')">Recusar</button>
+         </div>`;
+      }
+    }
     return `<tr>
       <td>${cp.descricao}</td>
       <td><span class="cp-status ${cp.status}">${statusLabel}</span></td>
@@ -2986,6 +2997,17 @@ async function aceitarValorDeal() {
 function contraproporValorDeal() {
   const n = _negAtiva;
   if (!n) return;
+  _modoContraproposta = true;
+  // Prefill: pré-aceitar todas entregas pendentes (detentor pode recusar individualmente)
+  _prefilledCpIds = [];
+  (n.contrapartidas || []).forEach(cp => {
+    if (cp.status === 'proposta') {
+      cp.status = 'aceita';
+      _prefilledCpIds.push(cp.id);
+    }
+  });
+  // Re-render entregas para mostrar Aceitar/Recusar agora
+  renderContrapartidasDet(n.contrapartidas || []);
   // exibe o input row para digitar contraoferta
   const inputRow  = document.getElementById('mn-valor-input-row');
   const actionsEl = document.getElementById('mn-valor-actions');
@@ -3014,12 +3036,25 @@ function contraproporValorDeal() {
     btnCancel.style.cssText = 'background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);font-size:12px;padding:8px 14px;border-radius:10px;cursor:pointer;white-space:nowrap';
     btnCancel.textContent = 'Cancelar';
     btnCancel.onclick = function() { cancelarContraoferta(); };
-    if (inputRow) inputRow.appendChild(btnCancel);
+    // Inserir ANTES do botão "Enviar contraoferta" (UX: ação leve à esquerda, ação principal à direita)
+    if (inputRow && btnPropor) inputRow.insertBefore(btnCancel, btnPropor);
+    else if (inputRow) inputRow.appendChild(btnCancel);
   }
   btnCancel.style.display = '';
 }
 
 function cancelarContraoferta() {
+  // Reverter entregas pré-aceitas pelo prefill
+  const n = _negAtiva;
+  if (n) {
+    (n.contrapartidas || []).forEach(cp => {
+      if (_prefilledCpIds.includes(cp.id) && cp.status === 'aceita') cp.status = 'proposta';
+    });
+  }
+  _prefilledCpIds = [];
+  _modoContraproposta = false;
+  // Re-render entregas para esconder Aceitar/Recusar
+  if (n) renderContrapartidasDet(n.contrapartidas || []);
   // Volta ao estado anterior (aceitar/contrapropor)
   const btnCancel = document.getElementById('mn-btn-cancelar-contra');
   if (btnCancel) btnCancel.style.display = 'none';
@@ -3029,6 +3064,14 @@ function cancelarContraoferta() {
 async function confirmarContraoferta() {
   const n = _negAtiva;
   if (!n) return;
+  _modoContraproposta = false;
+  // Persistir entregas que foram aceitas/recusadas durante a contraproposta
+  for (const cp of (n.contrapartidas || [])) {
+    if (_prefilledCpIds.includes(cp.id) && n._supaId && !isDemoMode()) {
+      await updateContrapartida(cp.id, { status: cp.status });
+    }
+  }
+  _prefilledCpIds = [];
   const inputEl = document.getElementById('mn-valor-input');
   const val = _parseValorInput(inputEl);
   if (!val || val <= 0) { showToast('Informe um valor válido.', 'error'); return; }
@@ -3052,6 +3095,7 @@ async function confirmarContraoferta() {
   if (btnPropor) btnPropor.onclick = function() { proporValorDeal(); };
   const btnCancel = document.getElementById('mn-btn-cancelar-contra');
   if (btnCancel) btnCancel.style.display = 'none';
+  renderContrapartidasDet(n.contrapartidas || []);
   renderValorDeal();
   renderHistoricoRodadas();
   showToast('Contraoferta de ' + _fmtValor(val) + ' enviada para a marca.', 'success');
