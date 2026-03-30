@@ -318,6 +318,7 @@ function rowToNegociacao(row) {
     id: row.id, opp_id: row.oportunidade_id, opp: oppTitulo, categoria: oppCat,
     marca: marcaNome, marca_id: row.marca_id, detentor_id: row.detentor_id,
     cota: row.cota || '', assunto: row.assunto || '',
+    valor: row.valor_proposto ? 'R$ ' + parseFloat(row.valor_proposto).toLocaleString('pt-BR') : '',
     enviadaEm: _fmtDate(row.created_at, false),
     status: row.status || 'pendente',
     statusLabel: row.status_label || statusLabels[row.status] || 'Pendente',

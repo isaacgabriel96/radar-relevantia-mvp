@@ -1635,6 +1635,7 @@ async function init() {
       PROPOSTAS = SharedNeg.byMarca('nike-brasil');
     }
     renderPropostasTable();
+    initPropostasSection();
 
     // Check hash for deep linking
     const hash = window.location.hash.replace('#', '');
@@ -3083,7 +3084,6 @@ function renderDealsPropostas() {
 
 // Contador de caracteres textarea
 document.addEventListener('DOMContentLoaded', () => {
-  initPropostasSection();
   renderDealsPropostas();
   _updateFavCount();
   const ta = document.getElementById('vozMensagem');
