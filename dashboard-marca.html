@@ -484,6 +484,14 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-aceitar-valor-m:hover { background: #D1FAE5; }
 .btn-contrapropor-valor-m { background: var(--gray-1); color: var(--text); border: 1px solid var(--gray-200); border-radius: 8px; padding: 7px 14px; font-family: var(--font-body); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
 .btn-contrapropor-valor-m:hover { border-color: var(--gold); color: var(--gold); }
+/* ─── RODADAS HISTÓRICO ─── */
+.rodada-card { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; }
+.rodada-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.rodada-card-title { font-weight: 700; color: var(--text); }
+.rodada-card-date { color: var(--gray-400); font-size: 11px; }
+.rodada-card-valor { color: var(--primary, #1D4ED8); font-weight: 600; margin-bottom: 4px; font-size: 13px; }
+.rodada-card-cps { list-style: disc; padding-left: 16px; color: var(--gray-500); margin: 0; }
+.rodada-card-cps li { margin-bottom: 2px; }
 .modal-prop-msg { background: var(--gray-1); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--text); line-height: 1.6; font-style: italic; margin-bottom: 16px; border-left: 3px solid var(--gray-300); }
 .modal-prop-divider { border: none; border-top: 1px solid var(--gray-200); margin: 16px 0; }
 .modal-prop-next { font-size: 12px; color: var(--gray-500); line-height: 1.6; }
@@ -2257,8 +2265,15 @@ async function openPropostaModal(id) {
     } catch (err) { console.error('[openPropostaModal] Auto-load benefícios failed:', err); }
   }
 
+  // Carregar rodadas do histórico
+  p._rodadas = [];
+  if (p._supaId && !isDemoMode()) {
+    try { p._rodadas = await fetchRodadas(p._supaId); } catch(e) { console.error('[openPropostaModal] fetchRodadas failed:', e); }
+  }
+
   renderMsgThread(p.thread);
   renderContrapartidas(p.contrapartidas || []);
+  renderHistoricoRodadasM();
 
   // reset compose — desabilitar se recusada
   const ta = document.getElementById('mp-compose-input');
@@ -2703,9 +2718,18 @@ function _renderValorDealM(p) {
     }
   }
 
-  // Linha de input: mostrar só se sem proposta e canEdit, ou se for contraproposta da marca
+  // Restaura onclick padrão do botão propor
+  if (btnPropor) {
+    btnPropor.textContent = 'Propor valor';
+    btnPropor.onclick = function() { proporValorDealMarca(); };
+  }
+  // Esconde botão cancelar de contraoferta se existir
+  var btnCancel = document.getElementById('mp-btn-cancelar-contra');
+  if (btnCancel) btnCancel.style.display = 'none';
+
+  // Linha de input: só se sem proposta e canEdit
   if (inputRow) {
-    const showInput = canEdit && (vd.status === 'sem_proposta' || vd.status === 'aguardando_marca');
+    const showInput = canEdit && vd.status === 'sem_proposta';
     inputRow.style.display = showInput ? 'flex' : 'none';
     if (showInput && input) input.value = '';
   }
@@ -2723,7 +2747,7 @@ function maskValorDealM(input) {
   input.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function proporValorDealMarca() {
+async function proporValorDealMarca() {
   const p = _propostaAtiva;
   if (!p) return;
   // Bloqueia se não tem entregas
@@ -2747,7 +2771,18 @@ function proporValorDealMarca() {
   p.valorDeal.propostoPor = 'marca';
   p.valorDeal.status      = 'aguardando_detentor';
   _persistProp(p, { valor_deal: num, valor_deal_proposto_por: 'marca', valor_deal_status: 'aguardando_detentor' });
+  // Criar rodada snapshot
+  if (p._supaId && !isDemoMode()) {
+    const rodNum = getNextRodadaNumero(p._rodadas || []);
+    const snap = buildContrapartidasSnapshot(p.contrapartidas || []);
+    const rodada = await createRodada({
+      negociacao_id: p._supaId, numero: rodNum,
+      valor: num, proposto_por: 'marca', contrapartidas: snap
+    });
+    if (rodada) { if (!p._rodadas) p._rodadas = []; p._rodadas.unshift(rodada); }
+  }
   _renderValorDealM(p);
+  renderHistoricoRodadasM();
   showToast('Valor proposto! Aguardando resposta do organizador.', 'success');
 }
 
@@ -2772,13 +2807,114 @@ async function aceitarValorDealMarca() {
 function contraproporValorDealMarca() {
   const p = _propostaAtiva;
   if (!p || !p.valorDeal) return;
-  p.valorDeal.status = 'sem_proposta';
-  p.valorDeal.proposto = null;
-  p.valorDeal.propostoPor = null;
-  _persistProp(p, { valor_deal: null, valor_deal_proposto_por: null, valor_deal_status: 'sem_proposta' });
-  _renderValorDealM(p);
+  // Mostra input para digitar contraoferta
+  const inputRow  = document.getElementById('mp-vd-input-row');
+  const actionsEl = document.getElementById('mp-vd-actions');
+  const btnPropor = document.getElementById('mp-vd-btn-propor');
+  if (inputRow)  inputRow.style.display = 'flex';
+  if (actionsEl) actionsEl.style.display = 'none';
+  if (btnPropor) btnPropor.textContent = 'Enviar contraoferta';
   const input = document.getElementById('mp-vd-input');
-  if (input) { input.value = ''; input.focus(); }
+  if (input) {
+    var v = p.valorDeal.proposto || 0;
+    input.value = v ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+    input.focus();
+  }
+  // Redireciona clique para confirmar contraoferta
+  if (btnPropor) btnPropor.onclick = function() { confirmarContraofertaMarca(); };
+  // Botão cancelar
+  let btnCancel = document.getElementById('mp-btn-cancelar-contra');
+  if (!btnCancel) {
+    btnCancel = document.createElement('button');
+    btnCancel.id = 'mp-btn-cancelar-contra';
+    btnCancel.style.cssText = 'background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);font-size:12px;padding:8px 14px;border-radius:10px;cursor:pointer;white-space:nowrap';
+    btnCancel.textContent = 'Cancelar';
+    btnCancel.onclick = function() { cancelarContraofertaMarca(); };
+    if (inputRow) inputRow.appendChild(btnCancel);
+  }
+  btnCancel.style.display = '';
+}
+
+function cancelarContraofertaMarca() {
+  var btnCancel = document.getElementById('mp-btn-cancelar-contra');
+  if (btnCancel) btnCancel.style.display = 'none';
+  var p = _propostaAtiva;
+  if (p) _renderValorDealM(p);
+}
+
+async function confirmarContraofertaMarca() {
+  const p = _propostaAtiva;
+  if (!p) return;
+  const input = document.getElementById('mp-vd-input');
+  const raw = input ? input.value.trim() : '';
+  if (!raw) { showToast('Insira um valor.', 'error'); return; }
+  const clean = raw.replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(clean);
+  if (isNaN(num) || num <= 0) { showToast('Valor inválido.', 'error'); return; }
+
+  if (!p.valorDeal) p.valorDeal = {};
+  p.valorDeal.proposto    = num;
+  p.valorDeal.propostoPor = 'marca';
+  p.valorDeal.status      = 'aguardando_detentor';
+  _persistProp(p, { valor_deal: num, valor_deal_proposto_por: 'marca', valor_deal_status: 'aguardando_detentor' });
+  // Criar rodada snapshot (contraoferta)
+  if (p._supaId && !isDemoMode()) {
+    const rodNum = getNextRodadaNumero(p._rodadas || []);
+    const snap = buildContrapartidasSnapshot(p.contrapartidas || []);
+    const rodada = await createRodada({
+      negociacao_id: p._supaId, numero: rodNum,
+      valor: num, proposto_por: 'marca', contrapartidas: snap
+    });
+    if (rodada) { if (!p._rodadas) p._rodadas = []; p._rodadas.unshift(rodada); }
+  }
+  // Restaura onclick original e esconde cancelar
+  const btnPropor = document.getElementById('mp-vd-btn-propor');
+  if (btnPropor) btnPropor.onclick = function() { proporValorDealMarca(); };
+  const btnCancel = document.getElementById('mp-btn-cancelar-contra');
+  if (btnCancel) btnCancel.style.display = 'none';
+  _renderValorDealM(p);
+  renderHistoricoRodadasM();
+  showToast('Contraoferta de R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' enviada ao organizador.', 'success');
+}
+
+// ─── Histórico de rodadas (marca) ────────────────
+function renderHistoricoRodadasM() {
+  var p = _propostaAtiva;
+  var wrap = document.getElementById('mp-rodadas-wrap');
+  if (!wrap) return;
+  if (!p || !p._rodadas || p._rodadas.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = '';
+  var count = p._rodadas.length;
+  document.getElementById('mp-rodadas-label').textContent =
+    'Ver histórico (' + count + ' rodada' + (count > 1 ? 's' : '') + ')';
+
+  var list = document.getElementById('mp-rodadas-list');
+  list.innerHTML = p._rodadas.map(function(r) {
+    var quem = r.proposto_por === 'marca' ? 'Você' : 'Organizador';
+    var val = r.valor ? 'R$ ' + Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—';
+    var cps = (r.contrapartidas || []);
+    var cpHtml = cps.length > 0
+      ? '<ul class="rodada-card-cps">' + cps.map(function(c) { return '<li>' + (c.descricao || '') + ' <small style="color:var(--gray-400)">(' + (c.status || 'proposta') + ')</small></li>'; }).join('') + '</ul>'
+      : '<span style="font-size:11px;color:var(--gray-400)">Sem entregas</span>';
+    var data = r.created_at ? new Date(r.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+    return '<div class="rodada-card">' +
+      '<div class="rodada-card-header"><span class="rodada-card-title">Rodada ' + r.numero + ' — ' + quem + '</span><span class="rodada-card-date">' + data + '</span></div>' +
+      '<div class="rodada-card-valor">' + val + '</div>' +
+      cpHtml +
+    '</div>';
+  }).join('');
+}
+
+function toggleHistoricoRodadasM() {
+  var list = document.getElementById('mp-rodadas-list');
+  var chevron = document.getElementById('mp-rodadas-chevron');
+  if (!list) return;
+  var open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : '';
+  if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
 }
 
 async function sendPropostaMsg() {
@@ -3318,6 +3454,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <!-- Aviso sem entregas -->
           <div id="mp-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
             Adicione pelo menos uma entrega antes de propor um valor.
+          </div>
+
+          <!-- Histórico de rodadas -->
+          <div id="mp-rodadas-wrap" style="display:none;margin-top:12px">
+            <button id="mp-rodadas-toggle" onclick="toggleHistoricoRodadasM()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-500);transition:background .15s">
+              <span id="mp-rodadas-label">Ver histórico (0 rodadas)</span>
+              <svg id="mp-rodadas-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;transition:transform .2s"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            <div id="mp-rodadas-list" style="display:none;margin-top:8px"></div>
           </div>
         </div>
 

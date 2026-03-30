@@ -779,6 +779,15 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-contrapropor-valor { background: transparent; border: 1.5px solid var(--gray-200); color: var(--text); padding: 8px 16px; border-radius: 8px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; flex: 1; transition: all 0.15s; }
 .btn-contrapropor-valor:hover { border-color: var(--gold); color: var(--gold); }
 
+/* ─── RODADAS HISTÓRICO ─── */
+.rodada-card { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; font-size: 12px; }
+.rodada-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.rodada-card-title { font-weight: 700; color: var(--text); }
+.rodada-card-date { color: var(--gray-400); font-size: 11px; }
+.rodada-card-valor { color: var(--primary, #1D4ED8); font-weight: 600; margin-bottom: 4px; font-size: 13px; }
+.rodada-card-cps { list-style: disc; padding-left: 16px; color: var(--gray-500); margin: 0; }
+.rodada-card-cps li { margin-bottom: 2px; }
+
 /* ─── THREAD MENSAGENS (detentor) ─── */
 .msg-thread-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-400); margin-bottom: 10px; }
 .msg-thread { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; max-height: 240px; overflow-y: auto; padding-right: 2px; }
@@ -2581,10 +2590,17 @@ async function openNegModal(id) {
     } catch (err) { console.error('[openNegModal] Auto-load benefícios failed:', err); }
   }
 
-  // thread + contrapartidas + valor deal
+  // Carregar rodadas do histórico
+  n._rodadas = [];
+  if (n._supaId && !isDemoMode()) {
+    try { n._rodadas = await fetchRodadas(n._supaId); } catch(e) { console.error('[openNegModal] fetchRodadas failed:', e); }
+  }
+
+  // thread + contrapartidas + valor deal + histórico
   renderNegThread(n.thread);
   renderContrapartidasDet(n.contrapartidas || []);
   renderValorDeal();
+  renderHistoricoRodadas();
 
   // reset compose
   const ta = document.getElementById('mn-compose-input');
@@ -2910,7 +2926,7 @@ function _parseValorInput(el) {
   return parseFloat(raw) || 0;
 }
 
-function proporValorDeal() {
+async function proporValorDeal() {
   const n = _negAtiva;
   if (!n) return;
   // Bloquear se não tem entregas
@@ -2930,7 +2946,18 @@ function proporValorDeal() {
   n.valorDeal.status      = 'aguardando_marca';
   _autoStatus(n);
   _persistNeg(n, { valor_deal: val, valor_deal_proposto_por: 'detentor', valor_deal_status: 'aguardando_marca' });
+  // Criar rodada snapshot
+  if (n._supaId && !isDemoMode()) {
+    const num = getNextRodadaNumero(n._rodadas || []);
+    const snap = buildContrapartidasSnapshot(n.contrapartidas || []);
+    const rodada = await createRodada({
+      negociacao_id: n._supaId, numero: num,
+      valor: val, proposto_por: 'detentor', contrapartidas: snap
+    });
+    if (rodada) { if (!n._rodadas) n._rodadas = []; n._rodadas.unshift(rodada); }
+  }
   renderValorDeal();
+  renderHistoricoRodadas();
   showToast('Valor de ' + _fmtValor(val) + ' proposto. Aguardando resposta da marca.', 'success');
 }
 
@@ -2996,7 +3023,7 @@ function cancelarContraoferta() {
   renderValorDeal();
 }
 
-function confirmarContraoferta() {
+async function confirmarContraoferta() {
   const n = _negAtiva;
   if (!n) return;
   const inputEl = document.getElementById('mn-valor-input');
@@ -3007,13 +3034,64 @@ function confirmarContraoferta() {
   n.valorDeal.status      = 'aguardando_marca';
   _autoStatus(n);
   _persistNeg(n, { valor_deal: val, valor_deal_proposto_por: 'detentor', valor_deal_status: 'aguardando_marca' });
+  // Criar rodada snapshot (contraoferta)
+  if (n._supaId && !isDemoMode()) {
+    const num = getNextRodadaNumero(n._rodadas || []);
+    const snap = buildContrapartidasSnapshot(n.contrapartidas || []);
+    const rodada = await createRodada({
+      negociacao_id: n._supaId, numero: num,
+      valor: val, proposto_por: 'detentor', contrapartidas: snap
+    });
+    if (rodada) { if (!n._rodadas) n._rodadas = []; n._rodadas.unshift(rodada); }
+  }
   // restaura onclick original e esconde cancelar
   const btnPropor = document.getElementById('mn-btn-propor-valor');
   if (btnPropor) btnPropor.onclick = function() { proporValorDeal(); };
   const btnCancel = document.getElementById('mn-btn-cancelar-contra');
   if (btnCancel) btnCancel.style.display = 'none';
   renderValorDeal();
+  renderHistoricoRodadas();
   showToast('Contraoferta de ' + _fmtValor(val) + ' enviada para a marca.', 'success');
+}
+
+// ─── Histórico de rodadas ────────────────────
+function renderHistoricoRodadas() {
+  const n = _negAtiva;
+  const wrap = document.getElementById('mn-rodadas-wrap');
+  if (!wrap) return;
+  if (!n || !n._rodadas || n._rodadas.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = '';
+  var count = n._rodadas.length;
+  document.getElementById('mn-rodadas-label').textContent =
+    'Ver histórico (' + count + ' rodada' + (count > 1 ? 's' : '') + ')';
+
+  var list = document.getElementById('mn-rodadas-list');
+  list.innerHTML = n._rodadas.map(function(r) {
+    var quem = r.proposto_por === 'detentor' ? 'Organizador' : 'Marca';
+    var val = r.valor ? 'R$ ' + Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—';
+    var cps = (r.contrapartidas || []);
+    var cpHtml = cps.length > 0
+      ? '<ul class="rodada-card-cps">' + cps.map(function(c) { return '<li>' + (c.descricao || '') + ' <small style="color:var(--gray-400)">(' + (c.status || 'proposta') + ')</small></li>'; }).join('') + '</ul>'
+      : '<span style="font-size:11px;color:var(--gray-400)">Sem entregas</span>';
+    var data = r.created_at ? new Date(r.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+    return '<div class="rodada-card">' +
+      '<div class="rodada-card-header"><span class="rodada-card-title">Rodada ' + r.numero + ' — ' + quem + '</span><span class="rodada-card-date">' + data + '</span></div>' +
+      '<div class="rodada-card-valor">' + val + '</div>' +
+      cpHtml +
+    '</div>';
+  }).join('');
+}
+
+function toggleHistoricoRodadas() {
+  var list = document.getElementById('mn-rodadas-list');
+  var chevron = document.getElementById('mn-rodadas-chevron');
+  if (!list) return;
+  var open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : '';
+  if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
 }
 
 function closeNegModal() {
@@ -3630,6 +3708,15 @@ function escapeHtml(str) {
           <!-- Aviso sem entregas -->
           <div id="mn-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
             Adicione pelo menos uma entrega antes de propor um valor.
+          </div>
+
+          <!-- Histórico de rodadas -->
+          <div id="mn-rodadas-wrap" style="display:none;margin-top:12px">
+            <button id="mn-rodadas-toggle" onclick="toggleHistoricoRodadas()" style="width:100%;display:flex;align-items:center;justify-content:space-between;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-500);transition:background .15s">
+              <span id="mn-rodadas-label">Ver histórico (0 rodadas)</span>
+              <svg id="mn-rodadas-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;transition:transform .2s"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+            </button>
+            <div id="mn-rodadas-list" style="display:none;margin-top:8px"></div>
           </div>
         </div>
 

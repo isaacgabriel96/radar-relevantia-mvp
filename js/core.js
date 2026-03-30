@@ -536,6 +536,65 @@ async function fetchCotaBeneficios(oportunidadeId, cotaNome) {
   } catch (err) { console.error('[fetchCotaBeneficios] Failed:', err); return []; }
 }
 
+// ─── RODADAS DE NEGOCIAÇÃO (histórico imutável) ────────────
+
+/**
+ * Create a new negotiation round (immutable snapshot).
+ * @param {Object} rodada - { negociacao_id, numero, valor, proposto_por, contrapartidas (JSONB) }
+ * @returns {Object|null} created row or null
+ */
+async function createRodada(rodada) {
+  try {
+    const token = await _getWriteToken();
+    if (!token) return null;
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rodadas_negociacao', {
+      method: 'POST', body: JSON.stringify(rodada),
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    return rows[0] || null;
+  } catch (err) { console.error('[createRodada] Failed:', err); return null; }
+}
+
+/**
+ * Fetch all rounds for a negotiation, ordered by numero DESC (newest first).
+ * @param {string} negociacaoId
+ * @returns {Array} rounds or []
+ */
+async function fetchRodadas(negociacaoId) {
+  if (!negociacaoId) return [];
+  try {
+    const token = await _getWriteToken();
+    if (!token) return [];
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rodadas_negociacao?negociacao_id=eq.' + negociacaoId + '&order=numero.desc', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) { console.error('[fetchRodadas] Failed:', err); return []; }
+}
+
+/**
+ * Build a JSONB-ready snapshot of current contrapartidas.
+ * @param {Array} contrapartidas - in-memory contrapartidas array
+ * @returns {Array} snapshot for JSONB storage
+ */
+function buildContrapartidasSnapshot(contrapartidas) {
+  return (contrapartidas || []).map(function(c) {
+    return { descricao: c.descricao || '', status: c.status || 'proposta', proposto_por: c.propostoPor || c.proposto_por || 'marca' };
+  });
+}
+
+/**
+ * Get next round number based on existing rounds.
+ * @param {Array} rodadas - array of existing rounds (newest first)
+ * @returns {number}
+ */
+function getNextRodadaNumero(rodadas) {
+  return (rodadas && rodadas.length > 0 ? rodadas[0].numero : 0) + 1;
+}
+
 async function deleteNegociacao(negId, preferRole) {
   try {
     const token = await _getWriteToken(preferRole);
