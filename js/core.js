@@ -52,11 +52,55 @@ function getSession(role) {
     const session = JSON.parse(raw);
     const now = Math.floor(Date.now() / 1000);
     if (session.expires_at && now >= session.expires_at) {
-      localStorage.removeItem(key);
+      // Don't remove — refreshSessionAsync will handle it
       return null;
     }
     return session;
   } catch {
+    localStorage.removeItem(key);
+    return null;
+  }
+}
+
+/**
+ * Async version of getSession that auto-refreshes expired tokens.
+ * Use this when you need the session and can await (e.g. before writes).
+ */
+async function getSessionAsync(role) {
+  // First try the sync version (fast path for valid tokens)
+  const valid = getSession(role);
+  if (valid) return valid;
+
+  // If no stored data at all, nothing to refresh
+  const key = SESSION_KEYS[role];
+  if (!key) return null;
+  const raw = localStorage.getItem(key);
+  if (!raw) return null;
+
+  // Try to refresh the expired session
+  try {
+    const expired = JSON.parse(raw);
+    if (!expired.refresh_token) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    console.log('[getSessionAsync] Token expired for', role, '— refreshing...');
+    const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: expired.refresh_token })
+    });
+    if (!res.ok) {
+      console.warn('[getSessionAsync] Refresh failed:', res.status);
+      localStorage.removeItem(key);
+      return null;
+    }
+    const newSession = await res.json();
+    localStorage.setItem(key, JSON.stringify(newSession));
+    console.log('[getSessionAsync] Token refreshed for', role);
+    return newSession;
+  } catch (err) {
+    console.error('[getSessionAsync] Refresh error:', err);
     localStorage.removeItem(key);
     return null;
   }
@@ -410,10 +454,10 @@ async function _getWriteToken(preferRole) {
   if (sdkToken) return sdkToken;
   let legacy;
   if (preferRole) {
-    legacy = getSession(preferRole);
+    legacy = await getSessionAsync(preferRole);
   }
   if (!legacy) {
-    legacy = getSession('rightsholder') || getSession('brand');
+    legacy = await getSessionAsync('rightsholder') || await getSessionAsync('brand');
   }
   return (legacy && legacy.access_token !== 'DEMO_TOKEN') ? legacy.access_token : null;
 }

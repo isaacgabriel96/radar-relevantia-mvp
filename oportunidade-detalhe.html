@@ -1765,7 +1765,8 @@ async function submitModal() {
   var mensagem = (document.getElementById('modal-message') || {}).value || '';
 
   // Get brand session specifically (RLS requires marca token)
-  var brandSession = typeof getSession === 'function' ? getSession('brand') : null;
+  // Use async version to auto-refresh expired tokens
+  var brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
   var marcaId = brandSession && brandSession.user ? brandSession.user.id : null;
 
   console.log('[submitModal] brandSession:', !!brandSession, 'marcaId:', marcaId, '_CURRENT_OPP:', !!_CURRENT_OPP);
