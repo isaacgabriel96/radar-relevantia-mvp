@@ -2619,7 +2619,6 @@ function formatValorCpDet(v) {
 
 function renderContrapartidasDet(list) {
   const tbody = document.getElementById('mn-cp-tbody');
-  const totalEl = document.getElementById('mn-cp-total');
   const tableWrap = document.querySelector('.cp-table-wrap');
   if (!tbody) return;
 
@@ -2677,8 +2676,6 @@ function renderContrapartidasDet(list) {
     }
   }
 
-  const aceitas = list.filter(c => c.status === 'aceita').length;
-  if (totalEl) totalEl.textContent = aceitas + ' de ' + list.length;
 }
 
 function toggleCpRecusadas(btn) {
@@ -2802,6 +2799,21 @@ function renderValorDeal() {
     badge.className = 'valor-deal-badge ' + vd.status;
   }
 
+  // Entregas snippet
+  const cps = (n.contrapartidas || []).filter(c => c.status !== 'recusada');
+  function _entregasHtml() {
+    if (cps.length === 0) return '';
+    const MAX_SHOW = 2;
+    const shown = cps.slice(0, MAX_SHOW);
+    const rest = cps.length - MAX_SHOW;
+    let html = '<div style="margin-top:6px;font-size:12px;color:var(--gray-4)">';
+    html += '<div style="font-weight:600;margin-bottom:3px;color:var(--gray-3)">Entregas incluídas:</div>';
+    shown.forEach(c => { html += '<div style="padding-left:8px">• ' + (c.descricao || '') + '</div>'; });
+    if (rest > 0) html += '<a href="#" onclick="event.preventDefault();document.querySelector(\'#modal-neg .cp-table-wrap\').scrollIntoView({behavior:\'smooth\'})" style="display:inline-block;margin-top:3px;padding-left:8px;color:var(--gold);font-weight:600;font-size:11px;text-decoration:none">ver mais ' + rest + ' entrega' + (rest > 1 ? 's' : '') + '</a>';
+    html += '</div>';
+    return html;
+  }
+
   // estado atual
   const estadoEl = document.getElementById('mn-valor-estado');
   if (estadoEl) {
@@ -2813,7 +2825,7 @@ function renderValorDeal() {
         <div class="valor-deal-estado">
           <div class="valor-deal-valor-atual">${_fmtValor(vd.proposto)}</div>
           <div class="valor-deal-autor">${quem} este valor${vd.status === 'aceito' ? ' — aceito por ambos' : ''}</div>
-        </div>`;
+        </div>` + _entregasHtml();
     }
   }
 
@@ -3527,10 +3539,8 @@ function escapeHtml(str) {
           </div>
         </div>
 
-        <div class="cp-total-row">
-          <span class="cp-total-label">Entregas</span>
-          <span class="cp-total-value" id="mn-cp-total">0 de 0</span>
-        </div>
+        <!-- Entregas header -->
+        <div style="padding:10px 14px 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400)">Entregas</div>
 
         <div class="cp-table-wrap">
           <table class="cp-table">

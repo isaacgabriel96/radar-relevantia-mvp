@@ -2194,7 +2194,7 @@ async function _persistProp(p, fields) {
     const ok = await updateNegociacao(p._supaId, fields || {
       status: p.status, status_label: p.statusLabel,
       status_hint: p.statusHint, aceita_novas_propostas: p.aceitaNovasPropostas
-    });
+    }, 'brand');
     if (!ok) showToast('Erro ao salvar. Tente novamente.', 'error');
   } else {
     SharedNeg.save();
@@ -2312,7 +2312,6 @@ function formatValorCp(v) {
 
 function renderContrapartidas(list) {
   const tbody = document.getElementById('mp-cp-tbody');
-  const totalEl = document.getElementById('mp-cp-total');
   const tableWrap = document.querySelector('#modal-proposta .cp-table-wrap');
   if (!tbody) return;
 
@@ -2369,8 +2368,6 @@ function renderContrapartidas(list) {
     }
   }
 
-  const aceitas = list.filter(c => c.status === 'aceita').length;
-  if (totalEl) totalEl.textContent = aceitas + ' de ' + list.length;
 }
 
 function toggleCpRecusadas(btn) {
@@ -2641,16 +2638,31 @@ function _renderValorDealM(p) {
   badge.className = 'valor-deal-badge-m ' + (vd.status || 'sem_proposta');
   badge.textContent = BADGE_LABEL[vd.status] || 'Sem proposta';
 
+  // Entregas snippet
+  const cps = (p.contrapartidas || []).filter(c => c.status !== 'recusada');
+  function _entregasHtml() {
+    if (cps.length === 0) return '';
+    const MAX_SHOW = 2;
+    const shown = cps.slice(0, MAX_SHOW);
+    const rest = cps.length - MAX_SHOW;
+    let html = '<div style="margin-top:6px;font-size:12px;color:var(--gray-4)">';
+    html += '<div style="font-weight:600;margin-bottom:3px;color:var(--gray-3)">Entregas incluídas:</div>';
+    shown.forEach(c => { html += '<div style="padding-left:8px">• ' + (c.descricao || '') + '</div>'; });
+    if (rest > 0) html += '<a href="#" onclick="event.preventDefault();document.querySelector(\'#modal-proposta .cp-table-wrap\').scrollIntoView({behavior:\'smooth\'})" style="display:inline-block;margin-top:3px;padding-left:8px;color:var(--gold);font-weight:600;font-size:11px;text-decoration:none">ver mais ' + rest + ' entrega' + (rest > 1 ? 's' : '') + '</a>';
+    html += '</div>';
+    return html;
+  }
+
   // Estado descritivo
   if (estadoEl) {
     if (vd.status === 'aguardando_detentor') {
-      estadoEl.innerHTML = `<span style="font-size:12px;color:var(--gray-400)">Você propôs <strong style="color:var(--text)">${vd.proposto}</strong> — aguardando resposta do organizador.</span>`;
+      estadoEl.innerHTML = `<span style="font-size:12px;color:var(--gray-400)">Você propôs <strong style="color:var(--text)">${vd.proposto}</strong> — aguardando resposta do organizador.</span>` + _entregasHtml();
       estadoEl.style.display = 'block';
     } else if (vd.status === 'aguardando_marca') {
-      estadoEl.innerHTML = `<span style="font-size:12px;color:#1D4ED8">O organizador propôs <strong>${vd.proposto}</strong> — aceite ou contraproponha.</span>`;
+      estadoEl.innerHTML = `<span style="font-size:12px;color:#1D4ED8">O organizador propôs <strong>${vd.proposto}</strong> — aceite ou contraproponha.</span>` + _entregasHtml();
       estadoEl.style.display = 'block';
     } else if (vd.status === 'aceito') {
-      estadoEl.innerHTML = `<span style="font-size:12px;color:#065F46;font-weight:600">✓ Valor acordado: ${vd.proposto}</span>`;
+      estadoEl.innerHTML = `<span style="font-size:12px;color:#065F46;font-weight:600">✓ Valor acordado: ${vd.proposto}</span>` + _entregasHtml();
       estadoEl.style.display = 'block';
     } else {
       estadoEl.style.display = 'none';
@@ -3216,10 +3228,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <!-- Contador de contrapartidas aceitas -->
-        <div class="cp-total-row">
-          <span class="cp-total-label">Entregas</span>
-          <span class="cp-total-value" id="mp-cp-total">0 de 0</span>
-        </div>
+        <!-- Entregas header -->
+        <div style="padding:10px 14px 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400)">Entregas</div>
 
         <!-- Tabela de contrapartidas -->
         <div class="cp-table-wrap">

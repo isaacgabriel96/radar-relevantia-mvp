@@ -418,9 +418,9 @@ async function _getWriteToken(preferRole) {
   return (legacy && legacy.access_token !== 'DEMO_TOKEN') ? legacy.access_token : null;
 }
 
-async function updateNegociacao(negId, fields) {
+async function updateNegociacao(negId, fields, preferRole) {
   try {
-    const token = await _getWriteToken();
+    const token = await _getWriteToken(preferRole);
     if (!token) { console.warn('[updateNegociacao] No valid token'); return false; }
     const res = await fetch(SUPABASE_URL + '/rest/v1/negociacoes?id=eq.' + negId, {
       method: 'PATCH', body: JSON.stringify(fields),
