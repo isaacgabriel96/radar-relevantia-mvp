@@ -438,14 +438,9 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-prop-status.aceita .modal-prop-status-hint { color: #166534; opacity: 0.7; }
 .modal-prop-status.analise .modal-prop-status-hint { color: #1E40AF; opacity: 0.7; }
 .modal-prop-status.recusada .modal-prop-status-hint { color: #991B1B; opacity: 0.7; }
-.modal-prop-rows { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
-.modal-prop-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--gray-200); }
-.modal-prop-row:last-child { border-bottom: none; }
-.modal-prop-row-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-400); min-width: 90px; padding-top: 1px; flex-shrink: 0; }
-.modal-prop-row-value { font-size: 13px; color: var(--text); line-height: 1.5; }
-/* ─── VALOR EDITÁVEL ─── */
-.modal-prop-row--valor { flex-direction: column; align-items: stretch; }
-.modal-prop-row--valor .modal-prop-row-label { padding-top: 0; margin-bottom: 6px; }
+.mp-opp-header { margin-bottom: 16px; padding: 12px 14px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; }
+.mp-opp-name { font-size: 15px; font-weight: 700; color: var(--black); }
+.mp-opp-sub { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
 .mp-valor-display { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .mp-valor-pending { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #92400E; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.25); border-radius: 6px; padding: 3px 8px; }
 .mp-btn-propor-valor { display: inline-flex; align-items: center; gap: 5px; background: #503A00; color: var(--white); border: none; border-radius: 8px; padding: 5px 12px; font-family: var(--font-body); font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease; }
@@ -2237,10 +2232,12 @@ async function openPropostaModal(id) {
   document.getElementById('mp-status-wrap').className = 'modal-prop-status ' + p.status;
   document.getElementById('mp-status-label').textContent = p.statusLabel;
   document.getElementById('mp-status-hint').textContent = p.statusHint;
-  document.getElementById('mp-cota').textContent = p.cota;
-  document.getElementById('mp-assunto').textContent = p.assunto;
-  document.getElementById('mp-enviada').textContent = p.enviadaEm;
-  _renderValorRow(p);
+  // Header compacto da oportunidade
+  document.getElementById('mp-opp-name').textContent = p.opp || 'Oportunidade';
+  var oppSub = '';
+  if (p.cota) { oppSub += p.cota; if (p.enviadaEm) oppSub += '  ·  '; }
+  if (p.enviadaEm) oppSub += p.enviadaEm;
+  document.getElementById('mp-opp-sub').textContent = oppSub;
 
   // Auto-carregar benefícios da cota como contrapartidas (se ainda não existem)
   if (p.cota && (!p.contrapartidas || p.contrapartidas.length === 0) && p.opp_id && !isDemoMode()) {
@@ -2536,11 +2533,9 @@ function closePropostaModal() {
 // pendente_marca    = detentor contrapropos, aguardando marca aceitar
 
 function _renderValorRow(p) {
-  const valEl      = document.getElementById('mp-valor');
-  const pendEl     = document.getElementById('mp-valor-pending');
-  const btnPropor  = document.getElementById('mp-btn-propor-valor');
-  const editDiv    = document.getElementById('mp-valor-edit');
-  const displayDiv = document.getElementById('mp-valor-display');
+  // Legacy: elementos removidos na simplificação do header compacto.
+  // O valor da negociação agora é gerenciado pelo card valorDeal (mp-vd-*).
+  const valEl = document.getElementById('mp-valor');
   if (!valEl) return;
 
   // Mostra o valor atual (pode ter sido atualizado)
@@ -3345,23 +3340,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="modal-prop-status-hint" id="mp-status-hint"></span>
       </div>
 
-      <div class="modal-prop-rows">
-        <div class="modal-prop-row">
-          <span class="modal-prop-row-label">Cota</span>
-          <span class="modal-prop-row-value" id="mp-cota"></span>
-        </div>
-        <div class="modal-prop-row">
-          <span class="modal-prop-row-label">Assunto</span>
-          <span class="modal-prop-row-value" id="mp-assunto"></span>
-        </div>
-        <div class="modal-prop-row">
-          <span class="modal-prop-row-label">Valor da cota</span>
-          <span class="modal-prop-row-value" id="mp-valor"></span>
-        </div>
-        <div class="modal-prop-row">
-          <span class="modal-prop-row-label">Enviada em</span>
-          <span class="modal-prop-row-value" id="mp-enviada"></span>
-        </div>
+      <div class="mp-opp-header" id="mp-opp-header">
+        <div class="mp-opp-name" id="mp-opp-name"></div>
+        <div class="mp-opp-sub" id="mp-opp-sub"></div>
       </div>
 
       <!-- Banner: aceita novas propostas -->

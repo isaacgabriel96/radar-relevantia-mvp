@@ -629,11 +629,10 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-neg-from-info { display: flex; flex-direction: column; gap: 1px; }
 .modal-neg-from-name { font-size: 12px; font-weight: 600; color: var(--black); }
 .modal-neg-from-tag { font-size: 11px; color: var(--gray-400); }
-.modal-neg-rows { display: flex; flex-direction: column; border: 1px solid var(--gray-200); border-radius: 10px; overflow: hidden; margin-bottom: 14px; }
-.modal-neg-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--gray-200); }
-.modal-neg-row:last-child { border-bottom: none; }
-.modal-neg-row-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gray-400); min-width: 80px; padding-top: 1px; }
-.modal-neg-row-value { font-size: 13px; color: var(--text); line-height: 1.5; }
+.mn-brand-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding: 12px 14px; background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 10px; }
+.mn-brand-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #B8860B, #C8A84B); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 16px; font-family: var(--font-heading); flex-shrink: 0; }
+.mn-brand-name { font-size: 15px; font-weight: 700; color: var(--black); }
+.mn-brand-sub { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
 .modal-neg-msg { background: var(--gray-1); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--text); line-height: 1.6; font-style: italic; margin-bottom: 14px; border-left: 3px solid var(--gray-300); }
 .modal-neg-divider { border: none; border-top: 1px solid var(--gray-200); margin: 14px 0; }
 .modal-neg-actions { display: flex; gap: 10px; }
@@ -2545,10 +2544,14 @@ async function openNegModal(id) {
   _negAtiva = n;
 
   document.getElementById('mn-marca').textContent = n.marca;
-  document.getElementById('mn-opp').textContent = n.opp;
-  document.getElementById('mn-cota').textContent = n.cota;
-  document.getElementById('mn-assunto').textContent = n.assunto;
-  document.getElementById('mn-data').textContent = n.enviadaEm;
+  // Brand header compacto
+  document.getElementById('mn-brand-avatar').textContent = (n.marca || '?').charAt(0).toUpperCase();
+  document.getElementById('mn-brand-name').textContent = n.marca || 'Marca';
+  var brandSub = '';
+  if (n.cota) { brandSub += n.cota; if (n.enviadaEm) brandSub += '  ·  '; }
+  else if (n.opp) { brandSub += n.opp; if (n.enviadaEm) brandSub += '  ·  '; }
+  if (n.enviadaEm) brandSub += n.enviadaEm;
+  document.getElementById('mn-brand-sub').textContent = brandSub;
 
   const statusWrap = document.getElementById('mn-status-wrap');
   statusWrap.className = 'modal-neg-status';
@@ -3578,22 +3581,11 @@ function escapeHtml(str) {
         <span class="modal-neg-status-hint" id="mn-status-hint"></span>
       </div>
 
-      <div class="modal-neg-rows">
-        <div class="modal-neg-row">
-          <span class="modal-neg-row-label">Oportunidade</span>
-          <span class="modal-neg-row-value" id="mn-opp"></span>
-        </div>
-        <div class="modal-neg-row">
-          <span class="modal-neg-row-label">Cota</span>
-          <span class="modal-neg-row-value" id="mn-cota"></span>
-        </div>
-        <div class="modal-neg-row">
-          <span class="modal-neg-row-label">Assunto</span>
-          <span class="modal-neg-row-value" id="mn-assunto"></span>
-        </div>
-        <div class="modal-neg-row">
-          <span class="modal-neg-row-label">Recebida em</span>
-          <span class="modal-neg-row-value" id="mn-data"></span>
+      <div class="mn-brand-header" id="mn-brand-header">
+        <div class="mn-brand-avatar" id="mn-brand-avatar"></div>
+        <div class="mn-brand-info">
+          <div class="mn-brand-name" id="mn-brand-name"></div>
+          <div class="mn-brand-sub" id="mn-brand-sub"></div>
         </div>
       </div>
 
