@@ -3248,30 +3248,15 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- PAINEL: Proposta (valor + contrapartidas) -->
       <div class="modal-tab-panel active" data-panel="proposta">
 
-        <!-- Seção bilateral: Valor da proposta -->
+        <!-- Seção unificada: Sua proposta (entregas primeiro, valor depois) -->
         <div class="valor-deal-section-m" id="mp-valor-deal-section">
           <div class="valor-deal-header-m">
             <span class="valor-deal-title-m">Sua proposta</span>
             <span class="valor-deal-badge-m sem_proposta" id="mp-vd-badge">Sem proposta</span>
           </div>
-          <div id="mp-vd-estado" class="valor-deal-estado-m"></div>
-          <div class="valor-deal-input-row-m" id="mp-vd-input-row">
-            <div class="valor-deal-input-wrap-m">
-              <span class="valor-deal-input-prefix-m">R$</span>
-              <input type="text" inputmode="numeric" class="valor-deal-input-m" id="mp-vd-input" placeholder="0,00" oninput="maskValorDealM(this)">
-            </div>
-            <button class="btn-propor-valor-m" id="mp-vd-btn-propor" onclick="proporValorDealMarca()">Propor valor</button>
-          </div>
-          <div class="valor-deal-actions-m" id="mp-vd-actions" style="display:none">
-            <button class="btn-aceitar-valor-m" onclick="aceitarValorDealMarca()">Aceitar valor</button>
-            <button class="btn-contrapropor-valor-m" onclick="contraproporValorDealMarca()">Contrapropor</button>
-          </div>
 
-          <!-- Divider -->
-          <div style="border-top:1px solid var(--gray-200);margin:12px -14px 10px"></div>
-
-          <!-- Entregas (dentro do card da proposta) -->
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas incluídas</div>
+          <!-- 1. Entregas (primeiro: o que será entregue) -->
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>
 
           <div class="cp-table-wrap" style="margin-bottom:8px">
             <table class="cp-table">
@@ -3302,6 +3287,24 @@ document.addEventListener('DOMContentLoaded', () => {
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
             Adicionar contrapartida
           </button>
+
+          <!-- Divider -->
+          <div style="border-top:1px solid var(--gray-200);margin:12px -14px 10px"></div>
+
+          <!-- 2. Valor (depois: quanto custa) -->
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Valor</div>
+          <div id="mp-vd-estado" class="valor-deal-estado-m"></div>
+          <div class="valor-deal-input-row-m" id="mp-vd-input-row">
+            <div class="valor-deal-input-wrap-m">
+              <span class="valor-deal-input-prefix-m">R$</span>
+              <input type="text" inputmode="numeric" class="valor-deal-input-m" id="mp-vd-input" placeholder="0,00" oninput="maskValorDealM(this)">
+            </div>
+            <button class="btn-propor-valor-m" id="mp-vd-btn-propor" onclick="proporValorDealMarca()">Propor valor</button>
+          </div>
+          <div class="valor-deal-actions-m" id="mp-vd-actions" style="display:none">
+            <button class="btn-aceitar-valor-m" onclick="aceitarValorDealMarca()">Aceitar valor</button>
+            <button class="btn-contrapropor-valor-m" onclick="contraproporValorDealMarca()">Contrapropor</button>
+          </div>
 
           <!-- Aviso sem entregas -->
           <div id="mp-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
