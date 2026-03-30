@@ -2823,21 +2823,33 @@ function renderValorDeal() {
   const btnPropor = document.getElementById('mn-btn-propor-valor');
   const inputEl   = document.getElementById('mn-valor-input');
 
+  // Botão "Adicionar contrapartida"
+  const btnAddCp = document.getElementById('mn-btn-add-cp');
+
   if (vd.status === 'aceito' || isBlocked) {
     if (inputRow)  inputRow.style.display  = 'none';
     if (actionsEl) actionsEl.style.display = 'none';
+    if (btnAddCp)  btnAddCp.style.display  = 'none';
   } else if (vd.status === 'aguardando_detentor') {
-    // marca propôs — mostrar aceitar/contrapropor, esconder input sozinho
+    // marca propôs — mostrar aceitar/contrapropor, esconder input e add-cp
     if (inputRow)  inputRow.style.display  = 'none';
     if (actionsEl) actionsEl.style.display = 'flex';
+    if (btnAddCp)  btnAddCp.style.display  = 'none';
+  } else if (vd.status === 'aguardando_marca') {
+    // detentor já propôs, aguarda marca — esconder input
+    if (inputRow)  inputRow.style.display  = 'none';
+    if (actionsEl) actionsEl.style.display = 'none';
+    if (btnAddCp)  btnAddCp.style.display  = 'none';
   } else {
-    // sem_proposta ou aguardando_marca (detentor já propôs, aguarda marca)
+    // sem_proposta — detentor pode propor
     if (inputRow)  inputRow.style.display  = 'flex';
     if (actionsEl) actionsEl.style.display = 'none';
+    if (btnAddCp)  btnAddCp.style.display  = '';
     if (inputEl)   inputEl.value = '';
     if (btnPropor) {
-      btnPropor.disabled  = isBlocked;
-      btnPropor.textContent = vd.status === 'aguardando_marca' ? 'Alterar proposta' : 'Propor valor';
+      btnPropor.disabled    = isBlocked;
+      btnPropor.textContent = 'Propor valor';
+      btnPropor.onclick     = function() { proporValorDeal(); };
     }
   }
 }
@@ -2939,8 +2951,10 @@ function contraproporValorDeal() {
   const inputRow  = document.getElementById('mn-valor-input-row');
   const actionsEl = document.getElementById('mn-valor-actions');
   const btnPropor = document.getElementById('mn-btn-propor-valor');
+  const btnAddCp  = document.getElementById('mn-btn-add-cp');
   if (inputRow)  inputRow.style.display  = 'flex';
   if (actionsEl) actionsEl.style.display = 'none';
+  if (btnAddCp)  btnAddCp.style.display  = '';  // Mostrar add-cp durante contraoferta
   if (btnPropor) btnPropor.textContent   = 'Enviar contraoferta';
   const inputEl = document.getElementById('mn-valor-input');
   if (inputEl) {
@@ -2951,6 +2965,26 @@ function contraproporValorDeal() {
   }
   // redireciona o clique do botão para confirmar contraoferta
   if (btnPropor) btnPropor.onclick = function() { confirmarContraoferta(); };
+
+  // Mostrar botão cancelar ao lado do input
+  let btnCancel = document.getElementById('mn-btn-cancelar-contra');
+  if (!btnCancel) {
+    btnCancel = document.createElement('button');
+    btnCancel.id = 'mn-btn-cancelar-contra';
+    btnCancel.className = 'btn-contrapropor-valor';
+    btnCancel.style.cssText = 'background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);font-size:12px;padding:8px 14px;border-radius:10px;cursor:pointer;white-space:nowrap';
+    btnCancel.textContent = 'Cancelar';
+    btnCancel.onclick = function() { cancelarContraoferta(); };
+    if (inputRow) inputRow.appendChild(btnCancel);
+  }
+  btnCancel.style.display = '';
+}
+
+function cancelarContraoferta() {
+  // Volta ao estado anterior (aceitar/contrapropor)
+  const btnCancel = document.getElementById('mn-btn-cancelar-contra');
+  if (btnCancel) btnCancel.style.display = 'none';
+  renderValorDeal();
 }
 
 function confirmarContraoferta() {
@@ -2964,9 +2998,11 @@ function confirmarContraoferta() {
   n.valorDeal.status      = 'aguardando_marca';
   _autoStatus(n);
   _persistNeg(n, { valor_deal: val, valor_deal_proposto_por: 'detentor', valor_deal_status: 'aguardando_marca' });
-  // restaura onclick original
+  // restaura onclick original e esconde cancelar
   const btnPropor = document.getElementById('mn-btn-propor-valor');
   if (btnPropor) btnPropor.onclick = function() { proporValorDeal(); };
+  const btnCancel = document.getElementById('mn-btn-cancelar-contra');
+  if (btnCancel) btnCancel.style.display = 'none';
   renderValorDeal();
   showToast('Contraoferta de ' + _fmtValor(val) + ' enviada para a marca.', 'success');
 }
@@ -3028,9 +3064,12 @@ function _updateDealFooterState() {
     composeDet.style.pointerEvents = isBlocked ? 'none' : '';
   }
 
-  // Esconder botão de adicionar contrapartida quando bloqueado
-  const btnAddCp = document.getElementById('mn-btn-add-cp');
-  if (btnAddCp) btnAddCp.style.display = (st === 'aceita' || st === 'recusada') ? 'none' : '';
+  // Visibilidade do add-cp é controlada por renderValorDeal()
+  // Aqui só escondemos em estados finais (aceita/recusada)
+  if (st === 'aceita' || st === 'recusada') {
+    const btnAddCp = document.getElementById('mn-btn-add-cp');
+    if (btnAddCp) btnAddCp.style.display = 'none';
+  }
 
   // re-renderiza seção de valor do deal (reflete bloqueio por status)
   renderValorDeal();
