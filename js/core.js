@@ -491,6 +491,18 @@ async function fetchCotaBeneficios(oportunidadeId, cotaNome) {
   } catch (err) { console.error('[fetchCotaBeneficios] Failed:', err); return []; }
 }
 
+async function deleteNegociacao(negId, preferRole) {
+  try {
+    const token = await _getWriteToken(preferRole);
+    if (!token) { console.warn('[deleteNegociacao] No valid token'); return false; }
+    const res = await fetch(SUPABASE_URL + '/rest/v1/negociacoes?id=eq.' + negId, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Prefer': 'return=minimal' }
+    });
+    return res.ok;
+  } catch (err) { console.error('[deleteNegociacao] Failed:', err); return false; }
+}
+
 async function createNegociacao(neg, preferRole) {
   try {
     const token = await _getWriteToken(preferRole || 'brand');

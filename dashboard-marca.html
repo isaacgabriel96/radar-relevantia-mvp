@@ -2381,14 +2381,16 @@ function _updatePropostaDealFooter() {
   const btnAddCp = document.getElementById('mp-btn-add-cp');
   if (!footer || !_propostaAtiva) return;
   const st = _propostaAtiva.status;
+  // Cancelar interesse sempre visível
+  const btnCancelarInteresse = `<button class="btn-deal-cancelar" style="border-color:#E0D8CC;color:var(--gray-4)" onclick="cancelarInteresseMarca()">Cancelar interesse</button>`;
   if (st === 'aceita') {
-    footer.innerHTML = `<button class="btn-deal-aceito" disabled>✓ Deal confirmado pelo organizador</button>`;
+    footer.innerHTML = `<button class="btn-deal-aceito" disabled>✓ Deal confirmado</button>` + btnCancelarInteresse;
     if (btnAddCp) btnAddCp.style.display = 'none';
   } else if (st === 'recusada') {
-    footer.innerHTML = '';
+    footer.innerHTML = `<button class="btn-deal-cancelar" style="border-color:#B8860B;color:#B8860B" onclick="reenviarPropostaMarca()">Reenviar proposta</button>` + btnCancelarInteresse;
     if (btnAddCp) btnAddCp.style.display = 'none';
   } else {
-    footer.innerHTML = `<button class="btn-deal-cancelar" onclick="cancelarPropostaMarca()">Cancelar proposta</button>`;
+    footer.innerHTML = `<button class="btn-deal-cancelar" onclick="cancelarPropostaMarca()">Cancelar proposta</button>` + btnCancelarInteresse;
     if (btnAddCp) btnAddCp.style.display = '';
   }
 }
@@ -2410,6 +2412,48 @@ function cancelarPropostaMarca() {
   _updatePropostaDealFooter();
   renderPropostasTable();
   showToast('Proposta cancelada.', 'error');
+}
+
+async function reenviarPropostaMarca() {
+  const p = _propostaAtiva;
+  if (!p) return;
+  if (!confirm('Deseja reenviar esta proposta? O valor e entregas serão mantidos.')) return;
+  p.status = 'pendente';
+  p.statusLabel = 'Pendente';
+  p.statusHint = 'Proposta reenviada pela marca';
+  // Reset valor deal
+  if (p.valorDeal) { p.valorDeal.proposto = null; p.valorDeal.propostoPor = null; p.valorDeal.status = 'sem_proposta'; }
+  await _persistProp(p, { status: 'pendente', status_label: 'Pendente', status_hint: 'Proposta reenviada pela marca', valor_proposto: null, valor_proposto_por: null, valor_status: 'sem_proposta' });
+  // Atualiza UI
+  document.getElementById('mp-status-wrap').className = 'modal-prop-status pendente';
+  document.getElementById('mp-status-label').textContent = 'Pendente';
+  document.getElementById('mp-status-hint').textContent = 'Proposta reenviada pela marca';
+  const ta = document.getElementById('mp-compose-input');
+  if (ta) { ta.disabled = false; ta.placeholder = 'Escreva uma mensagem...'; }
+  _renderValorDealM(p);
+  _updatePropostaDealFooter();
+  renderContrapartidas(p.contrapartidas || []);
+  renderPropostasTable();
+  showToast('Proposta reenviada!', 'success');
+}
+
+async function cancelarInteresseMarca() {
+  const p = _propostaAtiva;
+  if (!p) return;
+  if (!confirm('Tem certeza que deseja cancelar o interesse? Isso irá remover a proposta, mensagens e entregas permanentemente.')) return;
+  if (p._supaId && !isDemoMode()) {
+    const ok = await deleteNegociacao(p._supaId, 'brand');
+    if (!ok) { showToast('Erro ao cancelar interesse. Tente novamente.', 'error'); return; }
+  }
+  // Remove da lista local
+  const idx = PROPOSTAS.indexOf(p);
+  if (idx > -1) PROPOSTAS.splice(idx, 1);
+  // Fecha modal e atualiza tabela
+  document.getElementById('modal-proposta').classList.remove('open');
+  document.body.style.overflow = '';
+  _propostaAtiva = null;
+  renderPropostasTable();
+  showToast('Interesse cancelado.', 'success');
 }
 
 function toggleCpForm() {
