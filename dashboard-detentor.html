@@ -2704,6 +2704,9 @@ async function addContrapartidaDet() {
 
   document.getElementById('mn-cp-desc').value = '';
   document.getElementById('mn-cp-form').classList.remove('open');
+  // Esconder aviso de "sem entregas" ao adicionar
+  const hint = document.getElementById('mn-no-cp-hint');
+  if (hint) hint.style.display = 'none';
 
   // Persist to Supabase
   if (n._supaId && !isDemoMode()) {
@@ -2898,6 +2901,14 @@ function _parseValorInput(el) {
 function proporValorDeal() {
   const n = _negAtiva;
   if (!n) return;
+  // Bloquear se não tem entregas
+  const cps = (n.contrapartidas || []).filter(c => c.status !== 'recusada');
+  if (cps.length === 0) {
+    showToast('Adicione pelo menos uma entrega antes de propor um valor.', 'error');
+    const hint = document.getElementById('mn-no-cp-hint');
+    if (hint) hint.style.display = '';
+    return;
+  }
   const inputEl = document.getElementById('mn-valor-input');
   const val = _parseValorInput(inputEl);
   if (!val || val <= 0) { showToast('Informe um valor válido.', 'error'); return; }
@@ -3013,6 +3024,10 @@ function _updateDealFooterState() {
     composeDet.style.opacity = isBlocked ? '0.45' : '';
     composeDet.style.pointerEvents = isBlocked ? 'none' : '';
   }
+
+  // Esconder botão de adicionar contrapartida quando bloqueado
+  const btnAddCp = document.getElementById('mn-btn-add-cp');
+  if (btnAddCp) btnAddCp.style.display = (st === 'aceita' || st === 'recusada') ? 'none' : '';
 
   // re-renderiza seção de valor do deal (reflete bloqueio por status)
   renderValorDeal();
@@ -3501,15 +3516,54 @@ function escapeHtml(str) {
           </label>
         </div>
 
-        <!-- Seção: Valor da proposta -->
-        <div class="valor-deal-section">
+        <!-- Seção unificada: Proposta (entregas primeiro, valor depois) -->
+        <div class="valor-deal-section" id="mn-valor-deal-section">
           <div class="valor-deal-header">
-            <span class="valor-deal-title">Valor da proposta</span>
+            <span class="valor-deal-title">Proposta</span>
             <span class="valor-deal-badge sem_proposta" id="mn-valor-badge">Sem proposta</span>
           </div>
-          <!-- Estado atual (preenchido por JS) -->
+
+          <!-- 1. Entregas (primeiro: o que será entregue) -->
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>
+
+          <div class="cp-table-wrap" style="margin-bottom:8px">
+            <table class="cp-table">
+              <thead>
+                <tr>
+                  <th>Descrição</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="mn-cp-tbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Form adicionar -->
+          <div class="cp-form-det" id="mn-cp-form">
+            <div>
+              <label class="cp-form-label-det">Descrição da contrapartida</label>
+              <input class="cp-form-input-det" id="mn-cp-desc" type="text" placeholder="Ex: Estande 6m² no evento, logo na camiseta…">
+            </div>
+            <input type="hidden" id="mn-cp-valor" value="0">
+            <input type="hidden" id="mn-cp-prazo" value="">
+            <div class="cp-form-actions-det">
+              <button class="cp-form-btn-cancel-det" onclick="toggleCpFormDet()">Cancelar</button>
+              <button class="cp-form-btn-add-det" onclick="addContrapartidaDet()">Adicionar</button>
+            </div>
+          </div>
+
+          <button class="btn-add-cp-det" id="mn-btn-add-cp" onclick="toggleCpFormDet()">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Adicionar contrapartida
+          </button>
+
+          <!-- Divider -->
+          <div style="border-top:1px solid var(--gray-200);margin:12px -14px 10px"></div>
+
+          <!-- 2. Valor (depois: quanto custa) -->
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Valor</div>
           <div id="mn-valor-estado"></div>
-          <!-- Input para propor / contrapropor -->
           <div class="valor-deal-input-row" id="mn-valor-input-row">
             <div class="valor-deal-input-wrap">
               <span class="valor-deal-input-prefix">R$</span>
@@ -3517,47 +3571,16 @@ function escapeHtml(str) {
             </div>
             <button class="btn-propor-valor" id="mn-btn-propor-valor" onclick="proporValorDeal()">Propor valor</button>
           </div>
-          <!-- Ações quando há proposta da marca aguardando -->
           <div class="valor-deal-actions" id="mn-valor-actions" style="display:none">
-            <button class="btn-aceitar-valor"    onclick="aceitarValorDeal()">Aceitar valor</button>
+            <button class="btn-aceitar-valor" onclick="aceitarValorDeal()">Aceitar valor</button>
             <button class="btn-contrapropor-valor" onclick="contraproporValorDeal()">Contrapropor</button>
           </div>
-        </div>
 
-        <!-- Entregas header -->
-        <div style="padding:10px 14px 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400)">Entregas</div>
-
-        <div class="cp-table-wrap">
-          <table class="cp-table">
-            <thead>
-              <tr>
-                <th>Descrição</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="mn-cp-tbody"></tbody>
-          </table>
-        </div>
-
-        <div class="cp-form-det" id="mn-cp-form">
-          <div>
-            <label class="cp-form-label-det">Descrição da contrapartida</label>
-            <input class="cp-form-input-det" id="mn-cp-desc" type="text" placeholder="Ex: Estande 6m² no evento, logo na camiseta…">
-          </div>
-          <!-- valor e prazo capturados internamente pelo processo de negociação -->
-          <input type="hidden" id="mn-cp-valor" value="0">
-          <input type="hidden" id="mn-cp-prazo" value="">
-          <div class="cp-form-actions-det">
-            <button class="cp-form-btn-cancel-det" onclick="toggleCpFormDet()">Cancelar</button>
-            <button class="cp-form-btn-add-det" onclick="addContrapartidaDet()">Adicionar</button>
+          <!-- Aviso sem entregas -->
+          <div id="mn-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
+            Adicione pelo menos uma entrega antes de propor um valor.
           </div>
         </div>
-
-        <button class="btn-add-cp-det" onclick="toggleCpFormDet()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-          Adicionar contrapartida
-        </button>
 
         <div class="modal-deal-footer">
           <button class="btn-deal-recusar" id="mn-btn-recusar" onclick="recusarNegociacao()">Recusar negociação</button>
