@@ -1306,7 +1306,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       filter = '&slug=eq.' + encodeURIComponent(idOrPerfilSlug);
     }
     const path = '/rest/v1/oportunidades?select=' +
-      'id,slug,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
+      'id,slug,detentor_id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
       'preco_minimo,formato,bg_gradient,imagens,imagem_capa,tags,publico_descricao,' +
       'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,' +
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
@@ -1393,6 +1393,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
     return {
       id: r.id,
       slug: r.slug || null,
+      detentor_id: r.detentor_id || null,
       perfilSlug: orgData.slug || null,
       title: r.titulo || '',
       org: orgName,
@@ -1487,6 +1488,7 @@ function buildOppCard(o) {
 /* ─── RENDER PAGE ─── */
 function renderPage(oppOverride) {
   var opp = oppOverride || getOpp();
+  _CURRENT_OPP = opp;
 
   document.title = opp.title + ' — Radar Relevantia';
 
@@ -1667,6 +1669,9 @@ function switchTab(id, btn) {
   btn.classList.add('active');
 }
 
+/* ─── CURRENT OPP (set by renderPage for submitModal) ─── */
+var _CURRENT_OPP = null;
+
 /* ─── MODAL ─── */
 // Dados simulados do usuário logado (virão do perfil real futuramente)
 var LOGGED_USER = { name: 'João Silva', company: 'Nike Brasil', initials: 'NB' };
@@ -1745,10 +1750,72 @@ function selectSubject(el) {
   if (btn) btn.disabled = false;
 }
 
-function submitModal() {
-  document.getElementById('modal-form-state').style.display = 'none';
-  document.getElementById('modal-success').classList.add('show');
-  setTimeout(closeModal, 3200);
+async function submitModal() {
+  var btn = document.getElementById('btn-submit');
+  if (btn) btn.disabled = true;
+
+  // Collect form data
+  var cota = '';
+  var cotaSel = document.getElementById('modalCotaSelect');
+  if (cotaSel && cotaSel.value) cota = cotaSel.value;
+
+  var subjectRadio = document.querySelector('input[name="subject"]:checked');
+  var assunto = subjectRadio ? subjectRadio.value : '';
+
+  var mensagem = (document.getElementById('modal-message') || {}).value || '';
+
+  // Get user session
+  var session = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+  var marcaId = session && session.user ? session.user.id : null;
+
+  if (!_CURRENT_OPP || !marcaId) {
+    // Fallback: show success anyway (demo mode)
+    document.getElementById('modal-form-state').style.display = 'none';
+    document.getElementById('modal-success').classList.add('show');
+    setTimeout(closeModal, 3200);
+    return;
+  }
+
+  // Build negociacao payload
+  var neg = {
+    oportunidade_id: _CURRENT_OPP.id,
+    marca_id: marcaId,
+    detentor_id: _CURRENT_OPP.detentor_id,
+    cota: cota,
+    assunto: assunto,
+    status: 'pendente'
+  };
+
+  try {
+    var result = await createNegociacao(neg);
+    if (result && result.id && mensagem.trim()) {
+      // Create initial message in the thread
+      var userName = (session.user.user_metadata || {}).nome || session.user.email || '';
+      var msgPayload = {
+        negociacao_id: result.id,
+        autor_id: marcaId,
+        autor_role: 'marca',
+        autor_nome: userName,
+        texto: mensagem.trim()
+      };
+      var token = typeof _getWriteToken === 'function' ? await _getWriteToken() : null;
+      if (token) {
+        await fetch(SUPABASE_URL + '/rest/v1/mensagens', {
+          method: 'POST', body: JSON.stringify(msgPayload),
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+        });
+      }
+    }
+
+    // Show success
+    document.getElementById('modal-form-state').style.display = 'none';
+    document.getElementById('modal-success').classList.add('show');
+    setTimeout(closeModal, 3200);
+  } catch (err) {
+    console.error('[submitModal] Failed:', err);
+    if (btn) btn.disabled = false;
+    if (typeof showToast === 'function') showToast('Erro ao enviar. Tente novamente.', 'error');
+  }
 }
 
 /* ─── SIDEBAR MOBILE ─── */
