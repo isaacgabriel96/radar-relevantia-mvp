@@ -468,12 +468,14 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 /* ── Focal Point Selector ── */
 .photo-focal-btn {
   position: absolute; bottom: 5px; right: 5px;
-  background: rgba(26,18,0,0.55); color: var(--white);
-  border: none; border-radius: 50%; width: 24px; height: 24px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 13px; transition: all .15s;
+  background: rgba(26,18,0,0.65); color: var(--white);
+  border: none; border-radius: var(--radius-pill); height: 22px;
+  padding: 0 8px; display: flex; align-items: center; gap: 3px;
+  cursor: pointer; font-size: 10px; font-weight: 600; letter-spacing: .2px;
+  font-family: var(--font-body); transition: all .15s; white-space: nowrap;
 }
-.photo-focal-btn:hover { background: rgba(26,18,0,0.85); }
+.photo-focal-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
+.photo-focal-btn:hover { background: rgba(26,18,0,0.9); }
 .photo-focal-btn.has-focal { background: var(--gold-gradient); }
 .focal-overlay {
   position: fixed; inset: 0; background: rgba(26,18,0,0.7);
@@ -484,6 +486,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   background: var(--white); border-radius: var(--radius-lg);
   padding: 24px; max-width: 520px; width: 92%;
   box-shadow: 0 20px 60px rgba(26,18,0,0.35);
+  max-height: 90vh; overflow-y: auto;
 }
 .focal-editor h4 {
   font-family: var(--font-heading); font-size: 16px; font-weight: 600;
@@ -495,8 +498,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 .focal-image-wrap {
   position: relative; cursor: crosshair;
   border-radius: var(--radius-md); overflow: hidden; background: var(--gray-1);
+  max-height: 50vh;
 }
-.focal-image-wrap img { width: 100%; display: block; }
+.focal-image-wrap img { width: 100%; display: block; max-height: 50vh; object-fit: contain; }
 .focal-marker {
   position: absolute; width: 20px; height: 20px; border-radius: 50%;
   background: var(--gold); border: 2.5px solid white;
@@ -560,22 +564,60 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   border-color: var(--gold); background: var(--gold-gradient);
 }
 
-/* ── Opportunity Preview Card ── */
-.opp-preview-card { border: 1.5px solid var(--gray-2); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; }
-.opp-preview-cover { width: 100%; height: 200px; background: var(--gray-1); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-.opp-preview-cover img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-.opp-preview-cover-placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--gray-3); }
-.opp-preview-cover-placeholder span { font-size: 12px; }
-.opp-preview-cover-badge { position: absolute; top: 12px; left: 12px; background: rgba(26,18,0,0.65); color: var(--white); border-radius: var(--radius-pill); padding: 4px 10px; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
-.opp-preview-body { padding: 20px 22px; }
-.opp-preview-name { font-family: var(--font-heading); font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
-.opp-preview-photos { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
-.opp-preview-photo { width: 60px; height: 60px; border-radius: var(--radius-md); overflow: hidden; border: 1.5px solid var(--gray-2); flex-shrink: 0; }
-.opp-preview-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-.opp-preview-video { border: 1.5px solid var(--gray-2); border-radius: var(--radius-md); padding: 12px 14px; display: flex; align-items: center; gap: 10px; background: var(--gray-1); margin-top: 8px; }
-.opp-preview-video-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--black); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.opp-preview-video-label { font-size: 13px; color: var(--gray-4); font-weight: 500; }
-.opp-preview-video-url { font-size: 11px; color: var(--gray-3); margin-top: 2px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* ── Opportunity Preview Card (matches oportunidade-detalhe.html) ── */
+.opp-preview-card { border: 1.5px solid var(--gray-2); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; background: var(--white); }
+
+/* Gallery 1+4 grid */
+.opp-preview-gallery {
+  display: grid; grid-template-columns: 1fr 90px 90px;
+  grid-template-rows: 1fr 1fr; gap: 3px; height: 200px;
+  background: var(--gray-1); position: relative;
+}
+.opp-preview-gallery-main {
+  grid-row: 1 / -1; overflow: hidden; background-size: cover;
+  background-position: center top; background-repeat: no-repeat;
+  background-color: var(--gray-1); position: relative;
+}
+.opp-preview-gallery-main.no-image {
+  display: flex; align-items: center; justify-content: center;
+}
+.opp-preview-gallery-thumb {
+  overflow: hidden; background-size: cover;
+  background-position: center top; background-repeat: no-repeat;
+  background-color: var(--gray-2);
+}
+.opp-preview-gallery-badge {
+  position: absolute; bottom: 8px; left: 8px;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+  color: var(--white); border-radius: var(--radius-pill);
+  padding: 3px 9px; font-size: 10px; font-weight: 500; letter-spacing: .2px;
+}
+.opp-preview-cover-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--gray-3); }
+.opp-preview-cover-placeholder span { font-size: 11px; }
+
+/* Header info */
+.opp-preview-body { padding: 16px 18px; }
+.opp-preview-category-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.opp-preview-category {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--gold);
+}
+.opp-preview-status {
+  font-size: 9px; font-weight: 600; color: #16a34a;
+  background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+  border-radius: var(--radius-pill); padding: 2px 7px;
+}
+.opp-preview-name {
+  font-family: var(--font-heading); font-size: 18px; font-weight: 700;
+  color: var(--text); margin-bottom: 10px; line-height: 1.2;
+}
+.opp-preview-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+.opp-preview-meta-item {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--gray-4); font-weight: 500;
+}
+.opp-preview-meta-item svg { width: 13px; height: 13px; flex-shrink: 0; opacity: .55; }
+
 .opp-preview-note { text-align: center; font-size: 11px; color: var(--gray-3); margin-top: -8px; margin-bottom: 16px; font-style: italic; }
 
 /* ── Review Summary ── */
@@ -760,8 +802,26 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 20px;
 }
 .pv-cover {
-  height: 200px; background: var(--gray-1); position: relative;
-  display: flex; align-items: center; justify-content: center; overflow: hidden;
+  display: grid; grid-template-columns: 1fr 120px 120px;
+  grid-template-rows: 1fr 1fr; gap: 3px; height: 220px;
+  background: var(--gray-1); position: relative; overflow: hidden;
+}
+.pv-cover-main {
+  grid-row: 1 / -1; overflow: hidden; background-size: cover;
+  background-position: center top; background-repeat: no-repeat;
+  background-color: var(--gray-1); position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.pv-cover-thumb {
+  overflow: hidden; background-size: cover;
+  background-position: center top; background-repeat: no-repeat;
+  background-color: var(--gray-2);
+}
+.pv-cover-badge {
+  position: absolute; bottom: 8px; left: 8px;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+  color: var(--white); border-radius: var(--radius-pill);
+  padding: 3px 9px; font-size: 10px; font-weight: 500; letter-spacing: .2px;
 }
 .pv-cover img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
 .pv-cover-placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--gray-3); font-size: 13px; }
@@ -780,15 +840,8 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   padding: 6px 16px; font-size: 14px; font-weight: 600; color: var(--text);
 }
 
-/* Gallery */
-.pv-gallery {
-  display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;
-}
-.pv-gallery-thumb {
-  width: 100px; height: 72px; border-radius: var(--radius-base); overflow: hidden;
-  flex-shrink: 0; background: var(--gray-1);
-}
-.pv-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+/* Gallery (agora dentro do pv-cover grid) */
+.pv-gallery { display: none; }
 
 /* Tabs */
 .pv-tabs {
@@ -942,7 +995,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   .pv-header-body { padding: 16px; }
   .pv-title { font-size: 18px; }
   .pv-meta-row { gap: 10px; }
-  .pv-cover { height: 160px; }
+  .pv-cover { height: 160px; grid-template-columns: 1fr 80px 80px; }
   .pv-tabs { gap: 0; }
   .pv-tab { padding: 8px 12px; font-size: 12px; }
   .pv-inline-editor { max-width: 100%; }
@@ -1578,13 +1631,19 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         </div>
       </div>
 
-      <!-- Header da oportunidade -->
+      <!-- Header da oportunidade — Gallery 1+4 -->
       <div class="pv-header-card">
         <div class="pv-cover" id="pvCover">
-          <div class="pv-cover-placeholder">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span>Sem foto de capa</span>
+          <div class="pv-cover-main" id="pvCoverMain">
+            <div class="pv-cover-placeholder">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>Sem foto de capa</span>
+            </div>
           </div>
+          <div class="pv-cover-thumb" id="pvThumb0"></div>
+          <div class="pv-cover-thumb" id="pvThumb2"></div>
+          <div class="pv-cover-thumb" id="pvThumb1"></div>
+          <div class="pv-cover-thumb" id="pvThumb3"></div>
         </div>
         <div class="pv-header-body">
           <div class="pv-category-badge" id="pvCategoryBadge">—</div>
@@ -2228,25 +2287,82 @@ function renderReviewSummary() {
   const allThumbs  = Array.from(document.querySelectorAll('#photosGrid .photo-thumb img'));
   const tplLabel = tpl?.label || tplKey || '';
 
-  // ── Preview visual da oportunidade ──
-  let preview = `<div class="opp-preview-card"><div class="opp-preview-cover">`;
+  // ── Preview visual 1+4 (espelha oportunidade-detalhe.html) ──
+  const fallbackColors = ['#e0d8cc', '#d0c8b8', '#c8c0b0', '#bfb8a8'];
+
+  let preview = `<div class="opp-preview-card">`;
+
+  // Gallery grid 1+4
+  preview += `<div class="opp-preview-gallery">`;
+  // Main (capa)
   if (coverThumb) {
-    preview += `<img src="${coverThumb.src}" alt="Capa">`;
-  } else {
-    preview += `<div class="opp-preview-cover-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Sem foto de capa</span></div>`;
-  }
-  if (tplLabel) preview += `<div class="opp-preview-cover-badge">${tplLabel}</div>`;
-  preview += `</div><div class="opp-preview-body"><div class="opp-preview-name">${nomeVal || 'Nome da oportunidade'}</div>`;
-  const otherThumbs = allThumbs.filter(img => img !== coverThumb);
-  if (otherThumbs.length > 0) {
-    preview += `<div class="opp-preview-photos">`;
-    otherThumbs.forEach(img => { preview += `<div class="opp-preview-photo"><img src="${img.src}" alt=""></div>`; });
+    const fp0 = _focalPoints[0] || { x: 50, y: 20 };
+    preview += `<div class="opp-preview-gallery-main" style="background:url(${coverThumb.src}) ${fp0.x}% ${fp0.y}% / cover no-repeat">`;
+    if (tplLabel) preview += `<div class="opp-preview-gallery-badge">${tplLabel}</div>`;
     preview += `</div>`;
+  } else {
+    preview += `<div class="opp-preview-gallery-main no-image"><div class="opp-preview-cover-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Sem capa</span></div></div>`;
   }
-  if (videoUrlVal) {
-    preview += `<div class="opp-preview-video"><div class="opp-preview-video-icon"><svg width="12" height="14" viewBox="0 0 12 14" fill="white"><polygon points="0 0 12 7 0 14"/></svg></div><div><div class="opp-preview-video-label">Vídeo de apresentação</div><div class="opp-preview-video-url">${videoUrlVal}</div></div></div>`;
+
+  // 4 thumbs (mesma ordem de grid: [0,2,1,3] para preencher col2-row1, col3-row1, col2-row2, col3-row2)
+  const otherThumbs = allThumbs.filter(img => img !== coverThumb);
+  const thumbOrder = [0, 2, 1, 3];
+  for (let i = 0; i < 4; i++) {
+    const ot = otherThumbs[thumbOrder[i]];
+    if (ot) {
+      const fpIdx = thumbOrder[i] + 1;
+      const fp = _focalPoints[fpIdx] || { x: 50, y: 20 };
+      preview += `<div class="opp-preview-gallery-thumb" style="background:url(${ot.src}) ${fp.x}% ${fp.y}% / cover no-repeat"></div>`;
+    } else {
+      preview += `<div class="opp-preview-gallery-thumb" style="background:${fallbackColors[i]}"></div>`;
+    }
   }
-  preview += `</div></div><div class="opp-preview-note">Pré-visualização aproximada de como sua oportunidade aparecerá no Radar</div>`;
+  preview += `</div>`;
+
+  // Body com infos reais
+  const estadoEl2 = document.getElementById('opp-estado');
+  const cidadeEl2 = document.getElementById('opp-cidade');
+  const estadoText = estadoEl2?.options[estadoEl2.selectedIndex]?.text || '';
+  const cidadeText = cidadeEl2?.value || '';
+  const locationText = [cidadeText, (estadoText !== 'Selecione o estado' ? estadoText : '')].filter(Boolean).join(' — ');
+
+  // Date from event-dates
+  let dateText = '';
+  if (tpl) {
+    tpl.fields.forEach(f => {
+      if (f.type === 'event-dates') {
+        const entries = document.querySelectorAll('#event-entries-list .event-entry');
+        entries.forEach(entry => {
+          const d = entry.querySelectorAll('input')[0]?.value || '';
+          if (d && !dateText) dateText = d;
+        });
+      }
+    });
+  }
+
+  // Price from cotas
+  let priceText = 'Valor a definir';
+  const cotasOn = document.getElementById('cotas-toggle-switch')?.classList.contains('active');
+  if (cotasOn) {
+    const vals = Array.from(document.querySelectorAll('#cotas-list .cota-card .cota-valor'))
+      .map(el => Number(el.value)).filter(v => v > 0);
+    if (vals.length > 0) {
+      const minV = Math.min(...vals);
+      priceText = `A partir de R$ ${minV.toLocaleString('pt-BR')}`;
+    }
+  }
+
+  preview += `<div class="opp-preview-body">`;
+  preview += `<div class="opp-preview-category-row">`;
+  if (tplLabel) preview += `<span class="opp-preview-category">${tplLabel}</span>`;
+  preview += `<span class="opp-preview-status">Aberto</span></div>`;
+  preview += `<div class="opp-preview-name">${nomeVal || 'Nome da oportunidade'}</div>`;
+  preview += `<div class="opp-preview-meta">`;
+  preview += `<span class="opp-preview-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${locationText || '—'}</span>`;
+  preview += `<span class="opp-preview-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>${dateText || '—'}</span>`;
+  preview += `<span class="opp-preview-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>${priceText}</span>`;
+  preview += `</div></div></div>`;
+  preview += `<div class="opp-preview-note">Pré-visualização aproximada de como sua oportunidade aparecerá no Radar</div>`;
 
   let html = preview;
 
@@ -2500,12 +2616,40 @@ function renderPreview() {
   document.getElementById('pvCategoryBadge').textContent = d.category || '—';
   document.getElementById('pvTitle').textContent = d.nome || 'Nome da oportunidade';
 
-  // Cover
-  const coverEl = document.getElementById('pvCover');
+  // Cover — Gallery 1+4 com focal points
+  const allImgs = d.coverImg ? [d.coverImg, ...d.otherImgs] : d.otherImgs;
+  const mainEl = document.getElementById('pvCoverMain');
+  const fallbackColors = ['#e0d8cc', '#d0c8b8', '#c8c0b0', '#bfb8a8'];
+
   if (d.coverImg) {
-    coverEl.innerHTML = `<img src="${d.coverImg}" alt="Capa">`;
+    const fp0 = _focalPoints[0] || { x: 50, y: 20 };
+    mainEl.style.background = `url(${d.coverImg}) ${fp0.x}% ${fp0.y}% / cover no-repeat`;
+    mainEl.innerHTML = `<div class="pv-cover-badge">${d.category || 'Oportunidade'}</div>`;
   } else {
-    coverEl.innerHTML = `<div class="pv-cover-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Sem foto de capa</span></div>`;
+    mainEl.style.background = 'var(--gray-1)';
+    mainEl.innerHTML = `<div class="pv-cover-placeholder"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Sem foto de capa</span></div>`;
+  }
+
+  // 4 thumbs na galeria grid (mesma ordem da página de detalhe)
+  // HTML order: pvThumb0, pvThumb2, pvThumb1, pvThumb3
+  // Grid positions: col2/row1, col3/row1, col2/row2, col3/row2
+  // Detail page maps: col2/row1→imgs[1], col3/row1→imgs[3], col2/row2→imgs[2], col3/row2→imgs[4]
+  const thumbMapping = [
+    { id: 'pvThumb0', imgIdx: 1 },  // col2/row1
+    { id: 'pvThumb2', imgIdx: 3 },  // col3/row1
+    { id: 'pvThumb1', imgIdx: 2 },  // col2/row2
+    { id: 'pvThumb3', imgIdx: 4 }   // col3/row2
+  ];
+  for (let i = 0; i < thumbMapping.length; i++) {
+    const thumbEl = document.getElementById(thumbMapping[i].id);
+    if (!thumbEl) continue;
+    const imgUrl = allImgs[thumbMapping[i].imgIdx];
+    if (imgUrl) {
+      const fp = _focalPoints[thumbMapping[i].imgIdx] || { x: 50, y: 20 };
+      thumbEl.style.background = `url(${imgUrl}) ${fp.x}% ${fp.y}% / cover no-repeat`;
+    } else {
+      thumbEl.style.background = fallbackColors[i];
+    }
   }
 
   // Org (nome do usuário da sidebar)
@@ -2531,16 +2675,9 @@ function renderPreview() {
     pvPrice.textContent = 'Valor a definir';
   }
 
-  // Gallery
+  // Gallery antiga desabilitada (agora integrada no cover grid 1+4)
   const galleryEl = document.getElementById('pvGallery');
-  if (d.otherImgs.length > 0) {
-    galleryEl.style.display = 'flex';
-    galleryEl.innerHTML = d.otherImgs.map(src =>
-      `<div class="pv-gallery-thumb"><img src="${src}" alt=""></div>`
-    ).join('');
-  } else {
-    galleryEl.style.display = 'none';
-  }
+  if (galleryEl) galleryEl.style.display = 'none';
 
   // Tab: Visão geral
   document.getElementById('pvDescription').textContent = d.desc || '—';
@@ -2889,7 +3026,7 @@ function previewPhotos(input) {
       thumb.innerHTML = `<img src="${e.target.result}" alt="">
         <button class="photo-remove" onclick="removePhoto(this.parentElement)">✕</button>
         <button class="photo-cover-btn" onclick="setCoverPhoto(this.parentElement)">Capa</button>
-        <button class="photo-focal-btn" onclick="openFocalEditor(${idx})" title="Ajustar ponto focal">⊕</button>`;
+        <button class="photo-focal-btn" onclick="openFocalEditor(${idx})" title="Ajustar enquadramento da foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>Ajustar</button>`;
       // Focal point padrão: center top
       _focalPoints[idx] = { x: 50, y: 20 };
       // Primeira foto sem capa vira capa automaticamente
@@ -3373,7 +3510,18 @@ async function uploadPhotos(oppId, token) {
   for (let i = 0; i < thumbs.length; i++) {
     const thumb = thumbs[i];
     const img = thumb.querySelector('img');
-    const src = img.src;
+    const src = img ? img.src : '';
+
+    // Foto já existente (modo edição) — já tem URL pública, não precisa re-upload
+    const existingUrl = thumb.getAttribute('data-existing-url');
+    if (existingUrl) {
+      urls.push(existingUrl);
+      indexToUrl[i] = existingUrl;
+      if (thumb === coverThumb) capaUrl = existingUrl;
+      continue;
+    }
+
+    // Foto nova (data: URI) — fazer upload
     if (!src || !src.startsWith('data:')) continue;
 
     try {
@@ -3632,6 +3780,36 @@ function maybePreFillEdit() {
   if (opp.linkExterno) {
     const linkEl = document.getElementById('opp-link-externo');
     if (linkEl) linkEl.value = opp.linkExterno;
+  }
+
+  // --- Passo 3: Fotos existentes ---
+  const existingImgs = opp.images || opp.imagens || [];
+  const existingCapa = opp.imagem_capa || '';
+  const existingFocal = opp.imagens_focal || {};
+  if (existingImgs.length > 0) {
+    const grid = document.getElementById('photosGrid');
+    // Reordenar: capa primeiro, depois o resto
+    const orderedImgs = existingCapa
+      ? [existingCapa, ...existingImgs.filter(u => u !== existingCapa)]
+      : existingImgs;
+
+    orderedImgs.forEach((url, idx) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'photo-thumb' + (url === existingCapa ? ' cover-photo' : '');
+      thumb.setAttribute('data-photo-index', idx);
+      thumb.setAttribute('data-existing-url', url);
+      thumb.innerHTML = `<img src="${url}" alt="">
+        <button class="photo-remove" onclick="removePhoto(this.parentElement)">✕</button>
+        <button class="photo-cover-btn" onclick="setCoverPhoto(this.parentElement)">Capa</button>
+        <button class="photo-focal-btn${existingFocal[url] ? ' has-focal' : ''}" onclick="openFocalEditor(${idx})" title="Ajustar enquadramento da foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>Ajustar</button>`;
+      // Focal point: do banco ou padrão
+      const fp = existingFocal[url] || { x: 50, y: 20 };
+      _focalPoints[idx] = fp;
+      thumb.querySelector('img').style.objectPosition = fp.x + '% ' + fp.y + '%';
+      const slot = grid.querySelector('.photo-add-slot');
+      grid.insertBefore(thumb, slot);
+    });
+    updatePhotoSlot();
   }
 
   // Limpa o sessionStorage após usar
