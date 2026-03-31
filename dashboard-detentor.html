@@ -1820,9 +1820,7 @@ function setUserInfo(nome, email) {
 // ─── LOAD USER INFO (SDK → localStorage → MOCK fallback) ───
 async function loadUserInfoDetentor() {
   // 1. Tentar via SDK (mais confiável, tem refresh automático)
-  if (typeof restoreSessionToSDK !== 'undefined') {
-    try { await restoreSessionToSDK(); } catch (_) {}
-  }
+  // restoreSessionToSDK() já é chamado no init() antes desta função
   if (typeof sb !== 'undefined' && sb) {
     try {
       const { data: { session } } = await sb.auth.getSession();
@@ -1846,19 +1844,42 @@ async function loadUserInfoDetentor() {
       }
     } catch (_) {}
   }
-  // 2. Fallback: localStorage sb_detentor_session
-  const stored = localStorage.getItem('sb_detentor_session');
+
+  // 2. Fallback: tentar token refreshed via getSessionAsync
+  try {
+    var legacy = await getSessionAsync('rightsholder');
+    if (legacy && legacy.user) {
+      var meta = legacy.user.user_metadata || {};
+      var nome = meta.nome || meta.name || legacy.user.email?.split('@')[0] || MOCK_USER.nome;
+      var email = legacy.user.email || MOCK_USER.email;
+      // Tentar buscar nome na tabela perfis com token refreshed
+      try {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?user_id=eq.' + legacy.user.id + '&select=nome,empresa_nome&limit=1', {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + legacy.access_token }
+        });
+        if (res.ok) {
+          var rows = await res.json();
+          if (rows.length > 0) nome = rows[0].nome || rows[0].empresa_nome || nome;
+        }
+      } catch (_) {}
+      setUserInfo(nome, email);
+      return;
+    }
+  } catch (_) {}
+
+  // 3. Fallback: raw localStorage (sem refresh, só metadata)
+  var stored = localStorage.getItem('sb_detentor_session');
   if (stored) {
     try {
-      const session = JSON.parse(stored);
-      const meta = session.user?.user_metadata || {};
-      const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
-      const email = session.user?.email || MOCK_USER.email;
-      setUserInfo(nome, email);
+      var session = JSON.parse(stored);
+      var meta2 = session.user?.user_metadata || {};
+      var nome2 = meta2.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
+      var email2 = session.user?.email || MOCK_USER.email;
+      setUserInfo(nome2, email2);
       return;
     } catch (_) {}
   }
-  // 3. Mock fallback
+  // 4. Mock fallback
   setUserInfo(MOCK_USER.nome, MOCK_USER.email);
 }
 
@@ -2368,31 +2389,41 @@ var MINHAS_OPPS = [];
 async function loadMinhasOpps() {
   if (isDemoMode()) return;
 
-  // Garante que sessão SDK esteja restaurada antes de prosseguir
-  if (typeof restoreSessionToSDK === 'function') {
-    try { await restoreSessionToSDK(); } catch(e) { console.warn('[Opps] restoreSession failed:', e); }
-  }
+  // Tenta token via _getWriteToken (SDK com auto-refresh + legacy fallback)
+  let token = await _getWriteToken('rightsholder');
 
-  // Tenta token SDK primeiro, depois fallback legacy
-  let token = await getValidToken();
-  if (!token) token = await _getWriteToken('rightsholder');
-
-  // userId: SDK primeiro, depois legacy
+  // userId: SDK primeiro, depois raw localStorage (sem checar expiração)
   let userId = await getAuthUserId();
   if (!userId) {
-    const legacy = getSession('rightsholder');
-    if (legacy && legacy.user) userId = legacy.user.id;
+    // Ler raw do localStorage — o user.id não muda mesmo com token expirado
+    try {
+      var raw = localStorage.getItem('sb_detentor_session');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.user && parsed.user.id) userId = parsed.user.id;
+      }
+    } catch(_) {}
   }
 
+  console.log('[Opps] token:', token ? 'OK (' + token.substring(0,20) + '...)' : 'NULL');
+  console.log('[Opps] userId:', userId || 'NULL');
+
   if (!token || !userId) {
-    console.warn('[Opps] No token or userId — skipping loadMinhasOpps');
+    console.warn('[Opps] No token or userId — skipping loadMinhasOpps. Redirect to login may be needed.');
     return;
   }
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,status,ativo,bg_gradient,imagem_capa,imagens,imagens_focal,visibilidade,descricao,link_externo,abrangencia,criado_em,perfis:detentor_id(slug)&detentor_id=eq.' + userId + '&order=criado_em.desc', {
+    var url = SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,status,ativo,bg_gradient,imagem_capa,imagens,imagens_focal,visibilidade,descricao,link_externo,abrangencia,criado_em,perfis:detentor_id(slug)&detentor_id=eq.' + userId + '&order=criado_em.desc';
+    console.log('[Opps] Fetching:', url.substring(0, 120) + '...');
+    const res = await fetch(url, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      var errBody = '';
+      try { errBody = await res.text(); } catch(_) {}
+      console.error('[Opps] HTTP', res.status, ':', errBody);
+      return;
+    }
     const rows = await res.json();
     MINHAS_OPPS = rows.map(r => ({
       id: r.id,
@@ -3783,7 +3814,14 @@ var _acessoFilter = 'pendente';
 async function loadAcessos() {
   if (isDemoMode()) return;
   var token = await getValidToken();
+  if (!token) token = await _getWriteToken('rightsholder');
   var userId = await getAuthUserId();
+  if (!userId) {
+    try {
+      var raw = localStorage.getItem('sb_detentor_session');
+      if (raw) { var p = JSON.parse(raw); if (p && p.user) userId = p.user.id; }
+    } catch(_) {}
+  }
   if (!token || !userId) return;
   try {
     // Get all opp IDs owned by this detentor

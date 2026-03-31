@@ -220,17 +220,20 @@ async function restoreSessionToSDK() {
   const { data: existing } = await sb.auth.getSession();
   if (existing?.session) return; // SDK already has a valid session
 
-  // Try to restore from legacy localStorage
-  const legacy = getSession('rightsholder') || getSession('brand');
+  // Try to restore from legacy localStorage (with auto-refresh for expired tokens)
+  const legacy = await getSessionAsync('rightsholder') || await getSessionAsync('brand');
   if (legacy && legacy.access_token && legacy.access_token !== 'DEMO_TOKEN') {
     try {
       await sb.auth.setSession({
         access_token: legacy.access_token,
         refresh_token: legacy.refresh_token || ''
       });
+      console.log('[core] Legacy session restored to SDK successfully');
     } catch (e) {
       console.warn('[core] Could not restore legacy session to SDK:', e.message);
     }
+  } else {
+    console.warn('[core] No legacy session available to restore to SDK');
   }
 }
 
@@ -379,8 +382,8 @@ async function fetchNegociacoesDetentor() {
         return rows.map(rowToNegociacao);
       }
     }
-    // Fallback to legacy token
-    const session = getSession('rightsholder');
+    // Fallback to legacy token (with auto-refresh)
+    const session = await getSessionAsync('rightsholder');
     if (session?.access_token && session.access_token !== 'DEMO_TOKEN') {
       const res = await sbFetch('/rest/v1/negociacoes?select=' + _negSelectQuery +
         '&order=created_at.desc&mensagens.order=created_at.asc', session.access_token);
