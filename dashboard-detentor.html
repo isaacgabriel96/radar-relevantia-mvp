@@ -2392,24 +2392,34 @@ async function loadMinhasOpps() {
   // Tenta token via _getWriteToken (SDK com auto-refresh + legacy fallback)
   let token = await _getWriteToken('rightsholder');
 
-  // userId: SDK primeiro, depois raw localStorage (sem checar expiração)
-  let userId = await getAuthUserId();
+  if (!token) {
+    console.warn('[Opps] No token — skipping loadMinhasOpps');
+    return;
+  }
+
+  // Extrair userId do JWT para filtro client-side
+  let userId = null;
+  try {
+    // Decode JWT payload (base64url)
+    var parts = token.split('.');
+    if (parts.length === 3) {
+      var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+      userId = payload.sub || null;
+    }
+  } catch(_) {}
+  // Fallback: SDK ou localStorage
+  if (!userId) userId = await getAuthUserId();
   if (!userId) {
-    // Ler raw do localStorage — o user.id não muda mesmo com token expirado
     try {
       var raw = localStorage.getItem('sb_detentor_session');
-      if (raw) {
-        var parsed = JSON.parse(raw);
-        if (parsed && parsed.user && parsed.user.id) userId = parsed.user.id;
-      }
+      if (raw) { var parsed = JSON.parse(raw); if (parsed && parsed.user) userId = parsed.user.id; }
     } catch(_) {}
   }
 
-  console.log('[Opps] token:', token ? 'OK (' + token.substring(0,20) + '...)' : 'NULL');
-  console.log('[Opps] userId:', userId || 'NULL');
+  console.log('[Opps] token:', token ? 'OK' : 'NULL', '| userId:', userId || 'NULL');
 
-  if (!token || !userId) {
-    console.warn('[Opps] No token or userId — skipping loadMinhasOpps. Redirect to login may be needed.');
+  if (!userId) {
+    console.warn('[Opps] No userId — skipping loadMinhasOpps');
     return;
   }
   try {
