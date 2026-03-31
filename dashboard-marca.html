@@ -1033,29 +1033,29 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="kpi-icon gold">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
           </div>
-          <div class="kpi-value">7</div>
+          <div class="kpi-value" id="kpi-salvas">—</div>
           <div class="kpi-label">Oportunidades salvas</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon blue">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
           </div>
-          <div class="kpi-value">4</div>
+          <div class="kpi-value" id="kpi-enviadas">—</div>
           <div class="kpi-label">Propostas enviadas</div>
-          <div class="kpi-change">↑ 2 esta semana</div>
+          <div class="kpi-change" id="kpi-enviadas-change" style="display:none"></div>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon green">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
-          <div class="kpi-value">1</div>
+          <div class="kpi-value" id="kpi-aceitas">—</div>
           <div class="kpi-label">Propostas aceitas</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-icon orange">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
-          <div class="kpi-value" style="font-size:26px">R$ 45k</div>
+          <div class="kpi-value" id="kpi-investimento" style="font-size:26px">—</div>
           <div class="kpi-label">Investimento ativo</div>
         </div>
       </div>
@@ -1067,34 +1067,10 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="card-header">
             <div class="card-title">Atividade recente</div>
           </div>
-          <div class="timeline">
-            <div class="tl-item">
-              <div class="tl-dot gold">✨</div>
-              <div class="tl-body">
-                <div class="tl-text">Proposta para <strong>Maratona Internacional SP</strong> enviada</div>
-                <div class="tl-time">Há 3 horas</div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot green">✓</div>
-              <div class="tl-body">
-                <div class="tl-text">Proposta para <strong>Festival de Verão Salvador</strong> foi aceita</div>
-                <div class="tl-time">Ontem às 16:20</div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot blue">🔍</div>
-              <div class="tl-body">
-                <div class="tl-text">Oportunidade <strong>Expo Tech Brasil</strong> salva nos favoritos</div>
-                <div class="tl-time">19 mar 2026</div>
-              </div>
-            </div>
-            <div class="tl-item">
-              <div class="tl-dot gold">📄</div>
-              <div class="tl-body">
-                <div class="tl-text">Proposta para <strong>Arena Music Curitiba</strong> enviada</div>
-                <div class="tl-time">18 mar 2026</div>
-              </div>
+          <div class="timeline" id="dashboard-timeline">
+            <div class="tl-item tl-skeleton">
+              <div class="tl-dot gold" style="background:var(--gray-100)"></div>
+              <div class="tl-body" style="opacity:0.4">Carregando...</div>
             </div>
           </div>
         </div>
@@ -1102,7 +1078,7 @@ tbody tr:last-child td { border-bottom: none; }
         <!-- Right: Propostas pendentes -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Propostas pendentes</div>
+            <div class="card-title">Propostas recentes</div>
           </div>
           <div class="table-wrap">
             <table>
@@ -1113,21 +1089,9 @@ tbody tr:last-child td { border-bottom: none; }
                   <th>Data</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="dashboard-propostas-tbody">
                 <tr>
-                  <td style="font-weight:600">Maratona Internacional SP</td>
-                  <td><span class="badge badge-orange">Pendente</span></td>
-                  <td style="color:var(--gray-400)">15/03/2026</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:600">Expo Tech Brasil</td>
-                  <td><span class="badge badge-blue">Em análise</span></td>
-                  <td style="color:var(--gray-400)">10/03/2026</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:600">Arena Music Curitiba</td>
-                  <td><span class="badge badge-red">Recusada</span></td>
-                  <td style="color:var(--gray-400)">05/03/2026</td>
+                  <td colspan="3" style="color:var(--gray-400);text-align:center;padding:20px">Carregando...</td>
                 </tr>
               </tbody>
             </table>
@@ -1613,34 +1577,27 @@ async function init() {
     // Demo mode banner
     showDemoBannerIfActive();
 
-    // Tentar pegar dados da sessão se existir
-    const stored = localStorage.getItem('sb_marca_session');
-    if (stored) {
-      try {
-        const session = JSON.parse(stored);
-        const meta = session.user?.user_metadata || {};
-        const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
-        const email = session.user?.email || MOCK_USER.email;
-        setUserInfo(nome, email);
-      } catch {
-        setUserInfo(MOCK_USER.nome, MOCK_USER.email);
-      }
-    } else {
-      setUserInfo(MOCK_USER.nome, MOCK_USER.email);
-    }
+    // Load user info: try SDK session first, then localStorage fallback
+    await loadUserInfo();
 
     // Render opportunities (loads from Supabase or CATALOG in demo mode)
     loadOpportunities(opps => renderOpportunities(opps));
+    // Count saved (favorited) opportunities from localStorage
+    loadInteressesCount();
 
-    // Load proposals from Supabase (or SharedNeg fallback)
+    // Load proposals from Supabase (or empty fallback)
     try {
       await loadPropostas();
     } catch (e) {
       console.error('[init] loadPropostas failed:', e);
-      PROPOSTAS = SharedNeg.byMarca('nike-brasil');
+      PROPOSTAS = [];
     }
     renderPropostasTable();
-    initPropostasSection();
+    initPropostasSection();  // updates pill counts + renders table
+    renderDealsPropostas();   // updates deals tab
+    updateDashboardKPIs();
+    renderDashboardTimeline();
+    renderDashboardPropostasRecentes();
 
     // Check hash for deep linking
     const hash = window.location.hash.replace('#', '');
@@ -1655,6 +1612,128 @@ async function init() {
       document.getElementById('loadingScreen').style.display = 'none';
     }, 600);
   }
+}
+
+async function loadUserInfo() {
+  // Give restoreSessionToSDK() a moment to complete if it's still running
+  if (typeof restoreSessionToSDK !== 'undefined') {
+    await restoreSessionToSDK();
+  }
+  // Try SDK for fresh session data
+  if (typeof sb !== 'undefined' && sb) {
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session?.user) {
+        const user = session.user;
+        const meta = user.user_metadata || {};
+        const nome = meta.nome || meta.full_name || user.email?.split('@')[0] || MOCK_USER.nome;
+        const email = user.email || MOCK_USER.email;
+        setUserInfo(nome, email);
+        // Also fetch perfil for empresa info
+        try {
+          const token = await getValidToken();
+          if (token) {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email&id=eq.' + user.id, {
+              headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+            });
+            if (res.ok) {
+              const rows = await res.json();
+              if (rows.length > 0) {
+                const p = rows[0];
+                setUserInfo(p.nome || nome, p.email || email, p.empresa);
+              }
+            }
+          }
+        } catch (_) {}
+        return;
+      }
+    } catch (_) {}
+  }
+  // Fallback: localStorage session
+  const stored = localStorage.getItem('sb_marca_session');
+  if (stored) {
+    try {
+      const session = JSON.parse(stored);
+      const meta = session.user?.user_metadata || {};
+      const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
+      const email = session.user?.email || MOCK_USER.email;
+      setUserInfo(nome, email);
+      return;
+    } catch (_) {}
+  }
+  setUserInfo(MOCK_USER.nome, MOCK_USER.email);
+}
+
+function loadInteressesCount() {
+  // Favoritos are tracked in localStorage (table `interesses` is for leads, not user favorites)
+  const favs = JSON.parse(localStorage.getItem('rr_favoritos_v1') || '[]');
+  document.getElementById('kpi-salvas').textContent = favs.length;
+}
+
+function updateDashboardKPIs() {
+  const total = PROPOSTAS.length;
+  const aceitas = PROPOSTAS.filter(p => p.status === 'aceita').length;
+  const investimento = PROPOSTAS
+    .filter(p => p.status === 'aceita' && p.valorDeal?.proposto)
+    .reduce((sum, p) => sum + (p.valorDeal.proposto || 0), 0);
+
+  document.getElementById('kpi-enviadas').textContent = total;
+  document.getElementById('kpi-aceitas').textContent = aceitas;
+
+  const invEl = document.getElementById('kpi-investimento');
+  if (investimento >= 1000000) {
+    invEl.textContent = 'R$ ' + (investimento / 1000000).toFixed(1).replace('.', ',') + 'M';
+    invEl.style.fontSize = '24px';
+  } else if (investimento >= 1000) {
+    invEl.textContent = 'R$ ' + Math.round(investimento / 1000) + 'k';
+    invEl.style.fontSize = '26px';
+  } else if (investimento > 0) {
+    invEl.textContent = 'R$ ' + investimento.toLocaleString('pt-BR');
+    invEl.style.fontSize = '22px';
+  } else {
+    invEl.textContent = 'R$ 0';
+    invEl.style.fontSize = '26px';
+  }
+}
+
+function renderDashboardTimeline() {
+  const el = document.getElementById('dashboard-timeline');
+  if (!el) return;
+  if (PROPOSTAS.length === 0) {
+    el.innerHTML = '<div style="color:var(--gray-400);font-size:13px;padding:12px 0">Nenhuma atividade ainda.</div>';
+    return;
+  }
+  // Show last 4 proposals as timeline items
+  const recent = [...PROPOSTAS].slice(0, 4);
+  const statusDot = { 'pendente': 'gold', 'analise': 'blue', 'aceita': 'green', 'recusada': 'red', 'cancelada': 'red' };
+  const statusEmoji = { 'pendente': '📄', 'analise': '🔍', 'aceita': '✓', 'recusada': '✕', 'cancelada': '✕' };
+  el.innerHTML = recent.map(p => `
+    <div class="tl-item">
+      <div class="tl-dot ${statusDot[p.status] || 'gold'}">${statusEmoji[p.status] || '📄'}</div>
+      <div class="tl-body">
+        <div class="tl-text">Proposta para <strong>${p.opp || 'oportunidade'}</strong> — ${p.statusLabel || p.status}</div>
+        <div class="tl-time">${p.enviadaEm || ''}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderDashboardPropostasRecentes() {
+  const tbody = document.getElementById('dashboard-propostas-tbody');
+  if (!tbody) return;
+  if (PROPOSTAS.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--gray-400);text-align:center;padding:20px">Nenhuma proposta ainda.</td></tr>';
+    return;
+  }
+  const badgeClass = { 'pendente': 'badge-orange', 'analise': 'badge-blue', 'aceita': 'badge-green', 'recusada': 'badge-red', 'cancelada': 'badge-red' };
+  const recent = [...PROPOSTAS].slice(0, 5);
+  tbody.innerHTML = recent.map(p => `
+    <tr style="cursor:pointer" onclick="openPropostaModal('${p.id}'); showSection('propostas')">
+      <td style="font-weight:600">${p.opp || '—'}</td>
+      <td><span class="badge ${badgeClass[p.status] || 'badge-orange'}">${p.statusLabel || p.status}</span></td>
+      <td style="color:var(--gray-400)">${p.enviadaEm || '—'}</td>
+    </tr>
+  `).join('');
 }
 
 function setUserInfo(nome, email) {
@@ -2188,14 +2267,21 @@ var PROPOSTAS = [];
 async function loadPropostas() {
   if (!isDemoMode()) {
     const real = await fetchNegociacoesMarca();
-    if (real && real.length >= 0) {
+    if (real !== null) {
       PROPOSTAS = real;
       console.log('[Prop] Loaded', real.length, 'proposals from Supabase');
       return;
     }
   }
-  PROPOSTAS = SharedNeg.byMarca('nike-brasil');
-  console.log('[Prop] Using SharedNeg (demo/fallback),', PROPOSTAS.length, 'proposals');
+  // Demo mode: use SharedNeg for the authenticated demo user
+  if (isDemoMode()) {
+    PROPOSTAS = SharedNeg.byMarca('nike-brasil');
+    console.log('[Prop] Demo mode — using SharedNeg,', PROPOSTAS.length, 'proposals');
+  } else {
+    // Real mode but Supabase unavailable — show empty, not fake data
+    PROPOSTAS = [];
+    console.log('[Prop] Supabase unavailable, showing empty state');
+  }
 }
 
 async function _persistProp(p, fields) {

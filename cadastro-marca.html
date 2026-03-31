@@ -657,7 +657,7 @@
                      oninput="checkCodigo(this)" style="text-transform:uppercase; padding-right:90px;">
               <span class="code-badge" id="codeBadge">—</span>
             </div>
-            <p class="input-hint">Códigos concedem acesso antecipado ou benefícios especiais</p>
+            <p class="input-hint">Códigos de acesso concedem prioridade na aprovação do cadastro</p>
             <span class="field-error" id="codeError"></span>
           </div>
         </div>
@@ -1009,7 +1009,7 @@
     if (el) el.classList[hasError ? 'add' : 'remove']('error');
   }
 
-  function validateStep1() {
+  async function validateStep1() {
     let ok = true;
     // nome
     const fname = document.getElementById('firstName').value.trim();
@@ -1045,13 +1045,25 @@
     const roleVal = document.getElementById('role').value;
     markInputError('role', !roleVal);
     if (!roleVal) ok = false;
-    // código de acesso — se preenchido, deve ser válido
+    // código de acesso — se preenchido, deve ser válido (valida via Supabase)
     const codeEl = document.getElementById('accessCode');
     const codeVal = (codeEl?.value || '').trim().toUpperCase();
-    if (codeVal && !CODIGOS_VALIDOS.includes(codeVal)) {
-      codeEl.classList.add('error');
-      showFieldError('codeError', 'Código inválido. Verifique e tente novamente.');
-      ok = false;
+    if (codeVal) {
+      if (_codigoStatusMarca === null) {
+        const valido = await validarCodigoMarca(codeVal);
+        _codigoStatusMarca = valido;
+        const badge = document.getElementById('codeBadge');
+        badge.textContent = valido ? 'Válido ✓' : 'Inválido';
+        badge.className = 'code-badge ' + (valido ? 'valid' : 'invalid');
+      }
+      if (_codigoStatusMarca === false) {
+        codeEl.classList.add('error');
+        showFieldError('codeError', 'Código inválido. Verifique e tente novamente.');
+        ok = false;
+      } else {
+        codeEl?.classList.remove('error');
+        hideFieldError('codeError');
+      }
     } else {
       codeEl?.classList.remove('error');
       hideFieldError('codeError');
@@ -1064,9 +1076,9 @@
     return ok;
   }
 
-  function goToStep(step) {
+  async function goToStep(step) {
     if (step > currentStep && currentStep === 1) {
-      if (!validateStep1()) return;
+      if (!(await validateStep1())) return;
     }
     if (step > currentStep && currentStep === 2) {
       if (!validateStep2()) return;
@@ -1191,6 +1203,11 @@
       ageWrap.classList.remove('error');
     }
 
+    // ─── Indicação & Código ───
+    const indicacao_nome = document.getElementById('referredBy').value.trim();
+    const codigo_indicacao = (document.getElementById('accessCode')?.value || '').trim().toUpperCase();
+    const codigo_valido = _codigoStatusMarca === true;
+
     // ─── Insere na marcas_waitlist ───
     await sbInsert('marcas_waitlist', {
       primeiro_nome,
@@ -1207,6 +1224,10 @@
       categorias,
       genero,
       faixa_etaria,
+      indicacao: indicacao_nome || null,
+      codigo_indicacao: codigo_indicacao || null,
+      codigo_valido,
+      prioridade: codigo_valido,
       status: 'pendente'
     });
 
@@ -1423,13 +1444,28 @@
     }
   });
 
-  // ─── CÓDIGO DE ACESSO (igual detentor) ───
-  const CODIGOS_VALIDOS = ['RADAR2025','RELEVANTIA','BETA100','EARLY'];
-  function checkCodigo(input) {
+  // ─── CÓDIGO DE ACESSO (validação via Supabase) ───
+  let _codigoStatusMarca = null; // null = sem código | true = válido | false = inválido
+  async function validarCodigoMarca(codigo) {
+    if (!codigo) return false;
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/codigos_convite?select=codigo,ativo&codigo=eq.${encodeURIComponent(codigo)}&ativo=eq.true`,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+      );
+      const rows = await res.json();
+      return Array.isArray(rows) && rows.length > 0;
+    } catch { return false; }
+  }
+
+  async function checkCodigo(input) {
     const badge = document.getElementById('codeBadge');
     const val = input.value.trim().toUpperCase(); input.value = val;
-    if (!val) { badge.textContent = '—'; badge.className = 'code-badge'; return; }
-    if (CODIGOS_VALIDOS.includes(val)) { badge.textContent = 'Válido ✓'; badge.className = 'code-badge valid'; }
+    if (!val) { badge.textContent = '—'; badge.className = 'code-badge'; _codigoStatusMarca = null; return; }
+    badge.textContent = '...'; badge.className = 'code-badge';
+    const valido = await validarCodigoMarca(val);
+    _codigoStatusMarca = valido;
+    if (valido) { badge.textContent = 'Válido ✓'; badge.className = 'code-badge valid'; }
     else { badge.textContent = 'Inválido'; badge.className = 'code-badge invalid'; }
   }
 

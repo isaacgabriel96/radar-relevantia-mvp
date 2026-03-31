@@ -562,7 +562,8 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
                 <tr>
                   <th>Nome</th>
                   <th>Email</th>
-                  <th>Código de Acesso</th>
+                  <th>Código</th>
+                  <th>Comissão</th>
                   <th>Indicações</th>
                   <th>Status</th>
                   <th>Desde</th>
@@ -570,7 +571,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
                 </tr>
               </thead>
               <tbody id="tbodyEmbaixadores">
-                <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+                <tr><td colspan="8"><div class="empty-state"><div class="spinner"></div></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -1159,11 +1160,21 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
         <input type="tel" id="embTel" placeholder="(11) 99999-9999">
       </div>
       <div class="modal-group">
-        <label>Código gerado automaticamente</label>
-        <div class="modal-generated">
-          <div class="modal-generated-label">Código de Indicação</div>
-          <div class="modal-generated-code" id="previewCodigo">EMB-XXXX-0000</div>
+        <label>Comissão sobre deals <span style="color:var(--gold)">*</span></label>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="embComissao" min="0" max="100" step="0.5" value="5" style="width:90px;text-align:center;font-weight:700;font-size:16px;">
+          <span style="font-size:14px;font-weight:600;color:var(--gray-5);">%</span>
         </div>
+        <p style="font-size:11px;color:var(--gray-5);margin-top:5px;">Percentual que o embaixador recebe sobre deals fechados pelos indicados</p>
+      </div>
+      <div class="modal-group">
+        <label>Código de acesso</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="embCodigo" placeholder="RR-XXXX" style="text-transform:uppercase;font-family:monospace;font-weight:700;letter-spacing:0.08em;font-size:15px;" oninput="this.value=this.value.toUpperCase()">
+          <button class="btn btn-outline" type="button" onclick="gerarCodigoNoInput()" style="white-space:nowrap;padding:8px 12px;" title="Gerar código aleatório">🎲 Gerar</button>
+        </div>
+        <p style="font-size:11px;color:var(--gray-5);margin-top:5px;">Gerado automaticamente ou edite para um código personalizado (ex: GOLD2026, VIP-ESPORTE)</p>
+        <div class="modal-error" id="embCodigoErr">Código obrigatório</div>
       </div>
     </div>
     <div class="modal-foot">
@@ -1209,7 +1220,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
 <script>
 const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MjYyNzM4OSwiZXhwIjoyMDg4MjAzMzg5fQ.wdZP2RfC4AZVbwf9SESCpIr3SKrZTEt84cfgB35epSA';
+// SERVICE_KEY REMOVIDA — operações admin agora via Edge Function "admin-actions"
 
 let currentSession = null;
 let marcasFilter = 'pendente';
@@ -1448,14 +1459,14 @@ async function loadRecentActivity() {
 // ── Embaixadores ──────────────────────────────────────────────
 async function loadEmbaixadores() {
   const tbody = document.getElementById('tbodyEmbaixadores');
-  tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="spinner"></div></div></td></tr>';
 
   try {
     const res = await sbFetch('/rest/v1/embaixadores?select=*&order=created_at.desc');
     allEmbaixadores = await res.json();
 
     if (!Array.isArray(allEmbaixadores) || !allEmbaixadores.length) {
-      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🤝</div><div class="empty-title">Nenhum embaixador ainda</div><div class="empty-sub">Clique em "Novo Embaixador" para começar</div></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🤝</div><div class="empty-title">Nenhum embaixador ainda</div><div class="empty-sub">Clique em "Novo Embaixador" para começar</div></div></td></tr>';
       document.getElementById('countEmbaixadores').textContent = '0 embaixadores';
       document.getElementById('badgeEmbaixadores').textContent = '0';
       return;
@@ -1472,6 +1483,7 @@ async function loadEmbaixadores() {
           <span class="td-mono">${escHtml(emb.codigo_acesso)}</span>
           <button class="btn btn-sm btn-copy" onclick="copyCodigo('${escHtml(emb.codigo_acesso)}', this)" title="Copiar código">⎘</button>
         </td>
+        <td><span class="badge badge-gold" style="font-size:12px;">${emb.comissao_percent != null ? emb.comissao_percent + '%' : '—'}</span></td>
         <td>${emb.total_indicacoes || 0}</td>
         <td>
           <label class="toggle" title="${emb.ativo ? 'Ativo — clique para desativar' : 'Inativo — clique para ativar'}">
@@ -1487,7 +1499,7 @@ async function loadEmbaixadores() {
         </td>
       </tr>`).join('');
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-title">Erro ao carregar embaixadores</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-title">Erro ao carregar embaixadores</div></div></td></tr>';
     console.error(err);
   }
 }
@@ -1517,9 +1529,11 @@ function openModalEmbaixador() {
   document.getElementById('embNome').value = '';
   document.getElementById('embEmail').value = '';
   document.getElementById('embTel').value = '';
-  document.getElementById('previewCodigo').textContent = 'EMB-XXXX-0000';
+  document.getElementById('embComissao').value = '5';
+  document.getElementById('embCodigo').value = gerarCodigoRR();
   document.getElementById('embNomeErr').classList.remove('show');
   document.getElementById('embEmailErr').classList.remove('show');
+  document.getElementById('embCodigoErr').classList.remove('show');
   document.getElementById('modalEmbaixador').classList.add('show');
   document.getElementById('embNome').focus();
 }
@@ -1528,48 +1542,59 @@ function closeModalEmbaixador() {
   document.getElementById('modalEmbaixador').classList.remove('show');
 }
 
-document.getElementById('embNome').addEventListener && document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('embNome').addEventListener('input', updatePreviewCodigo);
-});
-
-function updatePreviewCodigo() {
-  const nome = document.getElementById('embNome').value.trim();
-  document.getElementById('previewCodigo').textContent = gerarCodigo(nome);
+function gerarCodigoRR() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'RR-';
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
 }
 
+function gerarCodigoNoInput() {
+  document.getElementById('embCodigo').value = gerarCodigoRR();
+}
+
+// Mantém compatibilidade — gerarCodigo agora usa formato RR-XXXX
 function gerarCodigo(nome) {
-  const partes = nome.trim().split(/\s+/);
-  const sobrenome = (partes[partes.length - 1] || partes[0] || 'NOME').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 6);
-  const num = Math.floor(1000 + Math.random() * 9000);
-  return `EMB-${sobrenome || 'NOVO'}-${num}`;
+  return gerarCodigoRR();
 }
 
 async function salvarEmbaixador() {
-  const nome  = document.getElementById('embNome').value.trim();
-  const email = document.getElementById('embEmail').value.trim();
-  const tel   = document.getElementById('embTel').value.trim();
-  const btn   = document.getElementById('btnSalvarEmb');
+  const nome     = document.getElementById('embNome').value.trim();
+  const email    = document.getElementById('embEmail').value.trim();
+  const tel      = document.getElementById('embTel').value.trim();
+  const comissao = parseFloat(document.getElementById('embComissao').value) || 0;
+  const codigo   = (document.getElementById('embCodigo').value || '').trim().toUpperCase();
+  const btn      = document.getElementById('btnSalvarEmb');
 
   let valid = true;
   if (!nome) { document.getElementById('embNomeErr').classList.add('show'); valid = false; }
   else        document.getElementById('embNomeErr').classList.remove('show');
   if (!email || !email.includes('@')) { document.getElementById('embEmailErr').classList.add('show'); valid = false; }
   else document.getElementById('embEmailErr').classList.remove('show');
+  if (!codigo) { document.getElementById('embCodigoErr').classList.add('show'); valid = false; }
+  else document.getElementById('embCodigoErr').classList.remove('show');
   if (!valid) return;
 
-  const codigo = gerarCodigo(nome);
   btn.disabled = true; btn.textContent = 'Salvando...';
 
   try {
     const res = await sbFetch('/rest/v1/embaixadores', {
       method: 'POST',
       headers: { 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ nome, email, telefone: tel || null, codigo_acesso: codigo, ativo: true, total_indicacoes: 0 })
+      body: JSON.stringify({
+        nome,
+        email,
+        telefone: tel || null,
+        codigo_acesso: codigo,
+        comissao_percent: comissao,
+        ativo: true,
+        total_indicacoes: 0
+      })
     });
 
     if (!res.ok) {
       const err = await res.text();
-      if (err.includes('unique')) showToast('Email já cadastrado para outro embaixador', 'error');
+      if (err.includes('unique')) showToast('Email ou código já cadastrado', 'error');
       else showToast('Erro ao criar embaixador', 'error');
       btn.disabled = false; btn.textContent = 'Criar Embaixador';
       return;
@@ -1583,7 +1608,7 @@ async function salvarEmbaixador() {
     }).catch(() => {}); // não fatal
 
     closeModalEmbaixador();
-    showToast(`Embaixador "${nome}" criado com código ${codigo}`, 'success');
+    showToast(`Embaixador "${nome}" criado com código ${codigo} (${comissao}%)`, 'success');
     loadEmbaixadores(); loadStats();
   } catch (err) {
     showToast('Erro de conexão', 'error');
@@ -1621,7 +1646,7 @@ async function loadMarcas() {
         <td>${escHtml(m.empresa || '—')}</td>
         <td class="td-muted">${escHtml(m.segmento || '—')}</td>
         <td class="td-muted">${escHtml(m.email || '—')}</td>
-        <td class="td-muted">${escHtml(m.codigo_indicacao || m.indicacao || '—')}</td>
+        <td class="td-muted">${(m.codigo_indicacao || m.indicacao) ? `<span class="badge badge-gold" style="font-size:10px;gap:3px;">🔑 ${escHtml(m.codigo_indicacao || m.indicacao)}</span>` : '—'}</td>
         <td class="td-muted">${fmtDate(m.created_at)}</td>
         <td>${statusBadge(m.status)}</td>
         <td onclick="event.stopPropagation()">
@@ -1675,7 +1700,7 @@ async function loadDetentores() {
         <td class="td-muted">${escHtml(d.segmento || '—')}</td>
         <td class="td-muted">${escHtml(d.email || '—')}</td>
         <td class="td-muted">${escHtml([d.cidade, d.estado].filter(Boolean).join(', ') || '—')}</td>
-        <td class="td-mono td-muted">${escHtml(d.codigo_convite || d.indicacao || '—')}</td>
+        <td class="td-muted">${(d.codigo_convite || d.indicacao) ? `<span class="badge badge-gold" style="font-size:10px;gap:3px;">🔑 ${escHtml(d.codigo_convite || d.indicacao)}</span>` : '—'}</td>
         <td class="td-muted">${fmtDate(d.created_at)}</td>
         <td>${statusBadge(d.status)}</td>
         <td onclick="event.stopPropagation()">
@@ -1699,20 +1724,31 @@ function filterDetentores(status, btn) {
   loadDetentores();
 }
 
+// ── Admin Edge Function caller ────────────────────────────────
+async function adminAction(action, payload = {}) {
+  const session = await getSession();
+  const token = session?.access_token;
+  if (!token) { showToast('Sessão expirada. Faça login novamente.', 'error'); return null; }
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-actions`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ action, ...payload })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erro na operação admin');
+  return data;
+}
+
 // ── Status update ─────────────────────────────────────────────
 async function atualizarStatus(table, id, status, rowId) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ status })
-    });
-    if (!res.ok) throw new Error(await res.text());
+    await adminAction('update-status', { table, id, status });
 
     if (table === 'marcas_waitlist')     { loadMarcas();     loadStats(); }
     if (table === 'detentores_waitlist') { loadDetentores(); loadStats(); }
@@ -1722,7 +1758,7 @@ async function atualizarStatus(table, id, status, rowId) {
     return;
   }
 
-  // Se aprovando, criar conta no Auth e enviar magic link (fora do try/catch do PATCH)
+  // Se aprovando, criar conta no Auth e enviar magic link
   if (status === 'aprovado') {
     await criarContaEEnviarAcesso(table, id);
   } else {
@@ -1730,133 +1766,15 @@ async function atualizarStatus(table, id, status, rowId) {
   }
 }
 
-function gerarSenhaProvisoria() {
-  const upper   = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // sem I e O (confusão visual)
-  const lower   = 'abcdefghjkmnpqrstuvwxyz';  // sem i, l, o (confusão visual)
-  const digits  = '23456789';                 // sem 0 e 1 (confusão visual)
-  const symbols = '@#$%&*!';
-
-  const pick = (charset) => charset[Math.floor(Math.random() * charset.length)];
-
-  // Garante ao menos 2 de cada categoria (16 chars no total)
-  const mandatories = [
-    pick(upper), pick(upper),
-    pick(lower), pick(lower),
-    pick(digits), pick(digits),
-    pick(symbols)
-  ];
-
-  // Completa até 16 caracteres com mix aleatório
-  const all = upper + lower + digits + symbols;
-  const extras = Array.from({ length: 9 }, () => pick(all));
-
-  // Embaralha tudo (Fisher-Yates)
-  const chars = [...mandatories, ...extras];
-  for (let i = chars.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-
-  return chars.join('');
-}
+// gerarSenhaProvisoria — REMOVIDA do frontend (agora vive na Edge Function admin-actions)
 
 async function criarContaEEnviarAcesso(table, id) {
   try {
-    console.log('[ACESSO] chamado:', table, id);
-
-    const tipo = table === 'marcas_waitlist' ? 'marca' : 'detentor';
-    const selectFields = table === 'marcas_waitlist' ? 'email,primeiro_nome' : 'email,nome';
-    const loginUrl = tipo === 'marca'
-      ? 'https://radar-relevantia.com.br/acesso-marca.html'
-      : 'https://radar-relevantia.com.br/acesso-detentor.html';
-
-    // Buscar dados do registro
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}&select=${selectFields}`, {
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
-      }
-    });
-    const rows = await res.json();
-
-    if (!Array.isArray(rows) || !rows.length) {
-      showToast('Aprovado, mas não foi possível localizar o email', 'error');
-      return;
+    console.log('[ACESSO] chamado via Edge Function:', table, id);
+    const result = await adminAction('create-user-and-send-access', { table, id });
+    if (result?.success) {
+      showToast(`Aprovado! Email enviado para ${result.email}`, 'success');
     }
-
-    const registro = rows[0];
-    const email = registro.email;
-    const nome = registro.primeiro_nome || registro.nome || '';
-    const senhaProvisoria = gerarSenhaProvisoria();
-    console.log('[ACESSO] email:', email, '| tipo:', tipo);
-
-    // Criar ou atualizar usuário no Supabase Auth com senha provisória
-    // Tenta criar primeiro
-    const criarRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email,
-        password: senhaProvisoria,
-        email_confirm: true,
-        user_metadata: { tipo, nome, senha_provisoria: true }
-      })
-    });
-    console.log('[ACESSO] criar user status:', criarRes.status);
-
-    // Se usuário já existe (422), busca o ID e atualiza a senha
-    if (criarRes.status === 422) {
-      console.log('[ACESSO] usuário já existe, buscando ID para atualizar senha...');
-      const listaRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}`, {
-        headers: {
-          'apikey': SUPABASE_SERVICE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
-        }
-      });
-      const listaData = await listaRes.json();
-      const userId = listaData?.users?.[0]?.id;
-      if (userId) {
-        await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, {
-          method: 'PUT',
-          headers: {
-            'apikey': SUPABASE_SERVICE_KEY,
-            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            password: senhaProvisoria,
-            user_metadata: { tipo, nome, senha_provisoria: true }
-          })
-        });
-        console.log('[ACESSO] senha atualizada para usuário existente');
-      }
-    }
-
-    // Enviar email com senha provisória via Edge Function
-    const sendRes = await fetch(`${SUPABASE_URL}/functions/v1/send-magic-link`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, nome, senha_provisoria: senhaProvisoria, login_url: loginUrl, tipo })
-    });
-    console.log('[ACESSO] send email status:', sendRes.status);
-
-    if (!sendRes.ok) {
-      const sendData = await sendRes.json();
-      console.error('[ACESSO] erro send email:', sendData);
-      showToast('Aprovado, mas falha ao enviar o email', 'error');
-      return;
-    }
-
-    showToast(`Aprovado! Email enviado para ${email}`, 'success');
-
   } catch (err) {
     console.error('[ACESSO] exceção:', err);
     showToast('Aprovado, mas erro ao enviar acesso: ' + err.message, 'error');

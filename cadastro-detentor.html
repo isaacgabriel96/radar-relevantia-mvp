@@ -501,7 +501,7 @@ select:disabled { background: var(--gray-1); color: var(--gray-5); cursor: not-a
           <input type="text" id="f-codigo" placeholder="Ex: ACESSO123" autocomplete="off" oninput="checkCodigo(this)" style="text-transform:uppercase; padding-right: 90px;">
           <span class="code-badge" id="codeBadge">—</span>
         </div>
-        <p class="input-hint">Códigos concedem acesso antecipado ou benefícios especiais</p>
+        <p class="input-hint">Códigos de acesso concedem prioridade na aprovação do cadastro</p>
       </div>
     </div>
 
@@ -772,6 +772,7 @@ async function submitCadastro() {
       indicacao,
       codigo_convite: codigo || null,
       codigo_valido,
+      prioridade: codigo_valido,
       status: 'pendente'
     });
 
