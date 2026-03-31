@@ -1724,8 +1724,8 @@ tbody tr:last-child td { border-bottom: none; }
    ═══════════════════════════════════════ */
 
 // ─── DATA (from centralized demo-data.js or future API) ───
-const MOCK_USER = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detentor.user : { nome: 'Detentor', email: 'detentor@radar.com' };
-const MOCK_EMPRESA = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detentor.empresa : { nome: 'Empresa' };
+const MOCK_USER = { nome: 'Detentor', email: 'detentor@radar.com' };
+const MOCK_EMPRESA = { nome: 'Empresa' };
 
 // ─── SECTION NAMES ───
 const SECTION_TITLES = {
@@ -2342,7 +2342,7 @@ async function _persistNeg(neg, fields) {
 
 // Taxa padrão da plataforma Relevantia (20%)
 // Para alterar, acesse o painel Admin — não modifique aqui diretamente.
-const PLATAFORMA_TAXA = (window.DEMO) ? window.DEMO.plataforma_taxa : 0.20;
+const PLATAFORMA_TAXA = 0.20;
 
 // ─── DADOS MOCK: OPORTUNIDADES PUBLICADAS/RASCUNHOS ───
 const OPP_CAT = {
@@ -2355,7 +2355,7 @@ const OPP_CAT = {
   'Midia Digital':  { gradient: 'linear-gradient(135deg,#0e4a6e,#0284c7)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>' },
   'Artista Musical':{ gradient: 'linear-gradient(135deg,#3b1054,#6b21a8)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/></svg>' }
 };
-var MINHAS_OPPS = (window.DEMO && window.DEMO.detentor) ? [...window.DEMO.detentor.oportunidades] : [];
+var MINHAS_OPPS = [];
 
 /**
  * Load detentor's opportunities from Supabase.

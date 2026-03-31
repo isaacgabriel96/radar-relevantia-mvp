@@ -128,51 +128,22 @@ function requireAuth(role, redirectTo = 'login.html') {
   }
 }
 
-// ─── DEMO MODE ──────────────────────────────────────────────
+// ─── DEMO MODE (DESATIVADO) ─────────────────────────────────
+// Demo mode desativado permanentemente. Funções mantidas como stubs
+// para não quebrar chamadas existentes nos HTMLs.
 function isDemoMode() {
-  const urlParam = new URLSearchParams(window.location.search).get('demo');
-  if (urlParam === 'marca' || urlParam === 'detentor') {
-    localStorage.setItem('rr_demo_mode', urlParam);
-    return true;
-  }
-  return !!localStorage.getItem('rr_demo_mode');
-}
-
-function getDemoRole() {
-  return localStorage.getItem('rr_demo_mode') || null;
-}
-
-function enterDemoMode(role) {
-  const tipo = role === 'brand' ? 'marca' : 'detentor';
-  const demoData = (window.DEMO && tipo === 'marca') ? window.DEMO.marca : (window.DEMO ? window.DEMO.detentor : {});
-  const user = demoData.user || {};
-  const fakeSession = {
-    access_token: 'DEMO_TOKEN',
-    expires_at: Math.floor(Date.now() / 1000) + 86400 * 365,
-    user: {
-      id: 'demo-' + tipo + '-001',
-      email: user.email || 'demo@radar.com',
-      user_metadata: { tipo, nome: user.nome || 'Demo User', _demo: true }
-    }
-  };
-  const key = role === 'brand' ? SESSION_KEYS.brand : SESSION_KEYS.rightsholder;
-  localStorage.setItem(key, JSON.stringify(fakeSession));
-  localStorage.setItem('rr_demo_mode', tipo);
-}
-
-function exitDemoMode() {
+  // Limpa qualquer resíduo de demo anterior
   localStorage.removeItem('rr_demo_mode');
-  [SESSION_KEYS.brand, SESSION_KEYS.rightsholder].forEach(key => {
-    try {
-      const raw = localStorage.getItem(key);
-      if (raw) { const s = JSON.parse(raw); if (s.access_token === 'DEMO_TOKEN') localStorage.removeItem(key); }
-    } catch { /* ignore */ }
-  });
-  window.location.href = 'admin.html';
+  return false;
 }
+
+function getDemoRole() { return null; }
+function enterDemoMode() { /* desativado */ }
+function exitDemoMode() { window.location.href = 'admin.html'; }
 
 function showDemoBannerIfActive() {
-  if (!isDemoMode()) return;
+  // Demo desativado — nunca mostra banner
+  return;
   const banner = document.getElementById('demoBanner');
   if (banner) banner.style.display = 'flex';
   const sidebarName = document.getElementById('sidebarName');
