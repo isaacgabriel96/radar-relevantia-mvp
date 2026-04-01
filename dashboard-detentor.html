@@ -4260,13 +4260,13 @@ async function loadSolicitacoes() {
     const marcaIds = solRows.map(function(r) { return r.marca_id; }).filter(function(id, i, arr) { return arr.indexOf(id) === i; });
     const marcaInClause = 'in.(' + marcaIds.map(function(id) { return '"' + id + '"'; }).join(',') + ')';
     const perfisRes = await fetch(
-      SUPABASE_URL + '/rest/v1/perfis?user_id=' + marcaInClause +
-      '&select=user_id,nome,empresa,avatar_url',
+      SUPABASE_URL + '/rest/v1/perfis?id=' + marcaInClause +
+      '&select=id,nome,empresa',
       { headers: headers }
     );
     const perfisRows = perfisRes.ok ? await perfisRes.json() : [];
     const perfisMap = {};
-    (Array.isArray(perfisRows) ? perfisRows : []).forEach(function(p) { perfisMap[p.user_id] = p; });
+    (Array.isArray(perfisRows) ? perfisRows : []).forEach(function(p) { perfisMap[p.id] = p; });
 
     // 4. Monta array final
     _SOLICITACOES = solRows.map(function(r) {
@@ -4282,7 +4282,7 @@ async function loadSolicitacoes() {
         opp_categoria:   opp ? (opp.categoria || '') : '',
         marca_nome:      perfil.nome || 'Marca',
         marca_empresa:   perfil.empresa || '',
-        avatar_url:      perfil.avatar_url || null
+        avatar_url:      null
       };
     });
     _SOLICITACOES_LOADED = true;
@@ -4426,7 +4426,7 @@ async function aprovarSolicitacao(solId) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({ status: 'aprovado', atualizado_em: new Date().toISOString() })
+    body: JSON.stringify({ status: 'aprovado' })
   });
 
   if (res.ok) {
@@ -4458,7 +4458,7 @@ async function recusarSolicitacaoAcesso(solId) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({ status: 'recusado', atualizado_em: new Date().toISOString() })
+    body: JSON.stringify({ status: 'recusado' })
   });
 
   if (res.ok) {
@@ -4490,7 +4490,7 @@ async function retirarAcessoSolicitacao(solId) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({ status: 'recusado', atualizado_em: new Date().toISOString() })
+    body: JSON.stringify({ status: 'recusado' })
   });
 
   if (res.ok) {
