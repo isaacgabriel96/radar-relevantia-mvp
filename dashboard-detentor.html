@@ -4337,7 +4337,7 @@ function renderSolicitacoes() {
   container.innerHTML = Object.values(groups).map(function(g) {
     const pend  = g.items.filter(function(i) { return i.status === 'pendente'; }).length;
     const aprov = g.items.filter(function(i) { return i.status === 'aprovado'; }).length;
-    const rec   = g.items.filter(function(i) { return i.status === 'recusado'; }).length;
+    const rec   = g.items.filter(function(i) { return i.status === 'rejeitado'; }).length;
 
     const chipsHtml = [
       pend  ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:100px;background:#FEF3C7;color:#B45309;border:1px solid rgba(180,83,9,0.2);font-size:11px;font-weight:600;font-family:var(--font-body)">' + pend  + ' pendente'  + (pend  > 1 ? 's' : '') + '</span>' : '',
@@ -4444,7 +4444,7 @@ async function aprovarSolicitacao(solId, oppId) {
 }
 
 /**
- * Recusa uma solicitação — PATCH acessos_oportunidade.status → 'recusado'
+ * Recusa uma solicitação — PATCH acessos_oportunidade.status → 'rejeitado'
  */
 async function recusarSolicitacaoAcesso(solId, oppId) {
   const token = await _getWriteToken();
@@ -4463,12 +4463,12 @@ async function recusarSolicitacaoAcesso(solId, oppId) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({ status: 'recusado' })
+    body: JSON.stringify({ status: 'rejeitado' })
   });
 
   if (res.ok) {
     const sol = _SOLICITACOES.find(function(s) { return s.id === solId; });
-    if (sol) sol.status = 'recusado';
+    if (sol) sol.status = 'rejeitado';
     renderSolicitacoes();
     showToast('Solicitação recusada.', 'info');
   } else {
@@ -4479,7 +4479,7 @@ async function recusarSolicitacaoAcesso(solId, oppId) {
 }
 
 /**
- * Retira o acesso de uma marca aprovada — PATCH acessos_oportunidade.status → 'recusado'
+ * Retira o acesso de uma marca aprovada — PATCH acessos_oportunidade.status → 'rejeitado'
  */
 async function retirarAcessoSolicitacao(solId, oppId) {
   const token = await _getWriteToken();
@@ -4498,12 +4498,12 @@ async function retirarAcessoSolicitacao(solId, oppId) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({ status: 'recusado' })
+    body: JSON.stringify({ status: 'rejeitado' })
   });
 
   if (res.ok) {
     const sol = _SOLICITACOES.find(function(s) { return s.id === solId; });
-    if (sol) sol.status = 'recusado';
+    if (sol) sol.status = 'rejeitado';
     renderSolicitacoes();
     showToast('Acesso retirado.', 'info');
   } else {
