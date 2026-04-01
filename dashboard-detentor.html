@@ -1797,6 +1797,9 @@ async function init() {
     updateDashboardKPIsDetentor();
     renderDashboardTimelineDetentor();
 
+    // Pré-carrega solicitações em background para atualizar badge imediatamente
+    loadSolicitacoes().catch(function(e) { console.error('[init] loadSolicitacoes bg error:', e); });
+
     // Check hash for deep linking
     const hash = window.location.hash.replace('#', '');
     if (hash === 'negociacoes') {
