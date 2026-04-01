@@ -4096,7 +4096,9 @@ function renderMinhasSolicitacoes() {
     // Overlay bloqueante para pendente/recusado (sem overlay para aprovado)
     var blockOverlayHtml = (sol.status === 'pendente')
       ? '<div style="position:absolute;inset:0;background:rgba(80,58,0,0.45);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:4;border-radius:inherit;pointer-events:none"></div>'
-      : '';
+      : (sol.status === 'recusado')
+        ? '<div style="position:absolute;inset:0;background:rgba(20,10,0,0.65);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:4;border-radius:inherit;pointer-events:none"></div>'
+        : '';
 
     var cardTag = sol.status === 'aprovado' ? 'a' : 'div';
     var cardHrefAttr = sol.status === 'aprovado' ? 'href="' + link + '"' : '';
@@ -4320,9 +4322,7 @@ async function carregarEstadoAcessos() {
     var acessos = await res.json();
 
     acessos.forEach(function(a) {
-      if (a.status === 'pendente' || a.status === 'aprovado') {
-        marcarCardSolicitado(a.oportunidade_id, a.status);
-      }
+      marcarCardSolicitado(a.oportunidade_id, a.status);
     });
   } catch(e) {
     console.warn('[carregarEstadoAcessos]', e);
@@ -4332,6 +4332,15 @@ async function carregarEstadoAcessos() {
 function marcarCardSolicitado(oppId, status) {
   var card = document.querySelector('[data-id="' + oppId + '"].opp-card');
   if (!card) return;
+
+  // Recusado: some do Explorar — oportunidade inacessível
+  if (status === 'recusado') {
+    var wrapper = card.parentElement;
+    card.style.display = 'none';
+    // Se o wrapper ficou vazio (só tinha esse card), esconde também
+    if (wrapper && wrapper.children.length === 1) wrapper.style.display = 'none';
+    return;
+  }
 
   // Remove overlay anterior se existir (evita duplicar)
   var existing = card.querySelector('.acesso-overlay');
