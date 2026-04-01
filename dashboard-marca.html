@@ -3981,7 +3981,7 @@ async function loadMinhasSolicitacoes() {
     // 4. Busca dados das oportunidades correspondentes
     var oppIds = [...new Set(solRows.map(r => r.oportunidade_id))];
     var oppUrl = SUPABASE_URL + '/rest/v1/oportunidades'
-      + '?select=id,titulo,segmento,regiao,valor_base,visibilidade'
+      + '?select=id,titulo,descricao_curta,segmento,regiao,valor_base,visibilidade,categoria,slug,tags,imagens,imagem_capa,bg_gradient,icone,imagens_focal,perfis(slug)'
       + '&id=in.(' + oppIds.join(',') + ')';
 
     var oppRes = await fetch(oppUrl, { headers: headers });
@@ -4059,61 +4059,87 @@ function renderMinhasSolicitacoes() {
   }
 
   function oppLink(sol) {
-    var oppId = sol.oportunidade_id;
-    return 'oportunidade-detalhe.html?id=' + oppId;
+    var o = sol.opp;
+    if (o && o.perfis && o.perfis.slug && o.slug) return 'oportunidade-detalhe.html?@' + o.perfis.slug + '/' + o.slug;
+    return 'oportunidade-detalhe.html?id=' + sol.oportunidade_id;
   }
 
-  // Build cards
-  var html = '<div style="display:flex;flex-direction:column;gap:12px;padding:0 0 16px">';
+  function buildVisualCard(sol) {
+    var o = sol.opp;
+    var link = oppLink(sol);
+    var imgs = (o && o.imagens && o.imagens.length) ? o.imagens : [];
+    var hasBg = !imgs.length && o && o.bg_gradient;
+    var focalMap = (o && o.imagens_focal) ? o.imagens_focal : {};
+    var titulo = o ? (o.titulo || 'Oportunidade') : ('Oportunidade #' + sol.oportunidade_id);
+    var categoria = o ? (o.categoria || '') : '';
+    var desc = o ? (o.descricao_curta || (o.tags ? o.tags.slice(0,3).join(' · ') : '')) : '';
+    var orgInitials = o ? (o.icone || titulo.substring(0,2).toUpperCase()) : '?';
+    var regiao = o ? (o.regiao || '') : '';
+
+    var slidesHtml = imgs.map(function(src) {
+      var fp = focalMap[src] || {x:50, y:20};
+      return '<div class="olc-hero-slide"><img src="' + src + '" alt="' + titulo + '" loading="lazy" style="object-position:' + fp.x + '% ' + fp.y + '%"></div>';
+    }).join('');
+
+    var heroInner = hasBg
+      ? '<div style="width:100%;height:100%;background:' + o.bg_gradient + ';display:flex;align-items:center;justify-content:center"><span style="font-size:52px;line-height:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.4))">' + (o.icone || '') + '</span></div>'
+      : '<div class="olc-hero-track">' + slidesHtml + '</div>';
+
+    // Badge de status sobre a foto
+    var statusOverlayHtml = sol.status === 'aprovado'
+      ? '<span style="position:absolute;bottom:10px;left:10px;display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;background:rgba(22,163,74,0.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:11px;font-weight:600;color:#fff;z-index:3;pointer-events:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Acesso aprovado</span>'
+      : sol.status === 'recusado'
+        ? '<span style="position:absolute;bottom:10px;left:10px;display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;background:rgba(220,38,38,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:11px;font-weight:600;color:#fff;z-index:3;pointer-events:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Recusada</span>'
+        : '<span style="position:absolute;bottom:10px;left:10px;display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;background:rgba(80,58,0,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:11px;font-weight:600;color:#fff;z-index:3;pointer-events:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Aguardando</span>';
+
+    // Overlay bloqueante para pendente/recusado (sem overlay para aprovado)
+    var blockOverlayHtml = (sol.status === 'pendente')
+      ? '<div style="position:absolute;inset:0;background:rgba(80,58,0,0.45);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);z-index:4;border-radius:inherit;pointer-events:none"></div>'
+      : '';
+
+    var cardTag = sol.status === 'aprovado' ? 'a' : 'div';
+    var cardHrefAttr = sol.status === 'aprovado' ? 'href="' + link + '"' : '';
+    var footerArrow = sol.status === 'aprovado'
+      ? '<div class="olc-arrow-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>'
+      : '<div class="olc-arrow-btn" style="opacity:0.35;background:var(--gray-100)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>';
+
+    return '<' + cardTag + ' class="opp-card" ' + cardHrefAttr + ' style="cursor:' + (sol.status === 'aprovado' ? 'pointer' : 'default') + '">'
+      + '<div class="olc-hero" style="position:relative">'
+        + heroInner
+        + '<div class="olc-hero-tag">' + categoria + '</div>'
+        + statusOverlayHtml
+        + blockOverlayHtml
+      + '</div>'
+      + '<div class="opp-card-body">'
+        + '<div class="opp-card-title">' + titulo + '</div>'
+        + (desc ? '<div class="opp-card-desc">' + desc + '</div>' : '')
+        + '<div class="opp-card-divider"></div>'
+        + '<div class="opp-card-footer">'
+          + '<div class="olc-brand-row">'
+            + '<div class="olc-logo">' + orgInitials + '</div>'
+            + '<span class="olc-brand-name">' + (regiao || titulo) + '</span>'
+          + '</div>'
+          + footerArrow
+        + '</div>'
+      + '</div>'
+    + '</' + cardTag + '>';
+  }
+
+  // Build grid de cards — igual ao explorar
+  var html = '<div class="opp-grid" style="padding:0 0 16px">';
 
   _SOL_MARCA.forEach(function(sol) {
-    var opp = sol.opp;
-    var titulo = opp ? (opp.titulo || 'Oportunidade') : ('Oportunidade #' + sol.oportunidade_id);
-    var segmento = opp ? (opp.segmento || '') : '';
-    var regiao = opp ? (opp.regiao || '') : '';
-    var valor = opp && opp.valor_base ? 'R$ ' + Number(opp.valor_base).toLocaleString('pt-BR') : '';
-    var link = oppLink(sol);
-
-    var cardBorderColor = sol.status === 'aprovado' ? '#BBF7D0' : sol.status === 'recusado' ? '#FECDD3' : '#E0D8CC';
-
-    html += [
-      '<div style="background:#FFFFFF;border:1px solid ' + cardBorderColor + ';border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;transition:box-shadow .15s">',
-
-        /* Ícone status */
-        '<div style="flex-shrink:0;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:' + (sol.status === 'aprovado' ? '#F0FDF4' : sol.status === 'recusado' ? '#FFF1F2' : '#FEF9EB') + '">',
-          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + (sol.status === 'aprovado' ? '#16A34A' : sol.status === 'recusado' ? '#E11D48' : '#B8860B') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
-            sol.status === 'aprovado'
-              ? '<polyline points="20 6 9 17 4 12"/>'
-              : sol.status === 'recusado'
-                ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
-                : '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-          '</svg>',
-        '</div>',
-
-        /* Info da oportunidade */
-        '<div style="flex:1;min-width:0">',
-          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">',
-            '<a href="' + link + '" style="font-size:14px;font-weight:600;color:#1A1200;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px" title="' + titulo + '">' + titulo + '</a>',
-            statusBadge(sol.status),
-          '</div>',
-          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">',
-            segmento ? '<span style="font-size:12px;color:#A89880">' + segmento + '</span>' : '',
-            segmento && regiao ? '<span style="color:#E0D8CC;font-size:11px">•</span>' : '',
-            regiao ? '<span style="font-size:12px;color:#A89880">' + regiao + '</span>' : '',
-            valor ? '<span style="color:#E0D8CC;font-size:11px">•</span><span style="font-size:12px;color:#A89880">' + valor + '</span>' : '',
-          '</div>',
-        '</div>',
-
-        /* Data + ação */
-        '<div style="flex-shrink:0;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px">',
-          '<span style="font-size:11px;color:#A89880">' + fmtDate(sol.criado_em) + '</span>',
-          sol.status === 'aprovado'
-            ? '<a href="' + link + '" style="font-size:12px;font-weight:600;color:#16A34A;text-decoration:none;display:flex;align-items:center;gap:4px">Ver oportunidade <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>'
-            : '',
-        '</div>',
-
-      '</div>'
-    ].join('');
+    if (sol.opp) {
+      html += buildVisualCard(sol);
+    } else {
+      // Fallback: sem dados de opp
+      var link = oppLink(sol);
+      var cardBorderColor = sol.status === 'aprovado' ? '#BBF7D0' : sol.status === 'recusado' ? '#FECDD3' : '#E0D8CC';
+      html += '<div style="background:#FFFFFF;border:1px solid ' + cardBorderColor + ';border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px">'
+        + '<span style="font-size:14px;font-weight:600;color:#1A1200">Oportunidade #' + sol.oportunidade_id + '</span>'
+        + statusBadge(sol.status)
+        + '</div>';
+    }
   });
 
   html += '</div>';
@@ -4331,24 +4357,25 @@ function marcarCardSolicitado(oppId, status) {
     card.style.cursor = 'default';
   }
 
-  // Adiciona overlay sobre a foto do card
-  var hero = card.querySelector('.olc-hero');
-  if (hero) {
-    var overlay = document.createElement('div');
-    overlay.className = 'acesso-overlay';
-
-    if (isAprovado) {
-      // Verde: acesso aprovado, card é clicável
-      overlay.style.cssText = 'position:absolute;inset:0;background:rgba(10,80,30,0.58);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:4;border-radius:inherit;pointer-events:none';
-      overlay.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-        + '<span style="font-size:11px;font-weight:700;color:#fff;letter-spacing:0.03em">Acesso aprovado</span>';
-    } else {
-      // Marrom: aguardando
+  // Aprovado: sem overlay — card aparece normal e clicável
+  // Pendente: overlay marrom bloqueando o card
+  if (!isAprovado) {
+    var hero = card.querySelector('.olc-hero');
+    if (hero) {
+      var overlay = document.createElement('div');
+      overlay.className = 'acesso-overlay';
       overlay.style.cssText = 'position:absolute;inset:0;background:rgba(80,58,0,0.62);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;z-index:4;border-radius:inherit;pointer-events:none';
       overlay.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
         + '<span style="font-size:11px;font-weight:700;color:#fff;letter-spacing:0.03em">Aguardando aprovação</span>';
+      hero.appendChild(overlay);
     }
-    hero.appendChild(overlay);
+  } else {
+    // Aprovado: remove badge "Por aprovação" se existir — o card está desbloqueado
+    var approvalBadge = card.querySelector('[style*="Por aprovação"], span[style*="Por aprov"]');
+    // Tenta remover spans com texto "Por aprovação" dentro do hero
+    card.querySelectorAll('.olc-hero span').forEach(function(s) {
+      if (s.textContent.trim().indexOf('Por aprov') !== -1) s.remove();
+    });
   }
 }
 </script>
