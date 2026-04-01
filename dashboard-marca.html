@@ -1332,23 +1332,23 @@ tbody tr:last-child td { border-bottom: none; }
           </div>
           <div id="equipeMembros">
             <!-- Placeholder — substituído pelo renderEquipe() após carregar -->
-            <div style="display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;flex-direction:column;gap:14px">
               <div class="form-grid">
                 <div class="form-group">
-                  <label class="form-label">Nome</label>
+                  <label class="form-label">Nome 1</label>
                   <input class="form-input" type="text" placeholder="Nenhum membro ainda" disabled>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">E-mail</label>
+                  <label class="form-label">E-mail 1</label>
                   <input class="form-input" type="email" placeholder="—" disabled>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Função</label>
+                  <label class="form-label">Nome 2</label>
                   <input class="form-input" type="text" placeholder="—" disabled>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Adicionado em</label>
-                  <input class="form-input" type="text" placeholder="—" disabled>
+                  <label class="form-label">E-mail 2</label>
+                  <input class="form-input" type="email" placeholder="—" disabled>
                 </div>
               </div>
             </div>
@@ -1530,26 +1530,31 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 
 <!-- Modal Convidar Membro -->
-<div id="modalConvite" style="display:none;position:fixed;inset:0;background:rgba(26,18,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--white);border-radius:var(--radius-lg);padding:32px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(30,22,0,0.18)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
-      <h3 style="font-family:var(--font-heading);font-size:18px;font-weight:600;color:var(--black);margin:0">Convidar membro</h3>
-      <button onclick="fecharModalConvite()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--gray-3)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
+<div id="modalConvite" class="modal-overlay">
+  <div class="modal-prop">
+    <div class="modal-prop-header">
+      <div>
+        <div class="modal-prop-title">Convidar membro</div>
+        <div class="modal-prop-opp">O convidado receberá um link de acesso por e-mail</div>
+      </div>
+      <button class="modal-prop-close" onclick="fecharModalConvite()">✕</button>
     </div>
-    <div style="margin-bottom:16px">
-      <label style="display:block;font-family:var(--font-body);font-size:12px;font-weight:500;color:var(--gray-4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Nome</label>
-      <input id="conviteNome" type="text" placeholder="Nome do convidado" style="width:100%;padding:10px 14px;border:1px solid var(--gray-2);border-radius:var(--radius-md);font-family:var(--font-body);font-size:14px;color:var(--black);background:var(--white);box-sizing:border-box;outline:none">
-    </div>
-    <div style="margin-bottom:20px">
-      <label style="display:block;font-family:var(--font-body);font-size:12px;font-weight:500;color:var(--gray-4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">E-mail</label>
-      <input id="conviteEmail" type="email" placeholder="email@exemplo.com" style="width:100%;padding:10px 14px;border:1px solid var(--gray-2);border-radius:var(--radius-md);font-family:var(--font-body);font-size:14px;color:var(--black);background:var(--white);box-sizing:border-box;outline:none">
-    </div>
-    <div id="conviteErro" style="display:none;padding:10px 14px;background:#fff0f0;border-radius:var(--radius-md);font-family:var(--font-body);font-size:13px;color:#c0392b;margin-bottom:16px"></div>
-    <div style="display:flex;gap:10px;justify-content:flex-end">
-      <button onclick="fecharModalConvite()" style="padding:10px 20px;background:var(--gray-1);color:var(--black);border:none;border-radius:var(--radius-pill);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer">Cancelar</button>
-      <button id="btnEnviarConvite" onclick="enviarConvite()" style="padding:10px 20px;background:var(--black);color:var(--white);border:none;border-radius:var(--radius-pill);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer">Enviar convite</button>
+    <div class="modal-prop-body">
+      <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:20px">
+        <div class="form-group">
+          <label class="form-label">Nome</label>
+          <input id="conviteNome" class="form-input" type="text" placeholder="Nome do convidado">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input id="conviteEmail" class="form-input" type="email" placeholder="email@exemplo.com">
+        </div>
+      </div>
+      <div id="conviteErro" style="display:none;padding:10px 14px;background:#fff0f0;border-radius:var(--radius-md);font-family:var(--font-body);font-size:13px;color:#c0392b;margin-bottom:16px"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="fecharModalConvite()">Cancelar</button>
+        <button id="btnEnviarConvite" class="btn btn-gold" onclick="enviarConvite()">Enviar convite</button>
+      </div>
     </div>
   </div>
 </div>
@@ -3607,62 +3612,39 @@ function renderEquipe(members) {
   if (!el) return;
   const isAdmin = CURRENT_ORG_ROLE === 'owner' || CURRENT_ORG_ROLE === 'admin';
 
-  if (members.length === 0) {
-    el.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:18px">
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Nome</label>
-            <input class="form-input" type="text" placeholder="Nenhum membro ainda" disabled>
-          </div>
-          <div class="form-group">
-            <label class="form-label">E-mail</label>
-            <input class="form-input" type="email" placeholder="—" disabled>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Função</label>
-            <input class="form-input" type="text" placeholder="—" disabled>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Adicionado em</label>
-            <input class="form-input" type="text" placeholder="—" disabled>
-          </div>
-        </div>
-      </div>`;
-    return;
-  }
-
-  el.innerHTML = members.map((m, i) => {
-    const nome      = m._perfil?.nome || m._perfil?.email || 'Membro';
-    const email     = m._perfil?.email || '—';
-    const roleLabel = m.org_role === 'admin' ? 'Admin' : 'Editor';
-    const dataStr   = m.created_at
-      ? new Date(m.created_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' })
-      : '—';
-    const borderStyle = i < members.length - 1 ? 'border-bottom:1px solid var(--gray-2);padding-bottom:18px;margin-bottom:0' : '';
+  // Monta grid com até 2 slots (preenchidos ou vazios)
+  const slot = (n, m) => {
+    const nome  = m ? (m._perfil?.nome  || m._perfil?.email || 'Membro') : '—';
+    const email = m ? (m._perfil?.email || '—') : '—';
+    const removeBtn = (m && isAdmin)
+      ? `<button onclick="removerMembro('${m.user_id}')" title="Remover membro"
+           style="position:absolute;right:0;bottom:0;height:42px;padding:0 12px;background:none;border:none;cursor:pointer;color:var(--gray-3)"
+           onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-3)'">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px">
+             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+             <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+           </svg>
+         </button>`
+      : '';
     return `
-      <div style="display:flex;flex-direction:column;gap:18px;${borderStyle}">
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Nome</label>
-            <input class="form-input" type="text" value="${nome}" disabled>
-          </div>
-          <div class="form-group">
-            <label class="form-label">E-mail</label>
-            <input class="form-input" type="email" value="${email}" disabled>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Função</label>
-            <input class="form-input" type="text" value="${roleLabel}" disabled>
-          </div>
-          <div class="form-group" style="position:relative">
-            <label class="form-label">Adicionado em</label>
-            <input class="form-input" type="text" value="${dataStr}" disabled>
-            ${isAdmin ? `<button onclick="removerMembro('${m.user_id}')" title="Remover membro" style="position:absolute;right:0;bottom:0;height:42px;padding:0 12px;background:none;border:none;cursor:pointer;color:var(--gray-3)" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-3)'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ''}
-          </div>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Nome ${n}</label>
+        <input class="form-input" type="text" value="${m ? nome : ''}" placeholder="${m ? '' : '—'}" disabled>
+      </div>
+      <div class="form-group" style="position:relative">
+        <label class="form-label">E-mail ${n}</label>
+        <input class="form-input" type="email" value="${m ? email : ''}" placeholder="${m ? '' : '—'}" disabled>
+        ${removeBtn}
       </div>`;
-  }).join('');
+  };
+
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-grid">
+        ${slot(1, members[0] || null)}
+        ${slot(2, members[1] || null)}
+      </div>
+    </div>`;
 }
 
 function abrirModalConvite() {
