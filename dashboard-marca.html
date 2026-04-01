@@ -1326,12 +1326,32 @@ tbody tr:last-child td { border-bottom: none; }
             Convidar
           </button>
         </div>
-        <div style="padding:0 24px">
-          <div id="equipeLimit" style="display:none;padding:10px 14px;background:var(--gray-1);border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;color:var(--gray-4);margin-bottom:12px">
+        <div style="padding:0 24px 24px">
+          <div id="equipeLimit" style="display:none;padding:10px 14px;background:var(--gray-1);border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;color:var(--gray-4);margin-bottom:16px">
             Limite de 2 membros atingido.
           </div>
           <div id="equipeMembros">
-            <div style="padding:24px 0;text-align:center;color:var(--gray-3);font-size:13px;font-family:var(--font-body)">Carregando…</div>
+            <!-- Placeholder — substituído pelo renderEquipe() após carregar -->
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Nome</label>
+                  <input class="form-input" type="text" placeholder="Nenhum membro ainda" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">E-mail</label>
+                  <input class="form-input" type="email" placeholder="—" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Função</label>
+                  <input class="form-input" type="text" placeholder="—" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Adicionado em</label>
+                  <input class="form-input" type="text" placeholder="—" disabled>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -3585,28 +3605,63 @@ async function loadEquipe() {
 function renderEquipe(members) {
   const el = document.getElementById('equipeMembros');
   if (!el) return;
+  const isAdmin = CURRENT_ORG_ROLE === 'owner' || CURRENT_ORG_ROLE === 'admin';
+
   if (members.length === 0) {
-    el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--gray-3);font-size:13px;font-family:var(--font-body)">Nenhum membro convidado ainda.</div>';
+    el.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input class="form-input" type="text" placeholder="Nenhum membro ainda" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-mail</label>
+            <input class="form-input" type="email" placeholder="—" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Função</label>
+            <input class="form-input" type="text" placeholder="—" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Adicionado em</label>
+            <input class="form-input" type="text" placeholder="—" disabled>
+          </div>
+        </div>
+      </div>`;
     return;
   }
-  const isAdmin = CURRENT_ORG_ROLE === 'owner' || CURRENT_ORG_ROLE === 'admin';
+
   el.innerHTML = members.map((m, i) => {
-    const nome     = m._perfil?.nome || m._perfil?.email || 'Membro';
-    const email    = m._perfil?.email || '';
-    const initials = nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const nome      = m._perfil?.nome || m._perfil?.email || 'Membro';
+    const email     = m._perfil?.email || '—';
     const roleLabel = m.org_role === 'admin' ? 'Admin' : 'Editor';
-    const roleBg    = m.org_role === 'admin' ? 'var(--black)' : 'var(--gray-2)';
-    const roleColor = m.org_role === 'admin' ? 'var(--white)' : 'var(--gray-4)';
-    const borderStyle = i < members.length - 1 ? 'border-bottom:1px solid var(--gray-2)' : '';
-    return `<div style="display:flex;align-items:center;gap:14px;padding:14px 0;${borderStyle}">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-gradient);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--white)">${initials}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-family:var(--font-body);font-size:14px;font-weight:500;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nome}</div>
-        <div style="font-family:var(--font-body);font-size:12px;color:var(--gray-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${email}</div>
-      </div>
-      <span style="padding:3px 10px;border-radius:100px;background:${roleBg};color:${roleColor};font-family:var(--font-body);font-size:11px;font-weight:500;flex-shrink:0">${roleLabel}</span>
-      ${isAdmin ? `<button onclick="removerMembro('${m.user_id}')" title="Remover membro" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--gray-3);flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ''}
-    </div>`;
+    const dataStr   = m.created_at
+      ? new Date(m.created_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' })
+      : '—';
+    const borderStyle = i < members.length - 1 ? 'border-bottom:1px solid var(--gray-2);padding-bottom:18px;margin-bottom:0' : '';
+    return `
+      <div style="display:flex;flex-direction:column;gap:18px;${borderStyle}">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input class="form-input" type="text" value="${nome}" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-mail</label>
+            <input class="form-input" type="email" value="${email}" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Função</label>
+            <input class="form-input" type="text" value="${roleLabel}" disabled>
+          </div>
+          <div class="form-group" style="position:relative">
+            <label class="form-label">Adicionado em</label>
+            <input class="form-input" type="text" value="${dataStr}" disabled>
+            ${isAdmin ? `<button onclick="removerMembro('${m.user_id}')" title="Remover membro" style="position:absolute;right:0;bottom:0;height:42px;padding:0 12px;background:none;border:none;cursor:pointer;color:var(--gray-3)" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--gray-3)'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ''}
+          </div>
+        </div>
+      </div>`;
   }).join('');
 }
 
