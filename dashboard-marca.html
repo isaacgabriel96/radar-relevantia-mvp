@@ -3913,7 +3913,8 @@ function switchOppTab(tab) {
 
 /* ── Carrega solicitações desta marca do Supabase ── */
 async function loadMinhasSolicitacoes() {
-  if (_SOL_MARCA_LOADED) { renderMinhasSolicitacoes(); return; }
+  // Sempre busca frescos — sem cache em memória
+  _SOL_MARCA_LOADED = false;
 
   var container = document.getElementById('sol-marca-container');
   if (container) {
