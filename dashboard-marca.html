@@ -4321,6 +4321,13 @@ async function carregarEstadoAcessos() {
     if (!res.ok) return;
     var acessos = await res.json();
 
+    // Atualiza badge de Minhas Solicitações imediatamente
+    var badge = document.getElementById('sol-marca-badge');
+    if (badge && acessos.length > 0) {
+      badge.textContent = acessos.length;
+      badge.style.display = '';
+    }
+
     acessos.forEach(function(a) {
       marcarCardSolicitado(a.oportunidade_id, a.status);
     });
