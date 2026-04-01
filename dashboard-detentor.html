@@ -1831,12 +1831,12 @@ async function loadUserInfoDetentor() {
         // Tentar buscar nome real na tabela perfis
         try {
           const token = session.access_token;
-          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?user_id=eq.' + session.user.id + '&select=nome,empresa_nome&limit=1', {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?user_id=eq.' + session.user.id + '&select=nome,empresa&limit=1', {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
           });
           if (res.ok) {
             const rows = await res.json();
-            if (rows.length > 0) nome = rows[0].nome || rows[0].empresa_nome || nome;
+            if (rows.length > 0) nome = rows[0].nome || rows[0].empresa || nome;
           }
         } catch (_) {}
         setUserInfo(nome, email);
@@ -1854,12 +1854,12 @@ async function loadUserInfoDetentor() {
       var email = legacy.user.email || MOCK_USER.email;
       // Tentar buscar nome na tabela perfis com token refreshed
       try {
-        var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?user_id=eq.' + legacy.user.id + '&select=nome,empresa_nome&limit=1', {
+        var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?user_id=eq.' + legacy.user.id + '&select=nome,empresa&limit=1', {
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + legacy.access_token }
         });
         if (res.ok) {
           var rows = await res.json();
-          if (rows.length > 0) nome = rows[0].nome || rows[0].empresa_nome || nome;
+          if (rows.length > 0) nome = rows[0].nome || rows[0].empresa || nome;
         }
       } catch (_) {}
       setUserInfo(nome, email);
@@ -2423,7 +2423,7 @@ async function loadMinhasOpps() {
     return;
   }
   try {
-    var url = SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,status,ativo,bg_gradient,imagem_capa,imagens,imagens_focal,visibilidade,descricao,link_externo,abrangencia,criado_em,perfis:detentor_id(slug)&detentor_id=eq.' + userId + '&order=criado_em.desc';
+    var url = SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,status,ativo,bg_gradient,imagem_capa,imagens,imagens_focal,visibilidade,descricao_curta,link_externo,abrangencia,criado_em,perfis:detentor_id(slug)&detentor_id=eq.' + userId + '&order=criado_em.desc';
     console.log('[Opps] Fetching:', url.substring(0, 120) + '...');
     const res = await fetch(url, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
@@ -2450,7 +2450,7 @@ async function loadMinhasOpps() {
       imagens: r.imagens || [],
       imagens_focal: r.imagens_focal || {},
       visibilidade: r.visibilidade || 'publica',
-      descricao: r.descricao || '',
+      descricao: r.descricao_curta || '',
       linkExterno: r.link_externo || '',
       abrangencia: r.abrangencia || ''
     }));
