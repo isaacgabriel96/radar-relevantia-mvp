@@ -3982,7 +3982,7 @@ async function loadMinhasSolicitacoes() {
     // 4. Busca dados das oportunidades correspondentes
     var oppIds = [...new Set(solRows.map(r => r.oportunidade_id))];
     var oppUrl = SUPABASE_URL + '/rest/v1/oportunidades'
-      + '?select=id,titulo,descricao_curta,segmento,regiao,categoria,slug,tags,imagens,imagem_capa,bg_gradient,icone'
+      + '?select=id,titulo,descricao_curta,categoria,slug,tags,imagens,imagem_capa,bg_gradient,icone'
       + '&id=in.(' + oppIds.join(',') + ')';
 
     var oppRes = await fetch(oppUrl, { headers: headers });
@@ -4077,7 +4077,6 @@ function renderMinhasSolicitacoes() {
     var categoria = o ? (o.categoria || '') : '';
     var desc = o ? (o.descricao_curta || (o.tags ? o.tags.slice(0,3).join(' · ') : '')) : '';
     var orgInitials = o ? (o.icone || titulo.substring(0,2).toUpperCase()) : '?';
-    var regiao = o ? (o.regiao || '') : '';
 
     var slidesHtml = imgs.map(function(src) {
       return '<div class="olc-hero-slide"><img src="' + src + '" alt="' + titulo + '" loading="lazy" style="object-position:50% 20%"></div>';
@@ -4119,7 +4118,7 @@ function renderMinhasSolicitacoes() {
         + '<div class="opp-card-footer">'
           + '<div class="olc-brand-row">'
             + '<div class="olc-logo">' + orgInitials + '</div>'
-            + '<span class="olc-brand-name">' + (regiao || titulo) + '</span>'
+            + '<span class="olc-brand-name">' + (o && o.categoria ? o.categoria : titulo) + '</span>'
           + '</div>'
           + footerArrow
         + '</div>'
