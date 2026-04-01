@@ -4356,19 +4356,19 @@ function renderSolicitacoes() {
       if (s.status === 'pendente') {
         statusBadge = '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;background:#FEF3C7;color:#B45309;font-size:11px;font-weight:600;font-family:var(--font-body)">Pendente</span>';
         actionsHtml = [
-          '<button onclick="recusarSolicitacaoAcesso(\'' + s.id + '\')" ',
+          '<button onclick="recusarSolicitacaoAcesso(\'' + s.id + '\',\'' + s.oportunidade_id + '\')" ',
             'style="padding:6px 14px;border-radius:100px;background:transparent;color:var(--gray-500);border:1px solid var(--gray-200);cursor:pointer;',
             'font-family:var(--font-body);font-size:12px;font-weight:600;transition:all 0.15s" ',
             'onmouseover="this.style.background=\'#FEF2F2\';this.style.color=\'#DC2626\';this.style.borderColor=\'rgba(220,38,38,0.3)\'" ',
             'onmouseout="this.style.background=\'transparent\';this.style.color=\'var(--gray-500)\';this.style.borderColor=\'var(--gray-200)\'">Recusar</button>',
-          '<button onclick="aprovarSolicitacao(\'' + s.id + '\')" ',
+          '<button onclick="aprovarSolicitacao(\'' + s.id + '\',\'' + s.oportunidade_id + '\')" ',
             'style="padding:6px 14px;border-radius:100px;background:#503A00;color:#fff;border:none;cursor:pointer;',
             'font-family:var(--font-body);font-size:12px;font-weight:600;transition:opacity 0.15s" ',
             'onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'">Aprovar</button>'
         ].join(' ');
       } else if (s.status === 'aprovado') {
         statusBadge = '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;background:#DCFCE7;color:#166534;font-size:11px;font-weight:600;font-family:var(--font-body)">✓ Aprovada</span>';
-        actionsHtml = '<button onclick="retirarAcessoSolicitacao(\'' + s.id + '\')" '
+        actionsHtml = '<button onclick="retirarAcessoSolicitacao(\'' + s.id + '\',\'' + s.oportunidade_id + '\')" '
           + 'style="padding:6px 14px;border-radius:100px;background:transparent;color:var(--gray-500);border:1px solid var(--gray-200);cursor:pointer;'
           + 'font-family:var(--font-body);font-size:12px;font-weight:600;transition:all 0.15s" '
           + 'onmouseover="this.style.background=\'#FEF2F2\';this.style.color=\'#DC2626\';this.style.borderColor=\'rgba(220,38,38,0.3)\'" '
@@ -4411,14 +4411,16 @@ function renderSolicitacoes() {
 /**
  * Aprova uma solicitação — PATCH acessos_oportunidade.status → 'aprovado'
  */
-async function aprovarSolicitacao(solId) {
+async function aprovarSolicitacao(solId, oppId) {
   const token = await _getWriteToken();
   if (!token) { showToast('Erro de autenticação.', 'error'); return; }
 
   const row = document.getElementById('sol-row-' + solId);
   if (row) row.style.opacity = '0.5';
 
-  const res = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade?id=eq.' + solId, {
+  var patchFilter = '/rest/v1/acessos_oportunidade?id=eq.' + solId;
+  if (oppId) patchFilter += '&oportunidade_id=eq.' + oppId;
+  const res = await fetch(SUPABASE_URL + patchFilter, {
     method: 'PATCH',
     headers: {
       'apikey': SUPABASE_KEY,
@@ -4444,14 +4446,16 @@ async function aprovarSolicitacao(solId) {
 /**
  * Recusa uma solicitação — PATCH acessos_oportunidade.status → 'recusado'
  */
-async function recusarSolicitacaoAcesso(solId) {
+async function recusarSolicitacaoAcesso(solId, oppId) {
   const token = await _getWriteToken();
   if (!token) { showToast('Erro de autenticação.', 'error'); return; }
 
   const row = document.getElementById('sol-row-' + solId);
   if (row) row.style.opacity = '0.5';
 
-  const res = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade?id=eq.' + solId, {
+  var patchFilter = '/rest/v1/acessos_oportunidade?id=eq.' + solId;
+  if (oppId) patchFilter += '&oportunidade_id=eq.' + oppId;
+  const res = await fetch(SUPABASE_URL + patchFilter, {
     method: 'PATCH',
     headers: {
       'apikey': SUPABASE_KEY,
@@ -4477,14 +4481,16 @@ async function recusarSolicitacaoAcesso(solId) {
 /**
  * Retira o acesso de uma marca aprovada — PATCH acessos_oportunidade.status → 'recusado'
  */
-async function retirarAcessoSolicitacao(solId) {
+async function retirarAcessoSolicitacao(solId, oppId) {
   const token = await _getWriteToken();
   if (!token) { showToast('Erro de autenticação.', 'error'); return; }
 
   const row = document.getElementById('sol-row-' + solId);
   if (row) row.style.opacity = '0.5';
 
-  const res = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade?id=eq.' + solId, {
+  var patchFilter = '/rest/v1/acessos_oportunidade?id=eq.' + solId;
+  if (oppId) patchFilter += '&oportunidade_id=eq.' + oppId;
+  const res = await fetch(SUPABASE_URL + patchFilter, {
     method: 'PATCH',
     headers: {
       'apikey': SUPABASE_KEY,
