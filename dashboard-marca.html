@@ -3981,7 +3981,7 @@ async function loadMinhasSolicitacoes() {
     // 4. Busca dados das oportunidades correspondentes
     var oppIds = [...new Set(solRows.map(r => r.oportunidade_id))];
     var oppUrl = SUPABASE_URL + '/rest/v1/oportunidades'
-      + '?select=id,titulo,descricao_curta,segmento,regiao,valor_base,visibilidade,categoria,slug,tags,imagens,imagem_capa,bg_gradient,icone,imagens_focal,perfis(slug)'
+      + '?select=id,titulo,descricao_curta,segmento,regiao,valor_base,visibilidade,categoria,slug,tags,imagens,imagem_capa,bg_gradient,icone,imagens_focal'
       + '&id=in.(' + oppIds.join(',') + ')';
 
     var oppRes = await fetch(oppUrl, { headers: headers });
@@ -3989,6 +3989,9 @@ async function loadMinhasSolicitacoes() {
     if (oppRes.ok) {
       var oppRows = await oppRes.json();
       (oppRows || []).forEach(function(o) { oppMap[o.id] = o; });
+    } else {
+      var errText = await oppRes.text().catch(function() { return ''; });
+      console.warn('[loadMinhasSolicitacoes] opp fetch failed:', oppRes.status, errText);
     }
 
     // 5. Mescla dados
