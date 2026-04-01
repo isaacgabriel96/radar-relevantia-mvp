@@ -1028,39 +1028,6 @@ tbody tr:last-child td { border-bottom: none; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
   .pub-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 }
-
-/* ─── SOLICITAÇÕES DE ACESSO ─── */
-.acesso-card {
-  display: flex; align-items: center; gap: 14px;
-  background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px;
-  padding: 14px 16px; transition: border-color 0.15s;
-}
-.acesso-card:hover { border-color: var(--gray-300); }
-.acesso-avatar {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: var(--gold-gradient); display: flex; align-items: center; justify-content: center;
-  color: var(--white); font-weight: 700; font-size: 15px; font-family: var(--font-heading); flex-shrink: 0;
-}
-.acesso-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
-.acesso-info { flex: 1; min-width: 0; }
-.acesso-marca { font-size: 14px; font-weight: 600; color: var(--black); }
-.acesso-opp { font-size: 12px; color: var(--gray-400); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.acesso-date { font-size: 11px; color: var(--gray-3); margin-top: 3px; }
-.acesso-actions { display: flex; gap: 8px; flex-shrink: 0; }
-.acesso-btn {
-  padding: 6px 16px; border-radius: 100px; font-size: 12px; font-weight: 600;
-  font-family: var(--font-body); cursor: pointer; border: none; transition: all 0.15s;
-}
-.acesso-btn.aprovar { background: var(--green-bg); color: #16A34A; border: 1px solid var(--green-border); }
-.acesso-btn.aprovar:hover { background: #16A34A; color: white; }
-.acesso-btn.rejeitar { background: var(--red-bg); color: #DC2626; border: 1px solid var(--red-border); }
-.acesso-btn.rejeitar:hover { background: #DC2626; color: white; }
-.acesso-status-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600;
-}
-.acesso-filter-pills { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
-.acesso-filter-pills .neg-pill { /* reuses neg-pill styling */ }
 </style>
 </head>
 <body>
@@ -1298,7 +1265,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="sub-tabs">
         <button class="sub-tab active" id="subtab-publicadas" onclick="switchSubTab('publicadas')">
           Publicadas
-          <span class="sub-tab-badge" id="pub-badge-count">0</span>
+          <span class="sub-tab-badge">3</span>
         </button>
         <button class="sub-tab" id="subtab-negociacoes" onclick="switchSubTab('negociacoes')">
           Negociações
@@ -1308,9 +1275,9 @@ tbody tr:last-child td { border-bottom: none; }
           Deals Fechados
           <span class="sub-tab-badge" id="deals-badge-count">0</span>
         </button>
-        <button class="sub-tab" id="subtab-acessos" onclick="switchSubTab('acessos')">
+        <button class="sub-tab" id="subtab-solicitacoes" onclick="switchSubTab('solicitacoes');loadSolicitacoes()">
           Solicitações
-          <span class="sub-tab-badge" id="acessos-badge-count">0</span>
+          <span class="sub-tab-badge" id="sol-badge-count">0</span>
         </button>
       </div>
 
@@ -1408,16 +1375,9 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
 
       <!-- Painel: Solicitações de Acesso -->
-      <div class="sub-panel" id="subpanel-acessos">
-        <div class="acesso-filter-pills">
-          <button class="neg-pill active" id="acessopill-pendente" onclick="filterAcessos('pendente')">Pendentes</button>
-          <button class="neg-pill" id="acessopill-aprovado" onclick="filterAcessos('aprovado')">Aprovados</button>
-          <button class="neg-pill" id="acessopill-rejeitado" onclick="filterAcessos('rejeitado')">Rejeitados</button>
-          <button class="neg-pill" id="acessopill-todos" onclick="filterAcessos('todos')">Todos</button>
-          <span class="neg-pills-count" id="acessos-pills-count"></span>
-        </div>
-        <div id="acessos-list" style="display:flex;flex-direction:column;gap:10px">
-          <p style="color:var(--gray-500);font-size:14px;text-align:center;padding:32px 0">Carregando solicitações...</p>
+      <div class="sub-panel" id="subpanel-solicitacoes">
+        <div id="sol-container">
+          <!-- preenchido por renderSolicitacoes() -->
         </div>
       </div>
 
@@ -1480,6 +1440,28 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-actions" id="empresaActions" style="display:none">
             <button class="btn btn-gold" onclick="saveEmpresa()">Salvar alterações</button>
             <button class="btn btn-ghost" onclick="toggleEditEmpresa()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Equipe (visível apenas para owner e org admin) -->
+      <div class="card" id="cardEquipe" style="display:none">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Equipe</div>
+            <div style="font-size:12px;color:var(--gray-400);margin-top:2px">Limite de 2 membros convidados</div>
+          </div>
+          <button id="btnConvidarMembro" onclick="abrirModalConvite()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--gold-gradient);color:#fff;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;cursor:pointer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Convidar
+          </button>
+        </div>
+        <div style="padding:0 24px 24px">
+          <div id="equipeLimit" style="display:none;margin-bottom:12px;padding:12px 14px;background:var(--gray-1,#F5F0E8);border-radius:var(--radius-base);font-size:12px;color:var(--gray-4)">
+            <strong>Limite atingido.</strong> Remova um membro para convidar outro.
+          </div>
+          <div id="equipeMembros" style="display:flex;flex-direction:column;gap:12px">
+            <div style="padding:32px;text-align:center;color:var(--gray-400)">Carregando equipe...</div>
           </div>
         </div>
       </div>
@@ -1692,6 +1674,36 @@ tbody tr:last-child td { border-bottom: none; }
 </div>
 
   </div>
+
+
+</div>
+
+<!-- Modal convite -->
+<div id="modalConvite" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:32px;width:100%;max-width:420px;margin:16px;box-shadow:0 24px 64px rgba(30,22,0,0.2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <h3 style="font-size:18px;font-weight:700;color:var(--black);margin:0">Convidar membro</h3>
+      <button onclick="fecharModalConvite()" style="background:none;border:none;cursor:pointer;color:var(--gray-3);padding:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-4);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Nome</label>
+        <input id="conviteNome" type="text" placeholder="Nome do membro" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-4);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Email</label>
+        <input id="conviteEmail" type="email" placeholder="email@empresa.com" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+      </div>
+      <p style="font-size:12px;color:var(--gray-3);margin:0">O convidado receberá um email para criar sua senha e acessará a conta como <strong>editor</strong>.</p>
+      <div id="conviteErro" style="display:none;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-base);font-size:13px;color:#DC2626"></div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button onclick="fecharModalConvite()" style="flex:1;padding:10px;background:var(--gray-1);border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;cursor:pointer;color:var(--gray-4)">Cancelar</button>
+        <button id="btnEnviarConvite" onclick="enviarConvite()" style="flex:1;padding:10px;background:var(--gold-gradient);border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;color:#fff;cursor:pointer">Enviar convite</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Bottom nav mobile -->
@@ -1724,8 +1736,8 @@ tbody tr:last-child td { border-bottom: none; }
    ═══════════════════════════════════════ */
 
 // ─── DATA (from centralized demo-data.js or future API) ───
-const MOCK_USER = { nome: 'Detentor', email: 'detentor@radar.com' };
-const MOCK_EMPRESA = { nome: 'Empresa' };
+const MOCK_USER = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detentor.user : { nome: 'Detentor', email: 'detentor@radar.com' };
+const MOCK_EMPRESA = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detentor.empresa : { nome: 'Empresa' };
 
 // ─── SECTION NAMES ───
 const SECTION_TITLES = {
@@ -1734,7 +1746,8 @@ const SECTION_TITLES = {
   negociacoes: 'Negociações',
   empresa: 'Minha Empresa',
   perfil: 'Meu Perfil',
-  voz: 'Fale com o Radar'
+  voz: 'Fale com o Radar',
+  equipe: 'Equipe'
 };
 
 // Atalho: vai para uma seção E ativa uma sub-tab específica
@@ -1760,13 +1773,11 @@ async function init() {
     // Demo mode banner
     showDemoBannerIfActive();
 
-    // Restaurar sessão legacy para SDK (garante token válido para todas as chamadas)
-    if (typeof restoreSessionToSDK === 'function') {
-      try { await restoreSessionToSDK(); } catch(e) { console.warn('[init] restoreSession:', e); }
-    }
-
     // Carregar info do usuário via SDK (com fallback localStorage)
     await loadUserInfoDetentor();
+
+    // Determina role na org (mostra nav Equipe se aplicável)
+    try { await loadOrgRole(); } catch (e) { console.error('[init] loadOrgRole failed:', e); }
 
     // Load negotiations from Supabase (or fallback to SharedNeg)
     try {
@@ -1778,9 +1789,6 @@ async function init() {
 
     // Load detentor's own opportunities from Supabase
     try { await loadMinhasOpps(); } catch (e) { console.error('[init] loadMinhasOpps failed:', e); }
-
-    // Load access requests (depends on MINHAS_OPPS)
-    try { await loadAcessos(); } catch (e) { console.error('[init] loadAcessos failed:', e); }
 
     // Render all views that depend on NEGOCIACOES + MINHAS_OPPS
     renderPublicadas();
@@ -1820,7 +1828,9 @@ function setUserInfo(nome, email) {
 // ─── LOAD USER INFO (SDK → localStorage → MOCK fallback) ───
 async function loadUserInfoDetentor() {
   // 1. Tentar via SDK (mais confiável, tem refresh automático)
-  // restoreSessionToSDK() já é chamado no init() antes desta função
+  if (typeof restoreSessionToSDK !== 'undefined') {
+    try { await restoreSessionToSDK(); } catch (_) {}
+  }
   if (typeof sb !== 'undefined' && sb) {
     try {
       const { data: { session } } = await sb.auth.getSession();
@@ -1831,7 +1841,7 @@ async function loadUserInfoDetentor() {
         // Tentar buscar nome real na tabela perfis
         try {
           const token = session.access_token;
-          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa&limit=1', {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?user_id=eq.' + session.user.id + '&select=nome,empresa&limit=1', {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
           });
           if (res.ok) {
@@ -1844,42 +1854,19 @@ async function loadUserInfoDetentor() {
       }
     } catch (_) {}
   }
-
-  // 2. Fallback: tentar token refreshed via getSessionAsync
-  try {
-    var legacy = await getSessionAsync('rightsholder');
-    if (legacy && legacy.user) {
-      var meta = legacy.user.user_metadata || {};
-      var nome = meta.nome || meta.name || legacy.user.email?.split('@')[0] || MOCK_USER.nome;
-      var email = legacy.user.email || MOCK_USER.email;
-      // Tentar buscar nome na tabela perfis com token refreshed
-      try {
-        var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + legacy.user.id + '&select=nome,empresa&limit=1', {
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + legacy.access_token }
-        });
-        if (res.ok) {
-          var rows = await res.json();
-          if (rows.length > 0) nome = rows[0].nome || rows[0].empresa || nome;
-        }
-      } catch (_) {}
-      setUserInfo(nome, email);
-      return;
-    }
-  } catch (_) {}
-
-  // 3. Fallback: raw localStorage (sem refresh, só metadata)
-  var stored = localStorage.getItem('sb_detentor_session');
+  // 2. Fallback: localStorage sb_detentor_session
+  const stored = localStorage.getItem('sb_detentor_session');
   if (stored) {
     try {
-      var session = JSON.parse(stored);
-      var meta2 = session.user?.user_metadata || {};
-      var nome2 = meta2.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
-      var email2 = session.user?.email || MOCK_USER.email;
-      setUserInfo(nome2, email2);
+      const session = JSON.parse(stored);
+      const meta = session.user?.user_metadata || {};
+      const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
+      const email = session.user?.email || MOCK_USER.email;
+      setUserInfo(nome, email);
       return;
     } catch (_) {}
   }
-  // 4. Mock fallback
+  // 3. Mock fallback
   setUserInfo(MOCK_USER.nome, MOCK_USER.email);
 }
 
@@ -2009,6 +1996,9 @@ function showSection(sectionId) {
 
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Lazy load section data
+  if (sectionId === 'empresa') loadEquipe();
 }
 
 // ─── NOTIFICAÇÕES ───
@@ -2368,7 +2358,7 @@ async function _persistNeg(neg, fields) {
 
 // Taxa padrão da plataforma Relevantia (20%)
 // Para alterar, acesse o painel Admin — não modifique aqui diretamente.
-const PLATAFORMA_TAXA = 0.20;
+const PLATAFORMA_TAXA = (window.DEMO) ? window.DEMO.plataforma_taxa : 0.20;
 
 // ─── DADOS MOCK: OPORTUNIDADES PUBLICADAS/RASCUNHOS ───
 const OPP_CAT = {
@@ -2381,59 +2371,21 @@ const OPP_CAT = {
   'Midia Digital':  { gradient: 'linear-gradient(135deg,#0e4a6e,#0284c7)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>' },
   'Artista Musical':{ gradient: 'linear-gradient(135deg,#3b1054,#6b21a8)', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 19V6l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/></svg>' }
 };
-var MINHAS_OPPS = [];
+var MINHAS_OPPS = (window.DEMO && window.DEMO.detentor) ? [...window.DEMO.detentor.oportunidades] : [];
 
 /**
  * Load detentor's opportunities from Supabase.
  */
 async function loadMinhasOpps() {
   if (isDemoMode()) return;
-
-  // Tenta token via _getWriteToken (SDK com auto-refresh + legacy fallback)
-  let token = await _getWriteToken('rightsholder');
-
-  if (!token) {
-    console.warn('[Opps] No token — skipping loadMinhasOpps');
-    return;
-  }
-
-  // Extrair userId do JWT para filtro client-side
-  let userId = null;
+  const token = await getValidToken();
+  const userId = await getAuthUserId();
+  if (!token || !userId) return;
   try {
-    // Decode JWT payload (base64url)
-    var parts = token.split('.');
-    if (parts.length === 3) {
-      var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-      userId = payload.sub || null;
-    }
-  } catch(_) {}
-  // Fallback: SDK ou localStorage
-  if (!userId) userId = await getAuthUserId();
-  if (!userId) {
-    try {
-      var raw = localStorage.getItem('sb_detentor_session');
-      if (raw) { var parsed = JSON.parse(raw); if (parsed && parsed.user) userId = parsed.user.id; }
-    } catch(_) {}
-  }
-
-  console.log('[Opps] token:', token ? 'OK' : 'NULL', '| userId:', userId || 'NULL');
-
-  if (!userId) {
-    console.warn('[Opps] No userId — skipping loadMinhasOpps');
-    return;
-  }
-  try {
-    var url = SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,alcance_detalhe,status,ativo,bg_gradient,imagem_capa,imagens,imagens_focal,visibilidade,descricao_curta,link_externo,criado_em,perfis:detentor_id(slug)&detentor_id=eq.' + userId + '&order=criado_em.desc';
-    console.log('[Opps] Fetching:', url.substring(0, 120) + '...');
-    const res = await fetch(url, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,status,ativo,bg_gradient,imagem_capa,imagens_focal,visibilidade,criado_em,perfis:detentor_id(slug)&detentor_id=eq.' + userId + '&order=criado_em.desc', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
     });
-    if (!res.ok) {
-      var errBody = '';
-      try { errBody = await res.text(); } catch(_) {}
-      console.error('[Opps] HTTP', res.status, ':', errBody);
-      return;
-    }
+    if (!res.ok) return;
     const rows = await res.json();
     MINHAS_OPPS = rows.map(r => ({
       id: r.id,
@@ -2447,12 +2399,8 @@ async function loadMinhasOpps() {
       interesses: 0,
       bg_gradient: r.bg_gradient,
       imagem_capa: r.imagem_capa || null,
-      imagens: r.imagens || [],
       imagens_focal: r.imagens_focal || {},
-      visibilidade: r.visibilidade || 'publica',
-      descricao: r.descricao_curta || '',
-      linkExterno: r.link_externo || '',
-      abrangencia: r.alcance_detalhe || ''
+      visibilidade: r.visibilidade || 'publica'
     }));
     // Count interesses (negociações) per oportunidade
     NEGOCIACOES.forEach(n => {
@@ -2541,19 +2489,16 @@ function renderPublicadas() {
     ? MINHAS_OPPS
     : MINHAS_OPPS.filter(o => o.status === _pubFilterAtivo);
 
-  // atualiza contagem no pill e badge da tab
+  // atualiza contagem
   const countEl = document.getElementById('pub-pills-count');
   if (countEl) {
     const total = filtered.length;
     countEl.textContent = total > 0 ? `${total} oportunidade${total !== 1 ? 's' : ''}` : '';
   }
-  const pubBadge = document.getElementById('pub-badge-count');
-  if (pubBadge) pubBadge.textContent = MINHAS_OPPS.length;
 
   if (filtered.length === 0) {
-    const labels = { publicada:'publicada', rascunho:'em rascunho', finalizada:'encerrada', todos:'' };
-    const suffix = labels[_pubFilterAtivo] ? ' ' + labels[_pubFilterAtivo] : '';
-    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--gray-3);font-size:14px">Nenhuma oportunidade${suffix} encontrada.</div>`;
+    const labels = { publicada:'publicadas', rascunho:'em rascunho', finalizada:'encerradas', todos:'oportunidades' };
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--gray-3);font-size:14px">Nenhuma oportunidade ${labels[_pubFilterAtivo] || ''} encontrada.</div>`;
     return;
   }
 
@@ -2603,8 +2548,6 @@ function switchSubTab(tab) {
   document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('subtab-' + tab).classList.add('active');
   document.getElementById('subpanel-' + tab).classList.add('active');
-  // Refresh acessos on tab switch
-  if (tab === 'acessos') { loadAcessos(); }
 }
 
 const chevronSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="neg-opp-chevron"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -3817,167 +3760,235 @@ function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ═══════ SOLICITAÇÕES DE ACESSO ═══════
-var ACESSOS = [];
-var _acessoFilter = 'pendente';
+// ─── EQUIPE ──────────────────────────────────────────────────
+let CURRENT_ORG_ROLE = null; // 'owner' | 'admin' | 'editor' | null
+let CURRENT_ORG_ID   = null; // perfis.id do dono da org
 
-async function loadAcessos() {
-  if (isDemoMode()) return;
-  var token = await getValidToken();
-  if (!token) token = await _getWriteToken('rightsholder');
-  var userId = await getAuthUserId();
-  if (!userId) {
-    try {
-      var raw = localStorage.getItem('sb_detentor_session');
-      if (raw) { var p = JSON.parse(raw); if (p && p.user) userId = p.user.id; }
-    } catch(_) {}
-  }
-  if (!token || !userId) return;
+async function loadOrgRole() {
+  if (!sb) return;
   try {
-    // Get all opp IDs owned by this detentor
-    var oppIds = MINHAS_OPPS.map(function(o) { return o.id; });
-    if (oppIds.length === 0) {
-      ACESSOS = [];
-      renderAcessos();
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) return;
+
+    const uid   = session.user.id;
+    const token = session.access_token;
+
+    // Verifica se este usuário é dono de uma org (perfis.id = uid E role = detentor)
+    const perfilRes = await fetch(
+      SUPABASE_URL + '/rest/v1/perfis?id=eq.' + uid + '&role=eq.detentor&select=id&limit=1',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+    );
+    const perfilData = perfilRes.ok ? await perfilRes.json() : [];
+
+    if (perfilData.length > 0) {
+      // É dono (org_id = próprio uid)
+      CURRENT_ORG_ROLE = 'owner';
+      CURRENT_ORG_ID   = uid;
+      document.getElementById('cardEquipe').style.display = 'block';
       return;
     }
-    // Fetch acessos for detentor's opps, with marca info
-    var url = SUPABASE_URL + '/rest/v1/acessos_oportunidade?select=id,oportunidade_id,marca_id,status,criado_em,perfis:marca_id(nome,empresa,slug,avatar_url)&oportunidade_id=in.(' + oppIds.join(',') + ')&order=criado_em.desc';
-    var res = await fetch(url, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
-    });
-    if (!res.ok) { console.warn('[Acessos] fetch failed:', res.status); return; }
-    var rows = await res.json();
-    ACESSOS = rows.map(function(r) {
-      var marca = r.perfis || {};
-      var opp = MINHAS_OPPS.find(function(o) { return o.id === r.oportunidade_id; });
-      return {
-        id: r.id,
-        opp_id: r.oportunidade_id,
-        opp_titulo: opp ? opp.titulo : 'Oportunidade #' + r.oportunidade_id,
-        marca_id: r.marca_id,
-        marca_nome: marca.empresa || marca.nome || 'Marca',
-        marca_slug: marca.slug || '',
-        marca_foto: marca.avatar_url || '',
-        status: r.status || 'pendente',
-        criado_em: r.criado_em
-      };
-    });
-    console.log('[Acessos] Loaded', ACESSOS.length, 'access requests');
-    updateAcessosBadge();
-    renderAcessos();
-  } catch (err) {
-    console.error('[Acessos] Failed:', err);
+
+    // Verifica se é membro convidado
+    const membroRes = await fetch(
+      SUPABASE_URL + '/rest/v1/org_members?user_id=eq.' + uid + '&select=org_id,org_role&limit=1',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+    );
+    const membroData = membroRes.ok ? await membroRes.json() : [];
+
+    if (membroData.length > 0) {
+      CURRENT_ORG_ROLE = membroData[0].org_role; // 'admin' ou 'editor'
+      CURRENT_ORG_ID   = membroData[0].org_id;
+      // Apenas admin org pode ver e gerenciar equipe
+      if (CURRENT_ORG_ROLE === 'admin') {
+        document.getElementById('cardEquipe').style.display = 'block';
+      }
+    }
+  } catch (e) {
+    console.error('[loadOrgRole]', e);
   }
 }
 
-function updateAcessosBadge() {
-  var badge = document.getElementById('acessos-badge-count');
-  var pendentes = ACESSOS.filter(function(a) { return a.status === 'pendente'; }).length;
-  if (badge) {
-    badge.textContent = pendentes;
-    badge.style.display = pendentes > 0 ? '' : 'none';
+async function loadEquipe() {
+  if (!CURRENT_ORG_ID) return;
+  const el = document.getElementById('equipeMembros');
+  if (!el) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const token = session.access_token;
+
+    // Busca membros convidados (exclui o dono)
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/org_members?org_id=eq.' + CURRENT_ORG_ID +
+      '&user_id=neq.' + CURRENT_ORG_ID + '&select=user_id,org_role,created_at&order=created_at.asc',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const members = await res.json();
+
+    // Enriquece com nome/email da tabela perfis
+    if (members.length > 0) {
+      const ids = members.map(m => m.user_id).join(',');
+      const perfilRes = await fetch(
+        SUPABASE_URL + '/rest/v1/perfis?id=in.(' + ids + ')&select=id,nome,email',
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+      );
+      const perfis = perfilRes.ok ? await perfilRes.json() : [];
+      const perfilMap = {};
+      perfis.forEach(p => { perfilMap[p.id] = p; });
+      members.forEach(m => { m._perfil = perfilMap[m.user_id] || {}; });
+    }
+
+    renderEquipe(members);
+
+    // Controla visibilidade do botão e aviso de limite
+    const btnConvidar = document.getElementById('btnConvidarMembro');
+    const limiteEl    = document.getElementById('equipeLimit');
+    if (members.length >= 2) {
+      if (btnConvidar) btnConvidar.style.display = 'none';
+      if (limiteEl)    limiteEl.style.display = 'block';
+    } else {
+      if (btnConvidar) btnConvidar.style.display = 'flex';
+      if (limiteEl)    limiteEl.style.display = 'none';
+    }
+  } catch (e) {
+    console.error('[loadEquipe]', e);
+    if (el) el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--red);font-size:13px">Erro ao carregar equipe.</div>';
   }
 }
 
-function filterAcessos(filter) {
-  _acessoFilter = filter;
-  document.querySelectorAll('.acesso-filter-pills .neg-pill').forEach(function(b) { b.classList.remove('active'); });
-  var btn = document.getElementById('acessopill-' + filter);
-  if (btn) btn.classList.add('active');
-  renderAcessos();
-}
+function renderEquipe(members) {
+  const el = document.getElementById('equipeMembros');
+  if (!el) return;
 
-function renderAcessos() {
-  var container = document.getElementById('acessos-list');
-  if (!container) return;
-
-  var filtered = _acessoFilter === 'todos'
-    ? ACESSOS
-    : ACESSOS.filter(function(a) { return a.status === _acessoFilter; });
-
-  var countEl = document.getElementById('acessos-pills-count');
-  if (countEl) countEl.textContent = filtered.length + ' solicitaç' + (filtered.length === 1 ? 'ão' : 'ões');
-
-  if (filtered.length === 0) {
-    var msgs = {
-      pendente: 'Nenhuma solicitação pendente.',
-      aprovado: 'Nenhuma solicitação aprovada ainda.',
-      rejeitado: 'Nenhuma solicitação rejeitada.',
-      todos: 'Nenhuma solicitação de acesso recebida.'
-    };
-    container.innerHTML = '<div style="text-align:center;padding:40px 0"><div style="font-size:32px;margin-bottom:8px">🔒</div><div style="color:var(--gray-400);font-size:14px">' + (msgs[_acessoFilter] || msgs.todos) + '</div></div>';
+  if (members.length === 0) {
+    el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--gray-3);font-size:13px">Nenhum membro convidado ainda.</div>';
     return;
   }
 
-  container.innerHTML = filtered.map(function(a) {
-    var initials = a.marca_nome.split(' ').slice(0,2).map(function(w) { return w[0]; }).join('').toUpperCase();
-    var avatarHtml = a.marca_foto
-      ? '<img src="' + a.marca_foto + '" alt="">'
-      : initials;
-    var dateStr = '';
-    if (a.criado_em) {
-      var d = new Date(a.criado_em);
-      dateStr = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-    var actionsHtml = '';
-    if (a.status === 'pendente') {
-      actionsHtml = '<div class="acesso-actions">' +
-        '<button class="acesso-btn aprovar" onclick="aprovarAcesso(\'' + a.id + '\')">Aprovar</button>' +
-        '<button class="acesso-btn rejeitar" onclick="rejeitarAcesso(\'' + a.id + '\')">Rejeitar</button>' +
-      '</div>';
-    } else if (a.status === 'aprovado') {
-      actionsHtml = '<span class="acesso-status-badge" style="background:var(--green-bg);color:#16A34A"><span style="width:6px;height:6px;border-radius:50%;background:#16A34A"></span>Aprovado</span>';
-    } else if (a.status === 'rejeitado') {
-      actionsHtml = '<span class="acesso-status-badge" style="background:var(--red-bg);color:#DC2626"><span style="width:6px;height:6px;border-radius:50%;background:#DC2626"></span>Rejeitado</span>';
-    }
-    return '<div class="acesso-card">' +
-      '<div class="acesso-avatar">' + avatarHtml + '</div>' +
-      '<div class="acesso-info">' +
-        '<div class="acesso-marca">' + escapeHtml(a.marca_nome) + '</div>' +
-        '<div class="acesso-opp">Quer acessar: ' + escapeHtml(a.opp_titulo) + '</div>' +
-        (dateStr ? '<div class="acesso-date">' + dateStr + '</div>' : '') +
+  const isAdmin = CURRENT_ORG_ROLE === 'owner' || CURRENT_ORG_ROLE === 'admin';
+
+  el.innerHTML = members.map(m => {
+    const nome  = m._perfil?.nome  || m._perfil?.email || 'Membro';
+    const email = m._perfil?.email || '';
+    const initials = nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const roleBadge = m.org_role === 'admin'
+      ? '<span style="font-size:11px;font-weight:600;padding:2px 8px;background:var(--gold-pale);color:var(--gold);border-radius:100px">Admin</span>'
+      : '<span style="font-size:11px;font-weight:600;padding:2px 8px;background:var(--gray-1);color:var(--gray-4);border-radius:100px">Editor</span>';
+
+    return '<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--gray-200)">' +
+      '<div style="width:38px;height:38px;border-radius:50%;background:var(--gold-gradient);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">' + initials + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(nome) + '</div>' +
+        '<div style="font-size:12px;color:var(--gray-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escapeHtml(email) + '</div>' +
       '</div>' +
-      actionsHtml +
+      roleBadge +
+      (isAdmin ? '<button onclick="removerMembro(\'' + m.user_id + '\')" title="Remover membro" style="background:none;border:none;cursor:pointer;color:var(--gray-3);padding:4px;flex-shrink:0;transition:color .15s" onmouseover="this.style.color=\'var(--red)\'" onmouseout="this.style.color=\'var(--gray-3)\'">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>' +
+      '</button>' : '') +
     '</div>';
   }).join('');
 }
 
-async function aprovarAcesso(acessoId) {
-  await updateAcessoStatus(acessoId, 'aprovado');
+function abrirModalConvite() {
+  const modal = document.getElementById('modalConvite');
+  if (!modal) return;
+  document.getElementById('conviteNome').value  = '';
+  document.getElementById('conviteEmail').value = '';
+  document.getElementById('conviteErro').style.display = 'none';
+  document.getElementById('btnEnviarConvite').disabled = false;
+  document.getElementById('btnEnviarConvite').textContent = 'Enviar convite';
+  modal.style.display = 'flex';
 }
 
-async function rejeitarAcesso(acessoId) {
-  if (!confirm('Rejeitar esta solicitação de acesso?')) return;
-  await updateAcessoStatus(acessoId, 'rejeitado');
+function fecharModalConvite() {
+  const modal = document.getElementById('modalConvite');
+  if (modal) modal.style.display = 'none';
 }
 
-async function updateAcessoStatus(acessoId, newStatus) {
-  // Optimistic update
-  var acesso = ACESSOS.find(function(a) { return a.id === acessoId; });
-  if (!acesso) return;
-  var oldStatus = acesso.status;
-  acesso.status = newStatus;
-  updateAcessosBadge();
-  renderAcessos();
+async function enviarConvite() {
+  const nome  = (document.getElementById('conviteNome')?.value  || '').trim();
+  const email = (document.getElementById('conviteEmail')?.value || '').trim();
+  const erroEl = document.getElementById('conviteErro');
+  const btnEl  = document.getElementById('btnEnviarConvite');
 
-  // Persist to Supabase
-  var token = await _getWriteToken();
-  if (!token) { acesso.status = oldStatus; renderAcessos(); return; }
+  const mostrarErro = (msg) => {
+    erroEl.textContent = msg;
+    erroEl.style.display = 'block';
+  };
+
+  if (!nome)  { mostrarErro('Informe o nome do membro.'); return; }
+  if (!email) { mostrarErro('Informe o email do membro.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mostrarErro('Email inválido.'); return; }
+  if (!CURRENT_ORG_ID) { mostrarErro('Erro interno: org não identificada.'); return; }
+
+  erroEl.style.display = 'none';
+  btnEl.disabled = true;
+  btnEl.textContent = 'Enviando...';
+
   try {
-    var res = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade?id=eq.' + acessoId, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: newStatus, atualizado_em: new Date().toISOString() }),
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { mostrarErro('Sessão expirada. Faça login novamente.'); return; }
+
+    const res = await fetch(SUPABASE_URL + '/functions/v1/invite-org-member', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + session.access_token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ nome, email, org_id: CURRENT_ORG_ID, tipo: 'detentor' }),
     });
-    if (!res.ok) throw new Error('PATCH failed: ' + res.status);
-    showToast(newStatus === 'aprovado' ? 'Acesso aprovado com sucesso!' : 'Solicitação rejeitada.', newStatus === 'aprovado' ? 'success' : 'info');
-  } catch (err) {
-    console.error('[Acessos] Update failed:', err);
-    acesso.status = oldStatus;
-    updateAcessosBadge();
-    renderAcessos();
-    showToast('Erro ao atualizar solicitação. Tente novamente.', 'error');
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      mostrarErro(data.error || 'Erro ao enviar convite.');
+      btnEl.disabled = false;
+      btnEl.textContent = 'Enviar convite';
+      return;
+    }
+
+    fecharModalConvite();
+    if (typeof showToast === 'function') showToast('Convite enviado para ' + email + '!', 'success');
+    await loadEquipe();
+
+  } catch (e) {
+    console.error('[enviarConvite]', e);
+    mostrarErro('Erro de conexão. Tente novamente.');
+    btnEl.disabled = false;
+    btnEl.textContent = 'Enviar convite';
+  }
+}
+
+async function removerMembro(userId) {
+  if (!CURRENT_ORG_ID) return;
+  if (!confirm('Remover este membro da equipe?')) return;
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/org_members?org_id=eq.' + CURRENT_ORG_ID + '&user_id=eq.' + userId,
+      {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + session.access_token,
+          'Prefer': 'return=minimal',
+        },
+      }
+    );
+
+    if (!res.ok) throw new Error(await res.text());
+
+    if (typeof showToast === 'function') showToast('Membro removido.', 'success');
+    await loadEquipe();
+  } catch (e) {
+    console.error('[removerMembro]', e);
+    if (typeof showToast === 'function') showToast('Erro ao remover membro.', 'error');
   }
 }
 </script>
@@ -4174,6 +4185,286 @@ async function updateAcessoStatus(acessoId, newStatus) {
     </div>
   </div>
 </div>
+
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   SOLICITAÇÕES DE ACESSO — dashboard-detentor
+   Tabela: acessos_oportunidade (id, oportunidade_id, marca_id, status, criado_em)
+   Fluxo completamente separado das negociações.
+   ════════════════════════════════════════════════════════════════ */
+
+var _SOLICITACOES_LOADED = false;
+var _SOLICITACOES = []; // { id, oportunidade_id, marca_id, status, criado_em, opp_titulo, opp_categoria, marca_nome, marca_empresa, avatar_url }
+
+/**
+ * Carrega solicitações (todos os status) das oportunidades
+ * por_aprovacao do detentor. Lazy — só executa uma vez.
+ */
+async function loadSolicitacoes() {
+  if (_SOLICITACOES_LOADED) {
+    renderSolicitacoes();
+    return;
+  }
+  const container = document.getElementById('sol-container');
+  if (container) container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--gray-400);font-family:var(--font-body);font-size:14px">Carregando solicitações…</div>';
+
+  if (isDemoMode()) {
+    _SOLICITACOES = [];
+    _SOLICITACOES_LOADED = true;
+    renderSolicitacoes();
+    return;
+  }
+
+  const token = await getValidToken();
+  const userId = await getAuthUserId();
+  if (!token || !userId) {
+    _SOLICITACOES = [];
+    _SOLICITACOES_LOADED = true;
+    renderSolicitacoes();
+    return;
+  }
+
+  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+
+  try {
+    // 1. IDs das oportunidades do detentor com visibilidade=aprovacao
+    const oppIds = MINHAS_OPPS.filter(function(o) { return o.visibilidade === 'aprovacao'; }).map(function(o) { return o.id; });
+    if (oppIds.length === 0) {
+      _SOLICITACOES = [];
+      _SOLICITACOES_LOADED = true;
+      renderSolicitacoes();
+      return;
+    }
+
+    // 2. Busca todas solicitações para essas oportunidades
+    const inClause = 'in.(' + oppIds.join(',') + ')';
+    const solRes = await fetch(
+      SUPABASE_URL + '/rest/v1/acessos_oportunidade?oportunidade_id=' + inClause +
+      '&select=id,oportunidade_id,marca_id,status,criado_em&order=criado_em.desc',
+      { headers: headers }
+    );
+    if (!solRes.ok) throw new Error('acessos_oportunidade fetch failed: ' + solRes.status);
+    const solRows = await solRes.json();
+    if (!Array.isArray(solRows) || solRows.length === 0) {
+      _SOLICITACOES = [];
+      _SOLICITACOES_LOADED = true;
+      renderSolicitacoes();
+      return;
+    }
+
+    // 3. Perfis das marcas solicitantes
+    const marcaIds = solRows.map(function(r) { return r.marca_id; }).filter(function(id, i, arr) { return arr.indexOf(id) === i; });
+    const marcaInClause = 'in.(' + marcaIds.map(function(id) { return '"' + id + '"'; }).join(',') + ')';
+    const perfisRes = await fetch(
+      SUPABASE_URL + '/rest/v1/perfis?user_id=' + marcaInClause +
+      '&select=user_id,nome,empresa,avatar_url',
+      { headers: headers }
+    );
+    const perfisRows = perfisRes.ok ? await perfisRes.json() : [];
+    const perfisMap = {};
+    (Array.isArray(perfisRows) ? perfisRows : []).forEach(function(p) { perfisMap[p.user_id] = p; });
+
+    // 4. Monta array final
+    _SOLICITACOES = solRows.map(function(r) {
+      const opp    = MINHAS_OPPS.find(function(o) { return o.id === r.oportunidade_id; });
+      const perfil = perfisMap[r.marca_id] || {};
+      return {
+        id:              r.id,
+        oportunidade_id: r.oportunidade_id,
+        marca_id:        r.marca_id,
+        status:          r.status,
+        criado_em:       r.criado_em,
+        opp_titulo:      opp ? (opp.titulo || 'Oportunidade') : 'Oportunidade',
+        opp_categoria:   opp ? (opp.categoria || '') : '',
+        marca_nome:      perfil.nome || 'Marca',
+        marca_empresa:   perfil.empresa || '',
+        avatar_url:      perfil.avatar_url || null
+      };
+    });
+    _SOLICITACOES_LOADED = true;
+    renderSolicitacoes();
+  } catch (e) {
+    console.error('[Solicitações] loadSolicitacoes error:', e);
+    _SOLICITACOES = [];
+    renderSolicitacoes();
+  }
+}
+
+/**
+ * Renderiza o painel de solicitações agrupado por oportunidade.
+ */
+function renderSolicitacoes() {
+  const container = document.getElementById('sol-container');
+  const badge = document.getElementById('sol-badge-count');
+  if (!container) return;
+
+  const pendentes = _SOLICITACOES.filter(function(s) { return s.status === 'pendente'; });
+  if (badge) badge.textContent = pendentes.length;
+
+  if (_SOLICITACOES.length === 0) {
+    container.innerHTML = [
+      '<div style="padding:48px 24px;text-align:center">',
+        '<div style="width:56px;height:56px;border-radius:50%;background:var(--gray-100);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">',
+          '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+        '</div>',
+        '<div style="font-family:var(--font-heading);font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Nenhuma solicitação</div>',
+        '<div style="font-family:var(--font-body);font-size:14px;color:var(--gray-400)">Quando marcas solicitarem acesso às suas oportunidades por aprovação, elas aparecerão aqui.</div>',
+      '</div>'
+    ].join('');
+    return;
+  }
+
+  // Agrupa por oportunidade
+  const groups = {};
+  _SOLICITACOES.forEach(function(s) {
+    if (!groups[s.oportunidade_id]) {
+      groups[s.oportunidade_id] = {
+        opp_titulo:    s.opp_titulo,
+        opp_categoria: s.opp_categoria,
+        opp_id:        s.oportunidade_id,
+        items:         []
+      };
+    }
+    groups[s.oportunidade_id].items.push(s);
+  });
+
+  const lockIconSvg = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+
+  container.innerHTML = Object.values(groups).map(function(g) {
+    const pend  = g.items.filter(function(i) { return i.status === 'pendente'; }).length;
+    const aprov = g.items.filter(function(i) { return i.status === 'aprovado'; }).length;
+    const rec   = g.items.filter(function(i) { return i.status === 'recusado'; }).length;
+
+    const chipsHtml = [
+      pend  ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:100px;background:#FEF3C7;color:#B45309;border:1px solid rgba(180,83,9,0.2);font-size:11px;font-weight:600;font-family:var(--font-body)">' + pend  + ' pendente'  + (pend  > 1 ? 's' : '') + '</span>' : '',
+      aprov ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:100px;background:#DCFCE7;color:#166534;border:1px solid rgba(22,101,52,0.2);font-size:11px;font-weight:600;font-family:var(--font-body)">' + aprov + ' aprovada' + (aprov > 1 ? 's' : '') + '</span>' : '',
+      rec   ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:100px;background:#FEF2F2;color:#DC2626;border:1px solid rgba(220,38,38,0.2);font-size:11px;font-weight:600;font-family:var(--font-body)">' + rec   + ' recusada' + (rec   > 1 ? 's' : '') + '</span>' : ''
+    ].filter(Boolean).join('');
+
+    const rowsHtml = g.items.map(function(s) {
+      const initials = s.marca_nome.split(' ').slice(0,2).map(function(w) { return w[0] || ''; }).join('').toUpperCase() || 'M';
+      const avatarHtml = s.avatar_url
+        ? '<img src="' + s.avatar_url + '" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="' + s.marca_nome + '">'
+        : '<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-heading);font-size:13px;font-weight:700;color:#fff">' + initials + '</div>';
+
+      const dataRelativa = typeof formatRelTime === 'function' ? formatRelTime(s.criado_em) : '';
+      var statusBadge, actionsHtml;
+      if (s.status === 'pendente') {
+        statusBadge = '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;background:#FEF3C7;color:#B45309;font-size:11px;font-weight:600;font-family:var(--font-body)">Pendente</span>';
+        actionsHtml = [
+          '<button onclick="aprovarSolicitacao(\'' + s.id + '\')" ',
+            'style="padding:6px 14px;border-radius:100px;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;border:none;cursor:pointer;',
+            'font-family:var(--font-body);font-size:12px;font-weight:600;box-shadow:0 2px 8px rgba(184,134,11,0.3);transition:opacity 0.15s" ',
+            'onmouseover="this.style.opacity=\'0.85\'" onmouseout="this.style.opacity=\'1\'">Aprovar</button>',
+          '<button onclick="recusarSolicitacaoAcesso(\'' + s.id + '\')" ',
+            'style="padding:6px 14px;border-radius:100px;background:transparent;color:var(--gray-500);border:1px solid var(--gray-200);cursor:pointer;',
+            'font-family:var(--font-body);font-size:12px;font-weight:600;transition:all 0.15s" ',
+            'onmouseover="this.style.background=\'#FEF2F2\';this.style.color=\'#DC2626\';this.style.borderColor=\'rgba(220,38,38,0.3)\'" ',
+            'onmouseout="this.style.background=\'transparent\';this.style.color=\'var(--gray-500)\';this.style.borderColor=\'var(--gray-200)\'">Recusar</button>'
+        ].join(' ');
+      } else if (s.status === 'aprovado') {
+        statusBadge = '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;background:#DCFCE7;color:#166534;font-size:11px;font-weight:600;font-family:var(--font-body)">✓ Aprovada</span>';
+        actionsHtml = '<span style="font-family:var(--font-body);font-size:12px;color:var(--gray-400)">Acesso liberado</span>';
+      } else {
+        statusBadge = '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;background:#FEF2F2;color:#DC2626;font-size:11px;font-weight:600;font-family:var(--font-body)">Recusada</span>';
+        actionsHtml = '<span style="font-family:var(--font-body);font-size:12px;color:var(--gray-400)">Acesso negado</span>';
+      }
+
+      return [
+        '<div id="sol-row-' + s.id + '" style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--gray-100)">',
+          avatarHtml,
+          '<div style="flex:1;min-width:0">',
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">',
+              '<span style="font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--text)">' + s.marca_nome + '</span>',
+              s.marca_empresa ? '<span style="font-family:var(--font-body);font-size:12px;color:var(--gray-400)">· ' + s.marca_empresa + '</span>' : '',
+              statusBadge,
+            '</div>',
+            dataRelativa ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400)">' + dataRelativa + '</div>' : '',
+          '</div>',
+          '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">' + actionsHtml + '</div>',
+        '</div>'
+      ].join('');
+    }).join('');
+
+    return [
+      '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px">',
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">',
+          '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:rgba(184,134,11,0.1);color:#B8860B;font-size:11px;font-weight:600;font-family:var(--font-body)">' + lockIconSvg + 'Por aprovação</span>',
+          g.opp_categoria ? '<span style="display:inline-flex;padding:3px 10px;border-radius:100px;background:var(--gray-100);color:var(--gray-500);font-size:11px;font-weight:600;font-family:var(--font-body)">' + g.opp_categoria + '</span>' : '',
+        '</div>',
+        '<div style="font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px">' + g.opp_titulo + '</div>',
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">' + chipsHtml + '</div>',
+        '<div>' + rowsHtml + '</div>',
+      '</div>'
+    ].join('');
+  }).join('');
+}
+
+/**
+ * Aprova uma solicitação — PATCH acessos_oportunidade.status → 'aprovado'
+ */
+async function aprovarSolicitacao(solId) {
+  const token = await _getWriteToken();
+  if (!token) { showToast('Erro de autenticação.', 'error'); return; }
+
+  const row = document.getElementById('sol-row-' + solId);
+  if (row) row.style.opacity = '0.5';
+
+  const res = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade?id=eq.' + solId, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ status: 'aprovado', atualizado_em: new Date().toISOString() })
+  });
+
+  if (res.ok) {
+    const sol = _SOLICITACOES.find(function(s) { return s.id === solId; });
+    if (sol) sol.status = 'aprovado';
+    renderSolicitacoes();
+    showToast('Acesso aprovado — a marca já pode visualizar a oportunidade.', 'success');
+  } else {
+    if (row) row.style.opacity = '1';
+    showToast('Erro ao aprovar. Tente novamente.', 'error');
+  }
+}
+
+/**
+ * Recusa uma solicitação — PATCH acessos_oportunidade.status → 'recusado'
+ */
+async function recusarSolicitacaoAcesso(solId) {
+  const token = await _getWriteToken();
+  if (!token) { showToast('Erro de autenticação.', 'error'); return; }
+
+  const row = document.getElementById('sol-row-' + solId);
+  if (row) row.style.opacity = '0.5';
+
+  const res = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade?id=eq.' + solId, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + token,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ status: 'recusado', atualizado_em: new Date().toISOString() })
+  });
+
+  if (res.ok) {
+    const sol = _SOLICITACOES.find(function(s) { return s.id === solId; });
+    if (sol) sol.status = 'recusado';
+    renderSolicitacoes();
+    showToast('Solicitação recusada.', 'info');
+  } else {
+    if (row) row.style.opacity = '1';
+    showToast('Erro ao recusar. Tente novamente.', 'error');
+  }
+}
+</script>
 
 </body>
 </html>

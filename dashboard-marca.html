@@ -1109,33 +1109,54 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
-      <!-- Filter bar -->
-      <div class="filter-bar">
-        <input class="form-input" type="text" placeholder="Buscar oportunidades..." id="searchOpp" oninput="filterOpportunities()">
-        <select class="form-select" id="filterSegmento" onchange="filterOpportunities()">
-          <option value="">Todos os segmentos</option>
-          <option value="Esporte">Esporte</option>
-          <option value="Música">Música</option>
-          <option value="Tecnologia">Tecnologia</option>
-          <option value="Mídia Digital">Mídia Digital</option>
-        </select>
-        <select class="form-select" id="filterRegiao" onchange="filterOpportunities()">
-          <option value="">Todas as regiões</option>
-          <option value="São Paulo">São Paulo</option>
-          <option value="Salvador">Salvador</option>
-          <option value="Florianópolis">Florianópolis</option>
-          <option value="Curitiba">Curitiba</option>
-          <option value="Online">Online</option>
-        </select>
-        <button class="opp-fav-pill" id="filterFavoritosBtn" onclick="toggleFavFilter()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          Favoritos <span id="fav-count" style="display:none;font-size:10px;font-weight:700;background:rgba(225,29,72,0.12);color:#e11d48;border-radius:100px;padding:1px 7px">0</span>
+      <!-- Sub-abas: Explorar / Minhas Solicitações -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="subtab-opp-explorar" onclick="switchOppTab('explorar')">
+          Explorar
+        </button>
+        <button class="sub-tab" id="subtab-opp-solicitacoes" onclick="switchOppTab('solicitacoes');loadMinhasSolicitacoes()">
+          Minhas Solicitações
+          <span class="sub-tab-badge" id="sol-marca-badge">0</span>
         </button>
       </div>
 
-      <!-- Opportunity grid -->
-      <div class="opp-grid" id="oppGrid">
-        <!-- Cards are rendered by JS -->
+      <!-- Painel: Explorar -->
+      <div class="sub-panel active" id="subpanel-opp-explorar">
+        <!-- Filter bar -->
+        <div class="filter-bar">
+          <input class="form-input" type="text" placeholder="Buscar oportunidades..." id="searchOpp" oninput="filterOpportunities()">
+          <select class="form-select" id="filterSegmento" onchange="filterOpportunities()">
+            <option value="">Todos os segmentos</option>
+            <option value="Esporte">Esporte</option>
+            <option value="Música">Música</option>
+            <option value="Tecnologia">Tecnologia</option>
+            <option value="Mídia Digital">Mídia Digital</option>
+          </select>
+          <select class="form-select" id="filterRegiao" onchange="filterOpportunities()">
+            <option value="">Todas as regiões</option>
+            <option value="São Paulo">São Paulo</option>
+            <option value="Salvador">Salvador</option>
+            <option value="Florianópolis">Florianópolis</option>
+            <option value="Curitiba">Curitiba</option>
+            <option value="Online">Online</option>
+          </select>
+          <button class="opp-fav-pill" id="filterFavoritosBtn" onclick="toggleFavFilter()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Favoritos <span id="fav-count" style="display:none;font-size:10px;font-weight:700;background:rgba(225,29,72,0.12);color:#e11d48;border-radius:100px;padding:1px 7px">0</span>
+          </button>
+        </div>
+
+        <!-- Opportunity grid -->
+        <div class="opp-grid" id="oppGrid">
+          <!-- Cards are rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Painel: Minhas Solicitações de Acesso -->
+      <div class="sub-panel" id="subpanel-opp-solicitacoes">
+        <div id="sol-marca-container">
+          <!-- preenchido por renderMinhasSolicitacoes() -->
+        </div>
       </div>
     </div>
 
@@ -1318,6 +1339,28 @@ tbody tr:last-child td { border-bottom: none; }
           </div>
         </div>
       </div>
+
+      <!-- Equipe (visível apenas para owner e org admin) -->
+      <div class="card" id="cardEquipe" style="display:none">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Equipe</div>
+            <div style="font-size:12px;color:var(--gray-3);margin-top:2px">Limite de 2 membros convidados</div>
+          </div>
+          <button id="btnConvidarMembro" onclick="abrirModalConvite()" style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--black);color:var(--white);border:none;border-radius:var(--radius-pill);font-family:var(--font-body);font-size:12px;font-weight:500;cursor:pointer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            Convidar
+          </button>
+        </div>
+        <div style="padding:0 24px">
+          <div id="equipeLimit" style="display:none;padding:10px 14px;background:var(--gray-1);border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;color:var(--gray-4);margin-bottom:12px">
+            Limite de 2 membros atingido.
+          </div>
+          <div id="equipeMembros">
+            <div style="padding:24px 0;text-align:center;color:var(--gray-3);font-size:13px;font-family:var(--font-body)">Carregando…</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Seção: Fale com o Radar -->
@@ -1466,6 +1509,31 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<!-- Modal Convidar Membro -->
+<div id="modalConvite" style="display:none;position:fixed;inset:0;background:rgba(26,18,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--white);border-radius:var(--radius-lg);padding:32px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(30,22,0,0.18)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <h3 style="font-family:var(--font-heading);font-size:18px;font-weight:600;color:var(--black);margin:0">Convidar membro</h3>
+      <button onclick="fecharModalConvite()" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--gray-3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="display:block;font-family:var(--font-body);font-size:12px;font-weight:500;color:var(--gray-4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">Nome</label>
+      <input id="conviteNome" type="text" placeholder="Nome do convidado" style="width:100%;padding:10px 14px;border:1px solid var(--gray-2);border-radius:var(--radius-md);font-family:var(--font-body);font-size:14px;color:var(--black);background:var(--white);box-sizing:border-box;outline:none">
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="display:block;font-family:var(--font-body);font-size:12px;font-weight:500;color:var(--gray-4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">E-mail</label>
+      <input id="conviteEmail" type="email" placeholder="email@exemplo.com" style="width:100%;padding:10px 14px;border:1px solid var(--gray-2);border-radius:var(--radius-md);font-family:var(--font-body);font-size:14px;color:var(--black);background:var(--white);box-sizing:border-box;outline:none">
+    </div>
+    <div id="conviteErro" style="display:none;padding:10px 14px;background:#fff0f0;border-radius:var(--radius-md);font-family:var(--font-body);font-size:13px;color:#c0392b;margin-bottom:16px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button onclick="fecharModalConvite()" style="padding:10px 20px;background:var(--gray-1);color:var(--black);border:none;border-radius:var(--radius-pill);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer">Cancelar</button>
+      <button id="btnEnviarConvite" onclick="enviarConvite()" style="padding:10px 20px;background:var(--black);color:var(--white);border:none;border-radius:var(--radius-pill);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer">Enviar convite</button>
+    </div>
+  </div>
+</div>
+
 <!-- Bottom nav mobile -->
 <nav class="bottom-nav">
   <button class="bottom-nav-item active" id="bn-dashboard" onclick="showSection('dashboard')">
@@ -1496,7 +1564,7 @@ tbody tr:last-child td { border-bottom: none; }
    ═══════════════════════════════════════ */
 
 // ─── DATA ───
-const MOCK_USER = { nome: 'Marca', email: 'marca@radar.com' };
+const MOCK_USER = (window.DEMO && window.DEMO.marca) ? window.DEMO.marca.user : { nome: 'Marca', email: 'marca@radar.com' };
 
 // Catálogo carregado do Supabase (real) ou do CATALOG demo como fallback
 let MOCK_OPPORTUNITIES = [];
@@ -1528,7 +1596,7 @@ function mapDbOpp(row) {
     _tags:       row.tags || [],
     _imagemCapa: row.imagem_capa || null,
     _imagensFocal: row.imagens_focal || {},
-    _visibilidade: row.visibilidade || 'publica'
+    visibilidade: row.visibilidade || 'publica'
   };
 }
 
@@ -1545,7 +1613,6 @@ function loadOpportunities(callback) {
   }
 
   // Produção: busca do Supabase
-  // Apenas oportunidades públicas (visibilidade='publica') ou com acesso aprovado para esta marca
   fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,preco_minimo,icone,bg_gradient,imagens,imagem_capa,imagens_focal,tags,descricao_curta,rating,visibilidade,perfis:detentor_id(slug)&ativo=eq.true&order=id.asc', {
     headers: {
       'apikey': SUPABASE_KEY,
@@ -1553,40 +1620,10 @@ function loadOpportunities(callback) {
     }
   })
   .then(r => r.ok ? r.json() : Promise.reject(r.status))
-  .then(async rows => {
-    // Filtrar: públicas aparecem sempre; restritas só se marca tiver acesso aprovado
-    const userId = await getAuthUserId();
-    let visibleRows = rows.filter(r => !r.visibilidade || r.visibilidade === 'publica');
-    const restrictedRows = rows.filter(r => r.visibilidade === 'aprovacao' || r.visibilidade === 'convidadas');
-
-    if (userId && restrictedRows.length > 0) {
-      try {
-        const oppIds = restrictedRows.map(r => r.id).join(',');
-        const aRes = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade?select=oportunidade_id&marca_id=eq.' + userId + '&status=eq.aprovado&oportunidade_id=in.(' + oppIds + ')', {
-          headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' }
-        });
-        if (aRes.ok) {
-          const aprovados = await aRes.json();
-          const approvedIds = new Set(aprovados.map(a => a.oportunidade_id));
-          // Opps "por aprovação" aparecem no radar (com info limitada) mas marcadas
-          // Opps "convidadas" só aparecem se aprovadas
-          restrictedRows.forEach(r => {
-            if (r.visibilidade === 'aprovacao') {
-              visibleRows.push(r); // Aparece no radar (com badge)
-            } else if (approvedIds.has(r.id)) {
-              visibleRows.push(r); // Convidada aprovada
-            }
-          });
-        }
-      } catch (e) { console.warn('[Visibilidade] check failed:', e); }
-    } else {
-      // Sem login: ainda mostrar "por aprovação" (com info reduzida)
-      restrictedRows.forEach(r => {
-        if (r.visibilidade === 'aprovacao') visibleRows.push(r);
-      });
-    }
-
-    MOCK_OPPORTUNITIES = visibleRows.map(mapDbOpp);
+  .then(rows => {
+    // Filtra "convidadas" — só aparecem via convite direto
+    const visible = rows.filter(r => (r.visibilidade || 'publica') !== 'convidadas');
+    MOCK_OPPORTUNITIES = visible.map(mapDbOpp);
     callback(MOCK_OPPORTUNITIES);
   })
   .catch(() => {
@@ -1602,7 +1639,8 @@ const SECTION_TITLES = {
   oportunidades: 'Explorar Oportunidades',
   propostas: 'Minhas Propostas',
   configuracoes: 'Configurações',
-  voz: 'Fale com o Radar'
+  voz: 'Fale com o Radar',
+  equipe: 'Equipe'
 };
 
 // ─── INIT ───
@@ -1613,6 +1651,9 @@ async function init() {
 
     // Load user info: try SDK session first, then localStorage fallback
     await loadUserInfo();
+
+    // Determina role na org (mostra nav Equipe se aplicável)
+    try { await loadOrgRole(); } catch (e) { console.error('[init] loadOrgRole failed:', e); }
 
     // Render opportunities (loads from Supabase or CATALOG in demo mode)
     loadOpportunities(opps => renderOpportunities(opps));
@@ -1811,6 +1852,9 @@ function showSection(sectionId) {
 
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Lazy load section data
+  if (sectionId === 'configuracoes') loadEquipe();
 }
 
 // ─── NOTIFICAÇÕES ───
@@ -2046,6 +2090,7 @@ function renderOpportunities(opps) {
       <button class="olc-hero-dot${i === 0 ? ' active' : ''}" onclick="heroSlide(event, this, ${i})"></button>`).join('');
     const total = imgs.length;
     const isFav = _favIds.includes(opp.id);
+    const isApproval = (opp.visibilidade === 'aprovacao');
     const heroInner = hasBg
       ? `<div style="width:100%;height:100%;background:${opp._bgGradient};display:flex;align-items:center;justify-content:center">
            <span style="font-size:52px;line-height:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.4))">${opp._icon || ''}</span>
@@ -2057,9 +2102,19 @@ function renderOpportunities(opps) {
         <button class="olc-hero-nav next" onclick="heroNav(event, this, 1)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>` : ''}`;
+    const approvalBadgeHtml = isApproval
+      ? `<span style="position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;background:rgba(0,0,0,0.58);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);font-size:11px;font-weight:600;color:#fff;border:1px solid rgba(255,255,255,0.15);z-index:3;pointer-events:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Por aprovação</span>`
+      : '';
+    const footerArrow = isApproval
+      ? `<div class="olc-arrow-btn" style="opacity:0.45;background:var(--gray-100)">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+         </div>`
+      : `<div class="olc-arrow-btn">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+         </div>`;
     return `
     <a class="opp-card" href="oportunidade-detalhe.html?${(opp.perfilSlug && opp.slug) ? '@' + opp.perfilSlug + '/' + opp.slug : 'id=' + opp.id}" data-id="${opp.id}" data-category="${opp.category}" data-city="${opp.city}">
-      <div class="olc-hero" data-idx="0">
+      <div class="olc-hero" data-idx="0" style="position:relative">
         ${heroInner}
         ${!hasBg ? `<div class="olc-hero-count">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -2067,6 +2122,7 @@ function renderOpportunities(opps) {
         </div>` : ''}
         <div class="olc-hero-tag">${opp.category}</div>
         ${!hasBg && total > 1 ? `<div class="olc-hero-dots">${dots}</div>` : ''}
+        ${approvalBadgeHtml}
         <button class="opp-fav-btn${isFav ? ' active' : ''}" data-id="${opp.id}" onclick="toggleFav(event, ${opp.id})" title="${isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
@@ -2080,9 +2136,7 @@ function renderOpportunities(opps) {
             <div class="olc-logo">${opp.orgInitials}</div>
             <span class="olc-brand-name">${opp.org}</span>
           </div>
-          <div class="olc-arrow-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </div>
+          ${footerArrow}
         </div>
       </div>
     </a>`;
@@ -3440,6 +3494,220 @@ document.addEventListener('DOMContentLoaded', () => {
   renderVozHistorico();
   loadNotifs();
 });
+
+// ─── EQUIPE ──────────────────────────────────────────────────
+let CURRENT_ORG_ROLE = null; // 'owner' | 'admin' | 'editor' | null
+let CURRENT_ORG_ID   = null; // perfis.id do dono da org
+
+async function loadOrgRole() {
+  if (!sb) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) return;
+    const uid   = session.user.id;
+    const token = session.access_token;
+
+    // Verifica se é dono (perfis.id = uid E role = marca)
+    const perfilRes = await fetch(
+      SUPABASE_URL + '/rest/v1/perfis?id=eq.' + uid + '&role=eq.marca&select=id&limit=1',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+    );
+    const perfilData = perfilRes.ok ? await perfilRes.json() : [];
+    if (perfilData.length > 0) {
+      CURRENT_ORG_ROLE = 'owner';
+      CURRENT_ORG_ID   = uid;
+      document.getElementById('cardEquipe').style.display = 'block';
+      return;
+    }
+
+    // Verifica se é membro convidado
+    const membroRes = await fetch(
+      SUPABASE_URL + '/rest/v1/org_members?user_id=eq.' + uid + '&select=org_id,org_role&limit=1',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+    );
+    const membroData = membroRes.ok ? await membroRes.json() : [];
+    if (membroData.length > 0) {
+      CURRENT_ORG_ROLE = membroData[0].org_role;
+      CURRENT_ORG_ID   = membroData[0].org_id;
+      if (CURRENT_ORG_ROLE === 'admin') {
+        document.getElementById('cardEquipe').style.display = 'block';
+      }
+    }
+  } catch (e) { console.error('[loadOrgRole]', e); }
+}
+
+async function loadEquipe() {
+  if (!CURRENT_ORG_ID) return;
+  const el = document.getElementById('equipeMembros');
+  if (!el) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const token = session.access_token;
+
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/org_members?org_id=eq.' + CURRENT_ORG_ID +
+      '&user_id=neq.' + CURRENT_ORG_ID + '&select=user_id,org_role,created_at&order=created_at.asc',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const members = await res.json();
+
+    if (members.length > 0) {
+      const ids = members.map(m => m.user_id).join(',');
+      const perfilRes = await fetch(
+        SUPABASE_URL + '/rest/v1/perfis?id=in.(' + ids + ')&select=id,nome,email',
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+      );
+      const perfis = perfilRes.ok ? await perfilRes.json() : [];
+      const perfilMap = {};
+      perfis.forEach(p => { perfilMap[p.id] = p; });
+      members.forEach(m => { m._perfil = perfilMap[m.user_id] || {}; });
+    }
+
+    renderEquipe(members);
+
+    const btnConvidar = document.getElementById('btnConvidarMembro');
+    const limiteEl    = document.getElementById('equipeLimit');
+    if (members.length >= 2) {
+      if (btnConvidar) btnConvidar.style.display = 'none';
+      if (limiteEl)    limiteEl.style.display = 'block';
+    } else {
+      if (btnConvidar) btnConvidar.style.display = 'flex';
+      if (limiteEl)    limiteEl.style.display = 'none';
+    }
+  } catch (e) {
+    console.error('[loadEquipe]', e);
+    if (el) el.innerHTML = '<div style="padding:24px;text-align:center;color:#c0392b;font-size:13px">Erro ao carregar equipe.</div>';
+  }
+}
+
+function renderEquipe(members) {
+  const el = document.getElementById('equipeMembros');
+  if (!el) return;
+  if (members.length === 0) {
+    el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--gray-3);font-size:13px;font-family:var(--font-body)">Nenhum membro convidado ainda.</div>';
+    return;
+  }
+  const isAdmin = CURRENT_ORG_ROLE === 'owner' || CURRENT_ORG_ROLE === 'admin';
+  el.innerHTML = members.map((m, i) => {
+    const nome     = m._perfil?.nome || m._perfil?.email || 'Membro';
+    const email    = m._perfil?.email || '';
+    const initials = nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const roleLabel = m.org_role === 'admin' ? 'Admin' : 'Editor';
+    const roleBg    = m.org_role === 'admin' ? 'var(--black)' : 'var(--gray-2)';
+    const roleColor = m.org_role === 'admin' ? 'var(--white)' : 'var(--gray-4)';
+    const borderStyle = i < members.length - 1 ? 'border-bottom:1px solid var(--gray-2)' : '';
+    return `<div style="display:flex;align-items:center;gap:14px;padding:14px 0;${borderStyle}">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-gradient);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--white)">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--font-body);font-size:14px;font-weight:500;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nome}</div>
+        <div style="font-family:var(--font-body);font-size:12px;color:var(--gray-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${email}</div>
+      </div>
+      <span style="padding:3px 10px;border-radius:100px;background:${roleBg};color:${roleColor};font-family:var(--font-body);font-size:11px;font-weight:500;flex-shrink:0">${roleLabel}</span>
+      ${isAdmin ? `<button onclick="removerMembro('${m.user_id}')" title="Remover membro" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--gray-3);flex-shrink:0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function abrirModalConvite() {
+  const modal = document.getElementById('modalConvite');
+  if (!modal) return;
+  document.getElementById('conviteNome').value  = '';
+  document.getElementById('conviteEmail').value = '';
+  const erroEl = document.getElementById('conviteErro');
+  if (erroEl) erroEl.style.display = 'none';
+  const btnEnviar = document.getElementById('btnEnviarConvite');
+  if (btnEnviar) { btnEnviar.disabled = false; btnEnviar.textContent = 'Enviar convite'; }
+  modal.style.display = 'flex';
+}
+
+function fecharModalConvite() {
+  const modal = document.getElementById('modalConvite');
+  if (modal) modal.style.display = 'none';
+}
+
+async function enviarConvite() {
+  const nome  = (document.getElementById('conviteNome')?.value  || '').trim();
+  const email = (document.getElementById('conviteEmail')?.value || '').trim();
+  const erroEl  = document.getElementById('conviteErro');
+  const btnEnviar = document.getElementById('btnEnviarConvite');
+
+  if (erroEl) erroEl.style.display = 'none';
+
+  if (!nome) {
+    if (erroEl) { erroEl.textContent = 'Informe o nome do convidado.'; erroEl.style.display = 'block'; }
+    return;
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (erroEl) { erroEl.textContent = 'Informe um e-mail válido.'; erroEl.style.display = 'block'; }
+    return;
+  }
+  if (!CURRENT_ORG_ID) {
+    if (erroEl) { erroEl.textContent = 'Erro: organização não identificada.'; erroEl.style.display = 'block'; }
+    return;
+  }
+
+  if (btnEnviar) { btnEnviar.disabled = true; btnEnviar.textContent = 'Enviando…'; }
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) throw new Error('Sessão expirada.');
+
+    const res = await fetch(SUPABASE_URL + '/functions/v1/invite-org-member', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + session.access_token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ nome, email, org_id: CURRENT_ORG_ID, tipo: 'marca' })
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const msg = data?.error || data?.message || 'Erro ao enviar convite.';
+      if (erroEl) { erroEl.textContent = msg; erroEl.style.display = 'block'; }
+      if (btnEnviar) { btnEnviar.disabled = false; btnEnviar.textContent = 'Enviar convite'; }
+      return;
+    }
+
+    fecharModalConvite();
+    showToast('Convite enviado com sucesso!', 'success');
+    loadEquipe();
+  } catch (e) {
+    console.error('[enviarConvite]', e);
+    if (erroEl) { erroEl.textContent = e.message || 'Erro inesperado.'; erroEl.style.display = 'block'; }
+    if (btnEnviar) { btnEnviar.disabled = false; btnEnviar.textContent = 'Enviar convite'; }
+  }
+}
+
+async function removerMembro(userId) {
+  if (!CURRENT_ORG_ID) return;
+  if (!confirm('Remover este membro da equipe?')) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) throw new Error('Sessão expirada.');
+
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/org_members?org_id=eq.' + CURRENT_ORG_ID + '&user_id=eq.' + userId,
+      {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + session.access_token,
+          'Prefer': 'return=minimal'
+        }
+      }
+    );
+    if (!res.ok) throw new Error(await res.text());
+    showToast('Membro removido.', 'success');
+    loadEquipe();
+  } catch (e) {
+    console.error('[removerMembro]', e);
+    showToast('Erro ao remover membro.', 'error');
+  }
+}
 </script>
 
 <!-- MODAL DETALHES DA PROPOSTA -->
@@ -3580,6 +3848,237 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </div>
 </div>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   MINHAS SOLICITAÇÕES DE ACESSO — dashboard-marca.html
+   Fluxo separado de negociações: apenas acesso a oportunidades.
+   Tabela: acessos_oportunidade (id, oportunidade_id, marca_id, status, criado_em)
+   ═══════════════════════════════════════════════════════════ */
+
+var _SOL_MARCA_LOADED = false;
+var _SOL_MARCA = [];   // array de rows enriquecidas
+
+/* ── Switch de aba Explorar / Minhas Solicitações ── */
+function switchOppTab(tab) {
+  document.querySelectorAll('#sec-oportunidades .sub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#sec-oportunidades .sub-panel').forEach(p => p.classList.remove('active'));
+  var btn = document.getElementById('subtab-opp-' + tab);
+  var panel = document.getElementById('subpanel-opp-' + tab);
+  if (btn) btn.classList.add('active');
+  if (panel) panel.classList.add('active');
+}
+
+/* ── Carrega solicitações desta marca do Supabase ── */
+async function loadMinhasSolicitacoes() {
+  if (_SOL_MARCA_LOADED) { renderMinhasSolicitacoes(); return; }
+
+  var container = document.getElementById('sol-marca-container');
+  if (container) {
+    container.innerHTML = '<div style="padding:32px;text-align:center;color:#A89880;font-size:14px">Carregando solicitações…</div>';
+  }
+
+  try {
+    // 1. Pega sessão da marca
+    var marcaId = null;
+    if (typeof sb !== 'undefined' && sb) {
+      try {
+        var sessResult = await sb.auth.getSession();
+        var session = sessResult && sessResult.data && sessResult.data.session ? sessResult.data.session : null;
+        if (session && session.user) marcaId = session.user.id;
+      } catch (_) {}
+    }
+    if (!marcaId) {
+      var stored = localStorage.getItem('sb_marca_session');
+      if (stored) {
+        try {
+          var parsed = JSON.parse(stored);
+          var u = parsed.user || (parsed.session && parsed.session.user);
+          if (u) marcaId = u.id;
+        } catch (_) {}
+      }
+    }
+
+    if (!marcaId) {
+      _SOL_MARCA = [];
+      _SOL_MARCA_LOADED = true;
+      renderMinhasSolicitacoes();
+      return;
+    }
+
+    // 2. Busca token
+    var token = null;
+    if (typeof getValidToken === 'function') {
+      try { token = await getValidToken(); } catch (_) {}
+    }
+    if (!token && typeof sb !== 'undefined' && sb) {
+      try {
+        var s2 = await sb.auth.getSession();
+        token = s2 && s2.data && s2.data.session ? s2.data.session.access_token : null;
+      } catch (_) {}
+    }
+    var headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + (token || SUPABASE_KEY) };
+
+    // 3. Busca solicitações desta marca
+    var solUrl = SUPABASE_URL + '/rest/v1/acessos_oportunidade'
+      + '?select=id,oportunidade_id,status,criado_em,atualizado_em'
+      + '&marca_id=eq.' + marcaId
+      + '&order=criado_em.desc';
+
+    var solRes = await fetch(solUrl, { headers: headers });
+    if (!solRes.ok) throw new Error('acessos_oportunidade fetch failed: ' + solRes.status);
+    var solRows = await solRes.json();
+
+    if (!solRows || solRows.length === 0) {
+      _SOL_MARCA = [];
+      _SOL_MARCA_LOADED = true;
+      renderMinhasSolicitacoes();
+      return;
+    }
+
+    // 4. Busca dados das oportunidades correspondentes
+    var oppIds = [...new Set(solRows.map(r => r.oportunidade_id))];
+    var oppUrl = SUPABASE_URL + '/rest/v1/oportunidades'
+      + '?select=id,titulo,segmento,regiao,valor_base,visibilidade'
+      + '&id=in.(' + oppIds.join(',') + ')';
+
+    var oppRes = await fetch(oppUrl, { headers: headers });
+    var oppMap = {};
+    if (oppRes.ok) {
+      var oppRows = await oppRes.json();
+      (oppRows || []).forEach(function(o) { oppMap[o.id] = o; });
+    }
+
+    // 5. Mescla dados
+    _SOL_MARCA = solRows.map(function(r) {
+      return Object.assign({}, r, { opp: oppMap[r.oportunidade_id] || null });
+    });
+    _SOL_MARCA_LOADED = true;
+    renderMinhasSolicitacoes();
+
+  } catch (err) {
+    console.error('[loadMinhasSolicitacoes]', err);
+    _SOL_MARCA = [];
+    _SOL_MARCA_LOADED = true;
+    renderMinhasSolicitacoes();
+  }
+}
+
+/* ── Renderiza a lista de solicitações ── */
+function renderMinhasSolicitacoes() {
+  var container = document.getElementById('sol-marca-container');
+  if (!container) return;
+
+  // Atualiza badge — conta pendentes
+  var pendentes = _SOL_MARCA.filter(function(r) { return r.status === 'pendente'; }).length;
+  var badge = document.getElementById('sol-marca-badge');
+  if (badge) {
+    badge.textContent = _SOL_MARCA.length;
+    badge.style.display = _SOL_MARCA.length > 0 ? '' : 'none';
+  }
+
+  if (_SOL_MARCA.length === 0) {
+    container.innerHTML = [
+      '<div style="padding:48px 24px;text-align:center">',
+        '<div style="font-size:40px;margin-bottom:12px">🔑</div>',
+        '<div style="font-size:15px;font-weight:600;color:#1A1200;margin-bottom:6px">Nenhuma solicitação ainda</div>',
+        '<div style="font-size:13px;color:#A89880;max-width:320px;margin:0 auto;line-height:1.5">',
+          'Quando você solicitar acesso a oportunidades com visibilidade restrita, elas aparecerão aqui.',
+        '</div>',
+      '</div>'
+    ].join('');
+    return;
+  }
+
+  // Helpers de status
+  function statusBadge(status) {
+    var map = {
+      pendente:  { label: 'Aguardando', bg: '#FEF9EB', color: '#B8860B', border: '#E0D8CC' },
+      aprovado:  { label: 'Aprovado',   bg: '#F0FDF4', color: '#16A34A', border: '#BBF7D0' },
+      recusado:  { label: 'Recusado',   bg: '#FFF1F2', color: '#E11D48', border: '#FECDD3' }
+    };
+    var cfg = map[status] || { label: status, bg: '#F5F0E8', color: '#5C4C38', border: '#E0D8CC' };
+    return '<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;background:' + cfg.bg + ';color:' + cfg.color + ';border:1px solid ' + cfg.border + '">'
+      + statusIcon(status) + cfg.label + '</span>';
+  }
+
+  function statusIcon(status) {
+    if (status === 'pendente') return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    if (status === 'aprovado') return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    if (status === 'recusado') return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    return '';
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (_) { return iso.slice(0, 10); }
+  }
+
+  function oppLink(sol) {
+    var oppId = sol.oportunidade_id;
+    return 'oportunidade-detalhe.html?id=' + oppId;
+  }
+
+  // Build cards
+  var html = '<div style="display:flex;flex-direction:column;gap:12px;padding:0 0 16px">';
+
+  _SOL_MARCA.forEach(function(sol) {
+    var opp = sol.opp;
+    var titulo = opp ? (opp.titulo || 'Oportunidade') : ('Oportunidade #' + sol.oportunidade_id);
+    var segmento = opp ? (opp.segmento || '') : '';
+    var regiao = opp ? (opp.regiao || '') : '';
+    var valor = opp && opp.valor_base ? 'R$ ' + Number(opp.valor_base).toLocaleString('pt-BR') : '';
+    var link = oppLink(sol);
+
+    var cardBorderColor = sol.status === 'aprovado' ? '#BBF7D0' : sol.status === 'recusado' ? '#FECDD3' : '#E0D8CC';
+
+    html += [
+      '<div style="background:#FFFFFF;border:1px solid ' + cardBorderColor + ';border-radius:12px;padding:16px 18px;display:flex;align-items:center;gap:14px;transition:box-shadow .15s">',
+
+        /* Ícone status */
+        '<div style="flex-shrink:0;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:' + (sol.status === 'aprovado' ? '#F0FDF4' : sol.status === 'recusado' ? '#FFF1F2' : '#FEF9EB') + '">',
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + (sol.status === 'aprovado' ? '#16A34A' : sol.status === 'recusado' ? '#E11D48' : '#B8860B') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+            sol.status === 'aprovado'
+              ? '<polyline points="20 6 9 17 4 12"/>'
+              : sol.status === 'recusado'
+                ? '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'
+                : '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+          '</svg>',
+        '</div>',
+
+        /* Info da oportunidade */
+        '<div style="flex:1;min-width:0">',
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">',
+            '<a href="' + link + '" style="font-size:14px;font-weight:600;color:#1A1200;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px" title="' + titulo + '">' + titulo + '</a>',
+            statusBadge(sol.status),
+          '</div>',
+          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">',
+            segmento ? '<span style="font-size:12px;color:#A89880">' + segmento + '</span>' : '',
+            segmento && regiao ? '<span style="color:#E0D8CC;font-size:11px">•</span>' : '',
+            regiao ? '<span style="font-size:12px;color:#A89880">' + regiao + '</span>' : '',
+            valor ? '<span style="color:#E0D8CC;font-size:11px">•</span><span style="font-size:12px;color:#A89880">' + valor + '</span>' : '',
+          '</div>',
+        '</div>',
+
+        /* Data + ação */
+        '<div style="flex-shrink:0;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px">',
+          '<span style="font-size:11px;color:#A89880">' + fmtDate(sol.criado_em) + '</span>',
+          sol.status === 'aprovado'
+            ? '<a href="' + link + '" style="font-size:12px;font-weight:600;color:#16A34A;text-decoration:none;display:flex;align-items:center;gap:4px">Ver oportunidade <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>'
+            : '',
+        '</div>',
+
+      '</div>'
+    ].join('');
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+</script>
 
 </body>
 </html>

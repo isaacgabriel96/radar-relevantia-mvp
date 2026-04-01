@@ -719,141 +719,6 @@ a { text-decoration: none; color: inherit; }
   .mobile-cta-bar .btn-interest,
   .mobile-cta-bar .btn-contact { font-size: 13px; padding: 13px 10px; }
 }
-
-/* ─── PAYWALL (não-logado) ─── */
-.paywall-active .detail-body,
-.paywall-active .owner-section,
-.paywall-active .similar-section {
-  filter: blur(6px);
-  pointer-events: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-.paywall-active .mobile-cta-bar { display: none !important; }
-
-.paywall-fade {
-  position: relative;
-  margin-top: -80px;
-  height: 120px;
-  background: linear-gradient(to bottom, transparent, var(--gray-100) 70%);
-  z-index: 50;
-  pointer-events: none;
-}
-
-.paywall-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 8000;
-  background: rgba(26, 18, 0, 0.55);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  opacity: 0;
-  animation: pw-fadeIn 0.4s ease forwards;
-  animation-delay: 0.6s;
-}
-@keyframes pw-fadeIn { to { opacity: 1; } }
-
-.paywall-modal {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  max-width: 440px;
-  width: 100%;
-  padding: 40px 32px;
-  text-align: center;
-  box-shadow: 0 24px 64px rgba(30,22,0,0.25);
-  transform: translateY(20px);
-  animation: pw-slideUp 0.4s ease forwards;
-  animation-delay: 0.6s;
-}
-@keyframes pw-slideUp { to { transform: translateY(0); } }
-
-.paywall-icon {
-  width: 64px; height: 64px;
-  margin: 0 auto 20px;
-  border-radius: 50%;
-  background: var(--gold-pale);
-  display: flex; align-items: center; justify-content: center;
-}
-
-.paywall-title {
-  font-family: var(--font-heading);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--black);
-  margin-bottom: 10px;
-  line-height: 1.3;
-}
-
-.paywall-desc {
-  font-size: 14px;
-  color: var(--gray-3);
-  line-height: 1.65;
-  margin-bottom: 28px;
-}
-.paywall-desc strong { color: var(--gray-4); }
-
-.paywall-cta {
-  display: block;
-  width: 100%;
-  background: var(--gold-gradient);
-  color: var(--white);
-  border: none;
-  border-radius: var(--radius-pill);
-  padding: 14px 32px;
-  font-size: 15px;
-  font-weight: 700;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.3px;
-  margin-bottom: 14px;
-}
-.paywall-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(184,134,11,0.25); }
-
-.paywall-login-link {
-  font-size: 13px;
-  color: var(--gray-3);
-}
-.paywall-login-link a {
-  color: var(--gold);
-  font-weight: 600;
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.15s;
-}
-.paywall-login-link a:hover { border-bottom-color: var(--gold); }
-
-.paywall-features {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  text-align: left;
-  margin-bottom: 24px;
-  padding: 16px 20px;
-  background: var(--gray-1);
-  border-radius: var(--radius-md);
-}
-.paywall-feature {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--gray-4);
-  line-height: 1.4;
-}
-.paywall-feature-icon {
-  flex-shrink: 0;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(184,134,11,0.12), rgba(200,168,75,0.18));
-  display: flex; align-items: center; justify-content: center;
-  font-size: 10px;
-  color: var(--gold);
-}
 </style>
 </head>
 <body>
@@ -984,29 +849,6 @@ a { text-decoration: none; color: inherit; }
 <!-- Main -->
 <div class="main">
   <div class="main-inner">
-
-    <!-- Overlay: Acesso Restrito (visibilidade != publica) -->
-    <div id="accessGate" style="display:none">
-      <div style="max-width:520px;margin:60px auto;text-align:center;padding:40px 24px">
-        <div style="width:64px;height:64px;margin:0 auto 20px;border-radius:50%;background:var(--gray-1,#F5F0E8);display:flex;align-items:center;justify-content:center">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="13" width="14" height="10" rx="2" stroke="#A89880" stroke-width="1.5" fill="none"/><path d="M10 13v-3a4 4 0 0 1 8 0v3" stroke="#A89880" stroke-width="1.5" stroke-linecap="round"/><circle cx="14" cy="18" r="1.5" fill="#A89880"/></svg>
-        </div>
-        <h2 id="gateTitle" style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:700;color:#1A1200;margin-bottom:8px">Acesso restrito</h2>
-        <p id="gateDesc" style="font-size:14px;color:#A89880;line-height:1.6;margin-bottom:24px">
-          Esta oportunidade requer aprovação do detentor para visualizar os detalhes completos.
-        </p>
-        <!-- Info básica visível -->
-        <div id="gateBasicInfo" style="text-align:left;background:#FAF8F5;border-radius:12px;padding:20px;margin-bottom:24px">
-          <div id="gateCategory" style="font-size:10px;font-weight:700;text-transform:uppercase;color:#B8860B;margin-bottom:6px"></div>
-          <div id="gateOppTitle" style="font-family:'Poppins',sans-serif;font-size:18px;font-weight:700;color:#1A1200;margin-bottom:8px"></div>
-          <div id="gateMeta" style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:#A89880"></div>
-        </div>
-        <button id="gateRequestBtn" onclick="requestAccess()" style="background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;border:none;border-radius:100px;padding:12px 32px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .15s;letter-spacing:.3px">
-          Solicitar acesso
-        </button>
-        <p id="gateStatus" style="display:none;font-size:13px;margin-top:16px;color:#A89880"></p>
-      </div>
-    </div>
 
     <!-- Detail content -->
     <div class="detail-wrap">
@@ -1173,41 +1015,6 @@ a { text-decoration: none; color: inherit; }
     </div><!-- /detail-wrap -->
   </div><!-- /main-inner -->
 </div><!-- /main -->
-
-<!-- PAYWALL: não-logado -->
-<div class="paywall-overlay" id="paywallOverlay" style="display:none">
-  <div class="paywall-modal">
-    <div class="paywall-icon">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      </svg>
-    </div>
-    <h2 class="paywall-title">Cadastre-se para ver os detalhes</h2>
-    <p class="paywall-desc">
-      Crie sua conta gratuitamente para acessar <strong>todas as informações</strong> desta oportunidade — cotas, valores, ativações e muito mais.
-    </p>
-    <div class="paywall-features">
-      <div class="paywall-feature">
-        <span class="paywall-feature-icon">✦</span>
-        Acesse oportunidades exclusivas de patrocínio
-      </div>
-      <div class="paywall-feature">
-        <span class="paywall-feature-icon">✦</span>
-        Envie propostas diretamente aos detentores
-      </div>
-      <div class="paywall-feature">
-        <span class="paywall-feature-icon">✦</span>
-        Receba recomendações personalizadas por IA
-      </div>
-    </div>
-    <button class="paywall-cta" onclick="window.location.href='cadastro-marca.html'">
-      Criar conta gratuita
-    </button>
-    <div class="paywall-login-link">
-      Já tem uma conta? <a href="login.html">Entrar</a>
-    </div>
-  </div>
-</div>
 
 <!-- MODAL INTERESSE -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
@@ -1649,9 +1456,10 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
         formato: r.formato || '',
         participantes: r.alcance || ''
       },
-      visibilidade: r.visibilidade || 'publica',
       // Org data for owner section
-      _orgData: orgData
+      _orgData: orgData,
+      // Visibility control
+      visibilidade: r.visibilidade || 'publica'
     };
   } catch (err) {
     console.error('[fetchOppDetail] Failed:', err);
@@ -1935,6 +1743,294 @@ function switchTab(id, btn) {
 /* ─── CURRENT OPP (set by renderPage for submitModal) ─── */
 var _CURRENT_OPP = null;
 
+/* ─── APPROVAL ACCESS CHECK ─── */
+// Verifica se a marca logada tem acesso aprovado à oportunidade
+async function checkApprovalAccess(oppId, marcaId) {
+  if (!marcaId) return false;
+  try {
+    var brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+    if (!brandSession) return false;
+    var headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + brandSession.access_token,
+      'Content-Type': 'application/json'
+    };
+    // Consulta acessos_oportunidade — status 'aprovado' = acesso liberado
+    var path = SUPABASE_URL + '/rest/v1/acessos_oportunidade?oportunidade_id=eq.' + oppId +
+      '&marca_id=eq.' + marcaId +
+      '&status=eq.aprovado' +
+      '&select=id,status&limit=1';
+    var res = await fetch(path, { headers: headers });
+    if (!res.ok) return false;
+    var rows = await res.json();
+    return Array.isArray(rows) && rows.length > 0;
+  } catch (e) {
+    console.warn('[checkApprovalAccess] Error:', e);
+    return false;
+  }
+}
+
+// Verifica se já existe solicitação (qualquer status) para esta marca+opp
+async function getAccessRequest(oppId, marcaId) {
+  if (!oppId || !marcaId) return null;
+  try {
+    var brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+    if (!brandSession) return null;
+    var headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + brandSession.access_token,
+      'Content-Type': 'application/json'
+    };
+    var path = SUPABASE_URL + '/rest/v1/acessos_oportunidade?oportunidade_id=eq.' + oppId +
+      '&marca_id=eq.' + marcaId +
+      '&select=id,status&limit=1';
+    var res = await fetch(path, { headers: headers });
+    if (!res.ok) return null;
+    var rows = await res.json();
+    return (Array.isArray(rows) && rows.length > 0) ? rows[0] : null;
+  } catch (e) {
+    console.warn('[getAccessRequest] Error:', e);
+    return null;
+  }
+}
+
+// Cria solicitação de acesso em acessos_oportunidade
+async function requestAccess(oppId, marcaId) {
+  try {
+    var brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+    if (!brandSession) return { error: 'Sessão não encontrada. Faça login.' };
+    var headers = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + brandSession.access_token,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    };
+    var body = JSON.stringify({ oportunidade_id: oppId, marca_id: marcaId, status: 'pendente' });
+    var res = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade', {
+      method: 'POST', headers: headers, body: body
+    });
+    if (!res.ok) {
+      var err = await res.json().catch(function() { return {}; });
+      if (res.status === 409 || (err.code && err.code === '23505')) {
+        return { alreadyExists: true };
+      }
+      return { error: err.message || 'Erro ao enviar solicitação.' };
+    }
+    var rows = await res.json().catch(function() { return []; });
+    return { success: true, data: Array.isArray(rows) ? rows[0] : rows };
+  } catch (e) {
+    console.warn('[requestAccess] Error:', e);
+    return { error: 'Erro inesperado.' };
+  }
+}
+
+/* ─── APPROVAL BLOCKED OVERLAY ─── */
+// existingRequest: null | { id, status } — solicitação já existente desta marca
+function renderApprovalGate(oppData, existingRequest) {
+  var reqStatus = existingRequest ? existingRequest.status : null; // null | 'pendente' | 'recusado'
+
+  // Cria overlay de acesso bloqueado
+  var overlay = document.createElement('div');
+  overlay.id = 'approval-gate';
+  overlay.style.cssText = [
+    'min-height: 70vh',
+    'display: flex',
+    'flex-direction: column',
+    'align-items: center',
+    'justify-content: center',
+    'padding: 48px 24px',
+    'text-align: center',
+    'max-width: 480px',
+    'margin: 0 auto'
+  ].join(';');
+
+  var category = oppData.category || '';
+  var title = oppData.title || 'Oportunidade';
+  var org = oppData.org || '';
+
+  // Mensagem e CTA variam conforme estado da solicitação
+  var messageHtml, ctaHtml;
+
+  if (reqStatus === 'pendente') {
+    messageHtml = [
+      '<p style="font-family:\'DM Sans\',sans-serif;font-size:15px;color:#5C4C38;line-height:1.6;margin:0 0 32px">',
+        'Sua <strong>solicitação de acesso está em análise</strong>.<br>',
+        'O detentor irá avaliar seu perfil e responder em breve.',
+      '</p>'
+    ].join('');
+    ctaHtml = [
+      '<div style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:100px;',
+        'background:#F5F0E8;color:#A89880;border:1px solid #E0D8CC;',
+        'font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600">',
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+        'Solicitação enviada — aguardando aprovação',
+      '</div>'
+    ].join('');
+  } else if (reqStatus === 'recusado') {
+    messageHtml = [
+      '<p style="font-family:\'DM Sans\',sans-serif;font-size:15px;color:#5C4C38;line-height:1.6;margin:0 0 32px">',
+        'Sua solicitação de acesso foi <strong>recusada</strong> pelo detentor.<br>',
+        'Entre em contato para mais informações.',
+      '</p>'
+    ].join('');
+    ctaHtml = [
+      '<div style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:100px;',
+        'background:#FEF2F2;color:#DC2626;border:1px solid rgba(220,38,38,0.2);',
+        'font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600">',
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        'Acesso não aprovado',
+      '</div>'
+    ].join('');
+  } else {
+    // Sem solicitação — CTA para solicitar
+    messageHtml = [
+      '<p style="font-family:\'DM Sans\',sans-serif;font-size:15px;color:#5C4C38;line-height:1.6;margin:0 0 32px">',
+        'Esta oportunidade é de <strong>acesso por aprovação</strong>.<br>',
+        'Solicite acesso para que o detentor possa analisar seu perfil.',
+      '</p>'
+    ].join('');
+    ctaHtml = [
+      '<button id="btn-solicitar-acesso" onclick="handleSolicitarAcesso(this)" ',
+        'style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:100px;',
+        'background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;border:none;cursor:pointer;',
+        'font-family:\'DM Sans\',sans-serif;font-size:15px;font-weight:600;',
+        'box-shadow:0 4px 16px rgba(184,134,11,0.35);transition:opacity 0.2s" ',
+        'onmouseover="this.style.opacity=\'0.9\'" onmouseout="this.style.opacity=\'1\'">',
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+        'Solicitar acesso',
+      '</button>'
+    ].join('');
+  }
+
+  overlay.innerHTML = [
+    // Lock icon circle
+    '<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 4px 20px rgba(184,134,11,0.3)">',
+      '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+        '<rect x="3" y="11" width="18" height="11" rx="2"/>',
+        '<path d="M7 11V7a5 5 0 0110 0v4"/>',
+      '</svg>',
+    '</div>',
+    // Meta pill
+    category ? '<span style="display:inline-block;padding:4px 14px;border-radius:100px;background:#F5F0E8;color:#5C4C38;font-size:12px;font-weight:600;font-family:\'DM Sans\',sans-serif;margin-bottom:16px">' + category + '</span>' : '',
+    // Title
+    '<h2 style="font-family:\'Poppins\',sans-serif;font-size:22px;font-weight:700;color:#1A1200;margin:0 0 8px;line-height:1.3">' + title + '</h2>',
+    // Org
+    org ? '<p style="font-family:\'DM Sans\',sans-serif;font-size:14px;color:#A89880;margin:0 0 24px">por ' + org + '</p>' : '<div style="margin-bottom:24px"></div>',
+    // Divider
+    '<div style="width:40px;height:2px;background:linear-gradient(90deg,#B8860B,#C8A84B);border-radius:2px;margin:0 auto 24px"></div>',
+    // Mensagem dinâmica
+    messageHtml,
+    // CTA dinâmico
+    ctaHtml,
+    // Back link
+    '<a href="oportunidades.html" style="display:inline-block;margin-top:20px;font-family:\'DM Sans\',sans-serif;font-size:13px;color:#A89880;text-decoration:none">',
+      '← Voltar para o Radar',
+    '</a>'
+  ].join('');
+
+  // Insere overlay dentro do .detail-wrap, após o header, no lugar da galeria+body
+  var detailWrap = document.querySelector('.detail-wrap');
+  if (detailWrap) {
+    detailWrap.appendChild(overlay);
+  } else {
+    document.body.appendChild(overlay);
+  }
+
+  // Esconde galeria e corpo de detalhes — mantém só o header (título/categoria)
+  var sectionsToHide = [
+    '.detail-gallery',
+    '.gallery-mobile-strip',
+    '.detail-body'
+  ];
+  sectionsToHide.forEach(function(sel) {
+    var el = document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+
+  // Adiciona badge "Por aprovação" no header
+  var categoryEl = document.getElementById('detailCategory');
+  if (categoryEl) {
+    var badge = document.createElement('span');
+    badge.style.cssText = 'display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:3px 10px;border-radius:100px;background:rgba(0,0,0,0.08);color:#5C4C38;font-size:11px;font-weight:600;font-family:\'DM Sans\',sans-serif;vertical-align:middle';
+    badge.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Por aprovação';
+    categoryEl.parentNode && categoryEl.parentNode.appendChild(badge);
+  }
+}
+
+/* ─── SOLICITAR ACESSO (handler do botão no gate) ─── */
+async function handleSolicitarAcesso(btn) {
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  btn.style.cursor = 'default';
+  btn.innerHTML = [
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">',
+      '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    '</svg>',
+    'Enviando…'
+  ].join('');
+
+  var opp = _CURRENT_OPP;
+  if (!opp) {
+    // Fallback: tenta ler do DOM via URL
+    var params = new URLSearchParams(window.location.search);
+    var id = parseInt(params.get('id'));
+    opp = id ? { id: id } : null;
+  }
+  if (!opp || !opp.id) {
+    btn.innerHTML = 'Erro — tente novamente';
+    btn.style.background = '#FEF2F2';
+    btn.style.color = '#DC2626';
+    btn.disabled = false;
+    return;
+  }
+
+  var brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+  var marcaId = brandSession && brandSession.user ? brandSession.user.id : null;
+  if (!marcaId) {
+    btn.innerHTML = 'Faça login para solicitar';
+    btn.style.background = '#F5F0E8';
+    btn.style.color = '#5C4C38';
+    btn.disabled = false;
+    return;
+  }
+
+  var result = await requestAccess(opp.id, marcaId);
+
+  if (result.success || result.alreadyExists) {
+    // Atualiza o botão para estado "pendente"
+    btn.style.background = '#F5F0E8';
+    btn.style.color = '#A89880';
+    btn.style.boxShadow = 'none';
+    btn.style.border = '1px solid #E0D8CC';
+    btn.style.opacity = '1';
+    btn.innerHTML = [
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+        '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+      '</svg>',
+      'Solicitação enviada — aguardando aprovação'
+    ].join('');
+    // Atualiza o parágrafo de mensagem se presente
+    var gateEl = document.getElementById('approval-gate');
+    if (gateEl) {
+      var msgP = gateEl.querySelector('p');
+      if (msgP) {
+        msgP.innerHTML = 'Sua <strong>solicitação de acesso está em análise</strong>.<br>O detentor irá avaliar seu perfil e responder em breve.';
+      }
+    }
+  } else {
+    // Erro — reativa botão com mensagem
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.style.background = '#FEF2F2';
+    btn.style.color = '#DC2626';
+    btn.style.boxShadow = 'none';
+    btn.style.border = '1px solid rgba(220,38,38,0.2)';
+    btn.innerHTML = result.error || 'Erro ao enviar — tente novamente';
+    console.warn('[handleSolicitarAcesso] Erro:', result.error);
+  }
+}
+
 /* ─── MODAL ─── */
 // Dados do usuário logado — lê da sessão real
 var LOGGED_USER = (function() {
@@ -2164,172 +2260,6 @@ function updateFavBtnState(isFav) {
 }
 
 /* ─── INIT ─── */
-/* ─── VISIBILIDADE: ACESSO RESTRITO ─── */
-var _gateOppData = null;
-
-async function checkAccessGate(oppData) {
-  if (!oppData || !oppData.visibilidade || oppData.visibilidade === 'publica') return false; // sem bloqueio
-
-  // Detentor sempre pode ver sua própria opp
-  const userId = await getAuthUserId();
-  if (userId && oppData.detentor_id && userId === oppData.detentor_id) return false;
-
-  // Checar se marca tem acesso aprovado
-  if (userId) {
-    try {
-      const res = await sbPublicFetch('/rest/v1/acessos_oportunidade?select=status&oportunidade_id=eq.' + oppData.id + '&marca_id=eq.' + userId);
-      if (res.ok) {
-        const rows = await res.json();
-        if (rows.length > 0) {
-          if (rows[0].status === 'aprovado') return false; // Acesso concedido
-          if (rows[0].status === 'pendente') {
-            showAccessGate(oppData, 'pendente');
-            return true;
-          }
-          if (rows[0].status === 'rejeitado') {
-            showAccessGate(oppData, 'rejeitado');
-            return true;
-          }
-        }
-      }
-    } catch (e) { console.warn('[AccessGate] check failed:', e); }
-  }
-
-  // Sem acesso — mostrar gate
-  showAccessGate(oppData, 'none');
-  return true;
-}
-
-function showAccessGate(oppData, accessStatus) {
-  _gateOppData = oppData;
-  var gate = document.getElementById('accessGate');
-  var wrap = document.querySelector('.detail-wrap');
-  if (gate) gate.style.display = 'block';
-  if (wrap) wrap.style.display = 'none';
-
-  // Info básica
-  var cat = document.getElementById('gateCategory');
-  var title = document.getElementById('gateOppTitle');
-  var meta = document.getElementById('gateMeta');
-  if (cat) cat.textContent = oppData.category || '';
-  if (title) title.textContent = oppData.title || '';
-  if (meta) {
-    var metaParts = [];
-    if (oppData.city) metaParts.push('<span>📍 ' + oppData.city + '</span>');
-    if (oppData.date) metaParts.push('<span>📅 ' + oppData.date + '</span>');
-    meta.innerHTML = metaParts.join('');
-  }
-
-  // Status-specific messaging
-  var desc = document.getElementById('gateDesc');
-  var btn = document.getElementById('gateRequestBtn');
-  var status = document.getElementById('gateStatus');
-
-  if (oppData.visibilidade === 'convidadas') {
-    if (desc) desc.textContent = 'Esta oportunidade é exclusiva para marcas convidadas pelo detentor.';
-  }
-
-  if (accessStatus === 'pendente') {
-    if (btn) btn.style.display = 'none';
-    if (status) { status.style.display = 'block'; status.innerHTML = '⏳ <strong>Solicitação enviada.</strong> Aguardando aprovação do detentor.'; status.style.color = '#B8860B'; }
-  } else if (accessStatus === 'rejeitado') {
-    if (btn) btn.style.display = 'none';
-    if (status) { status.style.display = 'block'; status.textContent = 'Sua solicitação não foi aprovada para esta oportunidade.'; status.style.color = '#ef4444'; }
-  }
-}
-
-async function requestAccess() {
-  if (!_gateOppData) return;
-  var userId = await getAuthUserId();
-  if (!userId) {
-    showToast?.('Faça login para solicitar acesso.', 'error');
-    window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
-    return;
-  }
-
-  var btn = document.getElementById('gateRequestBtn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
-
-  try {
-    var token = await _getWriteToken();
-    var res = await fetch(SUPABASE_URL + '/rest/v1/acessos_oportunidade', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        oportunidade_id: _gateOppData.id,
-        marca_id: userId,
-        status: 'pendente'
-      })
-    });
-
-    if (res.ok || res.status === 201) {
-      if (btn) btn.style.display = 'none';
-      var status = document.getElementById('gateStatus');
-      if (status) { status.style.display = 'block'; status.innerHTML = '✅ <strong>Solicitação enviada!</strong> O detentor será notificado e avaliará seu pedido.'; status.style.color = '#16a34a'; }
-    } else {
-      var err = await res.text();
-      // Conflict = já existe pedido
-      if (res.status === 409 || err.includes('duplicate')) {
-        if (btn) btn.style.display = 'none';
-        var status = document.getElementById('gateStatus');
-        if (status) { status.style.display = 'block'; status.innerHTML = '⏳ <strong>Solicitação já enviada.</strong> Aguardando aprovação do detentor.'; status.style.color = '#B8860B'; }
-      } else {
-        throw new Error(err);
-      }
-    }
-  } catch (e) {
-    console.error('[RequestAccess]', e);
-    if (btn) { btn.disabled = false; btn.textContent = 'Solicitar acesso'; }
-    showToast?.('Erro ao solicitar acesso. Tente novamente.', 'error');
-  }
-}
-
-/* ─── PAYWALL (não-logado) ─── */
-function showPaywall() {
-  // Adiciona classe de blur no wrap
-  var wrap = document.querySelector('.detail-wrap');
-  if (wrap) wrap.classList.add('paywall-active');
-
-  // Insere gradient fade entre gallery e body blurrado
-  var body = document.querySelector('.detail-body');
-  if (body && !document.querySelector('.paywall-fade')) {
-    var fade = document.createElement('div');
-    fade.className = 'paywall-fade';
-    body.parentNode.insertBefore(fade, body);
-  }
-
-  // Mostra overlay + modal
-  var overlay = document.getElementById('paywallOverlay');
-  if (overlay) {
-    overlay.style.display = 'flex';
-    // Bloqueia scroll do body
-    document.body.style.overflow = 'hidden';
-  }
-
-  // Esconde sidebar e topbar actions que não fazem sentido para não-logado
-  var favBtn = document.getElementById('favBtn');
-  if (favBtn) favBtn.style.display = 'none';
-
-  console.log('[Paywall] Ativado — usuário não logado');
-}
-
-async function isUserLoggedIn() {
-  // Verifica sessão legacy (localStorage)
-  if (typeof getCurrentUser === 'function' && getCurrentUser()) return true;
-  // Verifica Supabase SDK session
-  if (typeof getAuthUserId === 'function') {
-    var uid = await getAuthUserId();
-    if (uid) return true;
-  }
-  return false;
-}
-
-/* ─── INIT ─── */
 (async function initDetail() {
   var params = new URLSearchParams(window.location.search);
   var rawKey = params.keys().next().value;
@@ -2358,35 +2288,40 @@ async function isUserLoggedIn() {
     }
   }
 
-  // Check visibility gate before rendering full page
   if (oppData) {
-    var blocked = await checkAccessGate(oppData);
-    if (blocked) {
-      // Hide loading screen even when blocked
-      setTimeout(function() {
-        var ls = document.getElementById('loadingScreen');
-        if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.3s'; setTimeout(function(){ ls.style.display = 'none'; }, 300); }
-      }, 400);
-      return; // Don't render full page
-    }
+    console.log('[Detail] Loaded from Supabase:', oppData.title, '| visibilidade:', oppData.visibilidade);
 
-    console.log('[Detail] Loaded from Supabase:', oppData.title);
-    renderPage(oppData);
+    // ── Gate de visibilidade ──────────────────────────────────────────────────
+    if (oppData.visibilidade === 'aprovacao') {
+      // Verifica se a marca logada tem acesso aprovado
+      var brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+      var marcaId = brandSession && brandSession.user ? brandSession.user.id : null;
+      var hasAccess = marcaId ? await checkApprovalAccess(oppData.id, marcaId) : false;
+
+      if (!hasAccess) {
+        console.log('[Detail] Acesso bloqueado — visibilidade=aprovacao, marcaId:', marcaId, 'hasAccess:', hasAccess);
+        // Busca solicitação existente (qualquer status) para exibir estado correto no gate
+        var existingRequest = marcaId ? await getAccessRequest(oppData.id, marcaId) : null;
+        // Renderiza a página normalmente mas bloqueia o conteúdo principal
+        renderPage(oppData);
+        renderApprovalGate(oppData, existingRequest);
+      } else {
+        console.log('[Detail] Acesso liberado para marca aprovada:', marcaId);
+        renderPage(oppData);
+      }
+    } else {
+      renderPage(oppData);
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
   } else {
     console.log('[Detail] Using mock data for id:', id);
     renderPage();
   }
 
-  // ─── PAYWALL CHECK: se não está logado, mostra paywall ───
-  var loggedIn = await isUserLoggedIn();
-  if (!loggedIn) {
-    // Pequeno delay para o usuário ver o conteúdo preview antes do paywall
-    setTimeout(function() { showPaywall(); }, 1200);
-  } else {
-    // Favorito state (só para logados)
-    var opp = oppData || getOpp();
-    updateFavBtnState(getFavIds().indexOf(opp.id) !== -1);
-  }
+  // Favorito state
+  var opp = oppData || getOpp();
+  updateFavBtnState(getFavIds().indexOf(opp.id) !== -1);
 
   // Hide loading
   setTimeout(function() {

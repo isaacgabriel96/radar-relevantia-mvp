@@ -1893,7 +1893,8 @@ const TOTAL_STEPS = 8;
 const formState = {
   selectedTemplate: null,
   selectedVisibility: 'publica',
-  photoFiles: []
+  photoFiles: [],
+  editId: null
 };
 
 /* ══════════════════════════════════════════════
@@ -3597,29 +3598,46 @@ async function saveDraft() {
   const userId = await getAuthUserId();
   if (token && userId) {
     data.detentor_id = userId;
-    const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades', {
-      method: 'POST', body: JSON.stringify(data),
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json', 'Prefer': 'return=representation' }
-    });
-    if (res.ok) {
-      const rows = await res.json();
-      const oppId = rows[0]?.id;
-      if (oppId) {
-        const { imagens, imagem_capa, imagens_focal } = await uploadPhotos(oppId, token);
-        const pdfUrl = await uploadPDF(oppId, token);
-        if (imagens.length > 0 || pdfUrl) {
-          const patch = {};
-          if (imagens.length > 0) { patch.imagens = imagens; patch.imagem_capa = imagem_capa; patch.imagens_focal = imagens_focal; }
-          if (pdfUrl) patch.midia_kit_url = pdfUrl;
-          await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
-            method: 'PATCH', body: JSON.stringify(patch),
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-              'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
-          });
-        }
+
+    let oppId = formState.editId;
+
+    if (oppId) {
+      // Modo edição — PATCH na oportunidade existente
+      delete data.detentor_id; // não sobrescrever dono
+      const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
+        method: 'PATCH', body: JSON.stringify(data),
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+      });
+      if (!res.ok) { const err = await res.text(); console.error('[SaveDraft PATCH]', err); }
+    } else {
+      // Modo criação — POST novo registro
+      const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades', {
+        method: 'POST', body: JSON.stringify(data),
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json', 'Prefer': 'return=representation' }
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        oppId = rows[0]?.id;
       }
     }
+
+    if (oppId) {
+      const { imagens, imagem_capa, imagens_focal } = await uploadPhotos(oppId, token);
+      const pdfUrl = await uploadPDF(oppId, token);
+      if (imagens.length > 0 || pdfUrl) {
+        const patch = {};
+        if (imagens.length > 0) { patch.imagens = imagens; patch.imagem_capa = imagem_capa; patch.imagens_focal = imagens_focal; }
+        if (pdfUrl) patch.midia_kit_url = pdfUrl;
+        await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
+          method: 'PATCH', body: JSON.stringify(patch),
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+        });
+      }
+    }
+
     showToast('Rascunho salvo!', 'success');
   }
   setTimeout(() => { window.location.href = 'dashboard-detentor.html#oportunidades'; }, 1200);
@@ -3637,23 +3655,37 @@ async function publishOpportunity() {
   data.detentor_id = userId;
 
   try {
-    // 1. Create opportunity
-    const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades', {
-      method: 'POST', body: JSON.stringify(data),
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json', 'Prefer': 'return=representation' }
-    });
-    if (!res.ok) { const err = await res.text(); console.error('[Publish]', err); throw new Error(err); }
-    const rows = await res.json();
-    const oppId = rows[0]?.id;
-    console.log('[Publish] Opportunity created:', oppId);
+    let oppId = formState.editId;
 
-    // 2. Upload photos and PDF
+    if (oppId) {
+      // Modo edição — PATCH na oportunidade existente
+      const editData = { ...data };
+      delete editData.detentor_id; // não sobrescrever dono
+      const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
+        method: 'PATCH', body: JSON.stringify(editData),
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+      });
+      if (!res.ok) { const err = await res.text(); console.error('[Publish PATCH]', err); throw new Error(err); }
+      console.log('[Publish] Opportunity updated:', oppId);
+    } else {
+      // Modo criação — POST novo registro
+      const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades', {
+        method: 'POST', body: JSON.stringify(data),
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json', 'Prefer': 'return=representation' }
+      });
+      if (!res.ok) { const err = await res.text(); console.error('[Publish]', err); throw new Error(err); }
+      const rows = await res.json();
+      oppId = rows[0]?.id;
+      console.log('[Publish] Opportunity created:', oppId);
+    }
+
+    // Upload photos and PDF
     if (oppId) {
       const { imagens, imagem_capa, imagens_focal } = await uploadPhotos(oppId, token);
       const pdfUrl = await uploadPDF(oppId, token);
 
-      // 3. Update opportunity with file URLs
       if (imagens.length > 0 || pdfUrl) {
         const patch = {};
         if (imagens.length > 0) { patch.imagens = imagens; patch.imagem_capa = imagem_capa; patch.imagens_focal = imagens_focal; }
@@ -3711,6 +3743,9 @@ function maybePreFillEdit() {
 
   let opp;
   try { opp = JSON.parse(raw); } catch(e) { return; }
+
+  // Guarda o ID para usar no PATCH ao salvar/publicar
+  if (opp.id) formState.editId = opp.id;
 
   // Atualiza título da topbar
   const topbarTitle = document.querySelector('.topbar-title');
@@ -3815,6 +3850,11 @@ function maybePreFillEdit() {
       grid.insertBefore(thumb, slot);
     });
     updatePhotoSlot();
+  }
+
+  // --- Passo 7: Visibilidade ---
+  if (opp.visibilidade) {
+    selectVisibility(opp.visibilidade);
   }
 
   // Limpa o sessionStorage após usar

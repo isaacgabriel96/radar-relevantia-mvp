@@ -289,17 +289,20 @@ function rowToCatalogItem(row) {
     desc: row.descricao_curta || '', price: parsePreco(row.preco_minimo),
     date: row.alcance || '', gradient: row.bg_gradient || 'linear-gradient(135deg, #1a1a2e, #16213e)',
     imagem_capa: row.imagem_capa || null,
-    imagens_focal: row.imagens_focal || null
+    imagens_focal: row.imagens_focal || null,
+    visibilidade: row.visibilidade || 'publica'
   };
 }
 
 async function fetchCatalog() {
   try {
-    const path = '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,preco_minimo,descricao_curta,alcance,bg_gradient,imagem_capa,imagens_focal,perfis:detentor_id(empresa,slug)&ativo=eq.true&order=id.asc';
+    const path = '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,preco_minimo,descricao_curta,alcance,bg_gradient,imagem_capa,imagens_focal,visibilidade,perfis:detentor_id(empresa,slug)&ativo=eq.true&order=id.asc';
     const res = await sbPublicFetch(path);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
-    return rows.map(rowToCatalogItem);
+    // Filtra oportunidades "convidadas" — nunca aparecem no catálogo público
+    const filtered = rows.filter(r => (r.visibilidade || 'publica') !== 'convidadas');
+    return filtered.map(rowToCatalogItem);
   } catch (err) {
     console.error('[fetchCatalog] Failed:', err);
     return null;
