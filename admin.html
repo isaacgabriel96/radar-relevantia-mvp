@@ -1909,7 +1909,7 @@ async function loadDeals() {
       '/rest/v1/negociacoes?select=' +
       'id,oportunidade_id,marca_id,detentor_id,valor_deal,valor_proposto,status,' +
       'contrato_url,contrato_enviado_por,contrato_enviado_em,' +
-      'contrato_validado,contrato_validado_em,contrato_validado_por,' +
+      'contrato_validado,contrato_validado_em,contrato_validado_por,admin_comentario,' +
       'created_at,' +
       'marca:marca_id(nome,empresa),' +
       'detentor:detentor_id(nome,empresa),' +
@@ -1967,10 +1967,11 @@ function renderDeals(filter, btnEl) {
         <td>${validated
           ? '<span class="badge badge-green" style="font-size:11px">✓ Validado</span>'
           : '<span class="badge badge-orange" style="font-size:11px">⏳ Pendente</span>'}</td>
-        <td>
+        <td style="display:flex;gap:4px;align-items:center">
           ${!validated
-            ? `<button class="btn btn-sm btn-approve" onclick="event.stopPropagation();aprovarContrato('${d.id}')">Aprovar</button>`
+            ? `<button class="btn btn-sm btn-approve" onclick="event.stopPropagation();aprovarContrato('${d.id}')">Aprovar</button><button class="btn btn-sm btn-reject" onclick="event.stopPropagation();openDealModal('${d.id}')">Rejeitar</button>`
             : '<span style="color:var(--gray-3);font-size:12px">—</span>'}
+          ${d.admin_comentario ? '<span title="Tem comentário admin" style="font-size:14px;cursor:help">💬</span>' : ''}
         </td>
       </tr>`;
   }).join('');
@@ -2037,13 +2038,20 @@ function openDealModal(negId) {
       ${d.contrato_validado
         ? `<div style="margin-top:10px;font-size:12px;color:#059669;font-weight:600">✓ Validado em ${fmtDate(d.contrato_validado_em)}</div>`
         : `<div style="margin-top:10px;font-size:12px;color:#D97706;font-weight:600">⏳ Aguardando validação</div>`}
+    </div>
+
+    <div style="margin-top:20px">
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text)">Comentário Admin</div>
+      ${d.admin_comentario ? `<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400E;margin-bottom:8px;white-space:pre-wrap">${escHtml(d.admin_comentario)}</div>` : ''}
+      <textarea id="dealComentarioInput" rows="3" placeholder="Escreva um comentário, motivo de rejeição ou observação..." style="width:100%;border:1px solid var(--gray-2);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box">${d.admin_comentario ? escHtml(d.admin_comentario) : ''}</textarea>
+      <button class="btn btn-outline" style="margin-top:6px;font-size:11px;padding:4px 14px" onclick="salvarComentario('${d.id}')">Salvar comentário</button>
     </div>`;
 
   const actionsEl = document.getElementById('dealModalActions');
   if (!d.contrato_validado) {
     actionsEl.innerHTML = `
       <button class="btn btn-outline" onclick="closeDealModal()">Fechar</button>
-      <button class="btn btn-reject" onclick="rejeitarContrato('${d.id}')">Rejeitar</button>
+      <button class="btn btn-reject" onclick="rejeitarContrato('${d.id}')">Rejeitar Contrato</button>
       <button class="btn btn-approve" onclick="aprovarContrato('${d.id}')">Aprovar Contrato</button>`;
   } else {
     actionsEl.innerHTML = `
@@ -2065,14 +2073,18 @@ async function aprovarContrato(negId) {
     const session = await getSession();
     const adminId = session?.user?.id || '';
 
+    const comentario = (document.getElementById('dealComentarioInput')?.value || '').trim();
+    const patchBody = {
+      contrato_validado: true,
+      contrato_validado_em: new Date().toISOString(),
+      contrato_validado_por: adminId
+    };
+    if (comentario) patchBody.admin_comentario = comentario;
+
     const res = await sbFetch(`/rest/v1/negociacoes?id=eq.${negId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        contrato_validado: true,
-        contrato_validado_em: new Date().toISOString(),
-        contrato_validado_por: adminId
-      })
+      body: JSON.stringify(patchBody)
     });
 
     if (!res.ok) {
@@ -2090,11 +2102,17 @@ async function aprovarContrato(negId) {
 }
 
 async function rejeitarContrato(negId) {
-  const motivo = prompt('Motivo da rejeição (opcional):');
-  if (motivo === null) return; // user cancelled
+  const comentario = (document.getElementById('dealComentarioInput')?.value || '').trim();
+  if (!comentario) {
+    alert('Por favor, escreva o motivo da rejeição no campo de comentário antes de rejeitar.');
+    document.getElementById('dealComentarioInput')?.focus();
+    return;
+  }
+  if (!confirm('Rejeitar este contrato? O motivo será salvo e visível para as partes.')) return;
 
   try {
-    // Clear contract and set back to negotiation
+    const session = await getSession();
+    const adminId = session?.user?.id || '';
     const res = await sbFetch(`/rest/v1/negociacoes?id=eq.${negId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
@@ -2104,7 +2122,8 @@ async function rejeitarContrato(negId) {
         contrato_enviado_em: null,
         contrato_validado: false,
         contrato_validado_em: null,
-        contrato_validado_por: null
+        contrato_validado_por: null,
+        admin_comentario: comentario
       })
     });
 
@@ -2113,11 +2132,28 @@ async function rejeitarContrato(negId) {
       throw new Error(errText);
     }
 
-    alert('Contrato rejeitado. O deal voltou para negociação.');
+    alert('Contrato rejeitado. O motivo foi salvo.');
     closeDealModal();
     await Promise.all([loadDeals(), loadStats()]);
   } catch (err) {
     alert('Erro ao rejeitar: ' + err.message);
+    console.error(err);
+  }
+}
+
+async function salvarComentario(negId) {
+  const comentario = (document.getElementById('dealComentarioInput')?.value || '').trim();
+  try {
+    const res = await sbFetch(`/rest/v1/negociacoes?id=eq.${negId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ admin_comentario: comentario || null })
+    });
+    if (!res.ok) { const errText = await res.text(); throw new Error(errText); }
+    alert('Comentário salvo.');
+    await loadDeals();
+  } catch (err) {
+    alert('Erro ao salvar comentário: ' + err.message);
     console.error(err);
   }
 }
