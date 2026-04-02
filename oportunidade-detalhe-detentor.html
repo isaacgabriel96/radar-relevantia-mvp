@@ -310,14 +310,6 @@ a { text-decoration: none; color: inherit; }
 .entregas-table tbody td { padding: 12px 14px; border-top: 1px solid var(--gray-200); color: var(--gray-600); }
 .entregas-table tbody tr:hover { background: rgba(184,134,11,0.03); }
 
-/* Ativacoes */
-.ativacoes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.ativacao-card { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); transition: border-color 0.15s; }
-.ativacao-card:hover { border-color: var(--gray-300); }
-.ativacao-img { width: 42px; height: 42px; border-radius: var(--radius); background: var(--gold-pale); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-.ativacao-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
-.ativacao-desc { font-size: 12px; color: var(--gray-500); line-height: 1.45; }
-
 /* Canais */
 .canais-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .canal-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); transition: border-color 0.15s; }
@@ -686,7 +678,6 @@ a { text-decoration: none; color: inherit; }
   .detail-facts { grid-template-columns: 1fr 1fr; gap: 10px; }
   .fact-item { padding: 12px; }
   .cotas-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .ativacoes-grid { grid-template-columns: 1fr; gap: 10px; }
   .canais-grid { grid-template-columns: 1fr; }
   /* Tabela: borda a borda, scroll horizontal */
   .entregas-wrap { margin-left: -16px; margin-right: -16px; border-radius: 0; border-left: none; border-right: none; }
@@ -928,7 +919,6 @@ a { text-decoration: none; color: inherit; }
             <button class="tab-btn active" onclick="switchTab('visao', this)">Visão geral</button>
             <button class="tab-btn" onclick="switchTab('publico', this)">Público</button>
             <button class="tab-btn" onclick="switchTab('cotas', this)">Cotas & Entregas</button>
-            <button class="tab-btn" onclick="switchTab('ativacoes', this)">Ativações</button>
             <button class="tab-btn" onclick="switchTab('canais', this)">Canais</button>
           </div>
 
@@ -977,15 +967,6 @@ a { text-decoration: none; color: inherit; }
                     <tbody id="entregasBody"></tbody>
                   </table>
                 </div>
-              </div>
-            </div>
-
-            <!-- TAB: Ativacoes -->
-            <div class="tab-panel" id="tab-ativacoes">
-              <div class="detail-section">
-                <h3 class="detail-section-title">Ativações personalizadas</h3>
-                <p class="detail-text" style="margin-bottom:20px">Experiências exclusivas disponíveis para marcas patrocinadoras.</p>
-                <div class="ativacoes-grid" id="ativacoesGrid"></div>
               </div>
             </div>
 
@@ -1115,14 +1096,6 @@ const OPPORTUNITIES = [
       ['Transmissão', 'Vinheta 15s', 'TV & Streaming', 'Veiculação durante transmissão do evento'],
       ['Relatório pós-evento', 'Dashboard', 'Digital', 'Métricas consolidadas de alcance e impacto']
     ],
-    ativacoes: [
-      { emoji: '🏃', name: 'Pódio personalizado', desc: 'Cerimônia de premiação com branding exclusivo' },
-      { emoji: '🎽', name: 'Camiseta exclusiva', desc: 'Design colaborativo com sua marca' },
-      { emoji: '📸', name: 'Photopoint VIP', desc: 'Área exclusiva de fotos no percurso' },
-      { emoji: '🎤', name: 'Palco de ativação', desc: 'Espaço exclusivo na expo-feira pré-evento' },
-      { emoji: '🍹', name: 'Posto de hidratação', desc: 'Branding nos postos de hidratação do percurso' },
-      { emoji: '📲', name: 'App challenge', desc: 'Challenge de marca no app oficial da maratona' }
-    ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: '285k seguidores · 4.8% engajamento' },
       { icon: '🎵', name: 'TikTok', reach: '140k seguidores · 8.2% engajamento' },
@@ -1167,12 +1140,6 @@ const OPPORTUNITIES = [
       ['Camarote VIP', 'Experiência', 'On-site', 'Área VIP com branding exclusivo'],
       ['Social media', 'Posts & Stories', 'Instagram', '5 posts + 10 stories durante festival'],
       ['Email blast', 'Newsletter', 'Email', 'Envio para 200k inscritos']
-    ],
-    ativacoes: [
-      { emoji: '🎶', name: 'Palco experience', desc: 'Ativação no palco secundário com sua marca' },
-      { emoji: '📸', name: 'Insta corner', desc: 'Espaço instagramável personalizado' },
-      { emoji: '🍹', name: 'Bar exclusivo', desc: 'Ponto de venda com branding total' },
-      { emoji: '📲', name: 'QR challenge', desc: 'Ação interativa via QR code no evento' }
     ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: '520k seguidores · 6.1% engajamento' },
@@ -1249,11 +1216,6 @@ function getDefaultOpp(id) {
       ['Social media', 'Posts', 'Digital', 'Menções nas redes sociais'],
       ['Relatório', 'Dashboard', 'Digital', 'Métricas pós-evento']
     ],
-    ativacoes: [
-      { emoji: '✨', name: 'Ativação exclusiva', desc: 'Espaço personalizado para a marca' },
-      { emoji: '📸', name: 'Photopoint', desc: 'Área de fotos com branding' },
-      { emoji: '📲', name: 'Digital', desc: 'Ação interativa online' }
-    ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: 'Sob consulta' },
       { icon: '📘', name: 'Facebook', reach: 'Sob consulta' },
@@ -1300,13 +1262,11 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
       'entregas(nome,formato,canal,descricao,ordem),' +
-      'ativacoes(icone,nome,descricao,ordem),' +
       'canais(icone,label,valor,ordem)' +
       filter +
       '&oportunidade_fatos.order=ordem.asc' +
       '&cotas.order=ordem.asc' +
       '&entregas.order=ordem.asc' +
-      '&ativacoes.order=ordem.asc' +
       '&canais.order=ordem.asc';
     const res = await sbPublicFetch(path);
     if (!res.ok) return null;
@@ -1357,11 +1317,6 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
     // Entregas
     const entregas = (r.entregas || []).map(e => [e.nome || '', e.formato || '', e.canal || '', e.descricao || '']);
 
-    // Ativações
-    const ativacoes = (r.ativacoes || []).map(a => ({
-      emoji: a.icone || '🎯', name: a.nome || '', desc: a.descricao || ''
-    }));
-
     // Canais — from canais table or redes_sociais JSON
     let canaisArr = (r.canais || []).map(c => ({
       icon: c.icone || '📱', name: c.label || '', reach: c.valor || ''
@@ -1403,7 +1358,6 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
       entregas: entregas.length > 0 ? entregas : undefined,
-      ativacoes: ativacoes.length > 0 ? ativacoes : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
       sidebar: {
         evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || r.alcance || '') : (r.alcance || ''),
@@ -1630,17 +1584,6 @@ function renderPage(oppOverride) {
       entTable.closest('table').insertAdjacentHTML('afterend', EMPTY_STATE_HTML);
       entTable.closest('table').style.display = 'none';
     }
-  }
-
-  // Ativacoes
-  if (opp.ativacoes && opp.ativacoes.length > 0) {
-    var ativHtml = '';
-    opp.ativacoes.forEach(function(a) {
-      ativHtml += '<div class="ativacao-card"><div class="ativacao-img">' + escapeHtml(a.emoji) + '</div><div><div class="ativacao-name">' + escapeHtml(a.name) + '</div><div class="ativacao-desc">' + escapeHtml(a.desc) + '</div></div></div>';
-    });
-    document.getElementById('ativacoesGrid').innerHTML = ativHtml;
-  } else {
-    document.getElementById('ativacoesGrid').innerHTML = EMPTY_STATE_HTML;
   }
 
   // Canais

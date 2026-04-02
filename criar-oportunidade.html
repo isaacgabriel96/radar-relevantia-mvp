@@ -1674,7 +1674,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         <button class="pv-tab active" onclick="switchPreviewTab('visao', this)">Visão geral</button>
         <button class="pv-tab" onclick="switchPreviewTab('publico', this)">Público</button>
         <button class="pv-tab" onclick="switchPreviewTab('cotas', this)">Cotas & Entregas</button>
-        <button class="pv-tab" onclick="switchPreviewTab('ativacoes', this)">Ativações</button>
         <button class="pv-tab" onclick="switchPreviewTab('canais', this)">Canais</button>
       </div>
 
@@ -1736,17 +1735,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <div class="editable-placeholder" onclick="openInlineEditor('entregas')" id="pvEntregas">
             <span class="ep-icon">+</span>
             <span class="ep-text">Clique para descrever as entregas que o patrocinador receberá</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Ativações -->
-      <div class="pv-tab-content" id="pvTab-ativacoes">
-        <div class="form-card" style="margin:0">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Ativações disponíveis</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('ativacoes')" id="pvAtivacoes">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para listar as ativações de marca disponíveis (naming rights, ações em redes sociais, etc.)</span>
           </div>
         </div>
       </div>
@@ -1882,6 +1870,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/sanitize.js"></script>
 <script src="js/core.js"></script>
 <script src="js/i18n.js"></script>
 <script>
@@ -2592,7 +2581,7 @@ function renderReviewSummary() {
   // Dados do Preview Editável (Step 6)
   const pvKeys = {
     publico: 'Público-alvo', demografico: 'Dados demográficos',
-    entregas: 'Entregas ao patrocinador', ativacoes: 'Ativações disponíveis',
+    entregas: 'Entregas ao patrocinador',
     metricas: 'Métricas de audiência', prazo: 'Prazo de inscrição'
   };
   const pvRows = Object.entries(pvKeys)
@@ -2840,9 +2829,6 @@ function renderPreview() {
   // Entregas
   renderEditableField('pvEntregas', 'entregas', 'Clique para descrever as entregas que o patrocinador receberá');
 
-  // Tab: Ativações
-  renderEditableField('pvAtivacoes', 'ativacoes', 'Clique para listar as ativações de marca disponíveis');
-
   // Tab: Canais
   const pvCanais = document.getElementById('pvCanais');
   if (d.socials.length > 0) {
@@ -2917,12 +2903,6 @@ const EDITOR_CONFIG = {
     title: 'Entregas ao patrocinador',
     fields: [
       { key: 'entregas', label: 'O que o patrocinador recebe?', type: 'textarea', placeholder: 'Ex: Logo na camisa oficial, menções em redes sociais, espaço para ativação no evento, camarote exclusivo...' }
-    ]
-  },
-  ativacoes: {
-    title: 'Ativações disponíveis',
-    fields: [
-      { key: 'ativacoes', label: 'Quais ativações estão disponíveis?', type: 'textarea', placeholder: 'Ex: Naming rights, ativação de marca no evento, distribuição de brindes, espaço para estande, ação em redes sociais...' }
     ]
   },
   metricas: {
@@ -3019,7 +2999,7 @@ function closeInlineEditor(event) {
 }
 
 function updateCompleteness() {
-  const editableKeys = ['prazo', 'publico', 'demografico', 'entregas', 'ativacoes', 'metricas'];
+  const editableKeys = ['prazo', 'publico', 'demografico', 'entregas', 'metricas'];
   const filled = editableKeys.filter(k => previewEditData[k]).length;
   const pct = Math.round((filled / editableKeys.length) * 100);
   const fillEl = document.getElementById('pvCompletenessFill');
@@ -3150,6 +3130,19 @@ function previewPhotos(input) {
   const toAdd = files.slice(0, remaining);
 
   toAdd.forEach(file => {
+    // ── Validação de upload (segurança) ──
+    if (typeof validateFileUpload === 'function') {
+      const check = validateFileUpload(file, {
+        allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+        allowedExtensions: ['.jpg', '.jpeg', '.png', '.webp', '.gif'],
+        maxSizeMB: 5
+      });
+      if (!check.valid) {
+        if (typeof showToast === 'function') showToast(check.error, 'error');
+        else alert(check.error);
+        return;
+      }
+    }
     const reader = new FileReader();
     reader.onload = function(e) {
       const idx = grid.querySelectorAll('.photo-thumb').length;
@@ -3698,6 +3691,19 @@ async function uploadPDF(oppId, token) {
   if (!input || !input.files || !input.files.length) return null;
   try {
     const file = input.files[0];
+    // ── Validação de upload (segurança) ──
+    if (typeof validateFileUpload === 'function') {
+      const check = validateFileUpload(file, {
+        allowedTypes: ['application/pdf'],
+        allowedExtensions: ['.pdf'],
+        maxSizeMB: 20
+      });
+      if (!check.valid) {
+        if (typeof showToast === 'function') showToast(check.error, 'error');
+        console.warn('[Upload] PDF validation failed:', check.error);
+        return null;
+      }
+    }
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const fileName = 'opp-' + oppId + '-midia-kit-' + safeName;
     const formData = new FormData();
@@ -4333,7 +4339,6 @@ function loadMockData() {
             previewEditData.publico = 'Jovens de 18 a 35 anos, entusiastas de esportes radicais e surf, predominantemente das classes A e B. Público engajado com lifestyle ativo, sustentabilidade e cultura de praia.';
             previewEditData.demografico = '62% masculino, 38% feminino\nFaixa etária: 18-25 (45%), 26-35 (35%), 36-45 (20%)\nPrincipais regiões: SP (55%), RJ (20%), SC (10%), outros (15%)';
             previewEditData.entregas = '• Logo na camisa oficial dos atletas\n• Menções em todas as postagens do evento nas redes sociais\n• Espaço para ativação de marca na arena do evento\n• Camarote exclusivo para convidados da marca\n• Relatório pós-evento com métricas de exposição';
-            previewEditData.ativacoes = '• Naming rights do evento\n• Ativação de marca na praia (tenda, distribuição de brindes)\n• Inserções no telão durante a competição\n• Ação de sampling na praça de alimentação\n• Live com atletas nas redes sociais da marca\n• Branded content pré e pós-evento';
             previewEditData.metricas_alcance = '85.000';
             previewEditData.metricas_engajamento = '5.2%';
             previewEditData.metricas_impressoes = '350.000';
