@@ -886,7 +886,6 @@ a { text-decoration: none; color: inherit; }
             <span class="detail-status">Aberto</span>
           </div>
           <h1 class="detail-title" id="detailTitle"></h1>
-          <div class="detail-meta" id="detailMeta"></div>
         </div>
         <div class="detail-header-actions">
           <button class="action-btn" id="favBtn" title="Salvar nos favoritos" onclick="toggleDetailFav()">
@@ -1577,11 +1576,7 @@ function renderPage(oppOverride) {
   document.getElementById('detailCategory').textContent = opp.category;
   document.getElementById('detailDesc').textContent = opp.desc;
 
-  // Meta — só renderiza campos que têm valor; preço removido (está no sidebar card)
-  var metaHtml = '';
-  if (opp.city) metaHtml += '<div class="detail-meta-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' + escapeHtml(opp.city) + '</div>';
-  if (opp.date) metaHtml += '<div class="detail-meta-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' + escapeHtml(opp.date) + '</div>';
-  document.getElementById('detailMeta').innerHTML = metaHtml;
+  // Meta removido do header — campos não são universais entre templates
 
   // Gallery (desktop) — layout 1+4 com focal points
   document.getElementById('galleryBadge').textContent = opp.category;
