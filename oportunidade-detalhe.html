@@ -303,13 +303,6 @@ a { text-decoration: none; color: inherit; }
 .cota-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; margin-bottom: 10px; }
 .cota-price { font-size: 13px; color: var(--gold); font-weight: 600; }
 
-/* Entregas table */
-.entregas-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 16px; border-radius: var(--radius); border: 1px solid var(--gray-200); }
-.entregas-table { width: 100%; border-collapse: collapse; border-spacing: 0; font-size: 13px; min-width: 340px; }
-.entregas-table thead th { background: var(--gray-100); padding: 11px 14px; text-align: left; font-weight: 600; color: var(--gray-600); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-.entregas-table tbody td { padding: 12px 14px; border-top: 1px solid var(--gray-200); color: var(--gray-600); }
-.entregas-table tbody tr:hover { background: rgba(184,134,11,0.03); }
-
 /* Canais */
 .canais-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .canal-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); transition: border-color 0.15s; }
@@ -618,8 +611,6 @@ a { text-decoration: none; color: inherit; }
   .detail-gallery { display: none; }
   .gallery-mobile-strip { display: block; }
   .detail-wrap { padding-bottom: 120px; }
-  /* entregas: scroll horizontal em telas menores */
-  .entregas-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 
 @media (max-width: 768px) {
@@ -679,12 +670,6 @@ a { text-decoration: none; color: inherit; }
   .fact-item { padding: 12px; }
   .cotas-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .canais-grid { grid-template-columns: 1fr; }
-  /* Tabela: borda a borda, scroll horizontal */
-  .entregas-wrap { margin-left: -16px; margin-right: -16px; border-radius: 0; border-left: none; border-right: none; }
-  .entregas-table { border-radius: 0; border-left: none; border-right: none; font-size: 12px; min-width: 320px; }
-  .entregas-table thead th,
-  .entregas-table tbody td { padding: 9px 10px; }
-
   /* ── Owner section ── */
   .owner-section { margin-top: 32px; padding-top: 32px; }
   .owner-section-title { font-size: 18px; margin-bottom: 16px; }
@@ -721,11 +706,6 @@ a { text-decoration: none; color: inherit; }
   /* tabs: borda a borda ── */
   .detail-tabs { margin-left: -14px; margin-right: -14px; padding: 0 14px; }
   .tab-btn { padding: 10px 8px; font-size: 11px; }
-  /* entregas: borda a borda ── */
-  .entregas-wrap { margin-left: -14px; margin-right: -14px; }
-  .entregas-table { min-width: 300px; font-size: 11px; }
-  .entregas-table thead th,
-  .entregas-table tbody td { padding: 8px 8px; }
   .detail-title { font-size: 20px; }
   .detail-facts { grid-template-columns: 1fr; }
   .cotas-grid { grid-template-columns: 1fr; }
@@ -956,15 +936,6 @@ a { text-decoration: none; color: inherit; }
                 <p class="detail-text" style="margin-bottom:0">Cada cota oferece ativações exclusivas e diferentes níveis de visibilidade.</p>
                 <div class="cotas-grid" id="cotasGrid"></div>
               </div>
-              <div class="detail-section">
-                <h3 class="detail-section-title">Formatos comerciais incluídos</h3>
-                <div class="entregas-wrap">
-                  <table class="entregas-table">
-                    <thead><tr><th>Entrega</th><th>Formato</th><th>Canal</th><th>Descrição</th></tr></thead>
-                    <tbody id="entregasBody"></tbody>
-                  </table>
-                </div>
-              </div>
             </div>
 
             <!-- TAB: Canais -->
@@ -1162,14 +1133,6 @@ const OPPORTUNITIES = [
       { emoji: '🥈', name: 'Patrocinador Premium', desc: 'Logo em materiais oficiais, percurso e kit do corredor. Totem de ativação no evento.', price: 'A partir de R$ 220k' },
       { emoji: '🥉', name: 'Apoiador Oficial', desc: 'Logo em kit do corredor e comunicações digitais. Estande na expo-feira.', price: 'A partir de R$ 85k' }
     ],
-    entregas: [
-      ['Logo na largada', 'Outdoor 10m²', 'On-site', 'Visibilidade na largada e chegada oficial'],
-      ['Kit do corredor', 'Branding físico', 'On-site', 'Logo na sacola, camiseta e número oficial'],
-      ['Social media', 'Posts & Stories', 'Instagram, TikTok', '3 posts pré-evento + 2 durante + 1 pós'],
-      ['Email marketing', 'Destaque', 'Email', 'Inserção na newsletter oficial para 120k inscritos'],
-      ['Transmissão', 'Vinheta 15s', 'TV & Streaming', 'Veiculação durante transmissão do evento'],
-      ['Relatório pós-evento', 'Dashboard', 'Digital', 'Métricas consolidadas de alcance e impacto']
-    ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: '285k seguidores · 4.8% engajamento' },
       { icon: '🎵', name: 'TikTok', reach: '140k seguidores · 8.2% engajamento' },
@@ -1208,12 +1171,6 @@ const OPPORTUNITIES = [
       { emoji: '🏆', name: 'Naming Rights', desc: 'Nome do festival + branding total em todos os pontos.', price: 'A partir de R$ 800k' },
       { emoji: '🥈', name: 'Patrocinador Ouro', desc: 'Palco secundário + ativações exclusivas.', price: 'A partir de R$ 400k' },
       { emoji: '🥉', name: 'Apoiador', desc: 'Presença no evento + menções digitais.', price: 'A partir de R$ 80k' }
-    ],
-    entregas: [
-      ['Palco naming', 'Branding', 'On-site', 'Nome da marca no palco principal'],
-      ['Camarote VIP', 'Experiência', 'On-site', 'Área VIP com branding exclusivo'],
-      ['Social media', 'Posts & Stories', 'Instagram', '5 posts + 10 stories durante festival'],
-      ['Email blast', 'Newsletter', 'Email', 'Envio para 200k inscritos']
     ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: '520k seguidores · 6.1% engajamento' },
@@ -1285,11 +1242,6 @@ function getDefaultOpp(id) {
       { emoji: '🥈', name: 'Cota Premium', desc: 'Visibilidade intermediária.', price: 'Sob consulta' },
       { emoji: '🥉', name: 'Cota Apoiador', desc: 'Participação e visibilidade digital.', price: 'A partir de R$ ' + (b.price/1000).toFixed(0) + 'k' }
     ],
-    entregas: [
-      ['Branding', 'Logo', 'On-site', 'Presença de marca no evento'],
-      ['Social media', 'Posts', 'Digital', 'Menções nas redes sociais'],
-      ['Relatório', 'Dashboard', 'Digital', 'Métricas pós-evento']
-    ],
     canais: [
       { icon: '📸', name: 'Instagram', reach: 'Sob consulta' },
       { icon: '📘', name: 'Facebook', reach: 'Sob consulta' },
@@ -1335,12 +1287,10 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
-      'entregas(nome,formato,canal,descricao,ordem),' +
       'canais(icone,label,valor,ordem)' +
       filter +
       '&oportunidade_fatos.order=ordem.asc' +
       '&cotas.order=ordem.asc' +
-      '&entregas.order=ordem.asc' +
       '&canais.order=ordem.asc';
     const res = await sbPublicFetch(path);
     if (!res.ok) return null;
@@ -1388,9 +1338,6 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       }));
     }
 
-    // Entregas
-    const entregas = (r.entregas || []).map(e => [e.nome || '', e.formato || '', e.canal || '', e.descricao || '']);
-
     // Canais — from canais table or redes_sociais JSON
     let canaisArr = (r.canais || []).map(c => ({
       icon: c.icone || '📱', name: c.label || '', reach: c.valor || ''
@@ -1431,7 +1378,6 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       publico: r.publico_descricao || '',
       publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
-      entregas: entregas.length > 0 ? entregas : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
       sidebar: {
         evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || r.alcance || '') : (r.alcance || ''),
@@ -1643,21 +1589,6 @@ function renderPage(oppOverride) {
     cotasHtml = EMPTY_STATE_HTML;
   }
   document.getElementById('cotasGrid').innerHTML = cotasHtml;
-
-  // Entregas
-  var entHtml = '';
-  if (opp.entregas && opp.entregas.length > 0) {
-    opp.entregas.forEach(function(e) {
-      entHtml += '<tr><td>' + escapeHtml(e[0]) + '</td><td>' + escapeHtml(e[1]) + '</td><td>' + escapeHtml(e[2]) + '</td><td>' + escapeHtml(e[3]) + '</td></tr>';
-    });
-    document.getElementById('entregasBody').innerHTML = entHtml;
-  } else {
-    var entTable = document.getElementById('entregasBody');
-    if (entTable && entTable.closest('table')) {
-      entTable.closest('table').insertAdjacentHTML('afterend', EMPTY_STATE_HTML);
-      entTable.closest('table').style.display = 'none';
-    }
-  }
 
   // Canais
   var canaisHtml = '';
