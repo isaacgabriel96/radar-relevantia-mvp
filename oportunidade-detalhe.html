@@ -303,38 +303,6 @@ a { text-decoration: none; color: inherit; }
 .cota-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; margin-bottom: 10px; }
 .cota-price { font-size: 13px; color: var(--gold); font-weight: 600; }
 
-/* ─── PÚBLICO: Gráficos demográficos ─── */
-.publico-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
-.publico-chart-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 18px 20px; }
-.publico-chart-title { font-family: var(--font-heading); font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
-/* Barras de progresso */
-.demo-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.demo-bar-row:last-child { margin-bottom: 0; }
-.demo-bar-label { font-size: 12px; color: var(--gray-600); font-weight: 500; width: 100px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.demo-bar-track { flex: 1; height: 7px; background: var(--gray-100); border-radius: 99px; overflow: hidden; }
-.demo-bar-fill { height: 100%; border-radius: 99px; background: var(--gold-gradient); transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
-.demo-bar-fill.bar-dark { background: linear-gradient(90deg, var(--gray-600), var(--gray-400)); }
-.demo-bar-fill.bar-green { background: linear-gradient(90deg, #16a34a, #22c55e); }
-.demo-bar-fill.bar-blue { background: linear-gradient(90deg, #1d4ed8, #3b82f6); }
-.demo-bar-pct { font-size: 12px; font-weight: 700; color: var(--text); width: 34px; text-align: right; flex-shrink: 0; }
-/* Divisão binária (gênero, etc.) */
-.demo-split { display: flex; gap: 0; border-radius: 99px; overflow: hidden; height: 10px; margin-bottom: 14px; }
-.demo-split-a { background: var(--gold-gradient); transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
-.demo-split-b { background: linear-gradient(90deg, var(--gray-300), var(--gray-200)); flex: 1; }
-.demo-split-legend { display: flex; gap: 16px; margin-top: 4px; }
-.demo-split-leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-600); font-weight: 500; }
-.demo-split-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-.demo-split-dot-a { background: var(--gold); }
-.demo-split-dot-b { background: var(--gray-300); }
-.demo-split-val { font-weight: 700; color: var(--text); }
-/* Card full-width para alcance / engajamento */
-.publico-chart-card.full { grid-column: 1 / -1; }
-.publico-metric-row { display: flex; gap: 12px; }
-.publico-metric-item { flex: 1; background: var(--gray-100); border-radius: var(--radius); padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
-.publico-metric-icon { font-size: 22px; }
-.publico-metric-label { font-size: 11px; color: var(--gray-400); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
-.publico-metric-value { font-size: 16px; font-weight: 700; color: var(--text); }
-
 /* Canais */
 .canais-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .canal-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); transition: border-color 0.15s; }
@@ -702,8 +670,6 @@ a { text-decoration: none; color: inherit; }
   .fact-item { padding: 12px; }
   .cotas-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .canais-grid { grid-template-columns: 1fr; }
-  .publico-charts { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .publico-metric-row { flex-wrap: wrap; }
   /* ── Owner section ── */
   .owner-section { margin-top: 32px; padding-top: 32px; }
   .owner-section-title { font-size: 18px; margin-bottom: 16px; }
@@ -742,8 +708,6 @@ a { text-decoration: none; color: inherit; }
   .tab-btn { padding: 10px 8px; font-size: 11px; }
   .detail-title { font-size: 20px; }
   .detail-facts { grid-template-columns: 1fr; }
-  .publico-charts { grid-template-columns: 1fr; }
-  .publico-metric-row { flex-direction: column; }
   .cotas-grid { grid-template-columns: 1fr; }
   .opp-cards-grid { grid-template-columns: 1fr; }
   .opp-card-image { height: 160px; }
@@ -957,10 +921,10 @@ a { text-decoration: none; color: inherit; }
             <div class="tab-panel" id="tab-publico">
               <div class="detail-section">
                 <h3 class="detail-section-title">Perfil da audiência</h3>
-                <div class="publico-charts" id="publicoCharts"></div>
+                <p class="detail-text" id="publicoDesc"></p>
               </div>
               <div class="detail-section">
-                <h3 class="detail-section-title">Métricas do público</h3>
+                <h3 class="detail-section-title">Dados do público</h3>
                 <div class="detail-facts" id="publicoFacts"></div>
               </div>
             </div>
@@ -1156,34 +1120,13 @@ const OPPORTUNITIES = [
     ],
     tags: ['Esportes & Fitness', 'Alimentação saudável', 'Tecnologia wearable', 'Suplementação', 'Vestuário esportivo', 'Bebidas isotônicas'],
     publico: 'O público da Maratona de São Paulo é composto majoritariamente por adultos de 25 a 45 anos, com nível de escolaridade superior, renda acima da média e alto poder de influência nas redes sociais.',
-    publicoCharts: [
-      { type: 'split', title: 'Gênero', a: { label: 'Masculino', pct: 58 }, b: { label: 'Feminino', pct: 42 } },
-      { type: 'bars', title: 'Faixa etária', items: [
-        { label: '18–24 anos', pct: 12 },
-        { label: '25–34 anos', pct: 38 },
-        { label: '35–44 anos', pct: 34 },
-        { label: '45–54 anos', pct: 12 },
-        { label: '55+ anos', pct: 4 }
-      ]},
-      { type: 'bars', title: 'Classe social', items: [
-        { label: 'Classe A', pct: 28 },
-        { label: 'Classe B', pct: 40 },
-        { label: 'Classe C', pct: 26 },
-        { label: 'Classe D/E', pct: 6 }
-      ]},
-      { type: 'bars', title: 'Região', items: [
-        { label: 'São Paulo', pct: 45 },
-        { label: 'Rio de Janeiro', pct: 18 },
-        { label: 'Sul', pct: 14 },
-        { label: 'Centro-Oeste', pct: 12 },
-        { label: 'Outros', pct: 11 }
-      ]}
-    ],
     publicoFacts: [
-      { icon: '📱', label: 'Presença digital', value: '92% ativo em redes' },
-      { icon: '📊', label: 'Engajamento', value: '4.2× acima da média' },
-      { icon: '🎯', label: 'Intenção de compra', value: 'Alta (81% consideram marcas patrocinadoras)' },
-      { icon: '⏱️', label: 'Tempo de tela/dia', value: '4h12min em média' }
+      { icon: '👤', label: 'Gênero predominante', value: '58% masculino, 42% feminino' },
+      { icon: '🎂', label: 'Faixa etária principal', value: '25-45 anos (72%)' },
+      { icon: '💰', label: 'Classe social', value: 'A/B (68% do público)' },
+      { icon: '📱', label: 'Presença digital', value: '92% ativo em redes sociais' },
+      { icon: '🏙️', label: 'Concentração geográfica', value: 'SP (45%), outros (55%)' },
+      { icon: '📊', label: 'Taxa de engajamento', value: '4.2x acima da média' }
     ],
     cotas: [
       { emoji: '🏆', name: 'Patrocinador Master', desc: 'Logo em naming rights, transmissão, largada e chegada. Ativação exclusiva na área VIP.', price: 'A partir de R$ 480k' },
@@ -1216,32 +1159,13 @@ const OPPORTUNITIES = [
     ],
     tags: ['Entretenimento', 'Bebidas', 'Moda', 'Telecomunicações', 'Cosméticos'],
     publico: 'O público do Festival de Verão Salvador é jovem, entre 18 e 35 anos, predominantemente classes A e B, com alta presença digital e engajamento social.',
-    publicoCharts: [
-      { type: 'split', title: 'Gênero', a: { label: 'Feminino', pct: 52 }, b: { label: 'Masculino', pct: 48 } },
-      { type: 'bars', title: 'Faixa etária', items: [
-        { label: '18–24 anos', pct: 42 },
-        { label: '25–34 anos', pct: 38 },
-        { label: '35–44 anos', pct: 14 },
-        { label: '45+ anos', pct: 6 }
-      ]},
-      { type: 'bars', title: 'Classe social', items: [
-        { label: 'Classe A', pct: 32 },
-        { label: 'Classe B', pct: 40 },
-        { label: 'Classe C', pct: 22 },
-        { label: 'Classe D/E', pct: 6 }
-      ]},
-      { type: 'bars', title: 'Região', items: [
-        { label: 'Nordeste', pct: 60 },
-        { label: 'Sudeste', pct: 28 },
-        { label: 'Sul', pct: 6 },
-        { label: 'Outros', pct: 6 }
-      ]}
-    ],
     publicoFacts: [
+      { icon: '👤', label: 'Gênero', value: '52% feminino, 48% masculino' },
+      { icon: '🎂', label: 'Faixa etária', value: '18-35 anos (80%)' },
+      { icon: '💰', label: 'Classe social', value: 'A/B (72%)' },
       { icon: '📱', label: 'Presença digital', value: '96% ativo em redes' },
-      { icon: '📊', label: 'Engajamento', value: '5.1× acima da média' },
-      { icon: '🎯', label: 'Consumo de marca', value: 'Alto (74% indicam marcas patrocinadoras)' },
-      { icon: '🎵', label: 'Principais plataformas', value: 'Instagram, TikTok, YouTube' }
+      { icon: '🏙️', label: 'Origem', value: 'Nordeste (60%), Sudeste (30%)' },
+      { icon: '📊', label: 'Engajamento', value: '5.1x acima da média' }
     ],
     cotas: [
       { emoji: '🏆', name: 'Naming Rights', desc: 'Nome do festival + branding total em todos os pontos.', price: 'A partir de R$ 800k' },
@@ -1307,29 +1231,11 @@ function getDefaultOpp(id) {
     ],
     tags: [b.category, 'Patrocínio', 'Visibilidade'],
     publico: 'Público qualificado com alto potencial de engajamento e conversão para marcas parceiras.',
-    publicoCharts: [
-      { type: 'split', title: 'Gênero', a: { label: 'Masculino', pct: 50 }, b: { label: 'Feminino', pct: 50 } },
-      { type: 'bars', title: 'Faixa etária', items: [
-        { label: '18–34 anos', pct: 40 },
-        { label: '35–49 anos', pct: 38 },
-        { label: '50+ anos', pct: 22 }
-      ]},
-      { type: 'bars', title: 'Classe social', items: [
-        { label: 'Classe A', pct: 20 },
-        { label: 'Classe B', pct: 38 },
-        { label: 'Classe C', pct: 32 },
-        { label: 'Classe D/E', pct: 10 }
-      ]},
-      { type: 'bars', title: 'Região', items: [
-        { label: 'Sudeste', pct: 48 },
-        { label: 'Sul', pct: 20 },
-        { label: 'Nordeste', pct: 18 },
-        { label: 'Outros', pct: 14 }
-      ]}
-    ],
     publicoFacts: [
-      { icon: '📱', label: 'Presença digital', value: 'Alta' },
-      { icon: '🎯', label: 'Perfil', value: 'Diversificado e qualificado' }
+      { icon: '👤', label: 'Perfil', value: 'Diversificado' },
+      { icon: '🎂', label: 'Faixa etária', value: '20-50 anos' },
+      { icon: '💰', label: 'Classe social', value: 'A/B/C' },
+      { icon: '📱', label: 'Presença digital', value: 'Alta' }
     ],
     cotas: [
       { emoji: '🏆', name: 'Cota Master', desc: 'Máxima visibilidade e exclusividade.', price: 'Sob consulta' },
@@ -1376,7 +1282,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
     }
     const path = '/rest/v1/oportunidades?select=' +
       'id,slug,detentor_id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
-      'preco_minimo,formato,bg_gradient,imagens,imagem_capa,imagens_focal,tags,publico_descricao,publico_data,visibilidade,' +
+      'preco_minimo,formato,bg_gradient,imagens,imagem_capa,imagens_focal,tags,publico_descricao,visibilidade,' +
       'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,' +
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
@@ -1401,17 +1307,10 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       icon: f.icone || '📌', label: f.label || '', value: f.valor || ''
     }));
 
-    // Build publico metrics (fact-items) from fatos with tipo='publico'
+    // Build publico facts from fatos with tipo='publico'
     const publicoFacts = (r.oportunidade_fatos || [])
       .filter(f => f.tipo === 'publico')
       .map(f => ({ icon: f.icone || '👤', label: f.label || '', value: f.valor || '' }));
-
-    // Build publico charts from publico_data JSONB column (structured demographic data)
-    // Expected format: { charts: [{type,title,...}, ...] }
-    let publicoCharts = null;
-    if (r.publico_data && r.publico_data.charts && r.publico_data.charts.length > 0) {
-      publicoCharts = r.publico_data.charts;
-    }
 
     // General facts (non-publico)
     const generalFacts = (r.oportunidade_fatos || [])
@@ -1477,7 +1376,6 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       facts: generalFacts.length > 0 ? generalFacts : undefined,
       tags: r.tags || [],
       publico: r.publico_descricao || '',
-      publicoCharts: publicoCharts || undefined,
       publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
@@ -1668,57 +1566,13 @@ function renderPage(oppOverride) {
   });
   document.getElementById('detailTags').innerHTML = tagsHtml;
 
-  // Publico — charts demográficos
-  var chartsData = opp.publicoCharts || [];
-  var chartsHtml = '';
-  if (chartsData.length === 0) {
-    chartsHtml = '<div style="grid-column:1/-1;padding:32px 16px;text-align:center;color:var(--gray-3);font-family:var(--font-body);font-size:14px;">Dados demográficos sendo preparados pelo detentor.</div>';
-  } else {
-    chartsData.forEach(function(chart) {
-      if (chart.type === 'split') {
-        var pctA = Math.round(chart.a.pct);
-        var pctB = 100 - pctA;
-        chartsHtml += '<div class="publico-chart-card">';
-        chartsHtml += '<div class="publico-chart-title">' + escapeHtml(chart.title) + '</div>';
-        chartsHtml += '<div class="demo-split"><div class="demo-split-a" style="width:' + pctA + '%"></div><div class="demo-split-b"></div></div>';
-        chartsHtml += '<div class="demo-split-legend">';
-        chartsHtml += '<div class="demo-split-leg-item"><div class="demo-split-dot demo-split-dot-a"></div><span><span class="demo-split-val">' + pctA + '%</span> ' + escapeHtml(chart.a.label) + '</span></div>';
-        chartsHtml += '<div class="demo-split-leg-item"><div class="demo-split-dot demo-split-dot-b"></div><span><span class="demo-split-val">' + pctB + '%</span> ' + escapeHtml(chart.b.label) + '</span></div>';
-        chartsHtml += '</div></div>';
-      } else if (chart.type === 'bars') {
-        var maxPct = 0;
-        (chart.items || []).forEach(function(it) { if (it.pct > maxPct) maxPct = it.pct; });
-        chartsHtml += '<div class="publico-chart-card">';
-        chartsHtml += '<div class="publico-chart-title">' + escapeHtml(chart.title) + '</div>';
-        (chart.items || []).forEach(function(it, idx) {
-          var fillPct = maxPct > 0 ? Math.round((it.pct / maxPct) * 100) : it.pct;
-          var barClass = idx === 0 ? '' : (idx % 2 === 0 ? ' bar-dark' : '');
-          chartsHtml += '<div class="demo-bar-row">';
-          chartsHtml += '<div class="demo-bar-label" title="' + escapeHtml(it.label) + '">' + escapeHtml(it.label) + '</div>';
-          chartsHtml += '<div class="demo-bar-track"><div class="demo-bar-fill' + barClass + '" style="width:0%" data-target="' + fillPct + '"></div></div>';
-          chartsHtml += '<div class="demo-bar-pct">' + it.pct + '%</div>';
-          chartsHtml += '</div>';
-        });
-        chartsHtml += '</div>';
-      }
-    });
-  }
-  document.getElementById('publicoCharts').innerHTML = chartsHtml;
-  // Animate bars after render
-  requestAnimationFrame(function() {
-    requestAnimationFrame(function() {
-      document.querySelectorAll('.demo-bar-fill[data-target]').forEach(function(el) {
-        el.style.width = el.getAttribute('data-target') + '%';
-      });
-    });
-  });
-
-  // Publico — métricas (fact-items)
+  // Publico
+  document.getElementById('publicoDesc').textContent = opp.publico;
   var pfHtml = '';
   (opp.publicoFacts || []).forEach(function(f) {
     pfHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
   });
-  document.getElementById('publicoFacts').innerHTML = pfHtml || '<div style="padding:16px 0;color:var(--gray-3);font-size:14px;">—</div>';
+  document.getElementById('publicoFacts').innerHTML = pfHtml;
 
   var EMPTY_STATE_HTML = '<div style="padding:32px 16px;text-align:center;color:var(--gray-3);font-family:var(--font-body);font-size:14px;">Informações sendo preparadas pelo detentor.</div>';
 
