@@ -1979,7 +1979,7 @@ function renderDashboardTimelineDetentor() {
     <div class="tl-item">
       <div class="tl-dot ${item.dot}">${item.emoji}</div>
       <div class="tl-body">
-        <div class="tl-text">${escapeHtml(item.text)}</div>
+        <div class="tl-text">${item.text}</div>
         ${item.time ? `<div class="tl-time">${escapeHtml(item.time)}</div>` : ''}
       </div>
     </div>
