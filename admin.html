@@ -217,6 +217,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
 .badge-gold  { background: rgba(201,164,58,0.12); color: #7A6020; }
 .badge-gray  { background: var(--gray-2); color: var(--gray-5); }
 .badge-blue  { background: rgba(59,130,246,0.1);  color: #1E40AF; }
+.badge-orange { background: rgba(217,119,6,0.1); color: #92400E; }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
@@ -242,6 +243,9 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
 .filter-btn { padding: 5px 14px; border-radius: 100px; border: 1.5px solid var(--gray-3); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--gray-5); cursor: pointer; transition: all 0.15s; }
 .filter-btn:hover { border-color: var(--gold); color: var(--gold); }
 .filter-btn.active { background: var(--gold-pale); border-color: var(--gold); color: var(--black-2); font-weight: 600; }
+.btn-filter { padding: 5px 14px; border-radius: 100px; border: 1.5px solid var(--gray-3); background: transparent; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--gray-5); cursor: pointer; transition: all 0.15s; }
+.btn-filter:hover { border-color: var(--gold); color: var(--gold); }
+.btn-filter.active { background: var(--gold-pale); border-color: var(--gold); color: var(--black-2); font-weight: 600; }
 
 /* Empty state */
 .empty-state { text-align: center; padding: 48px 24px; }
@@ -483,6 +487,14 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
         </div>
       </div>
       <div class="sidebar-section">
+        <div class="sidebar-label">Operações</div>
+        <div class="sidebar-item" onclick="showSection('deals', this)">
+          <span class="sidebar-item-icon">💰</span>
+          Deals
+          <span class="sidebar-badge red" id="badgeDeals">—</span>
+        </div>
+      </div>
+      <div class="sidebar-section">
         <div class="sidebar-label">Site</div>
         <div class="sidebar-item" onclick="showSection('paginas', this)">
           <span class="sidebar-item-icon">🗺️</span>
@@ -527,6 +539,11 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
             <div class="stat-label">Total Aprovados</div>
             <div class="stat-value" id="statAprovados">—</div>
             <div class="stat-desc">marcas + detentores</div>
+          </div>
+          <div class="stat-card" style="border-left:3px solid #D97706">
+            <div class="stat-label">Deals Pendentes</div>
+            <div class="stat-value" id="statDealsPend">—</div>
+            <div class="stat-desc">contratos aguardando validação</div>
           </div>
         </div>
         <div class="table-card">
@@ -663,7 +680,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
       <div id="section-paginas" class="section">
         <div class="page-header">
           <h1 class="page-title">Páginas do Site</h1>
-          <p class="page-sub">Mapa completo do projeto — baseado no worktree MVP 1.0. Ponto verde = página existe, cinza = ainda não criada.</p>
+          <p class="page-sub">Páginas atualmente no ar no MVP — todas funcionais e navegáveis.</p>
         </div>
 
         <!-- ENTRADA PÚBLICA -->
@@ -698,6 +715,34 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
                 <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
               </div>
             </div>
+            <div class="page-card">
+              <div class="page-card-top">
+                <div>
+                  <div class="page-card-name">Esqueci a Senha</div>
+                  <div class="page-card-file">esqueci-senha.html</div>
+                </div>
+                <div class="page-status-dot exists" title="Página existe"></div>
+              </div>
+              <div class="page-card-desc">Recuperação de senha via e-mail.</div>
+              <div class="page-card-actions">
+                <a href="esqueci-senha.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
+              </div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top">
+                <div>
+                  <div class="page-card-name">Nova Senha</div>
+                  <div class="page-card-file">nova-senha.html</div>
+                </div>
+                <div class="page-status-dot exists" title="Página existe"></div>
+              </div>
+              <div class="page-card-desc">Redefinição de senha após link de recuperação.</div>
+              <div class="page-card-actions">
+                <a href="nova-senha.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -705,6 +750,20 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
         <div class="pages-flow">
           <div class="pages-flow-title">Fluxo Marcas</div>
           <div class="pages-grid">
+            <div class="page-card">
+              <div class="page-card-top">
+                <div>
+                  <div class="page-card-name">Landing Marcas</div>
+                  <div class="page-card-file">landing-marcas.html</div>
+                </div>
+                <div class="page-status-dot exists" title="Página existe"></div>
+              </div>
+              <div class="page-card-desc">Página de apresentação e captação para marcas patrocinadoras.</div>
+              <div class="page-card-actions">
+                <a href="landing-marcas.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
+              </div>
+            </div>
             <div class="page-card">
               <div class="page-card-top">
                 <div>
@@ -750,6 +809,20 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
             <div class="page-card">
               <div class="page-card-top">
                 <div>
+                  <div class="page-card-name">Explorar Oportunidades</div>
+                  <div class="page-card-file">oportunidades.html</div>
+                </div>
+                <div class="page-status-dot exists" title="Página existe"></div>
+              </div>
+              <div class="page-card-desc">Listagem e busca de oportunidades disponíveis para marcas.</div>
+              <div class="page-card-actions">
+                <a href="oportunidades.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
+              </div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top">
+                <div>
                   <div class="page-card-name">Oportunidade Detalhe</div>
                   <div class="page-card-file">oportunidade-detalhe.html</div>
                 </div>
@@ -761,62 +834,6 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
                 <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
               </div>
             </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Explorar Oportunidades</div>
-                  <div class="page-card-file">oportunidades.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Listagem e busca de oportunidades disponíveis para marcas.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Perfil da Marca</div>
-                  <div class="page-card-file">perfil-marca.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Página de perfil público e privado da marca.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Propostas Enviadas</div>
-                  <div class="page-card-file">propostas-marca.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Histórico e status das propostas enviadas pela marca.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Configurações (Marca)</div>
-                  <div class="page-card-file">configuracoes.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Configurações de conta e preferências da marca.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -824,6 +841,20 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
         <div class="pages-flow">
           <div class="pages-flow-title">Fluxo Detentor de Direitos</div>
           <div class="pages-grid">
+            <div class="page-card">
+              <div class="page-card-top">
+                <div>
+                  <div class="page-card-name">Landing Detentores</div>
+                  <div class="page-card-file">landing-detentores.html</div>
+                </div>
+                <div class="page-status-dot exists" title="Página existe"></div>
+              </div>
+              <div class="page-card-desc">Página de apresentação e captação para detentores de direitos.</div>
+              <div class="page-card-actions">
+                <a href="landing-detentores.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
+              </div>
+            </div>
             <div class="page-card">
               <div class="page-card-top">
                 <div>
@@ -874,215 +905,82 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
                 </div>
                 <div class="page-status-dot exists" title="Página existe"></div>
               </div>
-              <div class="page-card-desc">Formulário de publicação de ativo de patrocínio (v3 — versão atual).</div>
+              <div class="page-card-desc">Formulário de publicação de ativo de patrocínio.</div>
               <div class="page-card-actions">
                 <a href="criar-oportunidade.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
                 <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
               </div>
             </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Perfil do Detentor</div>
-                  <div class="page-card-file">perfil-detentor.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Perfil e portfólio público do detentor de direitos.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Propostas Recebidas</div>
-                  <div class="page-card-file">minhas-propostas.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Listagem de propostas recebidas de marcas interessadas.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Configurações (Detentor)</div>
-                  <div class="page-card-file">configuracoes.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Configurações de conta e preferências do detentor.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        <!-- ZONA DE MATCH -->
+        <!-- PATROCÍNIO -->
         <div class="pages-flow">
-          <div class="pages-flow-title">Zona de Match — MVP 1.0</div>
-          <div class="pages-grid">
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Proposta / Negociação</div>
-                  <div class="page-card-file">proposta-detalhe.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Tela de negociação compartilhada entre marca e detentor.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PÓS-DEAL -->
-        <div class="pages-flow">
-          <div class="pages-flow-title">Pós-Deal — Fase 2</div>
-          <div class="pages-grid">
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Consolidação do Deal</div>
-                  <div class="page-card-file">consolidacao-deal.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Formalização e consolidação do acordo fechado.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Jurídico</div>
-                  <div class="page-card-file">juridico.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Documentação legal e contratos do deal.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Financeiro</div>
-                  <div class="page-card-file">financeiro.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Gestão de pagamentos e repasses do deal.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Operações</div>
-                  <div class="page-card-file">operations.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Ativações, entregas e controle operacional do patrocínio.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PÁGINAS LEGAIS -->
-        <div class="pages-flow">
-          <div class="pages-flow-title">Páginas Legais</div>
-          <div class="pages-grid">
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Termos de Uso</div>
-                  <div class="page-card-file">termos.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Termos e condições de uso da plataforma.</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-            <div class="page-card missing">
-              <div class="page-card-top">
-                <div>
-                  <div class="page-card-name">Política de Privacidade</div>
-                  <div class="page-card-file">privacidade.html</div>
-                </div>
-                <div class="page-status-dot missing" title="Ainda não criada"></div>
-              </div>
-              <div class="page-card-desc">Política de privacidade e tratamento de dados (LGPD).</div>
-              <div class="page-card-actions">
-                <span class="btn btn-outline btn-sm">↗ Local</span>
-                <span class="btn btn-primary btn-sm">🌐 Online</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- DESIGN SYSTEM -->
-        <div class="pages-flow">
-          <div class="pages-flow-title">Design System</div>
+          <div class="pages-flow-title">Patrocínio</div>
           <div class="pages-grid">
             <div class="page-card">
               <div class="page-card-top">
                 <div>
-                  <div class="page-card-name">Design System — Base</div>
-                  <div class="page-card-file">design-system.html</div>
+                  <div class="page-card-name">Landing Patrocínio</div>
+                  <div class="page-card-file">patrocinio-landing.html</div>
                 </div>
                 <div class="page-status-dot exists" title="Página existe"></div>
               </div>
-              <div class="page-card-desc">Cores, tipografia e componentes base da plataforma.</div>
+              <div class="page-card-desc">Página de apresentação da proposta de valor do patrocínio.</div>
               <div class="page-card-actions">
-                <a href="design-system.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <a href="patrocinio-landing.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
                 <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
               </div>
             </div>
             <div class="page-card">
               <div class="page-card-top">
                 <div>
-                  <div class="page-card-name">Design System — Dashboard</div>
-                  <div class="page-card-file">design-system-dashboard.html</div>
+                  <div class="page-card-name">Contrato de Patrocínio</div>
+                  <div class="page-card-file">contrato-patrocinio-template.html</div>
                 </div>
                 <div class="page-status-dot exists" title="Página existe"></div>
               </div>
-              <div class="page-card-desc">Chat, navegação, estados e componentes de dashboard.</div>
+              <div class="page-card-desc">Template de contrato de patrocínio para download e assinatura.</div>
               <div class="page-card-actions">
-                <a href="design-system-dashboard.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <a href="contrato-patrocinio-template.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
+              </div>
+            </div>
+            <div class="page-card">
+              <div class="page-card-top">
+                <div>
+                  <div class="page-card-name">Modelo de Negócio</div>
+                  <div class="page-card-file">modelo-negocio.html</div>
+                </div>
+                <div class="page-status-dot exists" title="Página existe"></div>
+              </div>
+              <div class="page-card-desc">Apresentação do modelo de negócio da plataforma.</div>
+              <div class="page-card-actions">
+                <a href="modelo-negocio.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
                 <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ADMIN -->
+        <!-- DESIGN SYSTEM & ADMIN -->
         <div class="pages-flow">
-          <div class="pages-flow-title">Admin</div>
+          <div class="pages-flow-title">Design System & Admin</div>
           <div class="pages-grid">
+            <div class="page-card">
+              <div class="page-card-top">
+                <div>
+                  <div class="page-card-name">Design System MVP</div>
+                  <div class="page-card-file">design-system - mvp.html</div>
+                </div>
+                <div class="page-status-dot exists" title="Página existe"></div>
+              </div>
+              <div class="page-card-desc">Cores, tipografia, tokens e componentes base do MVP.</div>
+              <div class="page-card-actions">
+                <a href="design-system - mvp.html" target="_blank" class="btn btn-outline btn-sm">↗ Local</a>
+                <span class="btn btn-primary btn-sm" disabled>🌐 Online</span>
+              </div>
+            </div>
             <div class="page-card">
               <div class="page-card-top">
                 <div>
@@ -1101,6 +999,59 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
         </div>
 
       </div><!-- /section-paginas -->
+
+      <!-- DEALS -->
+      <div id="section-deals" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Deals</h1>
+          <p class="page-sub">Negociações com contrato enviado — valide para liberar o pagamento</p>
+        </div>
+
+        <div class="filter-bar" style="margin-bottom:16px;display:flex;gap:8px">
+          <button class="btn btn-sm btn-filter active" onclick="renderDeals('pendentes', this)">⏳ Pendentes</button>
+          <button class="btn btn-sm btn-filter" onclick="renderDeals('validados', this)">✓ Validados</button>
+          <button class="btn btn-sm btn-filter" onclick="renderDeals('todos', this)">Todos</button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title" id="countDeals">Carregando...</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Oportunidade</th>
+                  <th>Marca</th>
+                  <th>Detentor</th>
+                  <th>Valor Deal</th>
+                  <th>Contrato</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDeals">
+                <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /section-deals -->
+
+      <!-- MODAL: DEAL DETAIL -->
+      <div id="modalDeal" class="modal-overlay" onclick="if(event.target===this)closeDealModal()">
+        <div class="modal" style="max-width:640px">
+          <div class="modal-head">
+            <span class="modal-title" id="dealModalTitle">Deal</span>
+            <button class="modal-close" onclick="closeDealModal()">&times;</button>
+          </div>
+          <div class="modal-body" id="dealModalBody" style="padding:20px">
+            <!-- filled by JS -->
+          </div>
+          <div class="modal-foot" id="dealModalActions" style="padding:16px 20px;display:flex;gap:10px;justify-content:flex-end">
+          </div>
+        </div>
+      </div>
 
       <!-- DEMO MODE -->
       <div id="section-demo" class="section">
@@ -1373,6 +1324,7 @@ function showSection(name, el) {
   if (name === 'embaixadores') loadEmbaixadores();
   if (name === 'marcas')       loadMarcas();
   if (name === 'detentores')   loadDetentores();
+  if (name === 'deals')        loadDeals();
 }
 
 // ── Load all data ─────────────────────────────────────────────
@@ -1382,38 +1334,43 @@ async function loadAllData() {
     loadEmbaixadores(),
     loadMarcas(),
     loadDetentores(),
-    loadRecentActivity()
+    loadRecentActivity(),
+    loadDeals()
   ]);
 }
 
 // ── Stats ─────────────────────────────────────────────────────
 async function loadStats() {
   try {
-    const [rEmb, rMPend, rDPend, rMAprov, rDAprov] = await Promise.all([
+    const [rEmb, rMPend, rDPend, rMAprov, rDAprov, rDealsPend] = await Promise.all([
       sbFetch('/rest/v1/embaixadores?select=id&ativo=eq.true'),
       sbFetch('/rest/v1/marcas_waitlist?select=id&status=eq.pendente'),
       sbFetch('/rest/v1/detentores_waitlist?select=id&status=eq.pendente'),
       sbFetch('/rest/v1/marcas_waitlist?select=id&status=eq.aprovado'),
-      sbFetch('/rest/v1/detentores_waitlist?select=id&status=eq.aprovado')
+      sbFetch('/rest/v1/detentores_waitlist?select=id&status=eq.aprovado'),
+      sbFetch('/rest/v1/negociacoes?select=id&contrato_url=not.is.null&contrato_validado=eq.false')
     ]);
 
-    const [emb, mPend, dPend, mAprov, dAprov] = await Promise.all([
-      rEmb.json(), rMPend.json(), rDPend.json(), rMAprov.json(), rDAprov.json()
+    const [emb, mPend, dPend, mAprov, dAprov, dealsPend] = await Promise.all([
+      rEmb.json(), rMPend.json(), rDPend.json(), rMAprov.json(), rDAprov.json(), rDealsPend.json()
     ]);
 
     const embCount  = Array.isArray(emb)    ? emb.length    : 0;
     const mPendCnt  = Array.isArray(mPend)  ? mPend.length  : 0;
     const dPendCnt  = Array.isArray(dPend)  ? dPend.length  : 0;
     const aprovCnt  = (Array.isArray(mAprov) ? mAprov.length : 0) + (Array.isArray(dAprov) ? dAprov.length : 0);
+    const dealsPendCnt = Array.isArray(dealsPend) ? dealsPend.length : 0;
 
     document.getElementById('statEmbaixadores').textContent   = embCount;
     document.getElementById('statMarcasPend').textContent     = mPendCnt;
     document.getElementById('statDetentoresPend').textContent = dPendCnt;
     document.getElementById('statAprovados').textContent      = aprovCnt;
+    document.getElementById('statDealsPend').textContent      = dealsPendCnt;
 
     document.getElementById('badgeEmbaixadores').textContent = embCount;
     document.getElementById('badgeMarcas').textContent       = mPendCnt;
     document.getElementById('badgeDetentores').textContent   = dPendCnt;
+    document.getElementById('badgeDeals').textContent        = dealsPendCnt;
   } catch (err) { console.error('Stats error:', err); }
 }
 
@@ -1937,6 +1894,233 @@ document.addEventListener('DOMContentLoaded', () => {
   const nomeInput = document.getElementById('embNome');
   if (nomeInput) nomeInput.addEventListener('input', updatePreviewCodigo);
 });
+
+// ── Deals ─────────────────────────────────────────────────────
+let allDeals = [];
+let currentDealFilter = 'pendentes';
+
+async function loadDeals() {
+  const tbody = document.getElementById('tbodyDeals');
+  tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>';
+
+  try {
+    // Fetch negociacoes that have a contrato_url (contract uploaded)
+    const res = await sbFetch(
+      '/rest/v1/negociacoes?select=' +
+      'id,oportunidade_id,marca_id,detentor_id,valor_deal,valor_proposto,status,' +
+      'contrato_url,contrato_enviado_por,contrato_enviado_em,' +
+      'contrato_validado,contrato_validado_em,contrato_validado_por,' +
+      'created_at,' +
+      'marca:marca_id(nome,empresa),' +
+      'detentor:detentor_id(nome,empresa),' +
+      'oportunidade:oportunidade_id(titulo,categoria),' +
+      'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por)' +
+      '&contrato_url=not.is.null&order=contrato_enviado_em.desc'
+    );
+    const data = await res.json();
+    allDeals = Array.isArray(data) ? data : [];
+    renderDeals(currentDealFilter);
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-title">Erro ao carregar deals</div></div></td></tr>';
+    console.error('Deals error:', err);
+  }
+}
+
+function renderDeals(filter, btnEl) {
+  currentDealFilter = filter || 'pendentes';
+
+  // Update filter buttons
+  if (btnEl) {
+    document.querySelectorAll('#section-deals .btn-filter').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+  }
+
+  let filtered = allDeals;
+  if (filter === 'pendentes')  filtered = allDeals.filter(d => !d.contrato_validado);
+  if (filter === 'validados')  filtered = allDeals.filter(d => d.contrato_validado);
+
+  const countEl = document.getElementById('countDeals');
+  countEl.textContent = `${filtered.length} deal${filtered.length !== 1 ? 's' : ''} — ${filter || 'todos'}`;
+
+  const tbody = document.getElementById('tbodyDeals');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">💰</div><div class="empty-title">Nenhum deal encontrado</div></div></td></tr>';
+    return;
+  }
+
+  const fmt = v => v != null ? 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+
+  tbody.innerHTML = filtered.map(d => {
+    const opp = d.oportunidade || {};
+    const marca = d.marca || {};
+    const det = d.detentor || {};
+    const val = d.valor_deal || d.valor_proposto || 0;
+    const validated = d.contrato_validado;
+
+    return `
+      <tr style="cursor:pointer" onclick="openDealModal('${d.id}')">
+        <td class="td-name">${escHtml(opp.titulo || '—')}</td>
+        <td class="td-muted">${escHtml(marca.empresa || marca.nome || '—')}</td>
+        <td class="td-muted">${escHtml(det.empresa || det.nome || '—')}</td>
+        <td><strong>${fmt(val)}</strong></td>
+        <td><a href="${escHtml(d.contrato_url)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--gold);font-weight:600;text-decoration:underline">📄 Ver</a></td>
+        <td>${validated
+          ? '<span class="badge badge-green" style="font-size:11px">✓ Validado</span>'
+          : '<span class="badge badge-orange" style="font-size:11px">⏳ Pendente</span>'}</td>
+        <td>
+          ${!validated
+            ? `<button class="btn btn-sm btn-approve" onclick="event.stopPropagation();aprovarContrato('${d.id}')">Aprovar</button>`
+            : '<span style="color:var(--gray-3);font-size:12px">—</span>'}
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function openDealModal(negId) {
+  const d = allDeals.find(x => x.id === negId);
+  if (!d) return;
+
+  const opp = d.oportunidade || {};
+  const marca = d.marca || {};
+  const det = d.detentor || {};
+  const cps = d.contrapartidas || [];
+  const val = d.valor_deal || d.valor_proposto || 0;
+  const fmt = v => v != null ? 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+
+  document.getElementById('dealModalTitle').textContent = opp.titulo || 'Deal';
+
+  document.getElementById('dealModalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;margin-bottom:20px">
+      <div>
+        <div style="font-size:11px;color:var(--gray-3);margin-bottom:2px">Marca</div>
+        <div style="font-weight:600">${escHtml(marca.empresa || marca.nome || '—')}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--gray-3);margin-bottom:2px">Detentor</div>
+        <div style="font-weight:600">${escHtml(det.empresa || det.nome || '—')}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--gray-3);margin-bottom:2px">Valor Deal</div>
+        <div style="font-weight:700;font-size:18px;color:var(--text)">${fmt(val)}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--gray-3);margin-bottom:2px">Status Negociação</div>
+        <div>${statusBadge(d.status)}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--gray-3);margin-bottom:2px">Categoria</div>
+        <div>${escHtml(opp.categoria || '—')}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--gray-3);margin-bottom:2px">Contrato enviado em</div>
+        <div>${d.contrato_enviado_em ? fmtDate(d.contrato_enviado_em) : '—'}</div>
+      </div>
+    </div>
+
+    ${cps.length ? `
+    <div style="margin-bottom:20px">
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)">Contrapartidas (${cps.length})</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${cps.map(c => `
+          <div style="background:var(--gray-1);border-radius:8px;padding:8px 12px;font-size:12px;display:flex;justify-content:space-between;align-items:center">
+            <span>${escHtml(c.descricao || c.categoria || '—')}</span>
+            <span style="font-weight:600">${c.valor ? fmt(c.valor) : '—'}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <div style="background:var(--gray-1);border-radius:12px;padding:16px;text-align:center">
+      <div style="font-size:12px;color:var(--gray-3);margin-bottom:8px">Contrato</div>
+      <a href="${escHtml(d.contrato_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--gray-2);border-radius:100px;padding:8px 20px;font-size:13px;font-weight:600;color:var(--text);text-decoration:none">
+        📄 Abrir contrato
+      </a>
+      ${d.contrato_validado
+        ? `<div style="margin-top:10px;font-size:12px;color:#059669;font-weight:600">✓ Validado em ${fmtDate(d.contrato_validado_em)}</div>`
+        : `<div style="margin-top:10px;font-size:12px;color:#D97706;font-weight:600">⏳ Aguardando validação</div>`}
+    </div>`;
+
+  const actionsEl = document.getElementById('dealModalActions');
+  if (!d.contrato_validado) {
+    actionsEl.innerHTML = `
+      <button class="btn btn-outline" onclick="closeDealModal()">Fechar</button>
+      <button class="btn btn-reject" onclick="rejeitarContrato('${d.id}')">Rejeitar</button>
+      <button class="btn btn-approve" onclick="aprovarContrato('${d.id}')">Aprovar Contrato</button>`;
+  } else {
+    actionsEl.innerHTML = `
+      <button class="btn btn-outline" onclick="closeDealModal()">Fechar</button>
+      <span style="font-size:12px;color:#059669;font-weight:600;padding:8px 0">✓ Contrato já validado</span>`;
+  }
+
+  document.getElementById('modalDeal').classList.add('show');
+}
+
+function closeDealModal() {
+  document.getElementById('modalDeal').classList.remove('show');
+}
+
+async function aprovarContrato(negId) {
+  if (!confirm('Aprovar este contrato e liberar o pagamento?')) return;
+
+  try {
+    const session = await getSession();
+    const adminId = session?.user?.id || '';
+
+    const res = await sbFetch(`/rest/v1/negociacoes?id=eq.${negId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        contrato_validado: true,
+        contrato_validado_em: new Date().toISOString(),
+        contrato_validado_por: adminId
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText);
+    }
+
+    alert('Contrato aprovado! Pagamento liberado para a marca.');
+    closeDealModal();
+    await Promise.all([loadDeals(), loadStats()]);
+  } catch (err) {
+    alert('Erro ao aprovar: ' + err.message);
+    console.error(err);
+  }
+}
+
+async function rejeitarContrato(negId) {
+  const motivo = prompt('Motivo da rejeição (opcional):');
+  if (motivo === null) return; // user cancelled
+
+  try {
+    // Clear contract and set back to negotiation
+    const res = await sbFetch(`/rest/v1/negociacoes?id=eq.${negId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        contrato_url: null,
+        contrato_enviado_por: null,
+        contrato_enviado_em: null,
+        contrato_validado: false,
+        contrato_validado_em: null,
+        contrato_validado_por: null
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(errText);
+    }
+
+    alert('Contrato rejeitado. O deal voltou para negociação.');
+    closeDealModal();
+    await Promise.all([loadDeals(), loadStats()]);
+  } catch (err) {
+    alert('Erro ao rejeitar: ' + err.message);
+    console.error(err);
+  }
+}
 </script>
 </body>
 </html>

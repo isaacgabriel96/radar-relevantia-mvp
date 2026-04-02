@@ -3719,6 +3719,15 @@ function openDealDetModal(negId) {
           🔒 Envie o contrato assinado para liberar o pagamento
         </div>
       </div>`;
+  } else if (!n.contrato_validado) {
+    pagArea.innerHTML = `
+      <div class="ddet-pagamento-box">
+        <div class="ddet-pagamento-locked" style="color:#D97706">
+          <div style="font-size:20px;margin-bottom:6px">⏳</div>
+          <div style="font-weight:600;margin-bottom:4px">Contrato em análise</div>
+          <div style="font-size:12px;color:var(--gray-3)">Aguardando validação da Relevantia para liberar o pagamento.</div>
+        </div>
+      </div>`;
   } else {
     const valorDeal = totalBruto; // já é valor_deal
     pagArea.innerHTML = `
