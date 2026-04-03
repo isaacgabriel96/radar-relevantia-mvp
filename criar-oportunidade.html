@@ -2643,9 +2643,20 @@ function renderPreview() {
 
   // Prazo
   const pvPrazo = document.getElementById('pvPrazo');
-  if (previewEditData.prazo) {
+  const _fmtDatePrazo = iso => {
+    if (!iso) return null;
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+  const _ini = previewEditData.prazo_inicio;
+  const _fim = previewEditData.prazo_fim;
+  if (_ini || _fim) {
+    let _txt = '';
+    if (_ini && _fim) _txt = `${_fmtDatePrazo(_ini)} → ${_fmtDatePrazo(_fim)}`;
+    else if (_ini)    _txt = `A partir de ${_fmtDatePrazo(_ini)}`;
+    else              _txt = `Até ${_fmtDatePrazo(_fim)}`;
     pvPrazo.className = 'editable-placeholder filled';
-    pvPrazo.innerHTML = `<span class="ep-text">${previewEditData.prazo}</span>`;
+    pvPrazo.innerHTML = `<span class="ep-text">${_txt}</span>`;
   } else {
     pvPrazo.className = 'editable-placeholder';
     pvPrazo.innerHTML = `<span class="ep-icon">+</span><span class="ep-text">Clique para definir o prazo de inscrição</span>`;
@@ -2737,7 +2748,8 @@ const EDITOR_CONFIG = {
   prazo: {
     title: 'Prazo de inscrição',
     fields: [
-      { key: 'prazo', label: 'Data limite', type: 'date', placeholder: '' }
+      { key: 'prazo_inicio', label: 'Início das inscrições', type: 'date', placeholder: '' },
+      { key: 'prazo_fim',    label: 'Fim das inscrições',   type: 'date', placeholder: '' }
     ]
   },
   publico: {
@@ -2775,13 +2787,20 @@ function openInlineEditor(key) {
   currentEditorKey = key;
   document.getElementById('pvEditorTitle').textContent = config.title;
 
+  // Calcula mínimo de 7 dias a partir de hoje (para campos de prazo)
+  const _minDate7 = (() => {
+    const d = new Date(); d.setDate(d.getDate() + 7);
+    return d.toISOString().split('T')[0];
+  })();
+
   const body = document.getElementById('pvEditorBody');
   body.innerHTML = config.fields.map(f => {
     const currentVal = previewEditData[f.key] || '';
     if (f.type === 'textarea') {
       return `<div class="editor-field"><label>${f.label}</label><textarea id="editor-${f.key}" placeholder="${f.placeholder}">${currentVal}</textarea></div>`;
     } else if (f.type === 'date') {
-      return `<div class="editor-field"><label>${f.label}</label><input type="date" id="editor-${f.key}" value="${currentVal}"></div>`;
+      const minAttr = key === 'prazo' ? ` min="${_minDate7}"` : '';
+      return `<div class="editor-field"><label>${f.label}</label><input type="date" id="editor-${f.key}"${minAttr} value="${currentVal}"></div>`;
     } else {
       return `<div class="editor-field"><label>${f.label}</label><input type="text" id="editor-${f.key}" placeholder="${f.placeholder}" value="${currentVal}"></div>`;
     }
@@ -2829,11 +2848,20 @@ function saveInlineEdit() {
     renderEditableField('pvMetricas', 'metricas', 'Clique para adicionar métricas de audiência (alcance médio, engajamento, etc.)');
   } else if (currentEditorKey === 'prazo') {
     const pvPrazo = document.getElementById('pvPrazo');
-    if (previewEditData.prazo) {
-      const dateObj = new Date(previewEditData.prazo + 'T12:00:00');
-      const formatted = dateObj.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+    const fmtDate = iso => {
+      if (!iso) return null;
+      const d = new Date(iso + 'T12:00:00');
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+    };
+    const ini = previewEditData.prazo_inicio;
+    const fim = previewEditData.prazo_fim;
+    if (ini || fim) {
+      let txt = '';
+      if (ini && fim) txt = `${fmtDate(ini)} → ${fmtDate(fim)}`;
+      else if (ini)   txt = `A partir de ${fmtDate(ini)}`;
+      else            txt = `Até ${fmtDate(fim)}`;
       pvPrazo.className = 'editable-placeholder filled';
-      pvPrazo.innerHTML = `<span class="ep-text">Até ${formatted}</span>`;
+      pvPrazo.innerHTML = `<span class="ep-text">${txt}</span>`;
     } else {
       pvPrazo.className = 'editable-placeholder';
       pvPrazo.innerHTML = `<span class="ep-icon">+</span><span class="ep-text">Clique para definir o prazo de inscrição</span>`;
@@ -2852,7 +2880,7 @@ function closeInlineEditor(event) {
 }
 
 function updateCompleteness() {
-  const editableKeys = ['prazo', 'publico', 'demografico', 'entregas', 'metricas'];
+  const editableKeys = ['prazo_inicio', 'publico', 'demografico', 'entregas', 'metricas'];
   const filled = editableKeys.filter(k => previewEditData[k]).length;
   const pct = Math.round((filled / editableKeys.length) * 100);
   const fillEl = document.getElementById('pvCompletenessFill');
@@ -4210,7 +4238,8 @@ function loadMockData() {
             }
 
             // --- Pré-preencher previewEditData com dados extras ---
-            previewEditData.prazo = '2026-06-15';
+            previewEditData.prazo_inicio = '2026-05-01';
+            previewEditData.prazo_fim = '2026-06-15';
             previewEditData.publico = 'Jovens de 18 a 35 anos, entusiastas de esportes radicais e surf, predominantemente das classes A e B. Público engajado com lifestyle ativo, sustentabilidade e cultura de praia.';
             previewEditData.demografico = '62% masculino, 38% feminino\nFaixa etária: 18-25 (45%), 26-35 (35%), 36-45 (20%)\nPrincipais regiões: SP (55%), RJ (20%), SC (10%), outros (15%)';
             previewEditData.entregas = '• Logo na camisa oficial dos atletas\n• Menções em todas as postagens do evento nas redes sociais\n• Espaço para ativação de marca na arena do evento\n• Camarote exclusivo para convidados da marca\n• Relatório pós-evento com métricas de exposição';
