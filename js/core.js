@@ -153,18 +153,8 @@ function enterDemoMode() { /* desativado */ }
 function exitDemoMode() { window.location.href = 'admin.html'; }
 
 function showDemoBannerIfActive() {
-  // Demo desativado — nunca mostra banner
+  // Demo desativado permanentemente — stub mantido para compatibilidade
   return;
-  const banner = document.getElementById('demoBanner');
-  if (banner) banner.style.display = 'flex';
-  const sidebarName = document.getElementById('sidebarName');
-  if (sidebarName && !document.getElementById('demoBadge')) {
-    const badge = document.createElement('span');
-    badge.id = 'demoBadge';
-    badge.textContent = 'DEMO';
-    badge.style.cssText = 'display:inline-block;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#1A1200;font-size:9px;font-weight:700;letter-spacing:0.1em;padding:2px 8px;border-radius:100px;margin-left:8px;vertical-align:middle;';
-    sidebarName.parentNode.insertBefore(badge, sidebarName.nextSibling);
-  }
 }
 
 // ─── LEGACY FETCH (backward compat for pages not yet migrated) ──
@@ -265,8 +255,10 @@ if (sb && !isDemoMode()) {
 // ─── CATALOG API ────────────────────────────────────────────
 
 function parsePreco(str) {
-  if (!str) return 0;
-  const cleaned = str.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+  if (!str && str !== 0) return 0;
+  if (typeof str === 'number') return str;
+  const s = String(str);
+  const cleaned = s.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
   return parseFloat(cleaned) || 0;
 }
 
