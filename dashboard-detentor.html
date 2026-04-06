@@ -1434,37 +1434,37 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nome da empresa</label>
-              <input class="form-input empresa-field" type="text" value="Instituto Esportivo SP" disabled>
+              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">CNPJ</label>
-              <input class="form-input empresa-field" type="text" value="12.345.678/0001-90" disabled>
+              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">Segmento</label>
               <select class="form-select empresa-field" disabled>
+                <option value="">Selecione</option>
                 <option>Esporte</option>
                 <option>Cultura</option>
                 <option>Entretenimento</option>
                 <option>Educação</option>
-                <option selected>Esporte</option>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label">Telefone</label>
-              <input class="form-input empresa-field" type="text" value="(11) 99999-0000" disabled>
+              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Endereço</label>
-              <input class="form-input empresa-field" type="text" value="Av. Paulista, 1000 — São Paulo, SP" disabled>
+              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Site</label>
-              <input class="form-input empresa-field" type="url" value="https://institutoesportivo.com.br" disabled>
+              <input class="form-input empresa-field" type="url" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Descrição da empresa</label>
-              <textarea class="form-textarea empresa-field" disabled>Instituto dedicado à promoção do esporte de alto rendimento, organizador de maratonas e eventos esportivos em todo o Brasil.</textarea>
+              <textarea class="form-textarea empresa-field" disabled></textarea>
             </div>
           </div>
           <div class="form-actions" id="empresaActions" style="display:none">
@@ -1518,19 +1518,19 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nome completo</label>
-              <input class="form-input perfil-field" type="text" value="Isaac Gabriel" disabled>
+              <input class="form-input perfil-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">E-mail</label>
-              <input class="form-input perfil-field" type="email" value="isaac@radar.com" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
+              <input class="form-input perfil-field" type="email" value="" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
             </div>
             <div class="form-group">
               <label class="form-label">Telefone</label>
-              <input class="form-input perfil-field" type="text" value="(11) 98765-4321" disabled>
+              <input class="form-input perfil-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">Cargo</label>
-              <input class="form-input perfil-field" type="text" value="Diretor Executivo" disabled>
+              <input class="form-input perfil-field" type="text" value="" disabled>
             </div>
           </div>
           <div class="form-actions" id="perfilActions" style="display:none">
@@ -1765,9 +1765,9 @@ tbody tr:last-child td { border-bottom: none; }
    Sem Supabase (dados mockados)
    ═══════════════════════════════════════ */
 
-// ─── DATA (from centralized demo-data.js or future API) ───
-const MOCK_USER = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detentor.user : { nome: 'Detentor', email: 'detentor@radar.com' };
-const MOCK_EMPRESA = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detentor.empresa : { nome: 'Empresa' };
+// ─── DATA ───
+const MOCK_USER = { nome: 'Usuário', email: '' };
+const MOCK_EMPRESA = { nome: '' };
 
 // ─── SECTION NAMES ───
 const SECTION_TITLES = {
@@ -1861,6 +1861,28 @@ function setUserInfo(nome, email) {
   document.getElementById('topbarAvatar').textContent = initials;
 }
 
+function populateDetenorFields(p) {
+  // Empresa fields: [0]=nome empresa, [1]=cnpj, [2]=segmento (select), [3]=telefone, [4]=endereço, [5]=website, [6]=descricao
+  const empresaFields = document.querySelectorAll('.empresa-field');
+  if (empresaFields[0]) empresaFields[0].value = p.empresa || '';
+  if (empresaFields[1]) empresaFields[1].value = p.cnpj || '';
+  if (empresaFields[2] && p.segmento) {
+    const opt = Array.from(empresaFields[2].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
+    if (opt) empresaFields[2].value = opt.value;
+  }
+  if (empresaFields[3]) empresaFields[3].value = p.telefone || '';
+  // index 4 = endereço (sem coluna no perfis, skip)
+  if (empresaFields[5]) empresaFields[5].value = p.website || '';
+  if (empresaFields[6]) empresaFields[6].value = p.descricao || '';
+
+  // Perfil fields: [0]=nome, [1]=email, [2]=telefone, [3]=cargo
+  const perfilFields = document.querySelectorAll('.perfil-field');
+  if (perfilFields[0]) perfilFields[0].value = p.nome || '';
+  if (perfilFields[1]) perfilFields[1].value = p.email || '';
+  if (perfilFields[2]) perfilFields[2].value = p.telefone || '';
+  if (perfilFields[3]) perfilFields[3].value = p.cargo || '';
+}
+
 // ─── LOAD USER INFO (SDK → localStorage → MOCK fallback) ───
 async function loadUserInfoDetentor() {
   // 1. Tentar via SDK (mais confiável, tem refresh automático)
@@ -1877,12 +1899,15 @@ async function loadUserInfoDetentor() {
         // Tentar buscar nome real na tabela perfis
         try {
           const token = session.access_token;
-          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa&limit=1', {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa,email,cnpj,segmento,telefone,website,descricao,cargo&limit=1', {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
           });
           if (res.ok) {
             const rows = await res.json();
-            if (rows.length > 0) nome = rows[0].nome || rows[0].empresa || nome;
+            if (rows.length > 0) {
+              nome = rows[0].nome || rows[0].empresa || nome;
+              populateDetenorFields(rows[0]);
+            }
           }
         } catch (_) {}
         setUserInfo(nome, email);
@@ -2103,9 +2128,9 @@ let _notifs = [];
 function loadNotifs() {
   try {
     const raw = localStorage.getItem(NOTIF_STORAGE_KEY);
-    _notifs = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(MOCK_NOTIFS));
+    _notifs = raw ? JSON.parse(raw) : [];
   } catch(e) {
-    _notifs = JSON.parse(JSON.stringify(MOCK_NOTIFS));
+    _notifs = [];
   }
   renderNotifs();
 }

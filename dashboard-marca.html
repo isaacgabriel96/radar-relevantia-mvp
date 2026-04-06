@@ -1243,19 +1243,20 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nome da marca</label>
-              <input class="form-input marca-field" type="text" value="Nike Brasil" disabled>
+              <input class="form-input marca-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">CNPJ</label>
-              <input class="form-input marca-field" type="text" value="12.345.678/0001-00" disabled>
+              <input class="form-input marca-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">Segmento</label>
               <select class="form-select marca-field" disabled>
+                <option value="">Selecione</option>
                 <option>Tecnologia</option>
                 <option>Moda</option>
                 <option>Alimentos</option>
-                <option selected>Esportes</option>
+                <option>Esportes</option>
                 <option>Saúde</option>
                 <option>Automotivo</option>
                 <option>Financeiro</option>
@@ -1266,11 +1267,11 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="form-group">
               <label class="form-label">Website</label>
-              <input class="form-input marca-field" type="url" value="https://nike.com.br" disabled>
+              <input class="form-input marca-field" type="url" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Descrição da marca</label>
-              <textarea class="form-textarea marca-field" disabled>Marca líder mundial em artigos esportivos, moda atlética e inovação em performance.</textarea>
+              <textarea class="form-textarea marca-field" disabled></textarea>
             </div>
           </div>
           <div class="form-actions" id="marcaActions" style="display:none">
@@ -1293,19 +1294,19 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nome</label>
-              <input class="form-input resp-field" type="text" value="Carlos Mendes" disabled>
+              <input class="form-input resp-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">E-mail</label>
-              <input class="form-input resp-field" type="email" value="contato@nikebrasil.com" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
+              <input class="form-input resp-field" type="email" value="" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
             </div>
             <div class="form-group">
               <label class="form-label">Telefone</label>
-              <input class="form-input resp-field" type="text" value="(11) 3456-7890" disabled>
+              <input class="form-input resp-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">Cargo</label>
-              <input class="form-input resp-field" type="text" value="Diretor de Marketing" disabled>
+              <input class="form-input resp-field" type="text" value="" disabled>
             </div>
           </div>
           <div class="form-actions" id="respActions" style="display:none">
@@ -1732,7 +1733,7 @@ async function loadUserInfo() {
         try {
           const token = await getValidToken();
           if (token) {
-            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email&id=eq.' + user.id, {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,cnpj,segmento,website,descricao,telefone,cargo&id=eq.' + user.id, {
               headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
             });
             if (res.ok) {
@@ -1740,6 +1741,7 @@ async function loadUserInfo() {
               if (rows.length > 0) {
                 const p = rows[0];
                 setUserInfo(p.nome || nome, p.email || email, p.empresa);
+                populateConfigFields(p);
               }
             }
           }
@@ -1844,6 +1846,26 @@ function setUserInfo(nome, email) {
   document.getElementById('sidebarEmail').textContent = email;
   document.getElementById('sidebarAvatar').textContent = initials;
   document.getElementById('topbarAvatar').textContent = initials;
+}
+
+function populateConfigFields(p) {
+  // Marca fields: [0]=nome marca, [1]=cnpj, [2]=segmento (select), [3]=website, [4]=descricao
+  const marcaFields = document.querySelectorAll('.marca-field');
+  if (marcaFields[0]) marcaFields[0].value = p.empresa || '';
+  if (marcaFields[1]) marcaFields[1].value = p.cnpj || '';
+  if (marcaFields[2] && p.segmento) {
+    const opt = Array.from(marcaFields[2].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
+    if (opt) marcaFields[2].value = opt.value;
+  }
+  if (marcaFields[3]) marcaFields[3].value = p.website || '';
+  if (marcaFields[4]) marcaFields[4].value = p.descricao || '';
+
+  // Resp fields: [0]=nome, [1]=email, [2]=telefone, [3]=cargo
+  const respFields = document.querySelectorAll('.resp-field');
+  if (respFields[0]) respFields[0].value = p.nome || '';
+  if (respFields[1]) respFields[1].value = p.email || '';
+  if (respFields[2]) respFields[2].value = p.telefone || '';
+  if (respFields[3]) respFields[3].value = p.cargo || '';
 }
 
 // ─── NAVIGATION ───
