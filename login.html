@@ -504,14 +504,18 @@ body::before {
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core.js"></script>
+<script src="js/sanitize.js"></script>
 <script>
-const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
+// Credenciais importadas de core.js (SUPABASE_URL, SUPABASE_KEY)
 
-// SDK client for auth (auto token refresh)
-const _sb = (typeof supabase !== 'undefined' && supabase.createClient)
+// SDK client for auth (auto token refresh) — usa sb de core.js se disponível, senão cria local
+const _sb = sb || ((typeof supabase !== 'undefined' && supabase.createClient)
   ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-  : null;
+  : null);
+
+// Rate limiter para login (5 tentativas, bloqueio de 30s)
+const _loginRL = (typeof rateLimiter === 'function') ? rateLimiter('login', 5, 30) : null;
 
 /* ── Utilitários ── */
 function showToast(msg, type = '') {
@@ -561,6 +565,15 @@ async function doLogin() {
   document.getElementById('inputEmail').classList.remove('error');
   document.getElementById('inputPassword').classList.remove('error');
 
+  // ── Rate limiting ──
+  if (_loginRL && !_loginRL.canAttempt()) {
+    const secs = _loginRL.remainingSeconds();
+    const errEl = document.getElementById('errLogin');
+    errEl.textContent = 'Muitas tentativas. Aguarde ' + secs + ' segundos.';
+    errEl.style.display = 'block';
+    return;
+  }
+
   if (!email || !email.includes('@')) {
     document.getElementById('errEmail').style.display = 'block';
     document.getElementById('inputEmail').classList.add('error');
@@ -586,6 +599,7 @@ async function doLogin() {
     if (_sb) {
       const { data, error } = await _sb.auth.signInWithPassword({ email, password });
       if (error || !data.session) {
+        if (_loginRL) _loginRL.recordFailure();
         const errEl = document.getElementById('errLogin');
         const msg = error?.message || '';
         if (msg.toLowerCase().includes('email not confirmed')) {
@@ -599,6 +613,7 @@ async function doLogin() {
         document.getElementById('inputPassword').classList.add('error');
         return;
       }
+      if (_loginRL) _loginRL.recordSuccess();
       // SDK auto-stores session. Also save in legacy format for compatibility.
       const legacyData = {
         access_token: data.session.access_token,
@@ -616,6 +631,7 @@ async function doLogin() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (_loginRL) _loginRL.recordFailure();
         const errEl = document.getElementById('errLogin');
         const msg = data?.error_description || data?.msg || '';
         if (msg.toLowerCase().includes('email not confirmed')) {
@@ -629,6 +645,7 @@ async function doLogin() {
         document.getElementById('inputPassword').classList.add('error');
         return;
       }
+      if (_loginRL) _loginRL.recordSuccess();
       redirecionar(data);
     }
   } catch (e) {

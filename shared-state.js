@@ -1,6 +1,11 @@
 /**
  * shared-state.js — Radar Relevantia MVP
- * Fonte única de verdade para NEGOCIACOES.
+ *
+ * LEGACY: Dados de fallback/demo para negociações.
+ * Usado como fallback quando Supabase está indisponível.
+ * Será removido quando offline mode for implementado.
+ *
+ * Fonte única de verdade para NEGOCIACOES (fallback).
  * Persiste em localStorage para sincronizar dashboard-marca ↔ dashboard-detentor.
  *
  * Uso:

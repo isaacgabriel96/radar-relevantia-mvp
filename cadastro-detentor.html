@@ -498,7 +498,7 @@ select:disabled { background: var(--gray-1); color: var(--gray-5); cursor: not-a
       <div class="form-group">
         <label>Código de acesso <span class="opt">(se tiver)</span></label>
         <div class="code-wrap">
-          <input type="text" id="f-codigo" placeholder="Ex: ACESSO123" autocomplete="off" oninput="checkCodigo(this)" style="text-transform:uppercase; padding-right: 90px;">
+          <input type="text" id="f-codigo" placeholder="Ex: ACESSO123" autocomplete="off" oninput="checkCodigoThrottled(this)" style="text-transform:uppercase; padding-right: 90px;">
           <span class="code-badge" id="codeBadge">—</span>
         </div>
         <p class="input-hint">Códigos de acesso concedem prioridade na aprovação do cadastro</p>
@@ -558,9 +558,10 @@ select:disabled { background: var(--gray-1); color: var(--gray-5); cursor: not-a
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core.js"></script>
+<script src="js/sanitize.js"></script>
 <script>
-const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
 
 async function sbInsert(table, data) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
@@ -633,8 +634,8 @@ function updateCidades(uf) {
 }
 
 const urlParams = new URLSearchParams(window.location.search);
-const urlNome  = urlParams.get('nome')  || '';
-const urlEmail = urlParams.get('email') || '';
+const urlNome  = sanitizeURLParam(urlParams.get('nome') || '', 100);
+const urlEmail = sanitizeURLParam(urlParams.get('email') || '', 100);
 
 (function init() {
   if (urlNome || urlEmail) {
@@ -709,6 +710,7 @@ async function checkCodigo(input) {
   if (valido) { badge.textContent = 'Válido ✓'; badge.className = 'code-badge valid'; }
   else        { badge.textContent = 'Inválido ✗'; badge.className = 'code-badge invalid'; }
 }
+const checkCodigoThrottled = throttle(checkCodigo, 800);
 
 async function submitCadastro() {
   const nome    = urlNome  || document.getElementById('f-nome')?.value.trim()  || '';
@@ -735,6 +737,28 @@ async function submitCadastro() {
     return;
   }
   if (!termos) { alert('Você precisa aceitar os Termos de Uso para continuar.'); return; }
+
+  // ─── Validações de formato (sanitize.js) ───
+  if (!validateLength(nome, 1, 100)) {
+    showToast ? showToast('Nome muito longo (máx. 100 caracteres).', 'error') : alert('Nome muito longo (máx. 100 caracteres).');
+    return;
+  }
+  if (!validateLength(empresa, 1, 100)) {
+    showToast ? showToast('Nome da empresa muito longo (máx. 100 caracteres).', 'error') : alert('Nome da empresa muito longo (máx. 100 caracteres).');
+    return;
+  }
+  if (!validateEmail(email)) {
+    showToast ? showToast('Email inválido.', 'error') : alert('Email inválido.');
+    return;
+  }
+  if (telNum && !validatePhone(telNum)) {
+    showToast ? showToast('Telefone inválido.', 'error') : alert('Telefone inválido.');
+    return;
+  }
+  if (website && !validateURL(website)) {
+    showToast ? showToast('Website inválido.', 'error') : alert('Website inválido.');
+    return;
+  }
 
   // Se código foi digitado, validar antes de prosseguir
   if (codigo) {
