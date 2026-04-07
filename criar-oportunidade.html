@@ -424,6 +424,63 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   color: var(--text); width: 100%;
 }
 
+/* ── Age range slider ── */
+.age-range-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 100px; background: var(--gray-2); outline: none;
+  cursor: pointer;
+}
+.age-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--gold); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(30,22,0,.25);
+  transition: transform .15s;
+}
+.age-range-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.age-range-slider::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%; border: none;
+  background: var(--gold); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(30,22,0,.25);
+}
+
+/* ── Gender pie chart ── */
+.gender-section { display: flex; align-items: flex-start; gap: 12px; }
+.gender-inputs { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.gender-pie-wrap {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.gender-pie-svg { width: 64px; height: 64px; }
+.gender-pie-legend { font-size: 10px; font-weight: 600; color: var(--gray-4); text-align: center; }
+
+/* ── Period date-range ── */
+.period-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.period-chip {
+  font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 100px;
+  border: 1.5px solid var(--gray-2); background: var(--white);
+  color: var(--gray-4); cursor: pointer; transition: all .15s; user-select: none;
+}
+.period-chip:hover { border-color: var(--gray-3); }
+.period-chip.selected { border-color: var(--brown-warm); background: #f5eddf; color: var(--brown-warm); }
+.period-custom-row {
+  display: none; flex-direction: column; gap: 6px;
+  background: var(--white); border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius-base); padding: 10px 12px;
+}
+.period-custom-row.visible { display: flex; }
+.period-custom-row label { font-size: 11px; font-weight: 600; color: var(--gray-3); margin-bottom: 4px; }
+.period-dates-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.period-dates-row input[type=date] {
+  font-size: 12px; padding: 6px 10px; border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius-base); background: var(--gray-1); color: var(--text);
+  width: 100%;
+}
+
+/* ── Remove number spinners ── */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
 /* ── Upload Zones ── */
 .upload-zone-primary {
   border: 2px dashed var(--gold-border); border-radius: var(--radius-lg);
@@ -1702,28 +1759,32 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                       <div class="est-toggle-knob"></div>
                     </div>
                   </div>
-                  <!-- Seguidores + Engajamento -->
-                  <div class="gender-row">
-                    <div class="form-group" style="margin-bottom:0">
-                      <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Seguidores</label>
-                      <input type="number" class="form-control" id="aud-instagram-seguidores" placeholder="Ex: 50000" min="0">
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                      <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Engajamento médio (%)</label>
-                      <input type="number" class="form-control" id="aud-instagram-engajamento" placeholder="Ex: 4.5" min="0" max="100" step="0.1">
-                    </div>
+                  <!-- Seguidores -->
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Seguidores</label>
+                    <input type="text" class="form-control" id="aud-instagram-seguidores" placeholder="Ex: 50k" inputmode="numeric" oninput="onSeguidoresInput(this,'instagram')">
                   </div>
-                  <!-- Gênero -->
+                  <!-- Gênero + Pie chart -->
                   <div>
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Gênero</label>
-                    <div class="gender-row">
-                      <div class="form-group" style="margin-bottom:0">
-                        <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                        <input type="number" class="form-control" id="aud-instagram-genero-f" placeholder="Ex: 60" min="0" max="100">
+                    <div class="gender-section">
+                      <div class="gender-inputs">
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-instagram-genero-f" placeholder="Ex: 60" min="0" max="100" oninput="updateGenderPie('instagram')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
+                          <input type="number" class="form-control" id="aud-instagram-genero-m" placeholder="Ex: 40" min="0" max="100" oninput="updateGenderPie('instagram')">
+                        </div>
                       </div>
-                      <div class="form-group" style="margin-bottom:0">
-                        <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
-                        <input type="number" class="form-control" id="aud-instagram-genero-m" placeholder="Ex: 40" min="0" max="100">
+                      <div class="gender-pie-wrap">
+                        <svg class="gender-pie-svg" id="gender-pie-instagram" viewBox="0 0 64 64">
+                          <circle cx="32" cy="32" r="28" fill="var(--gray-2)"/>
+                          <circle cx="32" cy="32" r="28" fill="none" stroke="#E1306C" stroke-width="28" stroke-dasharray="0 175.9" stroke-dashoffset="44" id="gender-pie-f-instagram" style="transform-origin:center;transform:rotate(-90deg)"/>
+                          <circle cx="32" cy="32" r="14" fill="var(--white)"/>
+                        </svg>
+                        <div class="gender-pie-legend" id="gender-pie-lbl-instagram">—</div>
                       </div>
                     </div>
                   </div>
@@ -1731,11 +1792,11 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                   <div>
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Faixa etária <span style="font-weight:400;text-transform:none;letter-spacing:0">(deve somar 100%)</span></label>
                     <div class="age-ranges-grid">
-                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-1317" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-1824" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-2534" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-3544" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-45p" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-instagram-1317" min="0" max="100" value="0" oninput="syncSlider('instagram','1317',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-1317" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-instagram-1824" min="0" max="100" value="0" oninput="syncSlider('instagram','1824',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-1824" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-instagram-2534" min="0" max="100" value="0" oninput="syncSlider('instagram','2534',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-2534" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-instagram-3544" min="0" max="100" value="0" oninput="syncSlider('instagram','3544',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-3544" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-instagram-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('instagram')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-instagram-45p" min="0" max="100" value="0" oninput="syncSlider('instagram','45p',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-instagram-45p" style="width:0%"></div></div></div>
                     </div>
                     <div class="age-sum-indicator under" id="aud-instagram-age-sum">Total: 0%</div>
                   </div>
@@ -1758,13 +1819,21 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                   <!-- Período de referência -->
                   <div class="form-group" style="margin-bottom:0">
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Período de referência</label>
-                    <select class="period-select" id="aud-instagram-periodo">
-                      <option value="">Selecione…</option>
-                      <option value="30">Últimos 30 dias</option>
-                      <option value="90">Últimos 90 dias</option>
-                      <option value="180">Últimos 6 meses</option>
-                      <option value="365">Últimos 12 meses</option>
-                    </select>
+                    <div class="period-chips" id="period-chips-instagram">
+                      <span class="period-chip" data-days="30" onclick="selectPeriodChip('instagram',this)">Últimos 30 dias</span>
+                      <span class="period-chip" data-days="90" onclick="selectPeriodChip('instagram',this)">Últimos 90 dias</span>
+                      <span class="period-chip" data-days="180" onclick="selectPeriodChip('instagram',this)">Últimos 6 meses</span>
+                      <span class="period-chip" data-days="365" onclick="selectPeriodChip('instagram',this)">Últimos 12 meses</span>
+                      <span class="period-chip" data-days="custom" onclick="selectPeriodChip('instagram',this)">Personalizado</span>
+                    </div>
+                    <div class="period-custom-row" id="period-custom-instagram">
+                      <label>Datas do período</label>
+                      <div class="period-dates-row">
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">De</span><input type="date" id="aud-instagram-periodo-inicio"></div>
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">Até</span><input type="date" id="aud-instagram-periodo-fim"></div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="aud-instagram-periodo" value="">
                   </div>
                 </div>
               </div>
@@ -1803,37 +1872,41 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                       <div class="est-toggle-knob"></div>
                     </div>
                   </div>
-                  <div class="gender-row">
-                    <div class="form-group" style="margin-bottom:0">
-                      <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Seguidores</label>
-                      <input type="number" class="form-control" id="aud-tiktok-seguidores" placeholder="Ex: 30000" min="0">
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                      <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Engajamento médio (%)</label>
-                      <input type="number" class="form-control" id="aud-tiktok-engajamento" placeholder="Ex: 6.2" min="0" max="100" step="0.1">
-                    </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Seguidores</label>
+                    <input type="text" class="form-control" id="aud-tiktok-seguidores" placeholder="Ex: 30k" inputmode="numeric" oninput="onSeguidoresInput(this,'tiktok')">
                   </div>
                   <div>
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Gênero</label>
-                    <div class="gender-row">
-                      <div class="form-group" style="margin-bottom:0">
-                        <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                        <input type="number" class="form-control" id="aud-tiktok-genero-f" placeholder="Ex: 55" min="0" max="100">
+                    <div class="gender-section">
+                      <div class="gender-inputs">
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-tiktok-genero-f" placeholder="Ex: 55" min="0" max="100" oninput="updateGenderPie('tiktok')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
+                          <input type="number" class="form-control" id="aud-tiktok-genero-m" placeholder="Ex: 45" min="0" max="100" oninput="updateGenderPie('tiktok')">
+                        </div>
                       </div>
-                      <div class="form-group" style="margin-bottom:0">
-                        <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
-                        <input type="number" class="form-control" id="aud-tiktok-genero-m" placeholder="Ex: 45" min="0" max="100">
+                      <div class="gender-pie-wrap">
+                        <svg class="gender-pie-svg" id="gender-pie-tiktok" viewBox="0 0 64 64">
+                          <circle cx="32" cy="32" r="28" fill="var(--gray-2)"/>
+                          <circle cx="32" cy="32" r="28" fill="none" stroke="#E1306C" stroke-width="28" stroke-dasharray="0 175.9" stroke-dashoffset="44" id="gender-pie-f-tiktok" style="transform-origin:center;transform:rotate(-90deg)"/>
+                          <circle cx="32" cy="32" r="14" fill="var(--white)"/>
+                        </svg>
+                        <div class="gender-pie-legend" id="gender-pie-lbl-tiktok">—</div>
                       </div>
                     </div>
                   </div>
                   <div>
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Faixa etária <span style="font-weight:400;text-transform:none;letter-spacing:0">(deve somar 100%)</span></label>
                     <div class="age-ranges-grid">
-                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-1317" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-1824" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-2534" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-3544" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-45p" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-tiktok-1317" min="0" max="100" value="0" oninput="syncSlider('tiktok','1317',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-1317" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-tiktok-1824" min="0" max="100" value="0" oninput="syncSlider('tiktok','1824',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-1824" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-tiktok-2534" min="0" max="100" value="0" oninput="syncSlider('tiktok','2534',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-2534" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-tiktok-3544" min="0" max="100" value="0" oninput="syncSlider('tiktok','3544',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-3544" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-tiktok-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('tiktok')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-tiktok-45p" min="0" max="100" value="0" oninput="syncSlider('tiktok','45p',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-tiktok-45p" style="width:0%"></div></div></div>
                     </div>
                     <div class="age-sum-indicator under" id="aud-tiktok-age-sum">Total: 0%</div>
                   </div>
@@ -1853,13 +1926,21 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                   </div>
                   <div class="form-group" style="margin-bottom:0">
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Período de referência</label>
-                    <select class="period-select" id="aud-tiktok-periodo">
-                      <option value="">Selecione…</option>
-                      <option value="30">Últimos 30 dias</option>
-                      <option value="90">Últimos 90 dias</option>
-                      <option value="180">Últimos 6 meses</option>
-                      <option value="365">Últimos 12 meses</option>
-                    </select>
+                    <div class="period-chips" id="period-chips-tiktok">
+                      <span class="period-chip" data-days="30" onclick="selectPeriodChip('tiktok',this)">Últimos 30 dias</span>
+                      <span class="period-chip" data-days="90" onclick="selectPeriodChip('tiktok',this)">Últimos 90 dias</span>
+                      <span class="period-chip" data-days="180" onclick="selectPeriodChip('tiktok',this)">Últimos 6 meses</span>
+                      <span class="period-chip" data-days="365" onclick="selectPeriodChip('tiktok',this)">Últimos 12 meses</span>
+                      <span class="period-chip" data-days="custom" onclick="selectPeriodChip('tiktok',this)">Personalizado</span>
+                    </div>
+                    <div class="period-custom-row" id="period-custom-tiktok">
+                      <label>Datas do período</label>
+                      <div class="period-dates-row">
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">De</span><input type="date" id="aud-tiktok-periodo-inicio"></div>
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">Até</span><input type="date" id="aud-tiktok-periodo-fim"></div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="aud-tiktok-periodo" value="">
                   </div>
                 </div>
               </div>
@@ -1898,37 +1979,41 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                       <div class="est-toggle-knob"></div>
                     </div>
                   </div>
-                  <div class="gender-row">
-                    <div class="form-group" style="margin-bottom:0">
-                      <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Inscritos</label>
-                      <input type="number" class="form-control" id="aud-youtube-seguidores" placeholder="Ex: 120000" min="0">
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                      <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Taxa de visualização (%)</label>
-                      <input type="number" class="form-control" id="aud-youtube-engajamento" placeholder="Ex: 3.1" min="0" max="100" step="0.1">
-                    </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Inscritos</label>
+                    <input type="text" class="form-control" id="aud-youtube-seguidores" placeholder="Ex: 120k" inputmode="numeric" oninput="onSeguidoresInput(this,'youtube')">
                   </div>
                   <div>
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Gênero</label>
-                    <div class="gender-row">
-                      <div class="form-group" style="margin-bottom:0">
-                        <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                        <input type="number" class="form-control" id="aud-youtube-genero-f" placeholder="Ex: 45" min="0" max="100">
+                    <div class="gender-section">
+                      <div class="gender-inputs">
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-youtube-genero-f" placeholder="Ex: 45" min="0" max="100" oninput="updateGenderPie('youtube')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
+                          <input type="number" class="form-control" id="aud-youtube-genero-m" placeholder="Ex: 55" min="0" max="100" oninput="updateGenderPie('youtube')">
+                        </div>
                       </div>
-                      <div class="form-group" style="margin-bottom:0">
-                        <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
-                        <input type="number" class="form-control" id="aud-youtube-genero-m" placeholder="Ex: 55" min="0" max="100">
+                      <div class="gender-pie-wrap">
+                        <svg class="gender-pie-svg" id="gender-pie-youtube" viewBox="0 0 64 64">
+                          <circle cx="32" cy="32" r="28" fill="var(--gray-2)"/>
+                          <circle cx="32" cy="32" r="28" fill="none" stroke="#E1306C" stroke-width="28" stroke-dasharray="0 175.9" stroke-dashoffset="44" id="gender-pie-f-youtube" style="transform-origin:center;transform:rotate(-90deg)"/>
+                          <circle cx="32" cy="32" r="14" fill="var(--white)"/>
+                        </svg>
+                        <div class="gender-pie-legend" id="gender-pie-lbl-youtube">—</div>
                       </div>
                     </div>
                   </div>
                   <div>
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Faixa etária <span style="font-weight:400;text-transform:none;letter-spacing:0">(deve somar 100%)</span></label>
                     <div class="age-ranges-grid">
-                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-1317" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-1824" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-2534" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-3544" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-45p" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-youtube-1317" min="0" max="100" value="0" oninput="syncSlider('youtube','1317',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-1317" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-youtube-1824" min="0" max="100" value="0" oninput="syncSlider('youtube','1824',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-1824" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-youtube-2534" min="0" max="100" value="0" oninput="syncSlider('youtube','2534',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-2534" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-youtube-3544" min="0" max="100" value="0" oninput="syncSlider('youtube','3544',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-3544" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-youtube-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('youtube')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-youtube-45p" min="0" max="100" value="0" oninput="syncSlider('youtube','45p',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-youtube-45p" style="width:0%"></div></div></div>
                     </div>
                     <div class="age-sum-indicator under" id="aud-youtube-age-sum">Total: 0%</div>
                   </div>
@@ -1948,13 +2033,21 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                   </div>
                   <div class="form-group" style="margin-bottom:0">
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Período de referência</label>
-                    <select class="period-select" id="aud-youtube-periodo">
-                      <option value="">Selecione…</option>
-                      <option value="30">Últimos 30 dias</option>
-                      <option value="90">Últimos 90 dias</option>
-                      <option value="180">Últimos 6 meses</option>
-                      <option value="365">Últimos 12 meses</option>
-                    </select>
+                    <div class="period-chips" id="period-chips-youtube">
+                      <span class="period-chip" data-days="30" onclick="selectPeriodChip('youtube',this)">Últimos 30 dias</span>
+                      <span class="period-chip" data-days="90" onclick="selectPeriodChip('youtube',this)">Últimos 90 dias</span>
+                      <span class="period-chip" data-days="180" onclick="selectPeriodChip('youtube',this)">Últimos 6 meses</span>
+                      <span class="period-chip" data-days="365" onclick="selectPeriodChip('youtube',this)">Últimos 12 meses</span>
+                      <span class="period-chip" data-days="custom" onclick="selectPeriodChip('youtube',this)">Personalizado</span>
+                    </div>
+                    <div class="period-custom-row" id="period-custom-youtube">
+                      <label>Datas do período</label>
+                      <div class="period-dates-row">
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">De</span><input type="date" id="aud-youtube-periodo-inicio"></div>
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">Até</span><input type="date" id="aud-youtube-periodo-fim"></div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="aud-youtube-periodo" value="">
                   </div>
                 </div>
               </div>
@@ -1993,37 +2086,41 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                       <div class="est-toggle-knob"></div>
                     </div>
                   </div>
-                  <div class="gender-row">
-                    <div class="form-group" style="margin-bottom:0">
-                      <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Conexões/Seguidores</label>
-                      <input type="number" class="form-control" id="aud-linkedin-seguidores" placeholder="Ex: 15000" min="0">
-                    </div>
-                    <div class="form-group" style="margin-bottom:0">
-                      <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Engajamento médio (%)</label>
-                      <input type="number" class="form-control" id="aud-linkedin-engajamento" placeholder="Ex: 2.8" min="0" max="100" step="0.1">
-                    </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Conexões/Seguidores</label>
+                    <input type="text" class="form-control" id="aud-linkedin-seguidores" placeholder="Ex: 15k" inputmode="numeric" oninput="onSeguidoresInput(this,'linkedin')">
                   </div>
                   <div>
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Gênero</label>
-                    <div class="gender-row">
-                      <div class="form-group" style="margin-bottom:0">
-                        <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                        <input type="number" class="form-control" id="aud-linkedin-genero-f" placeholder="Ex: 40" min="0" max="100">
+                    <div class="gender-section">
+                      <div class="gender-inputs">
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-linkedin-genero-f" placeholder="Ex: 40" min="0" max="100" oninput="updateGenderPie('linkedin')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
+                          <input type="number" class="form-control" id="aud-linkedin-genero-m" placeholder="Ex: 60" min="0" max="100" oninput="updateGenderPie('linkedin')">
+                        </div>
                       </div>
-                      <div class="form-group" style="margin-bottom:0">
-                        <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
-                        <input type="number" class="form-control" id="aud-linkedin-genero-m" placeholder="Ex: 60" min="0" max="100">
+                      <div class="gender-pie-wrap">
+                        <svg class="gender-pie-svg" id="gender-pie-linkedin" viewBox="0 0 64 64">
+                          <circle cx="32" cy="32" r="28" fill="var(--gray-2)"/>
+                          <circle cx="32" cy="32" r="28" fill="none" stroke="#E1306C" stroke-width="28" stroke-dasharray="0 175.9" stroke-dashoffset="44" id="gender-pie-f-linkedin" style="transform-origin:center;transform:rotate(-90deg)"/>
+                          <circle cx="32" cy="32" r="14" fill="var(--white)"/>
+                        </svg>
+                        <div class="gender-pie-legend" id="gender-pie-lbl-linkedin">—</div>
                       </div>
                     </div>
                   </div>
                   <div>
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Faixa etária <span style="font-weight:400;text-transform:none;letter-spacing:0">(deve somar 100%)</span></label>
                     <div class="age-ranges-grid">
-                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-1317" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-1824" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-2534" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-3544" style="width:0%"></div></div></div>
-                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-45p" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-linkedin-1317" min="0" max="100" value="0" oninput="syncSlider('linkedin','1317',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-1317" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-linkedin-1824" min="0" max="100" value="0" oninput="syncSlider('linkedin','1824',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-1824" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-linkedin-2534" min="0" max="100" value="0" oninput="syncSlider('linkedin','2534',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-2534" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-linkedin-3544" min="0" max="100" value="0" oninput="syncSlider('linkedin','3544',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-3544" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-linkedin-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('linkedin')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-linkedin-45p" min="0" max="100" value="0" oninput="syncSlider('linkedin','45p',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-linkedin-45p" style="width:0%"></div></div></div>
                     </div>
                     <div class="age-sum-indicator under" id="aud-linkedin-age-sum">Total: 0%</div>
                   </div>
@@ -2043,13 +2140,337 @@ textarea.form-control { resize: vertical; min-height: 90px; }
                   </div>
                   <div class="form-group" style="margin-bottom:0">
                     <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Período de referência</label>
-                    <select class="period-select" id="aud-linkedin-periodo">
-                      <option value="">Selecione…</option>
-                      <option value="30">Últimos 30 dias</option>
-                      <option value="90">Últimos 90 dias</option>
-                      <option value="180">Últimos 6 meses</option>
-                      <option value="365">Últimos 12 meses</option>
-                    </select>
+                    <div class="period-chips" id="period-chips-linkedin">
+                      <span class="period-chip" data-days="30" onclick="selectPeriodChip('linkedin',this)">Últimos 30 dias</span>
+                      <span class="period-chip" data-days="90" onclick="selectPeriodChip('linkedin',this)">Últimos 90 dias</span>
+                      <span class="period-chip" data-days="180" onclick="selectPeriodChip('linkedin',this)">Últimos 6 meses</span>
+                      <span class="period-chip" data-days="365" onclick="selectPeriodChip('linkedin',this)">Últimos 12 meses</span>
+                      <span class="period-chip" data-days="custom" onclick="selectPeriodChip('linkedin',this)">Personalizado</span>
+                    </div>
+                    <div class="period-custom-row" id="period-custom-linkedin">
+                      <label>Datas do período</label>
+                      <div class="period-dates-row">
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">De</span><input type="date" id="aud-linkedin-periodo-inicio"></div>
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">Até</span><input type="date" id="aud-linkedin-periodo-fim"></div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="aud-linkedin-periodo" value="">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Twitch -->
+            <div class="social-network-group" data-network="twitch" data-prefix="twitch.tv/">
+              <div class="social-network-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:12px;font-weight:600;color:var(--gray-4)">Twitch</span>
+                <button type="button" class="social-add-btn" onclick="addSocialEntry(this.closest('.social-network-group'))"
+                  style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:12px;font-weight:600;padding:2px 6px;transition:color .15s"
+                  onmouseover="this.style.color='var(--brown-warm)'" onmouseout="this.style.color='var(--gray-3)'">+ perfil</button>
+              </div>
+              <div class="social-entries" style="display:flex;flex-direction:column;gap:8px">
+                <div class="social-entry" style="display:flex;gap:8px;align-items:center">
+                  <div class="social-input-wrapper" style="flex:1">
+                    <span class="social-input-prefix">twitch.tv/</span>
+                    <input type="text" class="form-control" id="social-twitch" placeholder="seucanal" style="padding-left:82px">
+                  </div>
+                </div>
+              </div>
+              <!-- Audience data panel for Twitch -->
+              <div class="audience-panel" id="aud-panel-twitch">
+                <div class="audience-panel-toggle" onclick="toggleAudiencePanel('twitch')">
+                  <span class="audience-panel-toggle-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                    Dados do público <span style="color:var(--gray-3);font-weight:400">(opcional)</span>
+                  </span>
+                  <span class="audience-panel-arrow">▾</span>
+                </div>
+                <div class="audience-panel-body">
+                  <div class="est-toggle-row">
+                    <span class="est-toggle-label">Tipo de dado</span>
+                    <span class="est-badge" id="est-badge-twitch">Estimativa</span>
+                    <div class="est-toggle-switch" id="est-toggle-twitch" onclick="toggleEstimate('twitch')" title="Estimativa / Dado real">
+                      <div class="est-toggle-knob"></div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Seguidores</label>
+                    <input type="text" class="form-control" id="aud-twitch-seguidores" placeholder="Ex: 80k" inputmode="numeric" oninput="onSeguidoresInput(this,'twitch')">
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Gênero</label>
+                    <div class="gender-section">
+                      <div class="gender-inputs">
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-twitch-genero-f" placeholder="Ex: 35" min="0" max="100" oninput="updateGenderPie('twitch')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
+                          <input type="number" class="form-control" id="aud-twitch-genero-m" placeholder="Ex: 65" min="0" max="100" oninput="updateGenderPie('twitch')">
+                        </div>
+                      </div>
+                      <div class="gender-pie-wrap">
+                        <svg class="gender-pie-svg" id="gender-pie-twitch" viewBox="0 0 64 64">
+                          <circle cx="32" cy="32" r="28" fill="var(--gray-2)"/>
+                          <circle cx="32" cy="32" r="28" fill="none" stroke="#E1306C" stroke-width="28" stroke-dasharray="0 175.9" stroke-dashoffset="44" id="gender-pie-f-twitch" style="transform-origin:center;transform:rotate(-90deg)"/>
+                          <circle cx="32" cy="32" r="14" fill="var(--white)"/>
+                        </svg>
+                        <div class="gender-pie-legend" id="gender-pie-lbl-twitch">—</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Faixa etária <span style="font-weight:400;text-transform:none;letter-spacing:0">(deve somar 100%)</span></label>
+                    <div class="age-ranges-grid">
+                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-twitch-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('twitch')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-twitch-1317" min="0" max="100" value="0" oninput="syncSlider('twitch','1317',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-twitch-1317" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-twitch-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('twitch')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-twitch-1824" min="0" max="100" value="0" oninput="syncSlider('twitch','1824',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-twitch-1824" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-twitch-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('twitch')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-twitch-2534" min="0" max="100" value="0" oninput="syncSlider('twitch','2534',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-twitch-2534" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-twitch-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('twitch')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-twitch-3544" min="0" max="100" value="0" oninput="syncSlider('twitch','3544',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-twitch-3544" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-twitch-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('twitch')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-twitch-45p" min="0" max="100" value="0" oninput="syncSlider('twitch','45p',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-twitch-45p" style="width:0%"></div></div></div>
+                    </div>
+                    <div class="age-sum-indicator under" id="aud-twitch-age-sum">Total: 0%</div>
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Formatos que mais performam</label>
+                    <div class="format-pills-grid" id="fmt-twitch">
+                      <div class="format-pill" onclick="toggleFormatPill(this)">Stream ao vivo</div>
+                      <div class="format-pill" onclick="toggleFormatPill(this)">Clip</div>
+                      <div class="format-pill" onclick="toggleFormatPill(this)">VOD</div>
+                      <div class="format-pill" onclick="toggleFormatPill(this)">Raid</div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Contexto adicional <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+                    <textarea class="form-control" id="aud-twitch-contexto" rows="2" placeholder="Ex: Canal de gaming focado em FPS, streams diárias com média de 500 viewers simultâneos..."></textarea>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Período de referência</label>
+                    <div class="period-chips" id="period-chips-twitch">
+                      <span class="period-chip" data-days="30" onclick="selectPeriodChip('twitch',this)">Últimos 30 dias</span>
+                      <span class="period-chip" data-days="90" onclick="selectPeriodChip('twitch',this)">Últimos 90 dias</span>
+                      <span class="period-chip" data-days="180" onclick="selectPeriodChip('twitch',this)">Últimos 6 meses</span>
+                      <span class="period-chip" data-days="365" onclick="selectPeriodChip('twitch',this)">Últimos 12 meses</span>
+                      <span class="period-chip" data-days="custom" onclick="selectPeriodChip('twitch',this)">Personalizado</span>
+                    </div>
+                    <div class="period-custom-row" id="period-custom-twitch">
+                      <label>Datas do período</label>
+                      <div class="period-dates-row">
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">De</span><input type="date" id="aud-twitch-periodo-inicio"></div>
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">Até</span><input type="date" id="aud-twitch-periodo-fim"></div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="aud-twitch-periodo" value="">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kwai -->
+            <div class="social-network-group" data-network="kwai" data-prefix="kwai.com/">
+              <div class="social-network-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:12px;font-weight:600;color:var(--gray-4)">Kwai</span>
+                <button type="button" class="social-add-btn" onclick="addSocialEntry(this.closest('.social-network-group'))"
+                  style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:12px;font-weight:600;padding:2px 6px;transition:color .15s"
+                  onmouseover="this.style.color='var(--brown-warm)'" onmouseout="this.style.color='var(--gray-3)'">+ perfil</button>
+              </div>
+              <div class="social-entries" style="display:flex;flex-direction:column;gap:8px">
+                <div class="social-entry" style="display:flex;gap:8px;align-items:center">
+                  <div class="social-input-wrapper" style="flex:1">
+                    <span class="social-input-prefix">kwai.com/</span>
+                    <input type="text" class="form-control" id="social-kwai" placeholder="@seuperfil" style="padding-left:82px">
+                  </div>
+                </div>
+              </div>
+              <!-- Audience data panel for Kwai -->
+              <div class="audience-panel" id="aud-panel-kwai">
+                <div class="audience-panel-toggle" onclick="toggleAudiencePanel('kwai')">
+                  <span class="audience-panel-toggle-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                    Dados do público <span style="color:var(--gray-3);font-weight:400">(opcional)</span>
+                  </span>
+                  <span class="audience-panel-arrow">▾</span>
+                </div>
+                <div class="audience-panel-body">
+                  <div class="est-toggle-row">
+                    <span class="est-toggle-label">Tipo de dado</span>
+                    <span class="est-badge" id="est-badge-kwai">Estimativa</span>
+                    <div class="est-toggle-switch" id="est-toggle-kwai" onclick="toggleEstimate('kwai')" title="Estimativa / Dado real">
+                      <div class="est-toggle-knob"></div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Seguidores</label>
+                    <input type="text" class="form-control" id="aud-kwai-seguidores" placeholder="Ex: 200k" inputmode="numeric" oninput="onSeguidoresInput(this,'kwai')">
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Gênero</label>
+                    <div class="gender-section">
+                      <div class="gender-inputs">
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-kwai-genero-f" placeholder="Ex: 55" min="0" max="100" oninput="updateGenderPie('kwai')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
+                          <input type="number" class="form-control" id="aud-kwai-genero-m" placeholder="Ex: 45" min="0" max="100" oninput="updateGenderPie('kwai')">
+                        </div>
+                      </div>
+                      <div class="gender-pie-wrap">
+                        <svg class="gender-pie-svg" id="gender-pie-kwai" viewBox="0 0 64 64">
+                          <circle cx="32" cy="32" r="28" fill="var(--gray-2)"/>
+                          <circle cx="32" cy="32" r="28" fill="none" stroke="#E1306C" stroke-width="28" stroke-dasharray="0 175.9" stroke-dashoffset="44" id="gender-pie-f-kwai" style="transform-origin:center;transform:rotate(-90deg)"/>
+                          <circle cx="32" cy="32" r="14" fill="var(--white)"/>
+                        </svg>
+                        <div class="gender-pie-legend" id="gender-pie-lbl-kwai">—</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Faixa etária <span style="font-weight:400;text-transform:none;letter-spacing:0">(deve somar 100%)</span></label>
+                    <div class="age-ranges-grid">
+                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kwai-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('kwai')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kwai-1317" min="0" max="100" value="0" oninput="syncSlider('kwai','1317',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kwai-1317" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kwai-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('kwai')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kwai-1824" min="0" max="100" value="0" oninput="syncSlider('kwai','1824',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kwai-1824" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kwai-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('kwai')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kwai-2534" min="0" max="100" value="0" oninput="syncSlider('kwai','2534',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kwai-2534" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kwai-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('kwai')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kwai-3544" min="0" max="100" value="0" oninput="syncSlider('kwai','3544',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kwai-3544" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kwai-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('kwai')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kwai-45p" min="0" max="100" value="0" oninput="syncSlider('kwai','45p',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kwai-45p" style="width:0%"></div></div></div>
+                    </div>
+                    <div class="age-sum-indicator under" id="aud-kwai-age-sum">Total: 0%</div>
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Formatos que mais performam</label>
+                    <div class="format-pills-grid" id="fmt-kwai">
+                      <div class="format-pill" onclick="toggleFormatPill(this)">Vídeo curto</div>
+                      <div class="format-pill" onclick="toggleFormatPill(this)">Trend</div>
+                      <div class="format-pill" onclick="toggleFormatPill(this)">Tutorial</div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Contexto adicional <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+                    <textarea class="form-control" id="aud-kwai-contexto" rows="2" placeholder="Ex: Conteúdo de entretenimento e humor, público predominantemente de regiões Norte e Nordeste..."></textarea>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Período de referência</label>
+                    <div class="period-chips" id="period-chips-kwai">
+                      <span class="period-chip" data-days="30" onclick="selectPeriodChip('kwai',this)">Últimos 30 dias</span>
+                      <span class="period-chip" data-days="90" onclick="selectPeriodChip('kwai',this)">Últimos 90 dias</span>
+                      <span class="period-chip" data-days="180" onclick="selectPeriodChip('kwai',this)">Últimos 6 meses</span>
+                      <span class="period-chip" data-days="365" onclick="selectPeriodChip('kwai',this)">Últimos 12 meses</span>
+                      <span class="period-chip" data-days="custom" onclick="selectPeriodChip('kwai',this)">Personalizado</span>
+                    </div>
+                    <div class="period-custom-row" id="period-custom-kwai">
+                      <label>Datas do período</label>
+                      <div class="period-dates-row">
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">De</span><input type="date" id="aud-kwai-periodo-inicio"></div>
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">Até</span><input type="date" id="aud-kwai-periodo-fim"></div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="aud-kwai-periodo" value="">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kick -->
+            <div class="social-network-group" data-network="kick" data-prefix="kick.com/">
+              <div class="social-network-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:12px;font-weight:600;color:var(--gray-4)">Kick</span>
+                <button type="button" class="social-add-btn" onclick="addSocialEntry(this.closest('.social-network-group'))"
+                  style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:12px;font-weight:600;padding:2px 6px;transition:color .15s"
+                  onmouseover="this.style.color='var(--brown-warm)'" onmouseout="this.style.color='var(--gray-3)'">+ perfil</button>
+              </div>
+              <div class="social-entries" style="display:flex;flex-direction:column;gap:8px">
+                <div class="social-entry" style="display:flex;gap:8px;align-items:center">
+                  <div class="social-input-wrapper" style="flex:1">
+                    <span class="social-input-prefix">kick.com/</span>
+                    <input type="text" class="form-control" id="social-kick" placeholder="seucanal" style="padding-left:76px">
+                  </div>
+                </div>
+              </div>
+              <!-- Audience data panel for Kick -->
+              <div class="audience-panel" id="aud-panel-kick">
+                <div class="audience-panel-toggle" onclick="toggleAudiencePanel('kick')">
+                  <span class="audience-panel-toggle-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+                    Dados do público <span style="color:var(--gray-3);font-weight:400">(opcional)</span>
+                  </span>
+                  <span class="audience-panel-arrow">▾</span>
+                </div>
+                <div class="audience-panel-body">
+                  <div class="est-toggle-row">
+                    <span class="est-toggle-label">Tipo de dado</span>
+                    <span class="est-badge" id="est-badge-kick">Estimativa</span>
+                    <div class="est-toggle-switch" id="est-toggle-kick" onclick="toggleEstimate('kick')" title="Estimativa / Dado real">
+                      <div class="est-toggle-knob"></div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Seguidores</label>
+                    <input type="text" class="form-control" id="aud-kick-seguidores" placeholder="Ex: 50k" inputmode="numeric" oninput="onSeguidoresInput(this,'kick')">
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Gênero</label>
+                    <div class="gender-section">
+                      <div class="gender-inputs">
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-kick-genero-f" placeholder="Ex: 30" min="0" max="100" oninput="updateGenderPie('kick')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
+                          <input type="number" class="form-control" id="aud-kick-genero-m" placeholder="Ex: 70" min="0" max="100" oninput="updateGenderPie('kick')">
+                        </div>
+                      </div>
+                      <div class="gender-pie-wrap">
+                        <svg class="gender-pie-svg" id="gender-pie-kick" viewBox="0 0 64 64">
+                          <circle cx="32" cy="32" r="28" fill="var(--gray-2)"/>
+                          <circle cx="32" cy="32" r="28" fill="none" stroke="#E1306C" stroke-width="28" stroke-dasharray="0 175.9" stroke-dashoffset="44" id="gender-pie-f-kick" style="transform-origin:center;transform:rotate(-90deg)"/>
+                          <circle cx="32" cy="32" r="14" fill="var(--white)"/>
+                        </svg>
+                        <div class="gender-pie-legend" id="gender-pie-lbl-kick">—</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Faixa etária <span style="font-weight:400;text-transform:none;letter-spacing:0">(deve somar 100%)</span></label>
+                    <div class="age-ranges-grid">
+                      <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kick-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('kick')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kick-1317" min="0" max="100" value="0" oninput="syncSlider('kick','1317',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kick-1317" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kick-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('kick')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kick-1824" min="0" max="100" value="0" oninput="syncSlider('kick','1824',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kick-1824" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kick-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('kick')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kick-2534" min="0" max="100" value="0" oninput="syncSlider('kick','2534',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kick-2534" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kick-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('kick')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kick-3544" min="0" max="100" value="0" oninput="syncSlider('kick','3544',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kick-3544" style="width:0%"></div></div></div>
+                      <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-kick-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('kick')"><span class="age-range-pct-suffix">%</span></div><input type="range" class="age-range-slider" id="slider-kick-45p" min="0" max="100" value="0" oninput="syncSlider('kick','45p',this.value)"><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-kick-45p" style="width:0%"></div></div></div>
+                    </div>
+                    <div class="age-sum-indicator under" id="aud-kick-age-sum">Total: 0%</div>
+                  </div>
+                  <div>
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:8px">Formatos que mais performam</label>
+                    <div class="format-pills-grid" id="fmt-kick">
+                      <div class="format-pill" onclick="toggleFormatPill(this)">Stream</div>
+                      <div class="format-pill" onclick="toggleFormatPill(this)">Clip</div>
+                      <div class="format-pill" onclick="toggleFormatPill(this)">VOD</div>
+                    </div>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Contexto adicional <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+                    <textarea class="form-control" id="aud-kick-contexto" rows="2" placeholder="Ex: Canal de streams de jogos, público jovem adulto com alta interação no chat..."></textarea>
+                  </div>
+                  <div class="form-group" style="margin-bottom:0">
+                    <label style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);display:block;margin-bottom:6px">Período de referência</label>
+                    <div class="period-chips" id="period-chips-kick">
+                      <span class="period-chip" data-days="30" onclick="selectPeriodChip('kick',this)">Últimos 30 dias</span>
+                      <span class="period-chip" data-days="90" onclick="selectPeriodChip('kick',this)">Últimos 90 dias</span>
+                      <span class="period-chip" data-days="180" onclick="selectPeriodChip('kick',this)">Últimos 6 meses</span>
+                      <span class="period-chip" data-days="365" onclick="selectPeriodChip('kick',this)">Últimos 12 meses</span>
+                      <span class="period-chip" data-days="custom" onclick="selectPeriodChip('kick',this)">Personalizado</span>
+                    </div>
+                    <div class="period-custom-row" id="period-custom-kick">
+                      <label>Datas do período</label>
+                      <div class="period-dates-row">
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">De</span><input type="date" id="aud-kick-periodo-inicio"></div>
+                        <div><span style="font-size:11px;color:var(--gray-3);display:block;margin-bottom:3px">Até</span><input type="date" id="aud-kick-periodo-fim"></div>
+                      </div>
+                    </div>
+                    <input type="hidden" id="aud-kick-periodo" value="">
                   </div>
                 </div>
               </div>
@@ -3929,11 +4350,89 @@ function toggleFormatPill(el) {
   el.classList.toggle('selected');
 }
 
+/* ── Helpers de Seguidores K/M ── */
+
+/** Formata número bruto para exibição: 1500 → "1.5k", 2000000 → "2M" */
+function formatFollowers(n) {
+  if (!n || isNaN(n)) return '';
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return String(n);
+}
+
+/** Converte string exibida de volta para número: "26k" → 26000, "1.2M" → 1200000 */
+function parseFollowers(str) {
+  if (!str) return null;
+  const s = str.trim().toLowerCase().replace(',', '.');
+  if (s.endsWith('m')) return Math.round(parseFloat(s) * 1000000) || null;
+  if (s.endsWith('k')) return Math.round(parseFloat(s) * 1000)    || null;
+  const n = parseInt(s.replace(/\D/g, ''), 10);
+  return isNaN(n) ? null : n;
+}
+
+/** Chamado a cada keypress no campo seguidores — aplica máscara K/M preservando cursor */
+function onSeguidoresInput(el, network) {
+  // Armazena posição do cursor antes de alterar
+  const raw = el.value.replace(/[^0-9kKmM.,]/g, '');
+  // Só aplica formatação se terminar em número (não enquanto digita "k"/"M")
+  const num = parseFollowers(raw);
+  if (num && num >= 1000 && !/[kKmM]/.test(raw)) {
+    el.value = formatFollowers(num);
+  }
+  // Atualiza barra de visualização se existir
+  updateAgeBars(network); // re-valida nada; só para consistência futura
+}
+
+/* ── Pie chart de gênero ── */
+
+/** Atualiza o donut SVG conforme F% e M% são digitados */
+function updateGenderPie(network) {
+  const f   = parseFloat(document.getElementById('aud-' + network + '-genero-f')?.value) || 0;
+  const m   = parseFloat(document.getElementById('aud-' + network + '-genero-m')?.value) || 0;
+  const arc = document.getElementById('gender-pie-f-' + network);
+  const lbl = document.getElementById('gender-pie-lbl-' + network);
+  if (!arc) return;
+  const total       = f + m || 100;
+  const pctF        = f / total;
+  const circumference = 2 * Math.PI * 28; // r=28 → ≈175.93
+  arc.setAttribute('stroke-dasharray', (pctF * circumference).toFixed(2) + ' ' + circumference.toFixed(2));
+  if (lbl) lbl.textContent = (f || m) ? f + '% ♀ / ' + m + '% ♂' : '—';
+}
+
+/* ── Slider de faixa etária ── */
+
+/** Sincroniza o slider com o input numérico correspondente e atualiza as barras */
+function syncSlider(network, range, value) {
+  const input = document.getElementById('aud-' + network + '-age-' + range);
+  if (input) {
+    input.value = value;
+    updateAgeBars(network);
+  }
+}
+
+/* ── Chips de período de referência ── */
+
+/** Seleciona um chip de período e controla visibilidade do campo de data personalizada */
+function selectPeriodChip(network, el) {
+  document.querySelectorAll('#period-chips-' + network + ' .period-chip')
+    .forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const customRow  = document.getElementById('period-custom-' + network);
+  const hiddenInput = document.getElementById('aud-' + network + '-periodo');
+  if (el.dataset.days === 'custom') {
+    if (customRow)   customRow.classList.add('visible');
+    if (hiddenInput) hiddenInput.value = 'custom';
+  } else {
+    if (customRow)   customRow.classList.remove('visible');
+    if (hiddenInput) hiddenInput.value = el.dataset.days;
+  }
+}
+
 /** Valida dados de audiência de todos os canais preenchidos (chamada no nextStep do painel 3)
  *  Retorna true se ok para avançar, false se há erro (e exibe toast).
  */
 function validateAudiencePanels() {
-  const networks = ['instagram', 'tiktok', 'youtube', 'linkedin'];
+  const networks = ['instagram', 'tiktok', 'youtube', 'linkedin', 'twitch', 'kwai', 'kick'];
   for (const net of networks) {
     const panel = document.getElementById('aud-panel-' + net);
     if (!panel || !panel.classList.contains('open')) continue;
@@ -3948,7 +4447,7 @@ function validateAudiencePanels() {
     const indicator = document.getElementById('aud-' + net + '-age-sum');
     const isOk = indicator?.classList.contains('ok');
     if (!isOk) {
-      const netLabel = { instagram:'Instagram', tiktok:'TikTok', youtube:'YouTube', linkedin:'LinkedIn' }[net] || net;
+      const netLabel = { instagram:'Instagram', tiktok:'TikTok', youtube:'YouTube', linkedin:'LinkedIn', twitch:'Twitch', kwai:'Kwai', kick:'Kick' }[net] || net;
       showToast('Faixa etária do ' + netLabel + ' precisa somar 100%', 'error');
       // Abre o painel e sobe o scroll até ele
       if (!panel.classList.contains('open')) toggleAudiencePanel(net);
@@ -4467,8 +4966,8 @@ function collectOppData() {
     // Coleta dados de audiência se o painel foi aberto/preenchido
     const panel = document.getElementById('aud-panel-' + network);
     if (!panel) return;
-    const seguidores   = document.getElementById('aud-' + network + '-seguidores')?.value?.trim() || '';
-    const engajamento  = document.getElementById('aud-' + network + '-engajamento')?.value?.trim() || '';
+    const seguidoresRaw = document.getElementById('aud-' + network + '-seguidores')?.value?.trim() || '';
+    const seguidoresNum = parseFollowers(seguidoresRaw); // converte K/M → número
     const generoF      = parseFloat(document.getElementById('aud-' + network + '-genero-f')?.value) || null;
     const generoM      = parseFloat(document.getElementById('aud-' + network + '-genero-m')?.value) || null;
     const ageRanges    = {};
@@ -4480,18 +4979,28 @@ function collectOppData() {
     const formatos = Array.from(
       document.querySelectorAll('#fmt-' + network + ' .format-pill.selected')
     ).map(p => p.textContent.trim());
-    const contexto   = document.getElementById('aud-' + network + '-contexto')?.value?.trim() || '';
-    const periodo    = document.getElementById('aud-' + network + '-periodo')?.value || '';
-    const isReal     = document.getElementById('est-toggle-' + network)?.classList.contains('is-real') || false;
+    const contexto     = document.getElementById('aud-' + network + '-contexto')?.value?.trim() || '';
+    // Período: chip selecionado ou datas personalizadas
+    let periodo = document.getElementById('aud-' + network + '-periodo')?.value || '';
+    if (periodo === 'custom') {
+      const ini = document.getElementById('aud-' + network + '-periodo-inicio')?.value || '';
+      const fim = document.getElementById('aud-' + network + '-periodo-fim')?.value || '';
+      if (ini && fim) {
+        const fmt = iso => { const [y,m,d] = iso.split('-'); return d+'/'+m+'/'+y.slice(2); };
+        periodo = fmt(ini) + ' a ' + fmt(fim);
+      } else {
+        periodo = ini ? 'a partir de ' + ini : '';
+      }
+    }
+    const isReal       = document.getElementById('est-toggle-' + network)?.classList.contains('is-real') || false;
 
     // Só salva se houver pelo menos um dado preenchido
-    const hasData = seguidores || engajamento || generoF || generoM ||
+    const hasData = seguidoresNum || generoF || generoM ||
                     Object.keys(ageRanges).length > 0 || formatos.length > 0 || contexto;
     if (hasData) {
       publicoCanais[network] = {
         tipo_dado: isReal ? 'real' : 'estimativa',
-        seguidores: seguidores || null,
-        engajamento: engajamento || null,
+        seguidores: seguidoresNum || null,
         genero: (generoF !== null || generoM !== null) ? { f: generoF, m: generoM } : null,
         faixa_etaria: Object.keys(ageRanges).length > 0 ? ageRanges : null,
         formatos: formatos.length > 0 ? formatos : null,
