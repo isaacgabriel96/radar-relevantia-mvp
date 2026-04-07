@@ -1800,6 +1800,13 @@ input[type=number] { -moz-appearance: textfield; }
           <div class="char-count"><span id="descCount">0</span>/300</div>
         </div>
 
+        <div class="form-group">
+          <label>O que buscamos em uma marca parceira</label>
+          <div class="form-hint" style="margin-bottom:8px">Descreva o perfil ideal de patrocinador, seus objetivos e o que você espera desta parceria. Esta informação aparece para as marcas na página da oportunidade.</div>
+          <textarea class="form-control" id="opp-objetivos" maxlength="800" rows="4" placeholder="Ex: Buscamos marcas com alinhamento de valores ao esporte e estilo de vida ativo, com interesse em visibilidade junto ao público jovem adulto (25–40 anos)…" oninput="updateChar(this,'objetivosCount',800)"></textarea>
+          <div class="char-count"><span id="objetivosCount">0</span>/800</div>
+        </div>
+
         <div class="grid-2">
           <div class="form-group">
             <label>Estado <span class="required">*</span></label>
@@ -5032,6 +5039,7 @@ function collectOppData() {
   const tpl = TEMPLATES[tplKey] || {};
   const nome = document.getElementById('opp-nome')?.value?.trim() || '';
   const desc = document.getElementById('opp-desc')?.value?.trim() || '';
+  const objetivos = document.getElementById('opp-objetivos')?.value?.trim() || '';
   const estadoEl = document.getElementById('opp-estado');
   const cidadeEl = document.getElementById('opp-cidade');
   const estadoVal = estadoEl?.options[estadoEl.selectedIndex]?.text || '';
@@ -5216,6 +5224,7 @@ function collectOppData() {
     categoria: catMap[tplKey] || tpl.label || tplKey || 'Evento',
     categoria_slug: tplKey || 'evento',
     descricao_curta: desc,
+    descricao_completa: objetivos || null,
     localizacao: localizacao,
     alcance: alcance_clean,
     tags: segmentos.length > 0 ? segmentos : null,
@@ -5574,6 +5583,12 @@ function maybePreFillEdit() {
   if (descEl && descValue) {
     descEl.value = descValue;
     updateChar(descEl, 'descCount', 300);
+  }
+
+  const objetivosEl = document.getElementById('opp-objetivos');
+  if (objetivosEl && opp.descricao_completa) {
+    objetivosEl.value = opp.descricao_completa;
+    updateChar(objetivosEl, 'objetivosCount', 800);
   }
 
   // Cidade: tenta extrair estado e cidade de "Cidade, UF — Brasil" ou "Cidade, UF"
