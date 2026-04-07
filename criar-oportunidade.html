@@ -503,9 +503,9 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   background: var(--gold-gradient); width: 0%;
   transition: width .25s ease;
 }
-.age-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.age-controls { display: flex; align-items: center; gap: 6px; flex: 1; }
 .age-slider {
-  width: 64px; -webkit-appearance: none; appearance: none;
+  flex: 1; -webkit-appearance: none; appearance: none;
   height: 4px; border-radius: 100px; background: var(--gray-2); outline: none;
   cursor: pointer;
 }
@@ -558,14 +558,13 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   border-radius: var(--radius-md); overflow: hidden;
   transition: border-color .2s;
 }
-.canal-card.saved { border-color: #22c55e33; }
 .canal-card-header {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 14px;
   background: var(--gray-1);
   border-bottom: 1.5px solid var(--gray-2);
 }
-.canal-card-header.saved { background: #f0fdf4; border-bottom-color: #22c55e33; }
+.canal-card-header.saved { background: #f0fdf4; border-bottom-color: #bbf7d055; }
 .canal-card-icon { display: flex; align-items: center; color: var(--gray-4); flex-shrink: 0; }
 .canal-card-label { font-size: 12px; font-weight: 700; color: var(--gray-4); flex-shrink: 0; }
 .canal-card-username-wrap { flex: 1; position: relative; display: flex; }
@@ -597,7 +596,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   padding: 10px 14px; gap: 8px; border-top: 1.5px solid var(--gray-2);
   background: var(--gray-1);
 }
-.canal-card-footer.saved { background: #f0fdf4; border-top-color: #22c55e33; }
 .btn-save-canal {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 18px; border-radius: 100px; border: none; cursor: pointer;
@@ -607,9 +605,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 }
 .btn-save-canal:hover { opacity: .88; }
 .btn-save-canal:active { transform: scale(.97); }
-.canal-card.saved .btn-save-canal {
-  background: #dcfce7; color: #16a34a; border: 1.5px solid #22c55e55;
-}
 .btn-edit-canal {
   display: none; align-items: center; gap: 5px;
   padding: 7px 14px; border-radius: 100px;
@@ -668,6 +663,13 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 }
 .period-custom-row.visible { display: flex; }
 .period-custom-row label { font-size: 11px; font-weight: 600; color: var(--gray-3); margin-bottom: 4px; }
+/* Datas calculadas do período selecionado */
+.period-date-display {
+  display: none; font-size: 11.5px; font-weight: 600;
+  color: var(--brown-warm); margin-top: 6px;
+  padding: 5px 10px; background: #fdf6e3;
+  border: 1.5px solid var(--gold-border); border-radius: var(--radius-base);
+}
 .period-dates-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .period-dates-row input[type=date] {
   font-size: 12px; padding: 6px 10px; border: 1.5px solid var(--gray-2);
@@ -4107,9 +4109,8 @@ function addCanal(network) {
   ].map(row => `
     <div class="age-row">
       <span class="age-label">${row.label}</span>
-      <div class="age-bar-track"><div class="age-bar-fill" id="agebar-${profileId}-${row.id}"></div></div>
-      <div class="age-controls">
-        <input type="range" min="0" max="100" value="0" class="age-slider"
+      <div class="age-controls" style="flex:1">
+        <input type="range" min="0" max="100" value="0" class="age-slider" style="width:100%"
           id="slider-${profileId}-${row.id}"
           oninput="syncSlider('${profileId}','${row.id}',this.value)">
         <div class="age-input-wrap">
@@ -4191,10 +4192,15 @@ function addCanal(network) {
           <span class="period-chip"          data-days="365" onclick="selectPeriodChip('${profileId}',this)">Último ano</span>
           <span class="period-chip"          data-days="custom" onclick="selectPeriodChip('${profileId}',this)">Personalizado</span>
         </div>
+        <!-- Datas calculadas automaticamente para chips fixos -->
+        <div class="period-date-display" id="period-date-display-${profileId}"></div>
+        <!-- Campos manuais apenas para Personalizado -->
         <div class="period-custom-row" id="period-custom-${profileId}">
-          <input type="date" class="form-input" id="aud-${profileId}-data-inicio" placeholder="Data início">
+          <input type="date" class="form-input" id="aud-${profileId}-data-inicio"
+            onchange="updateCustomPeriodDisplay('${profileId}')">
           <span style="font-size:12px;color:var(--gray-3)">até</span>
-          <input type="date" class="form-input" id="aud-${profileId}-data-fim" placeholder="Data fim">
+          <input type="date" class="form-input" id="aud-${profileId}-data-fim"
+            onchange="updateCustomPeriodDisplay('${profileId}')">
         </div>
         <input type="hidden" id="aud-${profileId}-periodo" value="30">
       </div>
@@ -4265,12 +4271,6 @@ function addCanal(network) {
         <div class="age-sum-indicator under" id="aud-${profileId}-age-sum">Total: 0%</div>
       </div>
 
-      <!-- Localização -->
-      <div class="form-group">
-        <label class="form-label">Cidade / região principal</label>
-        <input type="text" id="aud-${profileId}-cidade" class="form-input" placeholder="Ex: São Paulo, Brasil">
-      </div>
-
     </div><!-- /audience-panel-body -->
   </div><!-- /audience-panel -->
 
@@ -4299,6 +4299,13 @@ function addCanal(network) {
   const picker = document.getElementById('canal-picker');
   if (picker) picker.style.display = 'none';
 
+  // Inicializa o display de datas do período padrão (30 dias)
+  const defaultDisplay = document.getElementById('period-date-display-' + profileId);
+  if (defaultDisplay) {
+    defaultDisplay.textContent = _calcPeriodRange(30);
+    defaultDisplay.style.display = 'block';
+  }
+
   // Abre o painel de dados do público automaticamente
   setTimeout(() => {
     toggleAudiencePanel(profileId);
@@ -4313,52 +4320,121 @@ function onCanalUsernameInput(profileId) {
   // Futuramente: validação de username
 }
 
-/** Salva o canal: valida username, fecha painel, marca como salvo */
-function saveCanal(profileId) {
-  const usernameInput = document.getElementById('canal-username-' + profileId);
-  const username = usernameInput ? usernameInput.value.trim() : '';
+/** Helper: marca campo com borda vermelha temporária */
+function _flashError(el) {
+  if (!el) return;
+  el.style.borderColor = '#c0392b';
+  el.style.boxShadow   = '0 0 0 3px rgba(192,57,43,.15)';
+  setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1400);
+}
 
-  if (!username) {
-    if (usernameInput) {
-      usernameInput.style.borderColor = '#c0392b';
-      usernameInput.focus();
-      setTimeout(() => { usernameInput.style.borderColor = ''; }, 1200);
-    }
+/** Abre painel e faz scroll até o elemento */
+function _openAndScroll(profileId, el) {
+  const panel = document.getElementById('aud-panel-' + profileId);
+  if (panel && !panel.classList.contains('open')) toggleAudiencePanel(profileId);
+  setTimeout(() => { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 180);
+}
+
+/** Salva o canal: valida todos os campos obrigatórios, fecha painel, marca header como salvo */
+function saveCanal(profileId) {
+
+  // 1 — @Usuário
+  const usernameInput = document.getElementById('canal-username-' + profileId);
+  if (!usernameInput || !usernameInput.value.trim()) {
+    _flashError(usernameInput);
+    usernameInput?.focus();
     showToast('Preencha o @usuário do canal antes de salvar', 'error');
     return;
   }
 
-  // Fecha painel de dados do público
+  // Abre painel para validações internas (garante que campos existam no DOM)
   const panel = document.getElementById('aud-panel-' + profileId);
-  if (panel && panel.classList.contains('open')) {
-    toggleAudiencePanel(profileId);
+  const wasOpen = panel?.classList.contains('open');
+  if (!wasOpen && panel) toggleAudiencePanel(profileId);
+
+  // 2 — Seguidores
+  const segInput = document.getElementById('aud-' + profileId + '-seguidores');
+  if (!segInput || !segInput.value.trim()) {
+    _flashError(segInput);
+    _openAndScroll(profileId, segInput);
+    showToast('Informe o número de seguidores do canal', 'error');
+    return;
   }
 
-  // Marca card como salvo
-  const card   = document.getElementById('canal-card-' + profileId);
+  // 3 — Formatos de conteúdo (ao menos 1 pill selecionado)
+  const formatWrap = document.querySelector('#canal-card-' + profileId + ' .format-pills-wrap');
+  const hasFormat  = formatWrap && formatWrap.querySelector('.format-pill.selected');
+  if (!hasFormat) {
+    _openAndScroll(profileId, formatWrap);
+    showToast('Selecione ao menos um formato de conteúdo', 'error');
+    return;
+  }
+
+  // 4 — Período: se Personalizado, datas devem estar preenchidas
+  const periodoInput = document.getElementById('aud-' + profileId + '-periodo');
+  if (periodoInput?.value === 'custom') {
+    const dtInicio = document.getElementById('aud-' + profileId + '-data-inicio');
+    const dtFim    = document.getElementById('aud-' + profileId + '-data-fim');
+    if (!dtInicio?.value || !dtFim?.value) {
+      _flashError(dtInicio);
+      _flashError(dtFim);
+      _openAndScroll(profileId, dtInicio);
+      showToast('Preencha as datas do período personalizado', 'error');
+      return;
+    }
+  }
+
+  // 5 — Gênero: ao menos um dos dois deve ser > 0
+  const fInput = document.getElementById('aud-' + profileId + '-genero-f');
+  const mInput = document.getElementById('aud-' + profileId + '-genero-m');
+  const fVal   = parseFloat(fInput?.value) || 0;
+  const mVal   = parseFloat(mInput?.value) || 0;
+  if (fVal === 0 && mVal === 0) {
+    _flashError(fInput);
+    _flashError(mInput);
+    _openAndScroll(profileId, fInput);
+    showToast('Preencha a distribuição por gênero (masculino e feminino)', 'error');
+    return;
+  }
+
+  // 6 — Faixa etária: ao menos uma faixa deve ser > 0
+  const ageRanges = ['1317','1824','2534','3544','45p'];
+  const hasAnyAge = ageRanges.some(r => (parseFloat(document.getElementById('aud-' + profileId + '-age-' + r)?.value) || 0) > 0);
+  if (!hasAnyAge) {
+    const firstAgeInput = document.getElementById('aud-' + profileId + '-age-1317');
+    _openAndScroll(profileId, firstAgeInput);
+    showToast('Preencha ao menos uma faixa etária do público', 'error');
+    return;
+  }
+  // Se tem dados de idade, total deve ser 100%
+  const ageIndicator = document.getElementById('aud-' + profileId + '-age-sum');
+  if (ageIndicator && !ageIndicator.classList.contains('ok')) {
+    _openAndScroll(profileId, ageIndicator);
+    showToast('A faixa etária precisa somar 100%', 'error');
+    return;
+  }
+
+  // ✅ Tudo válido — fecha painel e marca APENAS o header como salvo
+  if (panel && panel.classList.contains('open')) toggleAudiencePanel(profileId);
+
   const header = document.getElementById('canal-card-header-' + profileId);
-  const footer = document.getElementById('canal-card-footer-' + profileId);
-  if (card)   card.classList.add('saved');
+  const card   = document.getElementById('canal-card-' + profileId);
   if (header) header.classList.add('saved');
-  if (footer) footer.classList.add('saved');
+  if (card)   card.classList.add('saved'); // necessário para badge + btn-edit via CSS
 
   showToast('Canal salvo com sucesso!', 'success');
 }
 
-/** Reabre o painel para edição, remove estado salvo */
+/** Reabre o painel para edição, remove estado salvo do header */
 function editCanal(profileId) {
   const card   = document.getElementById('canal-card-' + profileId);
   const header = document.getElementById('canal-card-header-' + profileId);
-  const footer = document.getElementById('canal-card-footer-' + profileId);
   if (card)   card.classList.remove('saved');
   if (header) header.classList.remove('saved');
-  if (footer) footer.classList.remove('saved');
 
   // Abre painel se fechado
   const panel = document.getElementById('aud-panel-' + profileId);
-  if (panel && !panel.classList.contains('open')) {
-    toggleAudiencePanel(profileId);
-  }
+  if (panel && !panel.classList.contains('open')) toggleAudiencePanel(profileId);
 }
 
 /** Remove o card do canal do DOM */
@@ -4374,19 +4450,63 @@ function removeCanal(profileId) {
 
 /* ── Chips de período de referência ── */
 
-/** Seleciona um chip de período e controla visibilidade do campo de data personalizada */
+/** Formata uma Date como "dd de mês de yyyy" em pt-BR */
+function _formatDatePT(date) {
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho',
+                 'julho','agosto','setembro','outubro','novembro','dezembro'];
+  return date.getDate() + ' de ' + meses[date.getMonth()] + ' de ' + date.getFullYear();
+}
+
+/** Calcula datas de início/fim para N dias atrás e retorna string legível */
+function _calcPeriodRange(days) {
+  const end   = new Date();
+  end.setDate(end.getDate() - 1); // ontem como fim
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+  return _formatDatePT(start) + ' – ' + _formatDatePT(end);
+}
+
+/** Seleciona um chip de período, mostra datas calculadas e controla campos manuais */
 function selectPeriodChip(profileId, el) {
   document.querySelectorAll('#period-chips-' + profileId + ' .period-chip')
     .forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
+
   const customRow   = document.getElementById('period-custom-' + profileId);
+  const dateDisplay = document.getElementById('period-date-display-' + profileId);
   const hiddenInput = document.getElementById('aud-' + profileId + '-periodo');
+
   if (el.dataset.days === 'custom') {
     if (customRow)   customRow.classList.add('visible');
+    if (dateDisplay) dateDisplay.style.display = 'none';
     if (hiddenInput) hiddenInput.value = 'custom';
+    updateCustomPeriodDisplay(profileId);
   } else {
     if (customRow)   customRow.classList.remove('visible');
     if (hiddenInput) hiddenInput.value = el.dataset.days;
+    const range = _calcPeriodRange(parseInt(el.dataset.days));
+    if (dateDisplay) {
+      dateDisplay.textContent = range;
+      dateDisplay.style.display = 'block';
+    }
+  }
+}
+
+/** Atualiza o display de datas para o modo Personalizado */
+function updateCustomPeriodDisplay(profileId) {
+  const startInput = document.getElementById('aud-' + profileId + '-data-inicio');
+  const endInput   = document.getElementById('aud-' + profileId + '-data-fim');
+  const dateDisplay = document.getElementById('period-date-display-' + profileId);
+  if (!dateDisplay) return;
+  const sv = startInput?.value;
+  const ev = endInput?.value;
+  if (sv && ev) {
+    const s = new Date(sv + 'T12:00:00');
+    const e = new Date(ev + 'T12:00:00');
+    dateDisplay.textContent = _formatDatePT(s) + ' – ' + _formatDatePT(e);
+    dateDisplay.style.display = 'block';
+  } else {
+    dateDisplay.style.display = 'none';
   }
 }
 
