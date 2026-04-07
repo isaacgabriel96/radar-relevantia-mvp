@@ -448,11 +448,11 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 .gender-section { display: flex; flex-direction: column; gap: 14px; }
 .gender-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .gender-pie-wrap {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  display: flex; flex-direction: row; align-items: center; gap: 16px;
 }
-.gender-pie-svg { width: 120px; height: 120px; overflow: visible; }
+.gender-pie-svg { width: 120px; height: 120px; overflow: visible; flex-shrink: 0; }
 .gender-pie-legend {
-  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  display: flex; flex-direction: column; gap: 8px; flex-wrap: wrap;
 }
 .gender-pie-legend-item {
   display: flex; align-items: center; gap: 5px;
@@ -1812,18 +1812,18 @@ input[type=number] { -moz-appearance: textfield; }
                           <text x="60" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#4A90D9" font-family="var(--font-body)" id="gender-pie-txt-m-instagram"></text>
                         </svg>
                         <div class="gender-pie-legend" id="gender-pie-lbl-instagram">
-                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                           <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#4A90D9"></span>♂ Masculino</span>
+                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                         </div>
                       </div>
                       <div class="gender-inputs">
                         <div class="form-group" style="margin-bottom:0">
-                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                          <input type="number" class="form-control" id="aud-instagram-genero-f" placeholder="Ex: 60" min="0" max="100" oninput="updateGenderPie('instagram')">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0">
                           <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
                           <input type="number" class="form-control" id="aud-instagram-genero-m" placeholder="Ex: 40" min="0" max="100" oninput="updateGenderPie('instagram')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-instagram-genero-f" placeholder="Ex: 60" min="0" max="100" oninput="updateGenderPie('instagram')">
                         </div>
                       </div>
                     </div>
@@ -1934,18 +1934,18 @@ input[type=number] { -moz-appearance: textfield; }
                           <text x="60" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#4A90D9" font-family="var(--font-body)" id="gender-pie-txt-m-tiktok"></text>
                         </svg>
                         <div class="gender-pie-legend" id="gender-pie-lbl-tiktok">
-                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                           <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#4A90D9"></span>♂ Masculino</span>
+                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                         </div>
                       </div>
                       <div class="gender-inputs">
                         <div class="form-group" style="margin-bottom:0">
-                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                          <input type="number" class="form-control" id="aud-tiktok-genero-f" placeholder="Ex: 55" min="0" max="100" oninput="updateGenderPie('tiktok')">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0">
                           <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
                           <input type="number" class="form-control" id="aud-tiktok-genero-m" placeholder="Ex: 45" min="0" max="100" oninput="updateGenderPie('tiktok')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-tiktok-genero-f" placeholder="Ex: 55" min="0" max="100" oninput="updateGenderPie('tiktok')">
                         </div>
                       </div>
                     </div>
@@ -2052,18 +2052,18 @@ input[type=number] { -moz-appearance: textfield; }
                           <text x="60" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#4A90D9" font-family="var(--font-body)" id="gender-pie-txt-m-youtube"></text>
                         </svg>
                         <div class="gender-pie-legend" id="gender-pie-lbl-youtube">
-                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                           <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#4A90D9"></span>♂ Masculino</span>
+                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                         </div>
                       </div>
                       <div class="gender-inputs">
                         <div class="form-group" style="margin-bottom:0">
-                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                          <input type="number" class="form-control" id="aud-youtube-genero-f" placeholder="Ex: 45" min="0" max="100" oninput="updateGenderPie('youtube')">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0">
                           <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
                           <input type="number" class="form-control" id="aud-youtube-genero-m" placeholder="Ex: 55" min="0" max="100" oninput="updateGenderPie('youtube')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-youtube-genero-f" placeholder="Ex: 45" min="0" max="100" oninput="updateGenderPie('youtube')">
                         </div>
                       </div>
                     </div>
@@ -2170,18 +2170,18 @@ input[type=number] { -moz-appearance: textfield; }
                           <text x="60" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#4A90D9" font-family="var(--font-body)" id="gender-pie-txt-m-linkedin"></text>
                         </svg>
                         <div class="gender-pie-legend" id="gender-pie-lbl-linkedin">
-                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                           <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#4A90D9"></span>♂ Masculino</span>
+                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                         </div>
                       </div>
                       <div class="gender-inputs">
                         <div class="form-group" style="margin-bottom:0">
-                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                          <input type="number" class="form-control" id="aud-linkedin-genero-f" placeholder="Ex: 40" min="0" max="100" oninput="updateGenderPie('linkedin')">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0">
                           <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
                           <input type="number" class="form-control" id="aud-linkedin-genero-m" placeholder="Ex: 60" min="0" max="100" oninput="updateGenderPie('linkedin')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-linkedin-genero-f" placeholder="Ex: 40" min="0" max="100" oninput="updateGenderPie('linkedin')">
                         </div>
                       </div>
                     </div>
@@ -2288,18 +2288,18 @@ input[type=number] { -moz-appearance: textfield; }
                           <text x="60" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#4A90D9" font-family="var(--font-body)" id="gender-pie-txt-m-twitch"></text>
                         </svg>
                         <div class="gender-pie-legend" id="gender-pie-lbl-twitch">
-                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                           <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#4A90D9"></span>♂ Masculino</span>
+                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                         </div>
                       </div>
                       <div class="gender-inputs">
                         <div class="form-group" style="margin-bottom:0">
-                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                          <input type="number" class="form-control" id="aud-twitch-genero-f" placeholder="Ex: 35" min="0" max="100" oninput="updateGenderPie('twitch')">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0">
                           <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
                           <input type="number" class="form-control" id="aud-twitch-genero-m" placeholder="Ex: 65" min="0" max="100" oninput="updateGenderPie('twitch')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-twitch-genero-f" placeholder="Ex: 35" min="0" max="100" oninput="updateGenderPie('twitch')">
                         </div>
                       </div>
                     </div>
@@ -2405,18 +2405,18 @@ input[type=number] { -moz-appearance: textfield; }
                           <text x="60" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#4A90D9" font-family="var(--font-body)" id="gender-pie-txt-m-kwai"></text>
                         </svg>
                         <div class="gender-pie-legend" id="gender-pie-lbl-kwai">
-                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                           <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#4A90D9"></span>♂ Masculino</span>
+                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                         </div>
                       </div>
                       <div class="gender-inputs">
                         <div class="form-group" style="margin-bottom:0">
-                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                          <input type="number" class="form-control" id="aud-kwai-genero-f" placeholder="Ex: 55" min="0" max="100" oninput="updateGenderPie('kwai')">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0">
                           <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
                           <input type="number" class="form-control" id="aud-kwai-genero-m" placeholder="Ex: 45" min="0" max="100" oninput="updateGenderPie('kwai')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-kwai-genero-f" placeholder="Ex: 55" min="0" max="100" oninput="updateGenderPie('kwai')">
                         </div>
                       </div>
                     </div>
@@ -2521,18 +2521,18 @@ input[type=number] { -moz-appearance: textfield; }
                           <text x="60" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#4A90D9" font-family="var(--font-body)" id="gender-pie-txt-m-kick"></text>
                         </svg>
                         <div class="gender-pie-legend" id="gender-pie-lbl-kick">
-                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                           <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#4A90D9"></span>♂ Masculino</span>
+                          <span class="gender-pie-legend-item"><span class="gender-pie-legend-dot" style="background:#E1306C"></span>♀ Feminino</span>
                         </div>
                       </div>
                       <div class="gender-inputs">
                         <div class="form-group" style="margin-bottom:0">
-                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
-                          <input type="number" class="form-control" id="aud-kick-genero-f" placeholder="Ex: 30" min="0" max="100" oninput="updateGenderPie('kick')">
-                        </div>
-                        <div class="form-group" style="margin-bottom:0">
                           <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♂ Masculino (%)</label>
                           <input type="number" class="form-control" id="aud-kick-genero-m" placeholder="Ex: 70" min="0" max="100" oninput="updateGenderPie('kick')">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0">
+                          <label style="font-size:12px;color:var(--gray-4);display:block;margin-bottom:5px">♀ Feminino (%)</label>
+                          <input type="number" class="form-control" id="aud-kick-genero-f" placeholder="Ex: 30" min="0" max="100" oninput="updateGenderPie('kick')">
                         </div>
                       </div>
                     </div>
@@ -4571,11 +4571,11 @@ function updateGenderPie(network) {
 
   // Textos centrais
   if (txtF) {
-    txtF.textContent = f > 0 ? f + '% ♀' : '';
+    txtF.textContent = f > 0 ? f + '%' : '';
     txtF.setAttribute('fill', '#E1306C');
   }
   if (txtM) {
-    txtM.textContent = m > 0 ? m + '% ♂' : '';
+    txtM.textContent = m > 0 ? m + '%' : '';
   }
 }
 
