@@ -1239,11 +1239,25 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       .filter(f => f.tipo !== 'publico')
       .map(f => ({ icon: f.icone || '📌', label: f.label || '', value: f.valor || '' }));
 
-    // If no facts in DB, generate from detalhes JSON
-    if (generalFacts.length === 0 && r.detalhes) {
+    // Complementar generalFacts com dados do campo detalhes (JSONB)
+    // Sempre incluído — cobre campos de template como Formato, Transmissão, etc.
+    const DETALHE_ICONS = {
+      'Formato': '🎯', 'Transmissão prevista': '📡', 'Transmissão': '📡',
+      'Plataformas': '💻', 'Capacidade': '👥', 'Público esperado': '👥',
+      'Local': '📍', 'Cidade': '📍', 'Modalidade': '🎫',
+      'Formatos comerciais disponíveis': '📢', 'Formatos comerciais': '📢'
+    };
+    // Labels já presentes nos generalFacts da tabela (para evitar duplicata)
+    const existingLabels = new Set(generalFacts.map(f => f.label));
+    if (r.detalhes) {
       Object.entries(r.detalhes).forEach(([label, value]) => {
-        if (typeof value === 'string') generalFacts.push({ icon: '📋', label, value });
-        else if (Array.isArray(value)) generalFacts.push({ icon: '📋', label, value: value.map(v => typeof v === 'object' ? v.data + ' — ' + v.local : v).join(', ') });
+        if (existingLabels.has(label)) return; // já tem na tabela
+        const icon = DETALHE_ICONS[label] || '📋';
+        if (typeof value === 'string' && value) generalFacts.push({ icon, label, value });
+        else if (Array.isArray(value) && value.length > 0) {
+          const str = value.map(v => typeof v === 'object' ? ((v.data || '') + (v.local ? ' — ' + v.local : '')) : String(v)).filter(Boolean).join(', ');
+          if (str) generalFacts.push({ icon, label, value: str });
+        }
       });
     }
 
