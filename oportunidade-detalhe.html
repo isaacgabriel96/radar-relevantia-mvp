@@ -311,6 +311,47 @@ a { text-decoration: none; color: inherit; }
 .canal-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
 .canal-reach { font-size: 12px; color: var(--gray-400); }
 
+/* ─── AUDIENCE CHANNEL CARDS (tab Público) ─── */
+.aud-channels-grid { display: flex; flex-direction: column; gap: 16px; }
+.aud-channel-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
+.aud-channel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; border-bottom: 1px solid var(--gray-100); gap: 12px; }
+.aud-channel-title-row { display: flex; align-items: center; gap: 10px; }
+.aud-channel-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.aud-channel-name { font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--black); }
+.aud-channel-handle { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+.aud-data-badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 100px; background: #eef2e9; color: #3a7d44; flex-shrink: 0; }
+.aud-data-badge.estimativa { background: var(--gray-100); color: var(--gray-400); }
+.aud-channel-body { padding: 14px 16px; display: grid; gap: 14px; }
+.aud-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.aud-stat { background: var(--gray-50, #faf8f5); border-radius: 10px; padding: 10px 12px; }
+.aud-stat-label { font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.aud-stat-value { font-family: var(--font-display, 'Space Grotesk', sans-serif); font-size: 18px; font-weight: 700; color: var(--black); }
+.aud-section-label { font-size: 12px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+/* Gender bar */
+.aud-gender-bar-wrap { height: 8px; border-radius: 100px; overflow: hidden; background: var(--gray-200); display: flex; }
+.aud-gender-bar-f { height: 100%; background: #c084fc; transition: width 0.4s; }
+.aud-gender-bar-m { height: 100%; background: #60a5fa; transition: width 0.4s; }
+.aud-gender-legend { display: flex; gap: 12px; margin-top: 6px; }
+.aud-gender-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.aud-gender-legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); }
+/* Age bars */
+.aud-age-bars { display: flex; flex-direction: column; gap: 6px; }
+.aud-age-row { display: grid; grid-template-columns: 46px 1fr 32px; align-items: center; gap: 8px; }
+.aud-age-label { font-size: 12px; color: var(--gray-400); white-space: nowrap; }
+.aud-age-bar-bg { height: 6px; border-radius: 100px; background: var(--gray-100); overflow: hidden; }
+.aud-age-bar-fill { height: 100%; border-radius: 100px; background: var(--brown-warm, #7A5C1E); transition: width 0.4s; }
+.aud-age-pct { font-size: 11px; font-weight: 600; color: var(--gray-400); text-align: right; }
+/* Format pills */
+.aud-format-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.aud-format-pill { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 100px; background: var(--gray-100); color: var(--gray-400); border: 1.5px solid var(--gray-200); }
+/* Period footer */
+.aud-period-footer { font-size: 11px; color: var(--gray-400); padding-top: 8px; border-top: 1px solid var(--gray-100); display: flex; align-items: center; gap: 6px; }
+/* Presencial card */
+.aud-presencial-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
+.aud-presencial-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; border-bottom: 1px solid var(--gray-100); }
+.aud-presencial-title { display: flex; align-items: center; gap: 8px; font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--black); }
+.aud-empty { padding: 40px 16px; text-align: center; color: var(--gray-400); font-family: var(--font-body); font-size: 14px; }
+
 /* ─── INTEREST CARD (SIDEBAR) ─── */
 .interest-card {
   background: var(--white);
@@ -919,14 +960,33 @@ a { text-decoration: none; color: inherit; }
 
             <!-- TAB: Publico -->
             <div class="tab-panel" id="tab-publico">
-              <div class="detail-section">
-                <h3 class="detail-section-title">Perfil da audiência</h3>
-                <p class="detail-text" id="publicoDesc"></p>
+              <!-- Cards por canal (redes sociais) -->
+              <div id="publico-canais-section" style="display:none">
+                <div class="detail-section" style="margin-bottom:0">
+                  <h3 class="detail-section-title">Audiência por canal</h3>
+                  <div class="aud-channels-grid" id="publicoCanaisGrid"></div>
+                </div>
               </div>
-              <div class="detail-section">
-                <h3 class="detail-section-title">Dados do público</h3>
-                <div class="detail-facts" id="publicoFacts"></div>
+              <!-- Público presencial (eventos) -->
+              <div id="publico-presencial-section" style="display:none">
+                <div class="detail-section">
+                  <h3 class="detail-section-title">Público presencial</h3>
+                  <div id="publicoPresencialCard"></div>
+                </div>
               </div>
+              <!-- Fallback: dados legados (publicoFacts / descrição) -->
+              <div id="publico-legacy-section" style="display:none">
+                <div class="detail-section">
+                  <h3 class="detail-section-title">Perfil da audiência</h3>
+                  <p class="detail-text" id="publicoDesc"></p>
+                </div>
+                <div class="detail-section">
+                  <h3 class="detail-section-title">Dados do público</h3>
+                  <div class="detail-facts" id="publicoFacts"></div>
+                </div>
+              </div>
+              <!-- Estado vazio -->
+              <div id="publico-empty-section" class="aud-empty">Dados de audiência sendo preparados pelo detentor.</div>
             </div>
 
             <!-- TAB: Cotas -->
@@ -1134,7 +1194,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
     const path = '/rest/v1/oportunidades?select=' +
       'id,slug,detentor_id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
       'preco_minimo,formato,bg_gradient,imagens,imagem_capa,imagens_focal,tags,publico_descricao,visibilidade,' +
-      'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,' +
+      'video_url,link_externo,redes_sociais,publico_canais,publico_presencial,detalhes,datas_evento,cotas_data,cotas_habilitadas,' +
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
@@ -1228,6 +1288,9 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       tags: r.tags || [],
       publico: r.publico_descricao || '',
       publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
+      publicoCanais: r.publico_canais || null,
+      publicoPresencial: r.publico_presencial || null,
+      redes_sociais: r.redes_sociais || null,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
       sidebar: {
@@ -1417,13 +1480,253 @@ function renderPage(oppOverride) {
   });
   document.getElementById('detailTags').innerHTML = tagsHtml;
 
-  // Publico
-  document.getElementById('publicoDesc').textContent = opp.publico;
-  var pfHtml = '';
-  (opp.publicoFacts || []).forEach(function(f) {
-    pfHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
-  });
-  document.getElementById('publicoFacts').innerHTML = pfHtml;
+  // ── Público tab — per-channel cards ──────────────────────────────────────
+  (function renderPublicoTab() {
+    var canaisData    = opp.publicoCanais    || null;
+    var presencialData = opp.publicoPresencial || null;
+    var hasLegacy     = !!(opp.publico || (opp.publicoFacts && opp.publicoFacts.length > 0));
+
+    var secCanais     = document.getElementById('publico-canais-section');
+    var secPresencial = document.getElementById('publico-presencial-section');
+    var secLegacy     = document.getElementById('publico-legacy-section');
+    var secEmpty      = document.getElementById('publico-empty-section');
+
+    // ── Network metadata ──────────────────────────────────────────────────
+    var NET_META = {
+      instagram: {
+        label: 'Instagram',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+        color: '#E1306C'
+      },
+      tiktok: {
+        label: 'TikTok',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.99a8.19 8.19 0 004.78 1.52V7.05a4.85 4.85 0 01-1.01-.36z"/></svg>',
+        color: '#010101'
+      },
+      youtube: {
+        label: 'YouTube',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 00.5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 002.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 002.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>',
+        color: '#FF0000'
+      },
+      linkedin: {
+        label: 'LinkedIn',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>',
+        color: '#0A66C2'
+      }
+    };
+
+    var AGE_LABELS = { '1317': '13–17', '1824': '18–24', '2534': '25–34', '3544': '35–44', '45p': '45+' };
+    var AGE_ORDER  = ['1317', '1824', '2534', '3544', '45p'];
+
+    // ── Build per-channel card HTML ───────────────────────────────────────
+    function buildChannelCard(network, data, handles) {
+      var meta    = NET_META[network] || { label: network, icon: '', color: '#888' };
+      var handlesList = (handles && handles[network]) ? (Array.isArray(handles[network]) ? handles[network] : [handles[network]]) : [];
+      var handleStr = handlesList.length > 0 ? handlesList.join(', ') : '';
+      var isReal    = data.tipo_dado === 'real';
+      var badgeTxt  = isReal ? 'Dado real' : 'Estimativa';
+      var badgeCls  = isReal ? 'aud-data-badge' : 'aud-data-badge estimativa';
+
+      // Header
+      var html = '<div class="aud-channel-card">';
+      html += '<div class="aud-channel-header">';
+      html += '<div class="aud-channel-title-row">';
+      html += '<span class="aud-channel-icon" style="color:' + meta.color + '">' + meta.icon + '</span>';
+      html += '<div>';
+      html += '<div class="aud-channel-name">' + escapeHtml(meta.label) + '</div>';
+      if (handleStr) html += '<div class="aud-channel-handle">' + escapeHtml(handleStr) + '</div>';
+      html += '</div>';
+      html += '</div>';
+      html += '<span class="' + badgeCls + '">' + escapeHtml(badgeTxt) + '</span>';
+      html += '</div>';
+
+      // Body
+      html += '<div class="aud-channel-body">';
+
+      // Seguidores + Engajamento row
+      if (data.seguidores || data.engajamento) {
+        html += '<div class="aud-stats-row">';
+        if (data.seguidores) {
+          html += '<div class="aud-stat"><div class="aud-stat-label">Seguidores</div><div class="aud-stat-value">' + escapeHtml(data.seguidores) + '</div></div>';
+        }
+        if (data.engajamento) {
+          html += '<div class="aud-stat"><div class="aud-stat-label">Engajamento</div><div class="aud-stat-value">' + escapeHtml(data.engajamento) + '</div></div>';
+        }
+        html += '</div>';
+      }
+
+      // Gênero bar
+      if (data.genero && (data.genero.f != null || data.genero.m != null)) {
+        var pctF = parseFloat(data.genero.f) || 0;
+        var pctM = parseFloat(data.genero.m) || 0;
+        html += '<div class="aud-section-label">Gênero</div>';
+        html += '<div class="aud-gender-bar-wrap">';
+        html += '<div class="aud-gender-bar-f" style="width:' + pctF + '%"></div>';
+        html += '<div class="aud-gender-bar-m" style="width:' + pctM + '%"></div>';
+        html += '</div>';
+        html += '<div class="aud-gender-legend">';
+        if (pctF > 0) html += '<div class="aud-gender-legend-item"><span class="aud-gender-dot" style="background:#E1306C"></span>' + pctF + '% F</div>';
+        if (pctM > 0) html += '<div class="aud-gender-legend-item"><span class="aud-gender-dot" style="background:#0A66C2"></span>' + pctM + '% M</div>';
+        html += '</div>';
+      }
+
+      // Faixa etária CSS bars
+      if (data.faixa_etaria && Object.keys(data.faixa_etaria).length > 0) {
+        var maxPct = 0;
+        AGE_ORDER.forEach(function(k) { var v = parseFloat(data.faixa_etaria[k]) || 0; if (v > maxPct) maxPct = v; });
+        html += '<div class="aud-section-label">Faixa etária</div>';
+        html += '<div class="aud-age-bars">';
+        AGE_ORDER.forEach(function(k) {
+          var v = parseFloat(data.faixa_etaria[k]) || 0;
+          if (v === 0) return;
+          var barPct = maxPct > 0 ? Math.round((v / maxPct) * 100) : 0;
+          html += '<div class="aud-age-row">';
+          html += '<div class="aud-age-label">' + (AGE_LABELS[k] || k) + '</div>';
+          html += '<div class="aud-age-bar-bg"><div class="aud-age-bar-fill" style="width:' + barPct + '%"></div></div>';
+          html += '<div class="aud-age-pct">' + v + '%</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Formatos
+      if (data.formatos && data.formatos.length > 0) {
+        html += '<div class="aud-section-label">Formatos que performam</div>';
+        html += '<div class="aud-format-pills">';
+        data.formatos.forEach(function(fmt) {
+          html += '<span class="aud-format-pill">' + escapeHtml(fmt) + '</span>';
+        });
+        html += '</div>';
+      }
+
+      // Contexto
+      if (data.contexto) {
+        html += '<div class="aud-section-label">Contexto</div>';
+        html += '<p style="font-size:13px;color:var(--gray-4);line-height:1.55;margin:0">' + escapeHtml(data.contexto) + '</p>';
+      }
+
+      html += '</div>';// aud-channel-body
+
+      // Footer — período de referência
+      if (data.periodo_referencia) {
+        html += '<div class="aud-period-footer">Referência: ' + escapeHtml(data.periodo_referencia) + '</div>';
+      }
+
+      html += '</div>';// aud-channel-card
+      return html;
+    }
+
+    // ── Build presencial card HTML ────────────────────────────────────────
+    function buildPresencialCard(data) {
+      var isReal   = data.tipo_dado === 'real';
+      var badgeTxt = isReal ? 'Dado real' : 'Estimativa';
+      var badgeCls = isReal ? 'aud-data-badge' : 'aud-data-badge estimativa';
+
+      var html = '<div class="aud-presencial-card">';
+      html += '<div class="aud-presencial-header">';
+      html += '<span class="aud-presencial-title">🏟️ Público presencial</span>';
+      html += '<span class="' + badgeCls + '">' + escapeHtml(badgeTxt) + '</span>';
+      html += '</div>';
+
+      // Histórico
+      if (data.historico) {
+        html += '<div class="aud-stats-row">';
+        html += '<div class="aud-stat"><div class="aud-stat-label">Histórico</div><div class="aud-stat-value">' + escapeHtml(data.historico) + '</div></div>';
+        if (data.perfil_socioeconomico) {
+          html += '<div class="aud-stat"><div class="aud-stat-label">Perfil socioecon.</div><div class="aud-stat-value">' + escapeHtml(data.perfil_socioeconomico) + '</div></div>';
+        }
+        html += '</div>';
+      } else if (data.perfil_socioeconomico) {
+        html += '<div class="aud-stats-row">';
+        html += '<div class="aud-stat"><div class="aud-stat-label">Perfil socioecon.</div><div class="aud-stat-value">' + escapeHtml(data.perfil_socioeconomico) + '</div></div>';
+        html += '</div>';
+      }
+
+      // Gênero bar
+      if (data.genero && (data.genero.f != null || data.genero.m != null)) {
+        var pctF = parseFloat(data.genero.f) || 0;
+        var pctM = parseFloat(data.genero.m) || 0;
+        html += '<div class="aud-section-label">Gênero</div>';
+        html += '<div class="aud-gender-bar-wrap">';
+        html += '<div class="aud-gender-bar-f" style="width:' + pctF + '%"></div>';
+        html += '<div class="aud-gender-bar-m" style="width:' + pctM + '%"></div>';
+        html += '</div>';
+        html += '<div class="aud-gender-legend">';
+        if (pctF > 0) html += '<div class="aud-gender-legend-item"><span class="aud-gender-dot" style="background:#E1306C"></span>' + pctF + '% F</div>';
+        if (pctM > 0) html += '<div class="aud-gender-legend-item"><span class="aud-gender-dot" style="background:#0A66C2"></span>' + pctM + '% M</div>';
+        html += '</div>';
+      }
+
+      // Faixa etária
+      if (data.faixa_etaria && Object.keys(data.faixa_etaria).length > 0) {
+        var maxPct = 0;
+        AGE_ORDER.forEach(function(k) { var v = parseFloat(data.faixa_etaria[k]) || 0; if (v > maxPct) maxPct = v; });
+        html += '<div class="aud-section-label">Faixa etária</div>';
+        html += '<div class="aud-age-bars">';
+        AGE_ORDER.forEach(function(k) {
+          var v = parseFloat(data.faixa_etaria[k]) || 0;
+          if (v === 0) return;
+          var barPct = maxPct > 0 ? Math.round((v / maxPct) * 100) : 0;
+          html += '<div class="aud-age-row">';
+          html += '<div class="aud-age-label">' + (AGE_LABELS[k] || k) + '</div>';
+          html += '<div class="aud-age-bar-bg"><div class="aud-age-bar-fill" style="width:' + barPct + '%"></div></div>';
+          html += '<div class="aud-age-pct">' + v + '%</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Contexto
+      if (data.contexto) {
+        html += '<div class="aud-section-label">Contexto</div>';
+        html += '<p style="font-size:13px;color:var(--gray-4);line-height:1.55;margin:0">' + escapeHtml(data.contexto) + '</p>';
+      }
+
+      // Footer
+      if (data.periodo_referencia) {
+        html += '<div class="aud-period-footer">Referência: ' + escapeHtml(data.periodo_referencia) + '</div>';
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    // ── Render canais section ─────────────────────────────────────────────
+    var hasCanais = canaisData && typeof canaisData === 'object' && Object.keys(canaisData).length > 0;
+    if (hasCanais) {
+      var grid = document.getElementById('publicoCanaisGrid');
+      var gridHtml = '';
+      var handles  = opp.redes_sociais || {};
+      Object.keys(canaisData).forEach(function(net) {
+        gridHtml += buildChannelCard(net, canaisData[net], handles);
+      });
+      if (grid) grid.innerHTML = gridHtml;
+      if (secCanais) secCanais.style.display = '';
+    }
+
+    // ── Render presencial section ─────────────────────────────────────────
+    var hasPresencial = presencialData && typeof presencialData === 'object';
+    if (hasPresencial) {
+      var presCard = document.getElementById('publicoPresencialCard');
+      if (presCard) presCard.innerHTML = buildPresencialCard(presencialData);
+      if (secPresencial) secPresencial.style.display = '';
+    }
+
+    // ── Legacy fallback ───────────────────────────────────────────────────
+    if (!hasCanais && !hasPresencial && hasLegacy) {
+      document.getElementById('publicoDesc').textContent = opp.publico;
+      var pfHtml = '';
+      (opp.publicoFacts || []).forEach(function(f) {
+        pfHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
+      });
+      document.getElementById('publicoFacts').innerHTML = pfHtml;
+      if (secLegacy) secLegacy.style.display = '';
+    }
+
+    // ── Empty state ───────────────────────────────────────────────────────
+    var hasAnything = hasCanais || hasPresencial || hasLegacy;
+    if (secEmpty) secEmpty.style.display = hasAnything ? 'none' : '';
+  })();
 
   var EMPTY_STATE_HTML = '<div style="padding:32px 16px;text-align:center;color:var(--gray-3);font-family:var(--font-body);font-size:14px;">Informações sendo preparadas pelo detentor.</div>';
 
