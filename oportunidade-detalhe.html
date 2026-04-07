@@ -283,6 +283,12 @@ a { text-decoration: none; color: inherit; }
 .detail-section { margin-bottom: 28px; }
 .detail-section-title { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--black); margin-bottom: 12px; }
 .detail-text { font-size: 14px; color: var(--gray-600); line-height: 1.75; }
+/* ── Vídeo embed ── */
+.video-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius-lg); background: var(--black); }
+.video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: var(--radius-lg); }
+.video-link-fallback { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); font-size: 14px; color: var(--text); text-decoration: none; font-weight: 500; transition: background 0.15s; }
+.video-link-fallback:hover { background: var(--gray-200); }
+.video-link-fallback svg { flex-shrink: 0; color: var(--gold); }
 .detail-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .fact-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); }
 .fact-icon { width: 36px; height: 36px; background: var(--gray-100); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
@@ -948,6 +954,11 @@ a { text-decoration: none; color: inherit; }
                 <h3 class="detail-section-title">Sobre a oportunidade</h3>
                 <p class="detail-text" id="detailDesc"></p>
               </div>
+              <!-- Vídeo (exibido só se tiver video_url) -->
+              <div class="detail-section" id="detailVideoSection" style="display:none">
+                <h3 class="detail-section-title">Vídeo</h3>
+                <div id="detailVideoContent"></div>
+              </div>
               <div class="detail-section">
                 <h3 class="detail-section-title">Informações gerais</h3>
                 <div class="detail-facts" id="detailFacts"></div>
@@ -1293,6 +1304,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       redes_sociais: r.redes_sociais || null,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
+      videoUrl: r.video_url || null,
       sidebar: {
         evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || r.alcance || '') : (r.alcance || ''),
         prazo: r.cotas_data && r.cotas_data[0] && r.cotas_data[0].prazo ? r.cotas_data[0].prazo : 'Em aberto',
@@ -1479,6 +1491,33 @@ function renderPage(oppOverride) {
     tagsHtml += '<span class="tag' + (i === 0 ? ' tag-gold' : '') + '">' + escapeHtml(t) + '</span>';
   });
   document.getElementById('detailTags').innerHTML = tagsHtml;
+
+  // Vídeo
+  (function renderVideo() {
+    var url = opp.videoUrl;
+    var section = document.getElementById('detailVideoSection');
+    var content = document.getElementById('detailVideoContent');
+    if (!url || !section || !content) return;
+
+    var embedUrl = null;
+    // YouTube: youtube.com/watch?v=ID ou youtu.be/ID
+    var ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if (ytMatch) embedUrl = 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0';
+    // Vimeo: vimeo.com/ID
+    var vmMatch = !ytMatch && url.match(/vimeo\.com\/(\d+)/);
+    if (vmMatch) embedUrl = 'https://player.vimeo.com/video/' + vmMatch[1];
+
+    if (embedUrl) {
+      content.innerHTML = '<div class="video-wrap"><iframe src="' + embedUrl + '" allowfullscreen loading="lazy" title="Vídeo da oportunidade"></iframe></div>';
+    } else {
+      // URL genérica — link clicável com ícone play
+      content.innerHTML = '<a class="video-link-fallback" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>' +
+        '<span>' + escapeHtml(url) + '</span>' +
+      '</a>';
+    }
+    section.style.display = '';
+  })();
 
   // ── Público tab — per-channel cards ──────────────────────────────────────
   (function renderPublicoTab() {
