@@ -271,14 +271,40 @@ a { text-decoration: none; color: inherit; }
 /* ─── BODY LAYOUT ─── */
 .detail-body { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start; }
 
-/* ─── TABS (scroll-spy nav) ─── */
-.detail-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--gray-200); margin-bottom: 0; overflow-x: auto; position: sticky; top: 64px; z-index: 40; background: var(--white); padding-top: 4px; }
-.tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+/* ─── TABS (scroll-spy nav — sticky under topbar) ─── */
+.detail-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--gray-200); margin-bottom: 0; overflow-x: auto; scrollbar-width: none; position: sticky; top: 64px; z-index: 40; background: var(--gray-body); padding-top: 6px; }
+.detail-tabs::-webkit-scrollbar { display: none; }
+.tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 11px 18px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
 .tab-btn:hover { color: var(--text); }
 .tab-btn.active { color: var(--text); border-bottom-color: var(--gold); font-weight: 600; }
 /* Scroll sections — always visible */
-.detail-section-block { padding-top: 28px; }
-.detail-section-block + .detail-section-block { border-top: 1px solid var(--gray-100); }
+.detail-section-block { padding-top: 32px; }
+.detail-section-block + .detail-section-block { border-top: 1px solid var(--gray-100); margin-top: 4px; }
+
+/* Hero meta strip */
+.detail-hero-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; margin-bottom: 20px; }
+.hero-meta-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-pill); font-size: 12px; color: var(--gray-500); font-weight: 500; }
+.hero-meta-chip svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--gray-400); }
+.hero-meta-chip.chip-gold { background: var(--gold-pale); border-color: rgba(184,134,11,0.2); color: var(--gold); font-weight: 600; }
+.hero-meta-chip.chip-green { background: var(--green-bg); border-color: var(--green-border); color: var(--green); font-weight: 600; }
+
+/* Sidebar sticky */
+.interest-card { position: sticky; top: 112px; }  /* 64 topbar + 44 tabnav + 4 gap */
+
+/* Video embed */
+.detail-video-wrap { position: relative; width: 100%; padding-bottom: 56.25%; border-radius: var(--radius-lg); overflow: hidden; background: var(--black); margin-top: 16px; }
+.detail-video-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+
+/* Link externo */
+.detail-link-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; color: var(--text); transition: border-color 0.15s; margin-top: 12px; }
+.detail-link-btn:hover { border-color: var(--gray-300); }
+.detail-link-btn svg { width: 14px; height: 14px; color: var(--gray-400); }
+
+/* Sidebar divider */
+.sidebar-divider { height: 1px; background: var(--gray-100); margin: 4px 0; }
+
+/* Sidebar section label */
+.sidebar-section-label { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-400); padding: 12px 0 4px; }
 
 /* ─── TAB CONTENT ─── */
 .detail-section { margin-bottom: 28px; }
@@ -330,8 +356,6 @@ a { text-decoration: none; color: inherit; }
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  position: sticky;
-  top: 88px;
 }
 /* Header escuro do card */
 .interest-card-header {
@@ -873,6 +897,7 @@ a { text-decoration: none; color: inherit; }
             <span class="detail-status">Aberto</span>
           </div>
           <h1 class="detail-title" id="detailTitle"></h1>
+          <div class="detail-hero-meta" id="detailHeroMeta"></div>
         </div>
         <div class="detail-header-actions">
           <button class="action-btn" id="btnEditToggle" title="Editar oportunidade" onclick="toggleEditMode()" style="background:var(--gold-pale);border-color:var(--gold);">
@@ -921,12 +946,14 @@ a { text-decoration: none; color: inherit; }
               <div class="detail-section">
                 <h3 class="detail-section-title">Sobre a oportunidade</h3>
                 <p class="detail-text" id="detailDesc"></p>
+                <!-- Link externo + vídeo inline (populado via JS) -->
+                <div id="detailMediaInline"></div>
               </div>
-              <div class="detail-section">
+              <div class="detail-section" id="detailFactsSection">
                 <h3 class="detail-section-title">Informações gerais</h3>
                 <div class="detail-facts" id="detailFacts"></div>
               </div>
-              <div class="detail-section">
+              <div class="detail-section" id="detailTagsSection">
                 <h3 class="detail-section-title">Segmentos ideais</h3>
                 <div class="tags-wrap" id="detailTags"></div>
               </div>
@@ -965,6 +992,7 @@ a { text-decoration: none; color: inherit; }
             <div class="interest-card-body">
               <div class="interest-info" id="interestInfo"></div>
 
+              <!-- Ações detentor -->
               <button class="btn-interest" onclick="toggleEditMode()" id="sidebarEditBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 Editar oportunidade
@@ -974,6 +1002,9 @@ a { text-decoration: none; color: inherit; }
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 Abrir editor completo
               </a>
+
+              <!-- Links externos (populado via JS) -->
+              <div id="sidebarLinks"></div>
 
               <div class="interest-disclaimer" id="editDisclaimer">Editando como detentor. Alterações são salvas automaticamente.</div>
             </div>
@@ -1213,7 +1244,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
-      'canais(icone,label,valor,ordem)' +
+      'canais(icone,label,valor,seguidores,genero_f,genero_m,faixa_etaria,ordem)' +
       filter +
       '&oportunidade_fatos.order=ordem.asc' +
       '&cotas.order=ordem.asc' +
@@ -1311,17 +1342,22 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
+      video_url: r.video_url || null,
+      link_externo: r.link_externo || null,
+      formato: r.formato || '',
+      localizacao: r.localizacao || '',
+      alcance: r.alcance || '',
+      visibilidade: r.visibilidade || 'publica',
       sidebar: {
         evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || r.alcance || '') : (r.alcance || ''),
         prazo: r.cotas_data && r.cotas_data[0] && r.cotas_data[0].prazo ? r.cotas_data[0].prazo : 'Em aberto',
         cotasQty: cotasArr.length > 0 ? cotasArr.length + ' modalidade' + (cotasArr.length > 1 ? 's' : '') : (r.cotas_habilitadas ? 'Disponível' : 'A definir'),
         formato: r.formato || '',
-        participantes: r.alcance || ''
+        participantes: r.alcance || '',
+        preco: r.preco_minimo || null
       },
       // Org data for owner section
-      _orgData: orgData,
-      // Visibility control
-      visibilidade: r.visibilidade || 'publica'
+      _orgData: orgData
     };
   } catch (err) {
     console.error('[fetchOppDetail] Failed:', err);
@@ -1485,19 +1521,73 @@ function renderPage(oppOverride) {
     });
   }, { passive: true });
 
-  // Facts
+  // ── Hero meta chips ──────────────────────────────────────────────────────
+  var heroMeta = document.getElementById('detailHeroMeta');
+  if (heroMeta) {
+    var chipsSvgPin    = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a5 5 0 0 1 5 5c0 3.5-5 9-5 9S3 9.5 3 6a5 5 0 0 1 5-5zm0 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>';
+    var chipsSvgTag    = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1h5.586a1 1 0 0 1 .707.293l6 6a1 1 0 0 1 0 1.414l-5.586 5.586a1 1 0 0 1-1.414 0l-6-6A1 1 0 0 1 1 7.586V2a1 1 0 0 1 1-1zm2.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>';
+    var chipsSvgCal    = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg>';
+    var chipsSvgUsers  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.759 1.457.76 1.72l-.008.002-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg>';
+    var chipsSvgMoney  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2.5 1a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-5a.5.5 0 0 0-.5-.5h-11zm6.5 4a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>';
+    var chipsHtml = '';
+    var loc = opp.localizacao || opp.city || '';
+    if (loc) chipsHtml += '<span class="hero-meta-chip">' + chipsSvgPin + escapeHtml(loc) + '</span>';
+    if (opp.formato) chipsHtml += '<span class="hero-meta-chip">' + chipsSvgTag + escapeHtml(opp.formato) + '</span>';
+    if (opp.sidebar && opp.sidebar.evento) chipsHtml += '<span class="hero-meta-chip">' + chipsSvgCal + escapeHtml(opp.sidebar.evento) + '</span>';
+    if (opp.alcance) chipsHtml += '<span class="hero-meta-chip">' + chipsSvgUsers + escapeHtml(opp.alcance) + '</span>';
+    if (opp.sidebar && opp.sidebar.preco) {
+      var precoFormatado = typeof opp.sidebar.preco === 'number'
+        ? 'A partir de R$ ' + opp.sidebar.preco.toLocaleString('pt-BR')
+        : 'A partir de ' + opp.sidebar.preco;
+      chipsHtml += '<span class="hero-meta-chip chip-gold">' + chipsSvgMoney + escapeHtml(precoFormatado) + '</span>';
+    }
+    if (opp.visibilidade && opp.visibilidade !== 'publica') {
+      chipsHtml += '<span class="hero-meta-chip chip-green">✓ Verificado</span>';
+    }
+    heroMeta.innerHTML = chipsHtml;
+    heroMeta.style.display = chipsHtml ? '' : 'none';
+  }
+
+  // ── Inline media (video + link externo na seção Visão Geral) ─────────────
+  var mediaInline = document.getElementById('detailMediaInline');
+  if (mediaInline) {
+    var mediaHtml = '';
+    if (opp.video_url) {
+      // Suporta YouTube e Vimeo
+      var vidSrc = opp.video_url;
+      var ytMatch = vidSrc.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+      var viMatch = vidSrc.match(/vimeo\.com\/(\d+)/);
+      if (ytMatch) {
+        vidSrc = 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0';
+      } else if (viMatch) {
+        vidSrc = 'https://player.vimeo.com/video/' + viMatch[1];
+      }
+      mediaHtml += '<div class="detail-video-wrap"><iframe src="' + escapeHtml(vidSrc) + '" allowfullscreen loading="lazy"></iframe></div>';
+    }
+    if (opp.link_externo) {
+      var svgExternal = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/><path d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/></svg>';
+      mediaHtml += '<a href="' + escapeHtml(opp.link_externo) + '" target="_blank" rel="noopener" class="detail-link-btn">' + svgExternal + 'Ver página da oportunidade</a>';
+    }
+    mediaInline.innerHTML = mediaHtml;
+  }
+
+  // ── Facts (hide section if empty) ────────────────────────────────────────
   var factsHtml = '';
   (opp.facts || []).forEach(function(f) {
     factsHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
   });
   document.getElementById('detailFacts').innerHTML = factsHtml;
+  var factsSection = document.getElementById('detailFactsSection');
+  if (factsSection) factsSection.style.display = factsHtml ? '' : 'none';
 
-  // Tags
+  // Tags (hide section if empty)
   var tagsHtml = '';
   (opp.tags || []).forEach(function(t, i) {
     tagsHtml += '<span class="tag' + (i === 0 ? ' tag-gold' : '') + '">' + escapeHtml(t) + '</span>';
   });
   document.getElementById('detailTags').innerHTML = tagsHtml;
+  var tagsSection = document.getElementById('detailTagsSection');
+  if (tagsSection) tagsSection.style.display = tagsHtml ? '' : 'none';
 
   // Publico — aba removida, elementos não existem mais no DOM
 
@@ -1573,12 +1663,44 @@ function renderPage(oppOverride) {
     document.getElementById('canaisGrid').innerHTML = EMPTY_STATE_HTML;
   }
 
-  // Sidebar card
+  // ── Sidebar card — info rica ─────────────────────────────────────────────
   document.getElementById('interestPrice').textContent = 'Entre em contato';
+  var sb = opp.sidebar || {};
   var infoHtml = '';
-  infoHtml += '<div class="interest-row"><span class="interest-row-label">Tipo</span><span class="interest-row-value">' + escapeHtml(opp.category || '—') + '</span></div>';
-  infoHtml += '<div class="interest-row"><span class="interest-row-label">Prazo</span><span class="interest-row-value deadline">' + escapeHtml(opp.sidebar.prazo || 'Em aberto') + '</span></div>';
-  document.getElementById('interestInfo').innerHTML = infoHtml;
+  if (opp.category) {
+    infoHtml += '<div class="interest-row"><span class="interest-row-label">Tipo</span><span class="interest-row-value">' + escapeHtml(opp.category) + '</span></div>';
+  }
+  if (sb.formato || opp.formato) {
+    infoHtml += '<div class="interest-row"><span class="interest-row-label">Formato</span><span class="interest-row-value">' + escapeHtml(sb.formato || opp.formato) + '</span></div>';
+  }
+  if (sb.evento) {
+    infoHtml += '<div class="interest-row"><span class="interest-row-label">Data / Evento</span><span class="interest-row-value">' + escapeHtml(sb.evento) + '</span></div>';
+  }
+  if (sb.prazo) {
+    infoHtml += '<div class="interest-row"><span class="interest-row-label">Prazo</span><span class="interest-row-value deadline">' + escapeHtml(sb.prazo) + '</span></div>';
+  }
+  if (sb.cotasQty) {
+    infoHtml += '<div class="interest-row"><span class="interest-row-label">Cotas</span><span class="interest-row-value">' + escapeHtml(sb.cotasQty) + '</span></div>';
+  }
+  if (sb.participantes || opp.alcance) {
+    infoHtml += '<div class="interest-row"><span class="interest-row-label">Alcance</span><span class="interest-row-value">' + escapeHtml(sb.participantes || opp.alcance) + '</span></div>';
+  }
+  if (sb.preco) {
+    var precoSb = typeof sb.preco === 'number' ? 'R$ ' + sb.preco.toLocaleString('pt-BR') : sb.preco;
+    infoHtml += '<div class="sidebar-divider"></div><div class="interest-row"><span class="interest-row-label">A partir de</span><span class="interest-row-value" style="color:var(--gold);font-weight:700">' + escapeHtml(precoSb) + '</span></div>';
+  }
+  document.getElementById('interestInfo').innerHTML = infoHtml || '<div class="interest-row"><span class="interest-row-label">Tipo</span><span class="interest-row-value">—</span></div>';
+
+  // ── Sidebar links ────────────────────────────────────────────────────────
+  var sidebarLinks = document.getElementById('sidebarLinks');
+  if (sidebarLinks) {
+    if (opp.link_externo) {
+      var svgExt = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" style="width:13px;height:13px;flex-shrink:0"><path d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/><path d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/></svg>';
+      sidebarLinks.innerHTML = '<div class="sidebar-divider" style="margin-top:4px"></div><a href="' + escapeHtml(opp.link_externo) + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--text);text-decoration:none;border-top:0;gap:7px">' + svgExt + 'Ver página oficial</a>';
+    } else {
+      sidebarLinks.innerHTML = '';
+    }
+  }
 
   // Modal cota select — esconde o grupo inteiro se não houver cotas definidas
   var cotaGroup = document.getElementById('modal-cota-group');
