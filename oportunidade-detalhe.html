@@ -2076,31 +2076,49 @@ function renderPage(oppOverride) {
   var tabBtns = document.querySelectorAll('#detailTabsNav .tab-btn');
   var sectionIds = Array.from(tabBtns).map(function(b) { return b.dataset.section; });
   var sections = sectionIds.map(function(id) { return document.getElementById(id); }).filter(Boolean);
+  var isScrollingFromClick = false;
 
-  // Click → smooth scroll
+  // Click → smooth scroll (desabilita spy durante animação)
   tabBtns.forEach(function(btn) {
     btn.addEventListener('click', function() {
       var target = document.getElementById(btn.dataset.section);
       if (!target) return;
+      isScrollingFromClick = true;
+      // Atualiza aba imediatamente
+      tabBtns.forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
       var tabsBar = document.getElementById('detailTabsNav');
-      var offset = tabsBar ? tabsBar.offsetHeight + 12 : 60;
+      var offset = tabsBar ? tabsBar.offsetHeight + 16 : 80;
       var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
       window.scrollTo({ top: top, behavior: 'smooth' });
+      // Reabilita spy após animação
+      setTimeout(function() { isScrollingFromClick = false; }, 800);
     });
   });
 
-  // Scroll spy via IntersectionObserver
-  var observer = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        tabBtns.forEach(function(b) { b.classList.remove('active'); });
-        var match = document.querySelector('#detailTabsNav .tab-btn[data-section="' + entry.target.id + '"]');
-        if (match) match.classList.add('active');
+  // Scroll spy via scroll event (mais confiável que IntersectionObserver)
+  var ticking = false;
+  function onScroll() {
+    if (isScrollingFromClick) return;
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function() {
+      ticking = false;
+      var tabsBar = document.getElementById('detailTabsNav');
+      var threshold = (tabsBar ? tabsBar.getBoundingClientRect().bottom : 80) + 40;
+      var activeId = sectionIds[0]; // default: first
+      for (var i = sections.length - 1; i >= 0; i--) {
+        if (sections[i].getBoundingClientRect().top <= threshold) {
+          activeId = sectionIds[i];
+          break;
+        }
       }
+      tabBtns.forEach(function(b) {
+        b.classList.toggle('active', b.dataset.section === activeId);
+      });
     });
-  }, { rootMargin: '-20% 0px -60% 0px' });
-
-  sections.forEach(function(s) { observer.observe(s); });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
 })();
 
 /* ─── CURRENT OPP (set by renderPage for submitModal) ─── */
