@@ -153,18 +153,8 @@ function enterDemoMode() { /* desativado */ }
 function exitDemoMode() { window.location.href = 'admin.html'; }
 
 function showDemoBannerIfActive() {
-  // Demo desativado — nunca mostra banner
+  // Demo desativado permanentemente — stub mantido para compatibilidade
   return;
-  const banner = document.getElementById('demoBanner');
-  if (banner) banner.style.display = 'flex';
-  const sidebarName = document.getElementById('sidebarName');
-  if (sidebarName && !document.getElementById('demoBadge')) {
-    const badge = document.createElement('span');
-    badge.id = 'demoBadge';
-    badge.textContent = 'DEMO';
-    badge.style.cssText = 'display:inline-block;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#1A1200;font-size:9px;font-weight:700;letter-spacing:0.1em;padding:2px 8px;border-radius:100px;margin-left:8px;vertical-align:middle;';
-    sidebarName.parentNode.insertBefore(badge, sidebarName.nextSibling);
-  }
 }
 
 // ─── LEGACY FETCH (backward compat for pages not yet migrated) ──
@@ -265,8 +255,10 @@ if (sb && !isDemoMode()) {
 // ─── CATALOG API ────────────────────────────────────────────
 
 function parsePreco(str) {
-  if (!str) return 0;
-  const cleaned = str.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
+  if (!str && str !== 0) return 0;
+  if (typeof str === 'number') return str;
+  const s = String(str);
+  const cleaned = s.replace(/[^\d.,]/g, '').replace(/\./g, '').replace(',', '.');
   return parseFloat(cleaned) || 0;
 }
 
@@ -431,13 +423,24 @@ async function fetchNegociacoesDetentor() {
   }
 }
 
+// rowToNegociacao para o lado da marca — lê detentor em vez de marca
+function rowToNegociacaoMarca(row) {
+  // O nome exibido para a marca é o nome/empresa do detentor (organizador)
+  const detentorNome = (row.detentor && row.detentor.empresa) ? row.detentor.empresa
+    : (row.detentor && row.detentor.nome) ? row.detentor.nome : '';
+  // Reutiliza rowToNegociacao e sobrescreve apenas o campo marca
+  const neg = rowToNegociacao(row);
+  neg.marca = detentorNome;   // na visão da marca, "marca" aponta pro detentor (organizador)
+  return neg;
+}
+
 async function fetchNegociacoesMarca() {
   if (isDemoMode()) return null;
   try {
     if (sb) {
       const token = await getValidToken();
       if (token) {
-        // For marca, join detentor instead of marca
+        // Para marca, faz join no detentor (organizador) em vez da marca
         const marcaSelect = _negSelectQuery.replace('marca:marca_id(nome,empresa),', 'detentor:detentor_id(nome,empresa),');
         const res = await fetch(SUPABASE_URL + '/rest/v1/negociacoes?select=' + marcaSelect +
           '&order=created_at.desc&mensagens.order=created_at.asc', {
@@ -445,8 +448,19 @@ async function fetchNegociacoesMarca() {
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const rows = await res.json();
-        return rows.map(rowToNegociacao);
+        // Usa rowToNegociacaoMarca para ler o campo detentor corretamente
+        return rows.map(rowToNegociacaoMarca);
       }
+    }
+    // Fallback: tenta sessão legada da marca
+    const session = await getSessionAsync('brand');
+    if (session?.access_token && session.access_token !== 'DEMO_TOKEN') {
+      const marcaSelect = _negSelectQuery.replace('marca:marca_id(nome,empresa),', 'detentor:detentor_id(nome,empresa),');
+      const res = await sbFetch('/rest/v1/negociacoes?select=' + marcaSelect +
+        '&order=created_at.desc&mensagens.order=created_at.asc', session.access_token);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const rows = await res.json();
+      return rows.map(rowToNegociacaoMarca);
     }
     return null;
   } catch (err) {

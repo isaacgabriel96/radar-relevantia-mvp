@@ -283,6 +283,12 @@ a { text-decoration: none; color: inherit; }
 .detail-section { margin-bottom: 28px; }
 .detail-section-title { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--black); margin-bottom: 12px; }
 .detail-text { font-size: 14px; color: var(--gray-600); line-height: 1.75; }
+/* ── Vídeo embed ── */
+.video-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius-lg); background: var(--black); }
+.video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: var(--radius-lg); }
+.video-link-fallback { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: var(--radius-lg); font-size: 14px; color: var(--text); text-decoration: none; font-weight: 500; transition: background 0.15s; }
+.video-link-fallback:hover { background: var(--gray-200); }
+.video-link-fallback svg { flex-shrink: 0; color: var(--gold); }
 .detail-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .fact-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); }
 .fact-icon { width: 36px; height: 36px; background: var(--gray-100); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
@@ -310,6 +316,47 @@ a { text-decoration: none; color: inherit; }
 .canal-icon { width: 40px; height: 40px; border-radius: var(--radius); background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
 .canal-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
 .canal-reach { font-size: 12px; color: var(--gray-400); }
+
+/* ─── AUDIENCE CHANNEL CARDS (tab Público) ─── */
+.aud-channels-grid { display: flex; flex-direction: column; gap: 16px; }
+.aud-channel-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
+.aud-channel-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; border-bottom: 1px solid var(--gray-100); gap: 12px; }
+.aud-channel-title-row { display: flex; align-items: center; gap: 10px; }
+.aud-channel-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.aud-channel-name { font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--black); }
+.aud-channel-handle { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+.aud-data-badge { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 100px; background: #eef2e9; color: #3a7d44; flex-shrink: 0; }
+.aud-data-badge.estimativa { background: var(--gray-100); color: var(--gray-400); }
+.aud-channel-body { padding: 14px 16px; display: grid; gap: 14px; }
+.aud-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.aud-stat { background: var(--gray-50, #faf8f5); border-radius: 10px; padding: 10px 12px; }
+.aud-stat-label { font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.aud-stat-value { font-family: var(--font-display, 'Space Grotesk', sans-serif); font-size: 18px; font-weight: 700; color: var(--black); }
+.aud-section-label { font-size: 12px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+/* Gender bar */
+.aud-gender-bar-wrap { height: 8px; border-radius: 100px; overflow: hidden; background: var(--gray-200); display: flex; }
+.aud-gender-bar-f { height: 100%; background: #c084fc; transition: width 0.4s; }
+.aud-gender-bar-m { height: 100%; background: #60a5fa; transition: width 0.4s; }
+.aud-gender-legend { display: flex; gap: 12px; margin-top: 6px; }
+.aud-gender-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.aud-gender-legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); }
+/* Age bars */
+.aud-age-bars { display: flex; flex-direction: column; gap: 6px; }
+.aud-age-row { display: grid; grid-template-columns: 46px 1fr 32px; align-items: center; gap: 8px; }
+.aud-age-label { font-size: 12px; color: var(--gray-400); white-space: nowrap; }
+.aud-age-bar-bg { height: 6px; border-radius: 100px; background: var(--gray-100); overflow: hidden; }
+.aud-age-bar-fill { height: 100%; border-radius: 100px; background: var(--brown-warm, #7A5C1E); transition: width 0.4s; }
+.aud-age-pct { font-size: 11px; font-weight: 600; color: var(--gray-400); text-align: right; }
+/* Format pills */
+.aud-format-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.aud-format-pill { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 100px; background: var(--gray-100); color: var(--gray-400); border: 1.5px solid var(--gray-200); }
+/* Period footer */
+.aud-period-footer { font-size: 11px; color: var(--gray-400); padding-top: 8px; border-top: 1px solid var(--gray-100); display: flex; align-items: center; gap: 6px; }
+/* Presencial card */
+.aud-presencial-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
+.aud-presencial-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; border-bottom: 1px solid var(--gray-100); }
+.aud-presencial-title { display: flex; align-items: center; gap: 8px; font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--black); }
+.aud-empty { padding: 40px 16px; text-align: center; color: var(--gray-400); font-family: var(--font-body); font-size: 14px; }
 
 /* ─── INTEREST CARD (SIDEBAR) ─── */
 .interest-card {
@@ -837,7 +884,7 @@ a { text-decoration: none; color: inherit; }
       <strong id="topbarOppTitle">Carregando...</strong>
     </div>
     <div class="topbar-right">
-      <div class="topbar-avatar">NB</div>
+      <div class="topbar-avatar" id="topbarAvatar">U</div>
     </div>
   </div>
 </header>
@@ -907,6 +954,26 @@ a { text-decoration: none; color: inherit; }
                 <h3 class="detail-section-title">Sobre a oportunidade</h3>
                 <p class="detail-text" id="detailDesc"></p>
               </div>
+              <!-- O que buscamos (exibido só se tiver descricao_completa) -->
+              <div class="detail-section" id="detailObjetivosSection" style="display:none">
+                <h3 class="detail-section-title">O que buscamos em uma marca parceira</h3>
+                <p class="detail-text" id="detailObjetivos"></p>
+              </div>
+              <!-- Entregas ao patrocinador (exibido só se preenchido no preview) -->
+              <div class="detail-section" id="detailEntregasSection" style="display:none">
+                <h3 class="detail-section-title">Entregas ao patrocinador</h3>
+                <p class="detail-text" id="detailEntregas" style="white-space:pre-line"></p>
+              </div>
+              <!-- Vídeo (exibido só se tiver video_url) -->
+              <div class="detail-section" id="detailVideoSection" style="display:none">
+                <h3 class="detail-section-title">Vídeo</h3>
+                <div id="detailVideoContent"></div>
+              </div>
+              <!-- Datas do evento (exibido só se tiver datas_evento) -->
+              <div class="detail-section" id="detailDatasSection" style="display:none">
+                <h3 class="detail-section-title">Datas do evento</h3>
+                <div id="detailDatasContent"></div>
+              </div>
               <div class="detail-section">
                 <h3 class="detail-section-title">Informações gerais</h3>
                 <div class="detail-facts" id="detailFacts"></div>
@@ -919,14 +986,33 @@ a { text-decoration: none; color: inherit; }
 
             <!-- TAB: Publico -->
             <div class="tab-panel" id="tab-publico">
-              <div class="detail-section">
-                <h3 class="detail-section-title">Perfil da audiência</h3>
-                <p class="detail-text" id="publicoDesc"></p>
+              <!-- Cards por canal (redes sociais) -->
+              <div id="publico-canais-section" style="display:none">
+                <div class="detail-section" style="margin-bottom:0">
+                  <h3 class="detail-section-title">Audiência por canal</h3>
+                  <div class="aud-channels-grid" id="publicoCanaisGrid"></div>
+                </div>
               </div>
-              <div class="detail-section">
-                <h3 class="detail-section-title">Dados do público</h3>
-                <div class="detail-facts" id="publicoFacts"></div>
+              <!-- Público presencial (eventos) -->
+              <div id="publico-presencial-section" style="display:none">
+                <div class="detail-section">
+                  <h3 class="detail-section-title">Público presencial</h3>
+                  <div id="publicoPresencialCard"></div>
+                </div>
               </div>
+              <!-- Fallback: dados legados (publicoFacts / descrição) -->
+              <div id="publico-legacy-section" style="display:none">
+                <div class="detail-section">
+                  <h3 class="detail-section-title">Perfil da audiência</h3>
+                  <p class="detail-text" id="publicoDesc"></p>
+                </div>
+                <div class="detail-section">
+                  <h3 class="detail-section-title">Dados do público</h3>
+                  <div class="detail-facts" id="publicoFacts"></div>
+                </div>
+              </div>
+              <!-- Estado vazio -->
+              <div id="publico-empty-section" class="aud-empty">Dados de audiência sendo preparados pelo detentor.</div>
             </div>
 
             <!-- TAB: Cotas -->
@@ -955,7 +1041,7 @@ a { text-decoration: none; color: inherit; }
             <!-- Header escuro -->
             <div class="interest-card-header">
               <div class="interest-price" id="interestPrice"></div>
-              <div class="interest-price-label">valores sob consulta</div>
+              <div class="interest-price-label" id="interestPriceLabel">valores sob consulta</div>
             </div>
 
             <!-- Corpo -->
@@ -1097,162 +1183,13 @@ a { text-decoration: none; color: inherit; }
 <script src="js/sanitize.js"></script>
 <script>
 /* ═══════════════════════════════════════════
-   MOCK DATA (fallback for opportunities not yet in Supabase detail)
+   MOCK DATA — removido. Dados vêm do Supabase.
    ═══════════════════════════════════════════ */
-const OPPORTUNITIES = [
-  {
-    id: 1,
-    title: 'Maratona Internacional de São Paulo',
-    org: 'SP Marathon Club', orgInitials: 'SM',
-    orgId: 'marathon-sp',
-    category: 'Esporte', city: 'São Paulo', region: 'São Paulo',
-    date: 'Jan 2027', price: 50000,
-    desc: 'A Maratona de São Paulo é o maior evento de corrida da América Latina, reunindo 35 mil atletas de mais de 60 países. O patrocínio oficial oferece exposição de marca para uma audiência altamente engajada de esportistas, influenciadores fitness e público geral ao longo de todo o percurso de 42km.',
-    gradient: 'linear-gradient(135deg,#1a1a2e,#16213e,#0f3460)',
-    thumbs: ['#c8d8e8', '#d4e8c8'],
-    facts: [
-      { icon: '📅', label: 'Data do evento', value: '12 de outubro de 2025' },
-      { icon: '📍', label: 'Local', value: 'Av. Paulista, São Paulo' },
-      { icon: '👥', label: 'Participantes', value: '35.000 atletas' },
-      { icon: '🌍', label: 'Países representados', value: '+60 países' },
-      { icon: '📺', label: 'Transmissão', value: 'TV aberta + streaming' },
-      { icon: '⏱️', label: 'Prazo de proposta', value: '20 de março de 2025' }
-    ],
-    tags: ['Esportes & Fitness', 'Alimentação saudável', 'Tecnologia wearable', 'Suplementação', 'Vestuário esportivo', 'Bebidas isotônicas'],
-    publico: 'O público da Maratona de São Paulo é composto majoritariamente por adultos de 25 a 45 anos, com nível de escolaridade superior, renda acima da média e alto poder de influência nas redes sociais.',
-    publicoFacts: [
-      { icon: '👤', label: 'Gênero predominante', value: '58% masculino, 42% feminino' },
-      { icon: '🎂', label: 'Faixa etária principal', value: '25-45 anos (72%)' },
-      { icon: '💰', label: 'Classe social', value: 'A/B (68% do público)' },
-      { icon: '📱', label: 'Presença digital', value: '92% ativo em redes sociais' },
-      { icon: '🏙️', label: 'Concentração geográfica', value: 'SP (45%), outros (55%)' },
-      { icon: '📊', label: 'Taxa de engajamento', value: '4.2x acima da média' }
-    ],
-    cotas: [
-      { emoji: '🏆', name: 'Patrocinador Master', desc: 'Logo em naming rights, transmissão, largada e chegada. Ativação exclusiva na área VIP.', price: 'A partir de R$ 480k' },
-      { emoji: '🥈', name: 'Patrocinador Premium', desc: 'Logo em materiais oficiais, percurso e kit do corredor. Totem de ativação no evento.', price: 'A partir de R$ 220k' },
-      { emoji: '🥉', name: 'Apoiador Oficial', desc: 'Logo em kit do corredor e comunicações digitais. Estande na expo-feira.', price: 'A partir de R$ 85k' }
-    ],
-    canais: [
-      { icon: '📸', name: 'Instagram', reach: '285k seguidores · 4.8% engajamento' },
-      { icon: '🎵', name: 'TikTok', reach: '140k seguidores · 8.2% engajamento' },
-      { icon: '▶️', name: 'YouTube', reach: '62k inscritos · 220k views/mês' },
-      { icon: '📘', name: 'Facebook', reach: '480k seguidores · comunidade ativa' },
-      { icon: '✉️', name: 'Newsletter', reach: '120k inscritos · 42% open rate' },
-      { icon: '📱', name: 'App oficial', reach: '85k downloads · 3.2 sessões/semana' }
-    ],
-    sidebar: { evento: '12 de outubro, 2025', prazo: '5 dias restantes', cotasQty: '3 modalidades', formato: 'Evento presencial + digital', participantes: '35.000 atletas' }
-  },
-  {
-    id: 2, title: 'Festival de Verão Salvador', org: 'Verão Produções', orgInitials: 'VP',
-    orgId: 'verao-producoes',
-    category: 'Música', city: 'Salvador', region: 'Bahia', date: 'Fev 2027', price: 80000,
-    desc: 'Associe sua marca ao maior festival de verão do Brasil. 3 dias de shows com público de 120 mil pessoas e cobertura massiva nas redes sociais e TV nacional.',
-    gradient: 'linear-gradient(135deg,#3b1054,#6b21a8)', thumbs: ['#e8c8e8','#d8c8e8'],
-    facts: [
-      { icon: '📅', label: 'Data do evento', value: 'Fevereiro de 2027' },
-      { icon: '📍', label: 'Local', value: 'Salvador, Bahia' },
-      { icon: '👥', label: 'Público esperado', value: '120.000 pessoas' },
-      { icon: '🎵', label: 'Artistas confirmados', value: '+30 atrações' },
-      { icon: '📺', label: 'Transmissão', value: 'Multishow + YouTube' },
-      { icon: '⏱️', label: 'Prazo de proposta', value: '15 de outubro de 2026' }
-    ],
-    tags: ['Entretenimento', 'Bebidas', 'Moda', 'Telecomunicações', 'Cosméticos'],
-    publico: 'O público do Festival de Verão Salvador é jovem, entre 18 e 35 anos, predominantemente classes A e B, com alta presença digital e engajamento social.',
-    publicoFacts: [
-      { icon: '👤', label: 'Gênero', value: '52% feminino, 48% masculino' },
-      { icon: '🎂', label: 'Faixa etária', value: '18-35 anos (80%)' },
-      { icon: '💰', label: 'Classe social', value: 'A/B (72%)' },
-      { icon: '📱', label: 'Presença digital', value: '96% ativo em redes' },
-      { icon: '🏙️', label: 'Origem', value: 'Nordeste (60%), Sudeste (30%)' },
-      { icon: '📊', label: 'Engajamento', value: '5.1x acima da média' }
-    ],
-    cotas: [
-      { emoji: '🏆', name: 'Naming Rights', desc: 'Nome do festival + branding total em todos os pontos.', price: 'A partir de R$ 800k' },
-      { emoji: '🥈', name: 'Patrocinador Ouro', desc: 'Palco secundário + ativações exclusivas.', price: 'A partir de R$ 400k' },
-      { emoji: '🥉', name: 'Apoiador', desc: 'Presença no evento + menções digitais.', price: 'A partir de R$ 80k' }
-    ],
-    canais: [
-      { icon: '📸', name: 'Instagram', reach: '520k seguidores · 6.1% engajamento' },
-      { icon: '🎵', name: 'TikTok', reach: '310k seguidores · 9.5% engajamento' },
-      { icon: '▶️', name: 'YouTube', reach: '180k inscritos · 500k views/mês' },
-      { icon: '📘', name: 'Facebook', reach: '340k seguidores' }
-    ],
-    sidebar: { evento: 'Fevereiro, 2027', prazo: '12 dias restantes', cotasQty: '3 modalidades', formato: 'Festival presencial + digital', participantes: '120.000 pessoas' }
-  }
-];
-
-/* ─── ORGS DATA ─── */
-const ORGS = {
-  'marathon-sp': {
-    name: 'SP Marathon Club',
-    initials: 'SM',
-    bio: 'Organização responsável pela maior maratona da América Latina desde 1994. Com mais de 30 anos de experiência em eventos de corrida de rua, o SP Marathon Club conecta marcas a uma das audiências mais engajadas e qualificadas do esporte nacional.',
-    location: 'São Paulo, SP',
-    founded: '1994',
-    events: 12,
-    category: 'Esporte',
-    otherOpps: [4, 9]
-  },
-  'verao-producoes': {
-    name: 'Verão Produções',
-    initials: 'VP',
-    bio: 'Produtora especializada em festivais de grande porte no Nordeste brasileiro. Responsável por eventos que movimentam milhões de pessoas anualmente, com expertise em branding, ativações ao vivo e cobertura multimídia.',
-    location: 'Salvador, BA',
-    founded: '2008',
-    events: 8,
-    category: 'Música',
-    otherOpps: [6, 7]
-  }
-};
-
-/* ─── DEFAULT FALLBACK ─── */
-function getDefaultOpp(id) {
-  var basic = {
-    3: { title: 'Expo Tech Brasil', org: 'TechConf BR', orgInitials: 'TB', orgId: 'marathon-sp', category: 'Tecnologia', city: 'São Paulo', price: 35000, gradient: 'linear-gradient(135deg,#0c2461,#1e40af)', date: 'Mar 2027', desc: 'Feira de tecnologia e inovação com mais de 50 mil visitantes e 200 expositores. Ideal para marcas de tech.' },
-    4: { title: 'Campeonato de Surf Floripa', org: 'Surf SC', orgInitials: 'SS', orgId: 'marathon-sp', category: 'Esporte', city: 'Florianópolis', price: 25000, gradient: 'linear-gradient(135deg,#1a472a,#2d6a3f)', date: 'Dez 2026', desc: 'Campeonato de surf com etapa nacional. Público jovem e engajado com lifestyle e sustentabilidade.' },
-    5: { title: 'Podcast Tech Daily', org: 'Media Lab', orgInitials: 'ML', orgId: 'marathon-sp', category: 'Mídia Digital', city: 'Online', price: 15000, gradient: 'linear-gradient(135deg,#0e4a6e,#0284c7)', date: 'Contínuo', desc: 'Podcast diário sobre tecnologia com 500 mil ouvintes mensais. Ativação via branded content e menções.' },
-    6: { title: 'Arena Music Curitiba', org: 'Arena Live', orgInitials: 'AL', orgId: 'verao-producoes', category: 'Música', city: 'Curitiba', price: 60000, gradient: 'linear-gradient(135deg,#3b1054,#6b21a8)', date: 'Abr 2027', desc: 'Casa de shows com programação semanal. Naming rights e presença de marca em 200+ eventos anuais.' },
-    7: { title: 'Mostra Cultural Recife', org: 'Cultura PE', orgInitials: 'CP', orgId: 'verao-producoes', category: 'Cultura', city: 'Recife', price: 40000, gradient: 'linear-gradient(135deg,#7c2d12,#c2410c)', date: 'Mai 2027', desc: 'Festival cultural com exposições, teatro e gastronomia. Público qualificado de classes A e B.' },
-    8: { title: 'Liga Brasileira de eSports', org: 'ESL Brasil', orgInitials: 'EB', orgId: 'marathon-sp', category: 'Tecnologia', city: 'Online', price: 70000, gradient: 'linear-gradient(135deg,#0c2461,#1e40af)', date: 'Contínuo', desc: 'Liga profissional de eSports com audiência de 2 milhões de views mensais em streaming.' },
-    9: { title: 'Corrida de Rua BH', org: 'Run MG', orgInitials: 'RM', orgId: 'marathon-sp', category: 'Esporte', city: 'Belo Horizonte', price: 20000, gradient: 'linear-gradient(135deg,#1a472a,#2d6a3f)', date: 'Jun 2027', desc: 'Corrida de rua com 8 mil participantes. Excelente para ativações de saúde e bem-estar.' },
-    10: { title: 'Feira Gastronômica SP', org: 'Gourmet BR', orgInitials: 'GB', orgId: 'marathon-sp', category: 'Cultura', city: 'São Paulo', price: 30000, gradient: 'linear-gradient(135deg,#7c2d12,#c2410c)', date: 'Jul 2027', desc: 'Feira gastronômica com chefs renomados. 40 mil visitantes em 5 dias de evento.' }
-  };
-  var b = basic[id] || basic[3];
-  return {
-    id: id, title: b.title, org: b.org, orgInitials: b.orgInitials, orgId: b.orgId || 'marathon-sp',
-    category: b.category, city: b.city, region: b.city, date: b.date, price: b.price,
-    desc: b.desc, gradient: b.gradient, thumbs: ['#e0d8cc','#d0c8b8'],
-    facts: [
-      { icon: '📅', label: 'Data', value: b.date },
-      { icon: '📍', label: 'Local', value: b.city },
-      { icon: '👥', label: 'Público', value: 'Sob consulta' },
-      { icon: '📺', label: 'Cobertura', value: 'Digital + presencial' }
-    ],
-    tags: [b.category, 'Patrocínio', 'Visibilidade'],
-    publico: 'Público qualificado com alto potencial de engajamento e conversão para marcas parceiras.',
-    publicoFacts: [
-      { icon: '👤', label: 'Perfil', value: 'Diversificado' },
-      { icon: '🎂', label: 'Faixa etária', value: '20-50 anos' },
-      { icon: '💰', label: 'Classe social', value: 'A/B/C' },
-      { icon: '📱', label: 'Presença digital', value: 'Alta' }
-    ],
-    cotas: [
-      { emoji: '🏆', name: 'Cota Master', desc: 'Máxima visibilidade e exclusividade.', price: 'Sob consulta' },
-      { emoji: '🥈', name: 'Cota Premium', desc: 'Visibilidade intermediária.', price: 'Sob consulta' },
-      { emoji: '🥉', name: 'Cota Apoiador', desc: 'Participação e visibilidade digital.', price: 'A partir de R$ ' + (b.price/1000).toFixed(0) + 'k' }
-    ],
-    canais: [
-      { icon: '📸', name: 'Instagram', reach: 'Sob consulta' },
-      { icon: '📘', name: 'Facebook', reach: 'Sob consulta' },
-      { icon: '▶️', name: 'YouTube', reach: 'Sob consulta' }
-    ],
-    sidebar: { evento: b.date, prazo: 'Aberto', cotasQty: '3 modalidades', formato: 'Presencial + digital', participantes: 'Sob consulta' }
-  };
-}
+const OPPORTUNITIES = [];
+const ORGS = {};
 
 function getOppById(id) {
-  return OPPORTUNITIES.find(function(o){ return o.id === id; }) || getDefaultOpp(id);
+  return OPPORTUNITIES.find(function(o){ return o.id === id; }) || null;
 }
 
 function getOpp() {
@@ -1268,6 +1205,8 @@ function getOpp() {
 async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
   try {
     var filter;
+    // UUID detection: string com formato UUID (8-4-4-4-12 hex) ou string numérica longa
+    var isUuid = typeof idOrPerfilSlug === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrPerfilSlug);
     if (oppSlug) {
       // Lookup by @perfil-slug/opp-slug — need to resolve perfil slug first
       const pRes = await sbPublicFetch('/rest/v1/perfis?select=id&slug=eq.' + encodeURIComponent(idOrPerfilSlug));
@@ -1279,7 +1218,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       } else {
         filter = '&detentor_id=eq.' + pRows[0].id + '&slug=eq.' + encodeURIComponent(oppSlug);
       }
-    } else if (typeof idOrPerfilSlug === 'number') {
+    } else if (typeof idOrPerfilSlug === 'number' || isUuid) {
       filter = '&id=eq.' + idOrPerfilSlug;
     } else {
       filter = '&slug=eq.' + encodeURIComponent(idOrPerfilSlug);
@@ -1292,11 +1231,16 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
       'canais(icone,label,valor,ordem)' +
-      filter +
-      '&oportunidade_fatos.order=ordem.asc' +
-      '&cotas.order=ordem.asc' +
-      '&canais.order=ordem.asc';
-    const res = await sbPublicFetch(path);
+      filter;
+    // Usa token da marca se disponível — permite ver oportunidades com visibilidade=aprovacao
+    const brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+    const brandToken = brandSession && brandSession.access_token ? brandSession.access_token : null;
+    const fetchHeaders = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': brandToken ? ('Bearer ' + brandToken) : ('Bearer ' + SUPABASE_KEY),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(SUPABASE_URL + path, { headers: fetchHeaders });
     if (!res.ok) return null;
     const rows = await res.json();
     if (!rows || rows.length === 0) return null;
@@ -1321,24 +1265,76 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       .filter(f => f.tipo !== 'publico')
       .map(f => ({ icon: f.icone || '📌', label: f.label || '', value: f.valor || '' }));
 
-    // If no facts in DB, generate from detalhes JSON
-    if (generalFacts.length === 0 && r.detalhes) {
-      Object.entries(r.detalhes).forEach(([label, value]) => {
-        if (typeof value === 'string') generalFacts.push({ icon: '📋', label, value });
-        else if (Array.isArray(value)) generalFacts.push({ icon: '📋', label, value: value.map(v => typeof v === 'object' ? v.data + ' — ' + v.local : v).join(', ') });
+    // Abrangência geográfica — coluna dedicada (Local / Regional / Nacional / Internacional)
+    if (r.alcance && r.alcance.trim()) {
+      generalFacts.push({ icon: '🗺️', label: 'Abrangência', value: r.alcance.trim() });
+    }
+
+    // Complementar generalFacts com dados do campo detalhes (JSONB)
+    // Sempre incluído — cobre campos de template como Formato, Transmissão, etc.
+    const DETALHE_ICONS = {
+      // Template fields
+      'Formato': '🎯', 'Transmissão prevista': '📡', 'Transmissão': '📡',
+      'Plataformas': '💻', 'Capacidade': '👥', 'Público esperado': '👥',
+      'Local': '📍', 'Cidade': '📍', 'Modalidade': '🎫',
+      'Formatos comerciais disponíveis': '📢', 'Formatos comerciais': '📢',
+      // Preview fields (chaves técnicas lowercase)
+      'demografico': '📊', 'entregas': '🤝',
+      'metricas_alcance': '📈', 'metricas_engajamento': '💬', 'metricas_impressoes': '👁️',
+      'prazo_inicio': '📅', 'prazo_fim': '⏰', 'prazo_continua': '🔄',
+      'recorrencia': '🔁'
+    };
+    // Labels legíveis para chaves técnicas
+    const DETALHE_LABELS = {
+      'demografico': 'Perfil demográfico',
+      'entregas': 'Entregas ao patrocinador',
+      'metricas_alcance': 'Alcance médio',
+      'metricas_engajamento': 'Taxa de engajamento',
+      'metricas_impressoes': 'Impressões mensais',
+      'prazo_inicio': 'Início das inscrições',
+      'prazo_fim': 'Fim das inscrições',
+      'prazo_continua': 'Prazo',
+      'recorrencia': 'Recorrência'
+    };
+    // Labels já presentes nos generalFacts da tabela (para evitar duplicata)
+    const existingLabels = new Set(generalFacts.map(f => f.label));
+    if (r.detalhes) {
+      Object.entries(r.detalhes).forEach(([key, value]) => {
+        // Ignora chaves internas de métricas combinadas
+        if (key === 'metricas') return;
+        if (key === 'entregas') return; // tem seção dedicada com white-space:pre-line
+        // Redes sociais — coberto pela seção "Canais" (canal-cards); não duplicar como fact
+        if (key === 'Redes sociais com presença') return;
+        const label = DETALHE_LABELS[key] || key;
+        if (existingLabels.has(label)) return; // já tem na tabela
+        const icon = DETALHE_ICONS[key] || DETALHE_ICONS[label] || '📋';
+        // prazo_continua é booleano — converter para texto
+        if (key === 'prazo_continua') {
+          if (value) generalFacts.push({ icon, label: 'Prazo', value: 'Oportunidade contínua' });
+          return;
+        }
+        if (typeof value === 'string' && value) generalFacts.push({ icon, label, value });
+        else if (typeof value === 'boolean' && value) generalFacts.push({ icon, label, value: 'Sim' });
+        else if (Array.isArray(value) && value.length > 0) {
+          const str = value.map(v => typeof v === 'object' ? ((v.data || '') + (v.local ? ' — ' + v.local : '')) : String(v)).filter(Boolean).join(', ');
+          if (str) generalFacts.push({ icon, label, value: str });
+        }
       });
     }
 
     // Cotas — from cotas table or cotas_data JSON
     let cotasArr = (r.cotas || []).map(c => ({
-      emoji: c.icone || '🏆', name: c.nome || '', desc: '', price: c.preco || ''
+      emoji: c.icone || '🏆', name: c.nome || '', desc: '', price: c.preco || '',
+      vagas: null, beneficios: []
     }));
     if (cotasArr.length === 0 && r.cotas_data) {
       cotasArr = r.cotas_data.map((c, i) => ({
         emoji: ['🏆','🥈','🥉','⭐'][i] || '⭐',
         name: c.nome || 'Cota ' + (i+1),
-        desc: (c.beneficios || []).join(', '),
-        price: c.valor ? 'R$ ' + Number(c.valor).toLocaleString('pt-BR') : ''
+        desc: '',
+        price: c.valor ? 'R$ ' + Number(c.valor).toLocaleString('pt-BR') : '',
+        vagas: (c.vagas != null && c.vagas !== '') ? c.vagas : null,
+        beneficios: Array.isArray(c.beneficios) ? c.beneficios : []
       }));
     }
 
@@ -1369,26 +1365,47 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       category: r.categoria || '',
       city: city,
       region: r.localizacao || '',
-      date: r.alcance || '',
-      price: parsePreco(r.preco_minimo),
-      desc: r.descricao_completa || r.descricao_curta || '',
+      alcance: r.alcance || '',
+      // Preço: derivado das cotas (mínimo), ou preco_minimo, ou null
+      price: (function() {
+        // Prioridade 1: mínimo das cotas_data
+        if (r.cotas_data && r.cotas_data.length > 0) {
+          var vals = r.cotas_data.map(function(c) { return Number(c.valor); }).filter(function(v) { return v > 0; });
+          if (vals.length > 0) return Math.min.apply(null, vals);
+        }
+        // Prioridade 2: preco_minimo direto (campo legado)
+        if (r.preco_minimo) return Number(r.preco_minimo);
+        return null;
+      })(),
+      cotasHabilitadas: !!r.cotas_habilitadas,
+      desc: r.descricao_curta || '',
+      objetivos: r.descricao_completa || null,
       gradient: r.bg_gradient || 'linear-gradient(135deg, #1a1a2e, #16213e)',
       thumbs: thumbColors,
       images: imgs,
       imagem_capa: r.imagem_capa || null,
       imagens_focal: r.imagens_focal || {},
       facts: generalFacts.length > 0 ? generalFacts : undefined,
+      // Entregas ao patrocinador — vem de detalhes.entregas (preenchido no preview)
+      entregas: (r.detalhes && r.detalhes.entregas) || null,
       tags: r.tags || [],
       publico: r.publico_descricao || '',
       publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
+      publicoCanais: r.publico_canais || null,
+      publicoPresencial: r.publico_presencial || null,
+      redes_sociais: r.redes_sociais || null,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
+      videoUrl: r.video_url || null,
+      linkExterno: r.link_externo || null,
+      datasEvento: r.datas_evento || null,
+      cotasData: r.cotas_data || null,
       sidebar: {
-        evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || r.alcance || '') : (r.alcance || ''),
+        evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || '') : '',
         prazo: r.cotas_data && r.cotas_data[0] && r.cotas_data[0].prazo ? r.cotas_data[0].prazo : 'Em aberto',
         cotasQty: cotasArr.length > 0 ? cotasArr.length + ' modalidade' + (cotasArr.length > 1 ? 's' : '') : (r.cotas_habilitadas ? 'Disponível' : 'A definir'),
         formato: r.formato || '',
-        participantes: r.alcance || ''
+        participantes: ''
       },
       // Org data for owner section
       _orgData: orgData,
@@ -1467,7 +1484,7 @@ function renderPage(oppOverride) {
   opp.category = opp.category || '';
   opp.desc = opp.desc || '';
   opp.city = opp.city || '';
-  opp.date = opp.date || '';
+  opp.alcance = opp.alcance || '';
   opp.price = opp.price || 0;
   opp.sidebar = opp.sidebar || { evento: '', prazo: '', cotasQty: '', formato: '', participantes: '' };
 
@@ -1479,6 +1496,22 @@ function renderPage(oppOverride) {
   document.getElementById('detailTitle').textContent = opp.title;
   document.getElementById('detailCategory').textContent = opp.category;
   document.getElementById('detailDesc').textContent = opp.desc;
+
+  // Objetivos (O que buscamos em uma marca parceira)
+  var objSection = document.getElementById('detailObjetivosSection');
+  var objEl = document.getElementById('detailObjetivos');
+  if (objSection && objEl && opp.objetivos) {
+    objEl.textContent = opp.objetivos;
+    objSection.style.display = '';
+  }
+
+  // Entregas ao patrocinador (preenchido no Step 6 do preview)
+  var entregasSection = document.getElementById('detailEntregasSection');
+  var entregasEl = document.getElementById('detailEntregas');
+  if (entregasSection && entregasEl && opp.entregas) {
+    entregasEl.textContent = opp.entregas;
+    entregasSection.style.display = '';
+  }
 
   // Meta removido do header — campos não são universais entre templates
 
@@ -1570,13 +1603,326 @@ function renderPage(oppOverride) {
   });
   document.getElementById('detailTags').innerHTML = tagsHtml;
 
-  // Publico
-  document.getElementById('publicoDesc').textContent = opp.publico;
-  var pfHtml = '';
-  (opp.publicoFacts || []).forEach(function(f) {
-    pfHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
-  });
-  document.getElementById('publicoFacts').innerHTML = pfHtml;
+  // Vídeo
+  (function renderVideo() {
+    var url = opp.videoUrl;
+    var section = document.getElementById('detailVideoSection');
+    var content = document.getElementById('detailVideoContent');
+    if (!url || !section || !content) return;
+
+    var embedUrl = null;
+    // YouTube: youtube.com/watch?v=ID ou youtu.be/ID
+    var ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if (ytMatch) embedUrl = 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0';
+    // Vimeo: vimeo.com/ID
+    var vmMatch = !ytMatch && url.match(/vimeo\.com\/(\d+)/);
+    if (vmMatch) embedUrl = 'https://player.vimeo.com/video/' + vmMatch[1];
+
+    if (embedUrl) {
+      content.innerHTML = '<div class="video-wrap"><iframe src="' + embedUrl + '" allowfullscreen loading="lazy" title="Vídeo da oportunidade"></iframe></div>';
+    } else {
+      // URL genérica — link clicável com ícone play
+      content.innerHTML = '<a class="video-link-fallback" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
+        '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>' +
+        '<span>' + escapeHtml(url) + '</span>' +
+      '</a>';
+    }
+    section.style.display = '';
+  })();
+
+  // Datas do evento
+  (function renderDatas() {
+    var section = document.getElementById('detailDatasSection');
+    var content = document.getElementById('detailDatasContent');
+    if (!section || !content) return;
+    var datas = opp.datasEvento;
+    if (!datas || datas.length === 0) return;
+    var html = '<div style="display:flex;flex-direction:column;gap:10px">';
+    datas.forEach(function(d) {
+      if (!d.data && !d.local) return;
+      html += '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--white);border:1px solid var(--gray-2);border-radius:var(--radius-md)">';
+      html += '<span style="font-size:18px;line-height:1;margin-top:1px">📅</span>';
+      html += '<div>';
+      if (d.data) html += '<div style="font-weight:600;font-size:14px;color:var(--black)">' + escapeHtml(d.data) + '</div>';
+      if (d.local) html += '<div style="font-size:13px;color:var(--gray-4);margin-top:2px">📍 ' + escapeHtml(d.local) + '</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    content.innerHTML = html;
+    section.style.display = '';
+  })();
+
+  // ── Público tab — per-channel cards ──────────────────────────────────────
+  (function renderPublicoTab() {
+    var canaisData    = opp.publicoCanais    || null;
+    var presencialData = opp.publicoPresencial || null;
+    var hasLegacy     = !!(opp.publico || (opp.publicoFacts && opp.publicoFacts.length > 0));
+
+    var secCanais     = document.getElementById('publico-canais-section');
+    var secPresencial = document.getElementById('publico-presencial-section');
+    var secLegacy     = document.getElementById('publico-legacy-section');
+    var secEmpty      = document.getElementById('publico-empty-section');
+
+    // ── Network metadata ──────────────────────────────────────────────────
+    var NET_META = {
+      instagram: {
+        label: 'Instagram',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>',
+        color: '#E1306C'
+      },
+      tiktok: {
+        label: 'TikTok',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.99a8.19 8.19 0 004.78 1.52V7.05a4.85 4.85 0 01-1.01-.36z"/></svg>',
+        color: '#010101'
+      },
+      youtube: {
+        label: 'YouTube',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 00.5 6.19C0 8.04 0 12 0 12s0 3.96.5 5.81a3.02 3.02 0 002.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 002.12-2.14C24 15.96 24 12 24 12s0-3.96-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>',
+        color: '#FF0000'
+      },
+      linkedin: {
+        label: 'LinkedIn',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>',
+        color: '#0A66C2'
+      },
+      twitch: {
+        label: 'Twitch',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>',
+        color: '#9146FF'
+      },
+      kwai: {
+        label: 'Kwai',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>',
+        color: '#FF5000'
+      },
+      kick: {
+        label: 'Kick',
+        icon: '<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M4 2h16a2 2 0 012 2v16a2 2 0 01-2 2H4a2 2 0 01-2-2V4a2 2 0 012-2zm3 5v10h2.5v-3.5L13 17h3l-4.5-5.5L16 7h-3l-3.5 4V7H7z"/></svg>',
+        color: '#53FC18'
+      }
+    };
+
+    var AGE_LABELS = { '1317': '13–17', '1824': '18–24', '2534': '25–34', '3544': '35–44', '45p': '45+' };
+    var AGE_ORDER  = ['1317', '1824', '2534', '3544', '45p'];
+
+    // ── Build per-channel card HTML ───────────────────────────────────────
+    function buildChannelCard(network, data, handles) {
+      var meta    = NET_META[network] || { label: network, icon: '', color: '#888' };
+      var handlesList = (handles && handles[network]) ? (Array.isArray(handles[network]) ? handles[network] : [handles[network]]) : [];
+      var handleStr = handlesList.length > 0 ? handlesList.join(', ') : '';
+      var isReal    = data.tipo_dado === 'real';
+      var badgeTxt  = isReal ? 'Dado real' : 'Estimativa';
+      var badgeCls  = isReal ? 'aud-data-badge' : 'aud-data-badge estimativa';
+
+      // Header
+      var html = '<div class="aud-channel-card">';
+      html += '<div class="aud-channel-header">';
+      html += '<div class="aud-channel-title-row">';
+      html += '<span class="aud-channel-icon" style="color:' + meta.color + '">' + meta.icon + '</span>';
+      html += '<div>';
+      html += '<div class="aud-channel-name">' + escapeHtml(meta.label) + '</div>';
+      if (handleStr) html += '<div class="aud-channel-handle">' + escapeHtml(handleStr) + '</div>';
+      html += '</div>';
+      html += '</div>';
+      html += '<span class="' + badgeCls + '">' + escapeHtml(badgeTxt) + '</span>';
+      html += '</div>';
+
+      // Body
+      html += '<div class="aud-channel-body">';
+
+      // Seguidores + Engajamento row
+      if (data.seguidores || data.engajamento) {
+        html += '<div class="aud-stats-row">';
+        if (data.seguidores) {
+          html += '<div class="aud-stat"><div class="aud-stat-label">Seguidores</div><div class="aud-stat-value">' + escapeHtml(data.seguidores) + '</div></div>';
+        }
+        if (data.engajamento) {
+          html += '<div class="aud-stat"><div class="aud-stat-label">Engajamento</div><div class="aud-stat-value">' + escapeHtml(data.engajamento) + '</div></div>';
+        }
+        html += '</div>';
+      }
+
+      // Gênero bar
+      if (data.genero && (data.genero.f != null || data.genero.m != null)) {
+        var pctF = parseFloat(data.genero.f) || 0;
+        var pctM = parseFloat(data.genero.m) || 0;
+        html += '<div class="aud-section-label">Gênero</div>';
+        html += '<div class="aud-gender-bar-wrap">';
+        html += '<div class="aud-gender-bar-f" style="width:' + pctF + '%"></div>';
+        html += '<div class="aud-gender-bar-m" style="width:' + pctM + '%"></div>';
+        html += '</div>';
+        html += '<div class="aud-gender-legend">';
+        if (pctF > 0) html += '<div class="aud-gender-legend-item"><span class="aud-gender-dot" style="background:#E1306C"></span>' + pctF + '% F</div>';
+        if (pctM > 0) html += '<div class="aud-gender-legend-item"><span class="aud-gender-dot" style="background:#0A66C2"></span>' + pctM + '% M</div>';
+        html += '</div>';
+      }
+
+      // Faixa etária CSS bars
+      if (data.faixa_etaria && Object.keys(data.faixa_etaria).length > 0) {
+        var maxPct = 0;
+        AGE_ORDER.forEach(function(k) { var v = parseFloat(data.faixa_etaria[k]) || 0; if (v > maxPct) maxPct = v; });
+        html += '<div class="aud-section-label">Faixa etária</div>';
+        html += '<div class="aud-age-bars">';
+        AGE_ORDER.forEach(function(k) {
+          var v = parseFloat(data.faixa_etaria[k]) || 0;
+          if (v === 0) return;
+          var barPct = maxPct > 0 ? Math.round((v / maxPct) * 100) : 0;
+          html += '<div class="aud-age-row">';
+          html += '<div class="aud-age-label">' + (AGE_LABELS[k] || k) + '</div>';
+          html += '<div class="aud-age-bar-bg"><div class="aud-age-bar-fill" style="width:' + barPct + '%"></div></div>';
+          html += '<div class="aud-age-pct">' + v + '%</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Formatos
+      if (data.formatos && data.formatos.length > 0) {
+        html += '<div class="aud-section-label">Formatos que performam</div>';
+        html += '<div class="aud-format-pills">';
+        data.formatos.forEach(function(fmt) {
+          html += '<span class="aud-format-pill">' + escapeHtml(fmt) + '</span>';
+        });
+        html += '</div>';
+      }
+
+      // Contexto
+      if (data.contexto) {
+        html += '<div class="aud-section-label">Contexto</div>';
+        html += '<p style="font-size:13px;color:var(--gray-4);line-height:1.55;margin:0">' + escapeHtml(data.contexto) + '</p>';
+      }
+
+      // Cidade
+      if (data.cidade) {
+        html += '<div style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--gray-4)">';
+        html += '<svg viewBox="0 0 20 20" fill="currentColor" style="width:12px;height:12px;flex-shrink:0"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>';
+        html += escapeHtml(data.cidade);
+        html += '</div>';
+      }
+
+      html += '</div>';// aud-channel-body
+
+      // Footer — período de referência
+      if (data.periodo_referencia) {
+        html += '<div class="aud-period-footer">Referência: ' + escapeHtml(data.periodo_referencia) + '</div>';
+      }
+
+      html += '</div>';// aud-channel-card
+      return html;
+    }
+
+    // ── Build presencial card HTML ────────────────────────────────────────
+    function buildPresencialCard(data) {
+      var isReal   = data.tipo_dado === 'real';
+      var badgeTxt = isReal ? 'Dado real' : 'Estimativa';
+      var badgeCls = isReal ? 'aud-data-badge' : 'aud-data-badge estimativa';
+
+      var html = '<div class="aud-presencial-card">';
+      html += '<div class="aud-presencial-header">';
+      html += '<span class="aud-presencial-title">🏟️ Público presencial</span>';
+      html += '<span class="' + badgeCls + '">' + escapeHtml(badgeTxt) + '</span>';
+      html += '</div>';
+
+      // Histórico
+      if (data.historico) {
+        html += '<div class="aud-stats-row">';
+        html += '<div class="aud-stat"><div class="aud-stat-label">Histórico</div><div class="aud-stat-value">' + escapeHtml(data.historico) + '</div></div>';
+        if (data.perfil_socioeconomico) {
+          html += '<div class="aud-stat"><div class="aud-stat-label">Perfil socioecon.</div><div class="aud-stat-value">' + escapeHtml(data.perfil_socioeconomico) + '</div></div>';
+        }
+        html += '</div>';
+      } else if (data.perfil_socioeconomico) {
+        html += '<div class="aud-stats-row">';
+        html += '<div class="aud-stat"><div class="aud-stat-label">Perfil socioecon.</div><div class="aud-stat-value">' + escapeHtml(data.perfil_socioeconomico) + '</div></div>';
+        html += '</div>';
+      }
+
+      // Gênero bar
+      if (data.genero && (data.genero.f != null || data.genero.m != null)) {
+        var pctF = parseFloat(data.genero.f) || 0;
+        var pctM = parseFloat(data.genero.m) || 0;
+        html += '<div class="aud-section-label">Gênero</div>';
+        html += '<div class="aud-gender-bar-wrap">';
+        html += '<div class="aud-gender-bar-f" style="width:' + pctF + '%"></div>';
+        html += '<div class="aud-gender-bar-m" style="width:' + pctM + '%"></div>';
+        html += '</div>';
+        html += '<div class="aud-gender-legend">';
+        if (pctF > 0) html += '<div class="aud-gender-legend-item"><span class="aud-gender-dot" style="background:#E1306C"></span>' + pctF + '% F</div>';
+        if (pctM > 0) html += '<div class="aud-gender-legend-item"><span class="aud-gender-dot" style="background:#0A66C2"></span>' + pctM + '% M</div>';
+        html += '</div>';
+      }
+
+      // Faixa etária
+      if (data.faixa_etaria && Object.keys(data.faixa_etaria).length > 0) {
+        var maxPct = 0;
+        AGE_ORDER.forEach(function(k) { var v = parseFloat(data.faixa_etaria[k]) || 0; if (v > maxPct) maxPct = v; });
+        html += '<div class="aud-section-label">Faixa etária</div>';
+        html += '<div class="aud-age-bars">';
+        AGE_ORDER.forEach(function(k) {
+          var v = parseFloat(data.faixa_etaria[k]) || 0;
+          if (v === 0) return;
+          var barPct = maxPct > 0 ? Math.round((v / maxPct) * 100) : 0;
+          html += '<div class="aud-age-row">';
+          html += '<div class="aud-age-label">' + (AGE_LABELS[k] || k) + '</div>';
+          html += '<div class="aud-age-bar-bg"><div class="aud-age-bar-fill" style="width:' + barPct + '%"></div></div>';
+          html += '<div class="aud-age-pct">' + v + '%</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Contexto
+      if (data.contexto) {
+        html += '<div class="aud-section-label">Contexto</div>';
+        html += '<p style="font-size:13px;color:var(--gray-4);line-height:1.55;margin:0">' + escapeHtml(data.contexto) + '</p>';
+      }
+
+      // Footer
+      if (data.periodo_referencia) {
+        html += '<div class="aud-period-footer">Referência: ' + escapeHtml(data.periodo_referencia) + '</div>';
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    // ── Render canais section ─────────────────────────────────────────────
+    var hasCanais = canaisData && typeof canaisData === 'object' && Object.keys(canaisData).length > 0;
+    if (hasCanais) {
+      var grid = document.getElementById('publicoCanaisGrid');
+      var gridHtml = '';
+      var handles  = opp.redes_sociais || {};
+      Object.keys(canaisData).forEach(function(net) {
+        gridHtml += buildChannelCard(net, canaisData[net], handles);
+      });
+      if (grid) grid.innerHTML = gridHtml;
+      if (secCanais) secCanais.style.display = '';
+    }
+
+    // ── Render presencial section ─────────────────────────────────────────
+    var hasPresencial = presencialData && typeof presencialData === 'object';
+    if (hasPresencial) {
+      var presCard = document.getElementById('publicoPresencialCard');
+      if (presCard) presCard.innerHTML = buildPresencialCard(presencialData);
+      if (secPresencial) secPresencial.style.display = '';
+    }
+
+    // ── Legacy fallback ───────────────────────────────────────────────────
+    if (!hasCanais && !hasPresencial && hasLegacy) {
+      document.getElementById('publicoDesc').textContent = opp.publico;
+      var pfHtml = '';
+      (opp.publicoFacts || []).forEach(function(f) {
+        pfHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
+      });
+      document.getElementById('publicoFacts').innerHTML = pfHtml;
+      if (secLegacy) secLegacy.style.display = '';
+    }
+
+    // ── Empty state ───────────────────────────────────────────────────────
+    var hasAnything = hasCanais || hasPresencial || hasLegacy;
+    if (secEmpty) secEmpty.style.display = hasAnything ? 'none' : '';
+  })();
 
   var EMPTY_STATE_HTML = '<div style="padding:32px 16px;text-align:center;color:var(--gray-3);font-family:var(--font-body);font-size:14px;">Informações sendo preparadas pelo detentor.</div>';
 
@@ -1586,7 +1932,27 @@ function renderPage(oppOverride) {
     opp.cotas.forEach(function(c, i) {
       cotasHtml += '<div class="cota-card' + (i === 0 ? ' selected' : '') + '">';
       cotasHtml += '<div class="cota-img">' + escapeHtml(c.emoji) + '</div>';
-      cotasHtml += '<div class="cota-body"><div class="cota-name">' + escapeHtml(c.name) + '</div><div class="cota-desc">' + escapeHtml(c.desc) + '</div><div class="cota-price">' + escapeHtml(c.price) + '</div></div>';
+      cotasHtml += '<div class="cota-body">';
+      cotasHtml += '<div class="cota-name">' + escapeHtml(c.name) + '</div>';
+      // Benefícios como pills
+      if (c.beneficios && c.beneficios.length > 0) {
+        cotasHtml += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">';
+        c.beneficios.forEach(function(b) {
+          cotasHtml += '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:var(--gray-1);color:var(--gray-600);font-size:12px;font-weight:500;line-height:1.3">' +
+            '<span style="font-size:10px;color:var(--gold)">✦</span>' +
+            escapeHtml(b) +
+            '</span>';
+        });
+        cotasHtml += '</div>';
+      } else if (c.desc) {
+        cotasHtml += '<div class="cota-desc">' + escapeHtml(c.desc) + '</div>';
+      }
+      // Vagas disponíveis
+      if (c.vagas != null) {
+        cotasHtml += '<div style="font-size:12px;color:var(--gray-4);margin-top:4px">👥 ' + escapeHtml(String(c.vagas)) + ' vaga' + (Number(c.vagas) !== 1 ? 's' : '') + ' disponível' + (Number(c.vagas) !== 1 ? 'is' : '') + '</div>';
+      }
+      cotasHtml += '<div class="cota-price">' + escapeHtml(c.price) + '</div>';
+      cotasHtml += '</div>';
       cotasHtml += '</div>';
     });
   } else {
@@ -1605,11 +1971,41 @@ function renderPage(oppOverride) {
   }
   document.getElementById('canaisGrid').innerHTML = canaisHtml;
 
-  // Sidebar card
-  document.getElementById('interestPrice').textContent = 'Entre em contato';
+  // Sidebar card — preço dinâmico
+  (function renderPrice() {
+    var priceEl = document.getElementById('interestPrice');
+    var labelEl = document.getElementById('interestPriceLabel');
+    if (!priceEl) return;
+    if (opp.price && opp.price > 0) {
+      priceEl.textContent = 'A partir de R$ ' + opp.price.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      if (labelEl) labelEl.textContent = 'por cota de patrocínio';
+    } else if (opp.cotasHabilitadas) {
+      priceEl.textContent = 'Cotas disponíveis';
+      if (labelEl) labelEl.textContent = 'consulte os valores';
+    } else {
+      priceEl.textContent = 'Entre em contato';
+      if (labelEl) labelEl.textContent = 'valores sob consulta';
+    }
+  })();
   var infoHtml = '';
   infoHtml += '<div class="interest-row"><span class="interest-row-label">Tipo</span><span class="interest-row-value">' + escapeHtml(opp.category || '—') + '</span></div>';
   infoHtml += '<div class="interest-row"><span class="interest-row-label">Prazo</span><span class="interest-row-value deadline">' + escapeHtml(opp.sidebar.prazo || 'Em aberto') + '</span></div>';
+  // Datas do evento na sidebar
+  if (opp.datasEvento && opp.datasEvento.length > 0) {
+    var datasStr = opp.datasEvento.map(function(d) {
+      var s = d.data || '';
+      if (d.local) s += ' — ' + d.local;
+      return s;
+    }).filter(Boolean).join(' · ');
+    if (datasStr) {
+      infoHtml += '<div class="interest-row"><span class="interest-row-label">Data</span><span class="interest-row-value">' + escapeHtml(datasStr) + '</span></div>';
+    }
+  }
+  // Link externo
+  if (opp.linkExterno) {
+    var linkLabel = opp.linkExterno.replace(/^https?:\/\/(www\.)?/, '').split('/')[0];
+    infoHtml += '<div class="interest-row"><span class="interest-row-label">Site</span><span class="interest-row-value"><a href="' + escapeHtml(opp.linkExterno) + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;word-break:break-all">' + escapeHtml(linkLabel || opp.linkExterno) + '</a></span></div>';
+  }
   document.getElementById('interestInfo').innerHTML = infoHtml;
 
   // Modal cota select — esconde o grupo inteiro se não houver cotas definidas
@@ -2022,9 +2418,11 @@ var LOGGED_USER = (function() {
   var a = document.getElementById('sb-avatar');
   var n = document.getElementById('sb-name');
   var e = document.getElementById('sb-email');
+  var t = document.getElementById('topbarAvatar');
   if (a) a.textContent = LOGGED_USER.initials;
   if (n) n.textContent = LOGGED_USER.company || LOGGED_USER.name;
   if (e) e.textContent = LOGGED_USER.email;
+  if (t) t.textContent = LOGGED_USER.initials;
 })();
 
 // Assuntos para oportunidades COM cota definida
@@ -2044,7 +2442,7 @@ var SUBJECTS_NO_COTAS = [
 ];
 
 function openModal() {
-  var opp = getOpp();
+  var opp = _CURRENT_OPP || getOpp();
   var hasCotas = opp.cotas && opp.cotas.length > 0;
 
   // preenche nome da oportunidade no subtítulo
@@ -2243,7 +2641,11 @@ function updateFavBtnState(isFav) {
     }
   } else {
     var rawId = params.get('id');
-    id = rawId ? parseInt(rawId) : null;
+    // Suporta tanto IDs inteiros quanto UUIDs — não usar parseInt pois corrompe UUIDs
+    if (rawId) {
+      var parsed = parseInt(rawId);
+      id = !isNaN(parsed) ? parsed : rawId; // número se for inteiro, string se for UUID
+    }
   }
 
   if (!id && !oppSlug) {
@@ -2291,13 +2693,23 @@ function updateFavBtnState(isFav) {
     // ─────────────────────────────────────────────────────────────────────────
 
   } else {
-    console.log('[Detail] Using mock data for id:', id);
-    renderPage();
+    // Supabase não retornou dados — mostrar página de erro inline sem redirecionar
+    var ls = document.getElementById('loadingScreen');
+    if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.3s'; setTimeout(function(){ ls.style.display = 'none'; }, 300); }
+    var mainEl = document.querySelector('.main-content') || document.querySelector('main') || document.querySelector('.page-content');
+    if (mainEl) {
+      mainEl.innerHTML = '<div style="text-align:center;padding:80px 24px;max-width:480px;margin:0 auto;">' +
+        '<div style="font-size:48px;margin-bottom:16px;">🔍</div>' +
+        '<p style="font-family:var(--font-heading,Poppins,sans-serif);font-size:20px;font-weight:600;color:var(--black,#1A1200);margin-bottom:8px;">Oportunidade não encontrada</p>' +
+        '<p style="font-size:14px;color:var(--gray-500,#7A6A58);line-height:1.6;margin-bottom:28px;">O link pode estar incorreto ou esta oportunidade não está mais disponível.</p>' +
+        '<a href="dashboard-marca.html" style="display:inline-block;padding:10px 24px;background:var(--black,#1A1200);color:#fff;border-radius:100px;font-size:14px;font-weight:500;text-decoration:none;">← Voltar ao Radar</a>' +
+        '</div>';
+    }
   }
 
   // Favorito state
   var opp = oppData || getOpp();
-  updateFavBtnState(getFavIds().indexOf(opp.id) !== -1);
+  if (opp && opp.id) updateFavBtnState(getFavIds().indexOf(opp.id) !== -1);
 
   // Hide loading
   setTimeout(function() {

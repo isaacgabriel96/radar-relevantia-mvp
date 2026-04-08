@@ -242,11 +242,20 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 
 /* ── Form fields ── */
 .form-group { margin-bottom: 20px; }
-.form-group label {
+.form-group label, .form-label {
   display: block; font-size: 13px; font-weight: 600;
   color: var(--gray-4); margin-bottom: 7px; letter-spacing: .1px;
 }
 .form-group label .required { color: var(--red); margin-left: 2px; }
+/* .form-input is an alias for .form-control for use inside dynamic card templates */
+.form-input {
+  width: 100%; padding: 8px 12px; border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius-base); font-family: var(--font-body); font-size: 13px;
+  color: var(--text); background: var(--white); outline: none; transition: border-color .15s, box-shadow .15s;
+  appearance: none; box-sizing: border-box;
+}
+.form-input:focus { border-color: var(--gold); box-shadow: var(--shadow-focus); }
+.form-input::placeholder { color: var(--gray-3); }
 .form-control {
   width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-2);
   border-radius: var(--radius-base); font-family: var(--font-body); font-size: 14px;
@@ -297,27 +306,419 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   font-size: 12px; color: var(--gray-3); font-weight: 500; pointer-events: none; white-space: nowrap;
 }
 
-/* ── Upload Zones ── */
-.upload-zone-primary {
-  border: 2px dashed var(--gold-border); border-radius: var(--radius-lg);
-  padding: 36px 24px; text-align: center; cursor: pointer; transition: all .2s;
-  background: linear-gradient(135deg, rgba(184,134,11,0.04) 0%, rgba(200,168,75,0.06) 100%);
-  position: relative;
+/* ── Audience data panel (per channel) ── */
+.audience-panel {
+  margin-top: 12px;
+  border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius-md);
+  background: var(--gray-1);
+  overflow: hidden;
+  transition: border-color .2s;
 }
-.upload-zone-primary:hover {
-  border-color: var(--gold); background: linear-gradient(135deg, rgba(184,134,11,0.08) 0%, rgba(200,168,75,0.10) 100%);
+/* Inside a canal-card, audience-panel is seamlessly embedded (no extra margin/border) */
+.canal-card > .audience-panel {
+  margin-top: 0;
+  border: none;
+  border-radius: 0;
+  border-top: 1.5px solid var(--gray-2);
 }
-.upload-zone-primary .upload-icon { display: flex; justify-content: center; margin-bottom: 12px; color: var(--gray-3); }
-.upload-zone-primary h4 {
-  font-family: var(--font-heading); font-size: 17px; color: var(--text); margin-bottom: 6px;
+.audience-panel-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; cursor: pointer; user-select: none;
+  background: var(--white);
+  border-bottom: 1.5px solid transparent;
+  transition: background .15s, border-color .2s;
 }
-.upload-zone-primary p { font-size: 13px; color: var(--gray-3); }
-.upload-zone-primary .upload-badge {
-  display: inline-flex; align-items: center; gap: 5px;
+.audience-panel-toggle:hover { background: var(--gray-1); }
+.audience-panel.open > .audience-panel-toggle {
+  border-bottom-color: var(--gray-2);
+}
+.audience-panel-toggle-label {
+  font-size: 12px; font-weight: 600; color: var(--gray-4);
+  display: flex; align-items: center; gap: 6px;
+}
+.audience-panel-toggle-label svg { flex-shrink: 0; }
+.audience-panel-arrow {
+  font-size: 10px; color: var(--gray-3); transition: transform .2s; display: inline-block;
+}
+.audience-panel.open .audience-panel-arrow { transform: rotate(180deg); }
+.audience-panel-body {
+  display: none; padding: 16px 14px; flex-direction: column; gap: 14px;
+}
+.audience-panel.open .audience-panel-body { display: flex; }
+
+/* Estimation toggle */
+.est-toggle-row {
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  background: var(--white); border-radius: var(--radius-base);
+  border: 1.5px solid var(--gray-2); margin-bottom: 2px;
+}
+.est-toggle-label { font-size: 12px; font-weight: 500; color: var(--gray-4); flex: 1; }
+.est-toggle-switch {
+  position: relative; width: 40px; height: 22px; flex-shrink: 0;
+  background: var(--gray-2); border-radius: 100px; cursor: pointer;
+  transition: background .2s;
+}
+.est-toggle-switch.is-real { background: var(--brown-warm); }
+.est-toggle-knob {
+  position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+  background: var(--white); border-radius: 50%; transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(30,22,0,.18);
+}
+.est-toggle-switch.is-real .est-toggle-knob { transform: translateX(18px); }
+.est-badge {
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px;
+  background: var(--gray-2); color: var(--gray-4); flex-shrink: 0;
+  transition: background .2s, color .2s;
+}
+.est-badge.is-real { background: #e8f0e0; color: var(--brown-warm); }
+
+/* Age range bars (form) */
+.age-ranges-grid {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.age-range-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.age-range-label {
+  font-size: 11px; font-weight: 600; color: var(--gray-4);
+  width: 44px; flex-shrink: 0;
+}
+.age-range-input-wrap {
+  position: relative; width: 72px; flex-shrink: 0;
+}
+.age-range-input-wrap input {
+  width: 100%; padding-right: 20px; text-align: right;
+  font-size: 13px;
+}
+.age-range-pct-suffix {
+  position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+  font-size: 12px; color: var(--gray-3); pointer-events: none;
+}
+.age-bar-preview {
+  flex: 1; height: 6px; border-radius: 100px;
+  background: var(--gray-2); overflow: hidden;
+}
+.age-bar-preview-fill {
+  height: 100%; border-radius: 100px;
+  background: var(--gold-gradient, linear-gradient(135deg,#B8860B,#C8A84B));
+  transition: width .25s;
+}
+.age-sum-indicator {
+  font-size: 11px; font-weight: 700; text-align: right;
+  margin-top: 4px;
+  transition: color .2s;
+}
+.age-sum-indicator.ok { color: #3a7d44; }
+.age-sum-indicator.over { color: #c0392b; }
+.age-sum-indicator.under { color: var(--gray-3); }
+
+/* Gender row */
+.gender-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+
+/* Format pills multiselect */
+.format-pills-grid {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.format-pill {
+  font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 100px;
+  border: 1.5px solid var(--gray-2); background: var(--white);
+  color: var(--gray-4); cursor: pointer; transition: all .15s;
+  user-select: none;
+}
+.format-pill:hover { border-color: var(--gray-3); }
+.format-pill.selected {
+  border-color: var(--brown-warm); background: #f5eddf; color: var(--brown-warm);
+}
+
+/* Period select small */
+.period-select {
+  font-size: 12px; padding: 7px 10px; height: auto;
+  background: var(--white); border: 1.5px solid var(--gray-2); border-radius: var(--radius-base);
+  color: var(--text); width: 100%;
+}
+
+/* ── Age range slider ── */
+.age-range-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 100px; background: var(--gray-2); outline: none;
+  cursor: pointer;
+}
+.age-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--gold); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(30,22,0,.25);
+  transition: transform .15s;
+}
+.age-range-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.age-range-slider::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%; border: none;
+  background: var(--gold); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(30,22,0,.25);
+}
+
+/* ── Aliases / extras para canal cards dinâmicos ── */
+.format-pills-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Estimate toggle (seguidores reais/estimativa) */
+.estimate-toggle {
+  display: inline-flex; align-items: center;
+  width: 34px; height: 18px; border-radius: 100px;
+  background: var(--gray-2); cursor: pointer; position: relative;
+  transition: background .2s; flex-shrink: 0;
+}
+.estimate-toggle.is-real { background: var(--gold); }
+.estimate-toggle-knob {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--white); position: absolute; left: 2px;
+  transition: left .2s;
+  box-shadow: 0 1px 3px rgba(30,22,0,.25);
+}
+.estimate-toggle.is-real .estimate-toggle-knob { left: 18px; }
+.estimate-badge {
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 100px;
+  border: 1.5px solid var(--gray-2); color: var(--gray-3);
+  background: var(--gray-1);
+}
+.estimate-badge.is-real { border-color: var(--gold); color: var(--brown-warm); background: #fdf6e3; }
+
+/* Age rows (faixa etária) */
+.age-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.age-label {
+  font-size: 12px; font-weight: 600; color: var(--gray-4);
+  white-space: nowrap; min-width: 80px; flex-shrink: 0;
+}
+.age-bar-track {
+  flex: 1; height: 6px; border-radius: 100px;
+  background: var(--gray-2); overflow: hidden;
+}
+.age-bar-fill {
+  height: 100%; border-radius: 100px;
+  background: var(--gold-gradient); width: 0%;
+  transition: width .25s ease;
+}
+.age-controls { display: flex; align-items: center; gap: 6px; flex: 1; }
+.age-slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 4px; border-radius: 100px; background: var(--gray-2); outline: none;
+  cursor: pointer;
+}
+.age-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--gold); cursor: pointer;
+  box-shadow: 0 1px 3px rgba(30,22,0,.25);
+}
+.age-slider::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%; border: none;
+  background: var(--gold); cursor: pointer;
+}
+.age-input-wrap { display: flex; align-items: center; gap: 2px; }
+.age-input {
+  width: 44px; border: 1.5px solid var(--gray-2); border-radius: var(--radius-base);
+  font-size: 12px; font-family: var(--font-ui); text-align: right;
+  padding: 4px 6px; outline: none; transition: border-color .15s;
+}
+.age-input:focus { border-color: var(--gold); }
+.age-pct-label { font-size: 11px; color: var(--gray-3); font-weight: 600; }
+
+/* Gender chart layout */
+.gender-chart-layout {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.gender-side {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1;
+}
+.gender-legend-item {
+  display: flex; align-items: center; gap: 5px;
+}
+.gender-legend-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.gender-legend-label { font-size: 11.5px; font-weight: 600; color: var(--gray-4); }
+.gender-input-wrap { display: flex; align-items: center; gap: 4px; }
+.gender-input {
+  width: 52px; border: 1.5px solid var(--gray-2); border-radius: var(--radius-base);
+  font-size: 14px; font-family: var(--font-display); font-weight: 600;
+  text-align: center; padding: 6px 6px; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.gender-input:focus { border-color: var(--gold); box-shadow: var(--shadow-focus); }
+.gender-pct { font-size: 13px; color: var(--gray-3); font-weight: 600; }
+
+/* ── Canal card dinâmico ── */
+.canal-card {
+  background: var(--white); border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius-md); overflow: hidden;
+  transition: border-color .2s;
+}
+.canal-card-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px;
+  background: var(--gray-1);
+  border-bottom: 1.5px solid var(--gray-2);
+}
+.canal-card-header.saved { background: var(--gray-1); border-bottom-color: var(--gray-2); }
+.canal-card-icon { display: flex; align-items: center; color: var(--gray-4); flex-shrink: 0; }
+.canal-card-label { font-size: 12px; font-weight: 700; color: var(--gray-4); flex-shrink: 0; }
+.canal-card-username-wrap { flex: 1; position: relative; display: flex; }
+.canal-card-username-prefix {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 11.5px; color: var(--gray-3); font-weight: 500; pointer-events: none; white-space: nowrap;
+}
+.canal-card-username-input {
+  width: 100%; border: 1.5px solid var(--gray-2); border-radius: var(--radius-base);
+  font-size: 13px; font-family: var(--font-body); color: var(--text);
+  background: var(--white); padding: 7px 10px 7px 10px;
+  transition: border-color .15s, box-shadow .15s; outline: none;
+}
+.canal-card-username-input:focus { border-color: var(--gold); box-shadow: var(--shadow-focus); }
+/* Badge "✓ Salvo" — aparece ao salvar, some após 2.5s via JS */
+.canal-card-saved-badge {
+  display: none; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+  color: #16a34a; background: #f0fdf4; border: 1.5px solid #22c55e55;
+  border-radius: 100px; padding: 3px 9px; flex-shrink: 0; white-space: nowrap;
+  opacity: 1; transition: opacity .5s ease;
+}
+.canal-card-saved-badge.fading { opacity: 0; }
+
+/* Ícone lápis no header — sempre visível, abre painel para editar */
+.canal-card-edit-icon {
+  background: none; border: none; cursor: pointer;
+  color: var(--gray-3); padding: 4px 5px; flex-shrink: 0;
+  border-radius: 6px; display: flex; align-items: center;
+  transition: color .15s, background .15s;
+}
+.canal-card-edit-icon:hover { color: var(--brown-warm); background: var(--gold-muted); }
+
+/* X para remover */
+.canal-card-remove-btn {
+  background: none; border: none; cursor: pointer; color: var(--gray-3);
+  font-size: 16px; line-height: 1; padding: 4px 6px; flex-shrink: 0;
+  transition: color .15s, background .15s; border-radius: 6px; display: flex; align-items: center;
+}
+.canal-card-remove-btn:hover { color: #c0392b; background: #fdf2f2; }
+
+/* Footer — some quando salvo */
+.canal-card-footer {
+  display: flex; align-items: center; justify-content: flex-end;
+  padding: 10px 14px; gap: 8px; border-top: 1.5px solid var(--gray-2);
+  background: var(--gray-1); transition: all .2s;
+}
+.canal-card.saved .canal-card-footer { display: none; }
+
+/* Botão Salvar canal — estilo default preto */
+.btn-save-canal {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 100px; border: 1.5px solid var(--black); cursor: pointer;
+  font-size: 12.5px; font-weight: 700; font-family: var(--font-body);
   background: var(--black); color: var(--white);
-  border-radius: var(--radius-pill); padding: 4px 12px;
-  font-size: 11px; font-weight: 700; letter-spacing: .3px; margin-bottom: 12px;
+  transition: opacity .15s, transform .1s, background .15s;
 }
+.btn-save-canal:hover { background: var(--gray-4); border-color: var(--gray-4); }
+.btn-save-canal:active { transform: scale(.97); }
+
+/* ── Confirm remove banner inline ── */
+.canal-remove-confirm {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; background: #fff8f8;
+  border-bottom: 1.5px solid #fecaca;
+  animation: confirmSlideIn .15s ease;
+}
+@keyframes confirmSlideIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.canal-remove-confirm-text {
+  font-size: 12px; font-weight: 600; color: #7f1d1d; flex: 1;
+}
+.canal-remove-confirm-yes {
+  padding: 5px 13px; border-radius: 100px; border: none; cursor: pointer;
+  font-size: 11.5px; font-weight: 700; font-family: var(--font-body);
+  background: #dc2626; color: #fff;
+  transition: background .15s;
+}
+.canal-remove-confirm-yes:hover { background: #b91c1c; }
+.canal-remove-confirm-no {
+  padding: 5px 13px; border-radius: 100px; cursor: pointer;
+  font-size: 11.5px; font-weight: 600; font-family: var(--font-body);
+  background: none; border: 1.5px solid #fecaca; color: #7f1d1d;
+  transition: border-color .15s, background .15s;
+}
+.canal-remove-confirm-no:hover { background: #fef2f2; border-color: #dc2626; }
+
+/* ── Gender sum indicator ── */
+.gender-sum-indicator {
+  font-size: 11px; font-weight: 700; text-align: right;
+  margin-top: 4px; transition: color .2s;
+}
+.gender-sum-indicator.ok { color: #3a7d44; }
+.gender-sum-indicator.over { color: #c0392b; }
+.gender-sum-indicator.under { color: var(--gray-3); }
+
+/* ── Gender pie chart ── */
+.gender-section { display: flex; flex-direction: column; gap: 14px; }
+.gender-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gender-pie-wrap {
+  display: flex; flex-direction: row; align-items: center; gap: 16px;
+}
+.gender-pie-svg { width: 120px; height: 120px; overflow: visible; flex-shrink: 0; }
+.gender-pie-legend {
+  display: flex; flex-direction: column; gap: 8px; flex-wrap: wrap;
+}
+.gender-pie-legend-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600; color: var(--gray-4); white-space: nowrap;
+}
+.gender-pie-legend-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.gender-pie-pct-label {
+  font-size: 11px; font-weight: 700; fill: var(--gray-4);
+  font-family: var(--font-body);
+}
+
+/* ── Period date-range ── */
+.period-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 6px; }
+.period-chip {
+  font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 100px;
+  border: 1.5px solid var(--gray-2); background: var(--white);
+  color: var(--gray-4); cursor: pointer; transition: all .15s; user-select: none;
+}
+.period-chip:hover { border-color: var(--gray-3); }
+.period-chip.selected { border-color: var(--brown-warm); background: #f5eddf; color: var(--brown-warm); }
+.period-custom-row {
+  display: none; flex-direction: column; gap: 6px;
+  background: var(--white); border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius-base); padding: 10px 12px;
+}
+.period-custom-row.visible { display: flex; }
+.period-custom-row label { font-size: 11px; font-weight: 600; color: var(--gray-3); margin-bottom: 4px; }
+/* Datas calculadas do período selecionado */
+.period-date-display {
+  display: none; font-size: 11.5px; font-weight: 600;
+  color: var(--brown-warm); margin-top: 6px;
+  padding: 5px 10px; background: #fdf6e3;
+  border: 1.5px solid var(--gold-border); border-radius: var(--radius-base);
+}
+.period-dates-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.period-dates-row input[type=date] {
+  font-size: 12px; padding: 6px 10px; border: 1.5px solid var(--gray-2);
+  border-radius: var(--radius-base); background: var(--gray-1); color: var(--text);
+  width: 100%;
+}
+
+/* ── Remove number spinners ── */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
+
 .upload-zone-secondary {
   border: 1.5px dashed var(--gray-2); border-radius: var(--radius-md);
   padding: 20px 16px; text-align: center; cursor: pointer; transition: all .2s;
@@ -1230,86 +1631,42 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
     <!-- Step Progress (7 dots) -->
     <div class="step-progress">
-      <div class="step active" id="step-dot-0">
+      <div class="step active" id="step-dot-1">
         <div class="step-circle"><span>1</span></div>
-        <span class="step-label">Mídia Kit</span>
-      </div>
-      <div class="step-line" id="step-line-0"></div>
-      <div class="step" id="step-dot-1">
-        <div class="step-circle"><span>2</span></div>
         <span class="step-label">Tipo</span>
       </div>
       <div class="step-line" id="step-line-1"></div>
       <div class="step" id="step-dot-2">
-        <div class="step-circle"><span>3</span></div>
+        <div class="step-circle"><span>2</span></div>
         <span class="step-label">Informações</span>
       </div>
       <div class="step-line" id="step-line-2"></div>
       <div class="step" id="step-dot-3">
-        <div class="step-circle"><span>4</span></div>
+        <div class="step-circle"><span>3</span></div>
         <span class="step-label">Materiais</span>
       </div>
       <div class="step-line" id="step-line-3"></div>
       <div class="step" id="step-dot-4">
-        <div class="step-circle"><span>5</span></div>
+        <div class="step-circle"><span>4</span></div>
         <span class="step-label">Detalhes</span>
       </div>
       <div class="step-line" id="step-line-4"></div>
       <div class="step" id="step-dot-5">
-        <div class="step-circle"><span>6</span></div>
+        <div class="step-circle"><span>5</span></div>
         <span class="step-label">Segmentos</span>
       </div>
       <div class="step-line" id="step-line-5"></div>
       <div class="step" id="step-dot-6">
-        <div class="step-circle"><span>7</span></div>
+        <div class="step-circle"><span>6</span></div>
         <span class="step-label">Preview</span>
       </div>
       <div class="step-line" id="step-line-6"></div>
       <div class="step" id="step-dot-7">
-        <div class="step-circle"><span>8</span></div>
+        <div class="step-circle"><span>7</span></div>
         <span class="step-label">Publicar</span>
       </div>
     </div>
 
-    <!-- ════════════════════════════════════════════
-         PASSO 0 — MÍDIA KIT (apenas PDF)
-    ════════════════════════════════════════════ -->
-    <div id="panel-0">
-      <div class="form-card">
-        <div class="card-header">
-          <div class="card-title">Mídia Kit</div>
-          <div class="card-desc">Envie o PDF do seu mídia kit. Marcas tomam decisões muito mais rápido quando têm acesso a esse material.</div>
-        </div>
-
-        <div class="info-note">
-          Oportunidades com mídia kit completo recebem significativamente mais interesse das marcas no Radar.
-        </div>
-
-        <!-- PDF Mídia Kit -->
-        <div class="form-group">
-          <label>PDF do Mídia Kit <span style="font-size:11px;font-weight:400;color:var(--gray-3)">(opcional)</span></label>
-          <div class="upload-zone-primary" onclick="triggerUpload('pdf')" id="pdfZone">
-            <div class="upload-icon"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="4" width="22" height="30" rx="3" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".3"/><path d="M22 4v8h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/><path d="M14 20h12M14 25h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".6"/><path d="M20 14l-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/></svg></div>
-            <h4>Arraste ou clique para enviar o PDF</h4>
-            <p>Formato PDF · Máximo 20 MB</p>
-            <input type="file" id="pdfInput" accept=".pdf" style="display:none" onchange="previewFile(this,'pdfPreview','pdfName')">
-          </div>
-          <div id="pdfPreview" style="display:none">
-            <div class="upload-preview-name">
-              <span style="font-size:13px;opacity:.6">PDF</span>
-              <span id="pdfName"></span>
-              <button onclick="removeFile('pdf')">✕</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="step-actions">
-        <button class="btn btn-primary" id="btnProximo0" onclick="nextStep(1)">
-          Próximo: Tipo →
-        </button>
-      </div>
-    </div><!-- /panel-0 -->
 
 
     <!-- ════════════════════════════════════════════
@@ -1414,7 +1771,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
       </div>
 
       <div class="step-actions">
-        <button class="btn btn-ghost" onclick="nextStep(0)">← Voltar</button>
         <button class="btn btn-primary" id="btnProximo1" disabled onclick="nextStep(2)">
           Próximo: Informações →
         </button>
@@ -1442,6 +1798,12 @@ textarea.form-control { resize: vertical; min-height: 90px; }
           <label>Descrição curta <span class="required">*</span></label>
           <textarea class="form-control" id="opp-desc" maxlength="300" rows="3" placeholder="Descreva brevemente o que a marca irá patrocinar ou se associar…" oninput="updateChar(this,'descCount',300)"></textarea>
           <div class="char-count"><span id="descCount">0</span>/300</div>
+        </div>
+
+        <div class="form-group">
+          <label>O que buscamos em uma marca parceira</label>
+          <textarea class="form-control" id="opp-objetivos" maxlength="800" rows="4" placeholder="Descreva o perfil ideal de patrocinador, seus objetivos e o que você espera desta parceria…" oninput="updateChar(this,'objetivosCount',800)"></textarea>
+          <div class="char-count"><span id="objetivosCount">0</span>/800</div>
         </div>
 
         <div class="grid-2">
@@ -1539,79 +1901,27 @@ textarea.form-control { resize: vertical; min-height: 90px; }
         <!-- Redes Sociais -->
         <div class="form-group">
           <label style="margin-bottom:14px">Redes sociais <span style="font-size:11px;font-weight:400;color:var(--gray-3)">(opcional)</span></label>
+
+          <!-- Botão Adicionar canal -->
+          <div id="add-canal-area" style="margin-bottom:14px">
+            <button type="button" id="add-canal-btn" onclick="openCanalPicker()"
+              style="display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border:2px dashed var(--gray-2);border-radius:var(--radius-base);background:none;cursor:pointer;color:var(--gray-3);font-size:13px;font-weight:600;font-family:var(--font-body);transition:border-color .15s,color .15s"
+              onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--brown-warm)'" onmouseout="this.style.borderColor='var(--gray-2)';this.style.color='var(--gray-3)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Adicionar canal
+            </button>
+            <!-- Picker dropdown -->
+            <div id="canal-picker" style="display:none;position:relative;margin-top:8px;background:var(--white);border:1.5px solid var(--gray-2);border-radius:var(--radius-md);box-shadow:0 4px 20px rgba(30,22,0,.1);padding:8px;max-width:320px;z-index:10">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:600;color:var(--gray-3);padding:4px 6px 8px">Selecione a rede</div>
+              <div id="canal-picker-list" style="display:flex;flex-direction:column;gap:2px"></div>
+            </div>
+          </div>
+
           <div id="social-networks-container" style="display:flex;flex-direction:column;gap:14px">
 
-            <!-- Instagram -->
-            <div class="social-network-group" data-network="instagram" data-prefix="instagram.com/">
-              <div class="social-network-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-                <span style="font-size:12px;font-weight:600;color:var(--gray-4)">Instagram</span>
-                <button type="button" class="social-add-btn" onclick="addSocialEntry(this.closest('.social-network-group'))"
-                  style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:12px;font-weight:600;padding:2px 6px;transition:color .15s"
-                  onmouseover="this.style.color='var(--brown-warm)'" onmouseout="this.style.color='var(--gray-3)'">+ perfil</button>
-              </div>
-              <div class="social-entries" style="display:flex;flex-direction:column;gap:8px">
-                <div class="social-entry" style="display:flex;gap:8px;align-items:center">
-                  <div class="social-input-wrapper" style="flex:1">
-                    <span class="social-input-prefix">instagram.com/</span>
-                    <input type="text" class="form-control" id="social-instagram" placeholder="seuusuario" style="padding-left:110px">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- TikTok -->
-            <div class="social-network-group" data-network="tiktok" data-prefix="tiktok.com/@">
-              <div class="social-network-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-                <span style="font-size:12px;font-weight:600;color:var(--gray-4)">TikTok</span>
-                <button type="button" class="social-add-btn" onclick="addSocialEntry(this.closest('.social-network-group'))"
-                  style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:12px;font-weight:600;padding:2px 6px;transition:color .15s"
-                  onmouseover="this.style.color='var(--brown-warm)'" onmouseout="this.style.color='var(--gray-3)'">+ perfil</button>
-              </div>
-              <div class="social-entries" style="display:flex;flex-direction:column;gap:8px">
-                <div class="social-entry" style="display:flex;gap:8px;align-items:center">
-                  <div class="social-input-wrapper" style="flex:1">
-                    <span class="social-input-prefix">tiktok.com/@</span>
-                    <input type="text" class="form-control" id="social-tiktok" placeholder="seuusuario" style="padding-left:100px">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- YouTube -->
-            <div class="social-network-group" data-network="youtube" data-prefix="youtube.com/">
-              <div class="social-network-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-                <span style="font-size:12px;font-weight:600;color:var(--gray-4)">YouTube</span>
-                <button type="button" class="social-add-btn" onclick="addSocialEntry(this.closest('.social-network-group'))"
-                  style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:12px;font-weight:600;padding:2px 6px;transition:color .15s"
-                  onmouseover="this.style.color='var(--brown-warm)'" onmouseout="this.style.color='var(--gray-3)'">+ perfil</button>
-              </div>
-              <div class="social-entries" style="display:flex;flex-direction:column;gap:8px">
-                <div class="social-entry" style="display:flex;gap:8px;align-items:center">
-                  <div class="social-input-wrapper" style="flex:1">
-                    <span class="social-input-prefix">youtube.com/</span>
-                    <input type="text" class="form-control" id="social-youtube" placeholder="@seucanal" style="padding-left:105px">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- LinkedIn -->
-            <div class="social-network-group" data-network="linkedin" data-prefix="linkedin.com/in/">
-              <div class="social-network-header" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-                <span style="font-size:12px;font-weight:600;color:var(--gray-4)">LinkedIn</span>
-                <button type="button" class="social-add-btn" onclick="addSocialEntry(this.closest('.social-network-group'))"
-                  style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:12px;font-weight:600;padding:2px 6px;transition:color .15s"
-                  onmouseover="this.style.color='var(--brown-warm)'" onmouseout="this.style.color='var(--gray-3)'">+ perfil</button>
-              </div>
-              <div class="social-entries" style="display:flex;flex-direction:column;gap:8px">
-                <div class="social-entry" style="display:flex;gap:8px;align-items:center">
-                  <div class="social-input-wrapper" style="flex:1">
-                    <span class="social-input-prefix">linkedin.com/in/</span>
-                    <input type="text" class="form-control" id="social-linkedin" placeholder="seuperfil" style="padding-left:118px">
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- Canal cards are generated dynamically by addCanal() -->
+            <!-- REMOVED: static network groups for instagram, tiktok, youtube, linkedin, twitch, kwai, kick -->
+            <!-- PLACEHOLDER to find end of container: -->
 
           </div>
         </div>
@@ -1625,7 +1935,7 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 
       <div class="step-actions">
         <button class="btn btn-ghost" onclick="nextStep(2)">← Voltar</button>
-        <button class="btn btn-primary" onclick="nextStep(4)">
+        <button class="btn btn-primary" onclick="if(validateAudiencePanels()) nextStep(4)">
           Próximo: Detalhes →
         </button>
       </div>
@@ -1774,9 +2084,6 @@ textarea.form-control { resize: vertical; min-height: 90px; }
       <!-- Tabs de navegação -->
       <div class="pv-tabs">
         <button class="pv-tab active" onclick="switchPreviewTab('visao', this)">Visão geral</button>
-        <button class="pv-tab" onclick="switchPreviewTab('publico', this)">Público</button>
-        <button class="pv-tab" onclick="switchPreviewTab('cotas', this)">Cotas & Entregas</button>
-        <button class="pv-tab" onclick="switchPreviewTab('canais', this)">Canais</button>
       </div>
 
       <!-- Tab: Visão geral -->
@@ -1804,56 +2111,10 @@ textarea.form-control { resize: vertical; min-height: 90px; }
             <span style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhum segmento selecionado</span>
           </div>
         </div>
-      </div>
-
-      <!-- Tab: Público -->
-      <div class="pv-tab-content" id="pvTab-publico">
-        <div class="form-card" style="margin:0">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Público-alvo</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('publico')" id="pvPublico">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para descrever o público-alvo desta oportunidade</span>
-          </div>
-        </div>
         <div class="form-card" style="margin-top:16px">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Dados demográficos</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('demografico')" id="pvDemografico">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para adicionar dados demográficos (faixa etária, gênero, região, etc.)</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Cotas & Entregas -->
-      <div class="pv-tab-content" id="pvTab-cotas">
-        <div class="form-card" style="margin:0">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Cotas de patrocínio</div></div>
-          <div id="pvCotas">
-            <div class="pv-empty-state" style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhuma cota de patrocínio definida</div>
-          </div>
-        </div>
-        <div class="form-card" style="margin-top:16px">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Entregas ao patrocinador</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('entregas')" id="pvEntregas">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para descrever as entregas que o patrocinador receberá</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Canais -->
-      <div class="pv-tab-content" id="pvTab-canais">
-        <div class="form-card" style="margin:0">
           <div class="card-header"><div class="card-title" style="font-size:16px">Canais e alcance</div></div>
           <div id="pvCanais">
             <div class="pv-empty-state" style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhuma rede social adicionada no formulário</div>
-          </div>
-        </div>
-        <div class="form-card" style="margin-top:16px">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Métricas de audiência</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('metricas')" id="pvMetricas">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para adicionar métricas de audiência (alcance médio, engajamento, impressões, etc.)</span>
           </div>
         </div>
       </div>
@@ -1896,6 +2157,26 @@ textarea.form-control { resize: vertical; min-height: 90px; }
          PASSO 7 — PUBLICAR
     ════════════════════════════════════════════ -->
     <div id="panel-7" style="display:none">
+
+      <!-- Link público da oportunidade (slug) -->
+      <div class="form-card">
+        <div class="card-header">
+          <div class="card-title">Link público da oportunidade</div>
+          <div class="card-desc">Este será o endereço da sua oportunidade no Radar. Gerado automaticamente a partir do nome — você pode personalizar.</div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">URL da oportunidade</label>
+          <div style="display:flex;align-items:center;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);background:#fff;overflow:hidden;transition:border-color 0.18s" id="slug-field-wrapper">
+            <span style="padding:10px 12px;font-size:13px;color:var(--gray-3);background:var(--gray-1);border-right:1.5px solid var(--gray-2);white-space:nowrap;flex-shrink:0;font-family:var(--font-body)">radar.relevantia.com/@perfil/</span>
+            <input type="text" id="opp-slug"
+              style="border:none;outline:none;background:transparent;flex:1;min-width:0;font-family:monospace;font-size:14px;padding:10px 12px;color:var(--black)"
+              placeholder="meu-evento-2026"
+              oninput="onSlugInput(this.value)"
+              onblur="validateSlugUnique()">
+          </div>
+          <div id="slug-status" style="margin-top:6px;font-size:12px;min-height:18px;display:flex;align-items:center;gap:6px"></div>
+        </div>
+      </div>
 
       <!-- Visibilidade (card unificado: preview + opções) -->
       <div class="form-card">
@@ -1971,18 +2252,132 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 /* ══════════════════════════════════════════════
    ESTADO GLOBAL
 ══════════════════════════════════════════════ */
-let currentStep = 0;
-const TOTAL_STEPS = 8;
+let currentStep = 1;
+const TOTAL_STEPS = 7;
 const formState = {
   selectedTemplate: null,
   selectedVisibility: 'publica',
   photoFiles: [],
   editId: null,
   editSlug: null,
+  slugIsValid: false,   // true quando slug foi validado como único
   _pendingDetalhes: null,
   _pendingCotas: null,
   _pendingCotasHabilitadas: false
 };
+
+/* ══════════════════════════════════════════════
+   SLUG — geração, sanitização e validação única
+══════════════════════════════════════════════ */
+
+/** Converte texto livre em slug URL-safe (minúsculas, sem acentos, só letras/números/hífens) */
+function slugify(text) {
+  return (text || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .replace(/[^a-z0-9\s-]/g, '')   // remove caracteres especiais
+    .trim()
+    .replace(/[\s_]+/g, '-')        // espaços e underscores → hífens
+    .replace(/-+/g, '-')            // múltiplos hífens → um só
+    .replace(/^-+|-+$/g, '')        // remove hífens no início/fim
+    .substring(0, 80);              // máx 80 chars
+}
+
+/** Chamado ao digitar no campo slug — sanitiza em tempo real */
+function onSlugInput(val) {
+  const el = document.getElementById('opp-slug');
+  if (!el) return;
+  // Sanitiza mantendo o cursor no lugar
+  const sanitized = slugify(val);
+  if (el.value !== sanitized) el.value = sanitized;
+  formState.slugIsValid = false;
+  setSlugStatus('idle');
+}
+
+/** Define o status visual do campo slug */
+function setSlugStatus(state, msg) {
+  const wrapper = document.getElementById('slug-field-wrapper');
+  const status = document.getElementById('slug-status');
+  if (!status) return;
+  if (state === 'idle') {
+    if (wrapper) wrapper.style.borderColor = 'var(--gray-2)';
+    status.innerHTML = '';
+  } else if (state === 'checking') {
+    if (wrapper) wrapper.style.borderColor = 'var(--gold)';
+    status.innerHTML = '<span style="color:var(--gray-3)">⏳ Verificando disponibilidade…</span>';
+  } else if (state === 'ok') {
+    if (wrapper) wrapper.style.borderColor = 'var(--green)';
+    status.innerHTML = '<span style="color:#16a34a">✓ Disponível</span>';
+  } else if (state === 'taken') {
+    if (wrapper) wrapper.style.borderColor = 'var(--red)';
+    status.innerHTML = '<span style="color:var(--red)">✗ ' + (msg || 'Este slug já está em uso. Escolha outro.') + '</span>';
+  } else if (state === 'error') {
+    if (wrapper) wrapper.style.borderColor = 'var(--gray-2)';
+    status.innerHTML = '<span style="color:var(--gray-3)">' + (msg || 'Não foi possível verificar.') + '</span>';
+  }
+}
+
+let _slugCheckTimer = null;
+
+/** Valida se o slug é único no Supabase (debounced no blur, chamado tb no publishOpportunity) */
+async function validateSlugUnique(forceCheck) {
+  const el = document.getElementById('opp-slug');
+  if (!el) return true;
+  const slug = el.value.trim();
+  if (!slug) {
+    setSlugStatus('idle');
+    formState.slugIsValid = false;
+    return false;
+  }
+  setSlugStatus('checking');
+  try {
+    const token = typeof getValidToken === 'function' ? await getValidToken() : null;
+    const headers = { 'apikey': SUPABASE_KEY,
+      'Authorization': token ? ('Bearer ' + token) : ('Bearer ' + SUPABASE_KEY) };
+    // Verifica se existe outra oportunidade com o mesmo slug (exceto a própria em edição)
+    let url = SUPABASE_URL + '/rest/v1/oportunidades?select=id&slug=eq.' + encodeURIComponent(slug);
+    if (formState.editId) url += '&id=neq.' + formState.editId;
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error('status ' + res.status);
+    const rows = await res.json();
+    if (rows && rows.length > 0) {
+      setSlugStatus('taken', 'Este slug já está em uso. Escolha outro.');
+      formState.slugIsValid = false;
+      return false;
+    } else {
+      setSlugStatus('ok');
+      formState.slugIsValid = true;
+      return true;
+    }
+  } catch (e) {
+    console.warn('[validateSlugUnique] error:', e);
+    setSlugStatus('error', 'Não foi possível verificar a disponibilidade.');
+    formState.slugIsValid = false;
+    return false; // falha conservadora — não bloqueia publicação se o check falhou
+  }
+}
+
+/** Auto-preenche o slug quando o usuário chega no passo 7 (se campo estiver vazio) */
+function autoFillSlug() {
+  const el = document.getElementById('opp-slug');
+  if (!el) return;
+  if (el.value.trim()) return; // já preenchido (usuário digitou)
+  // Modo edição: pré-popula com o slug existente
+  if (formState.editSlug) {
+    el.value = formState.editSlug;
+    formState.slugIsValid = true; // já é válido (é o slug atual desta opp)
+    setSlugStatus('ok');
+    return;
+  }
+  // Modo criação: gera slug a partir do título
+  const nomeEl = document.getElementById('opp-nome');
+  const nome = nomeEl ? nomeEl.value.trim() : '';
+  if (!nome) return;
+  el.value = slugify(nome);
+  // Valida com pequeno delay para não bloquear a transição de passo
+  clearTimeout(_slugCheckTimer);
+  _slugCheckTimer = setTimeout(validateSlugUnique, 600);
+}
 
 /* ══════════════════════════════════════════════
    TEMPLATES — 4 modelos
@@ -2025,10 +2420,7 @@ const TEMPLATES = {
           {v:'mega',  l:'Mais de 2M (Mega)'}
         ]
       },
-      {
-        id: 'redes', label: 'Redes sociais com presença', type: 'multiselect-pills',
-        options: ['Instagram','TikTok','YouTube','X (Twitter)','LinkedIn','Kwai','Pinterest','Podcast']
-      },
+      // Nota: campo 'redes' (Redes sociais com presença) removido — redundante com canal-cards
     ]
   },
   'evento': {
@@ -2076,6 +2468,50 @@ const TEMPLATES = {
       {
         id: 'transmissao-evento', label: 'Transmissão prevista', type: 'multiselect-pills',
         options: ['TV Aberta','TV Fechada','Streaming','YouTube','Sem transmissão']
+      },
+      {
+        id: 'publico-presencial-section', label: '', type: 'section-heading',
+        heading: 'Perfil do público presencial', fullWidth: true
+      },
+      {
+        id: 'historico-publico', label: 'Público na última edição', type: 'text',
+        placeholder: 'Ex: 12.000 pessoas na edição 2024'
+      },
+      {
+        id: 'perfil-socioeconomico', label: 'Perfil socioeconômico dominante', type: 'select',
+        options: [
+          {v:'a',   l:'A (renda alta)'},
+          {v:'ab',  l:'A/B (renda média-alta)'},
+          {v:'bc',  l:'B/C (renda média)'},
+          {v:'cd',  l:'C/D (renda média-baixa)'},
+          {v:'todos',l:'Todos os perfis'}
+        ]
+      },
+      {
+        id: 'presencial-est-toggle', label: '', type: 'presential-audience-toggle', fullWidth: true
+      },
+      {
+        id: 'presencial-genero-f', label: 'Feminino (%)', type: 'text',
+        placeholder: 'Ex: 55'
+      },
+      {
+        id: 'presencial-genero-m', label: 'Masculino (%)', type: 'text',
+        placeholder: 'Ex: 45'
+      },
+      {
+        id: 'presencial-faixas-etarias', label: 'Faixa etária do público', type: 'presential-age-ranges', fullWidth: true
+      },
+      {
+        id: 'presencial-periodo', label: 'Período de referência', type: 'select', fullWidth: false,
+        options: [
+          {v:'ultima-edicao', l:'Última edição'},
+          {v:'media-3', l:'Média das 3 últimas edições'},
+          {v:'estimativa', l:'Estimativa'}
+        ]
+      },
+      {
+        id: 'presencial-contexto', label: 'Contexto adicional do público', type: 'textarea', fullWidth: true,
+        placeholder: 'Ex: Público majoritariamente local (raio de 50 km), família com crianças, faixa etária jovem adulto...'
       }
     ]
   },
@@ -2175,8 +2611,8 @@ function nextStep(n) {
   panels.forEach(p => p.style.display = 'none');
   document.getElementById('panel-' + n).style.display = 'block';
 
-  // Atualiza step progress
-  for (let i = 0; i < TOTAL_STEPS; i++) {
+  // Atualiza step progress (steps 1–7)
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
     const dot  = document.getElementById('step-dot-' + i);
     const line = document.getElementById('step-line-' + i);
     if (!dot) continue;
@@ -2199,13 +2635,14 @@ function nextStep(n) {
   // Atualiza barra de progresso mobile
   const fill = document.getElementById('mobileProgressFill');
   const label = document.getElementById('mobileProgressStep');
-  if (fill) fill.style.width = ((n + 1) / TOTAL_STEPS * 100).toFixed(2) + '%';
-  if (label) label.textContent = 'Passo ' + (n + 1) + ' de ' + TOTAL_STEPS;
+  const stepNum = n - 1 + 1; // n já começa em 1
+  if (fill) fill.style.width = ((n - 1) / TOTAL_STEPS * 100).toFixed(2) + '%';
+  if (label) label.textContent = 'Passo ' + stepNum + ' de ' + TOTAL_STEPS;
 
   // Hooks por passo
   if (n === 4 && formState.selectedTemplate) renderTemplateFields(formState.selectedTemplate);
   if (n === 6) renderPreview();
-  if (n === 7) renderReviewSummary();
+  if (n === 7) { renderReviewSummary(); autoFillSlug(); }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -2245,15 +2682,16 @@ function renderTemplateFields(key) {
     const f = fields[i];
     const nextF = fields[i + 1];
 
-    // event-dates é tratado separadamente após injeção
-    if (f.type === 'event-dates') {
+    // Tipos que são sempre full-width e renderizam seus próprios containers
+    const alwaysFullWidth = ['event-dates','section-heading','presential-audience-toggle','presential-age-ranges'];
+    if (alwaysFullWidth.includes(f.type)) {
       html += buildFieldHtml(f, true);
       i++;
       continue;
     }
 
     // Full width ou solo
-    if (f.fullWidth || f.type === 'multiselect-pills' || !nextF || nextF.fullWidth || nextF.type === 'multiselect-pills' || nextF.type === 'event-dates') {
+    if (f.fullWidth || f.type === 'multiselect-pills' || !nextF || nextF.fullWidth || nextF.type === 'multiselect-pills' || alwaysFullWidth.includes(nextF?.type || '')) {
       html += buildFieldHtml(f, true);
       i++;
     } else {
@@ -2430,6 +2868,40 @@ function buildFieldHtml(f, fullWidth) {
         </div>
       </div>
     </div>`;
+  } else if (f.type === 'section-heading') {
+    // Separador visual entre seções no formulário do template
+    return `<div class="form-group full-width" style="margin-top:8px;margin-bottom:-4px">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0 6px">
+        <span style="font-family:var(--font-heading);font-size:13px;font-weight:700;color:var(--gray-4);text-transform:uppercase;letter-spacing:.06em">${f.heading}</span>
+        <div style="flex:1;height:1px;background:var(--gray-2)"></div>
+      </div>
+    </div>`;
+  } else if (f.type === 'presential-audience-toggle') {
+    // Toggle Estimativa / Dado real para público presencial
+    return `<div class="form-group full-width">
+      <div class="est-toggle-row" style="margin-top:4px">
+        <span style="font-size:13px;color:var(--gray-4)">Tipo de dado</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="est-badge" id="est-badge-presencial">Estimativa</span>
+          <div class="est-toggle-switch" id="est-toggle-presencial" onclick="toggleEstimate('presencial')" title="Estimativa / Dado real">
+            <div class="est-toggle-knob"></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  } else if (f.type === 'presential-age-ranges') {
+    // Barras de faixa etária para público presencial (mesmo padrão do social)
+    return `<div class="form-group full-width">
+      <label style="font-size:13px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:8px">Faixa etária do público</label>
+      <div class="age-ranges-grid">
+        <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-1317" style="width:0%"></div></div></div>
+        <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-1824" style="width:0%"></div></div></div>
+        <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-2534" style="width:0%"></div></div></div>
+        <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-3544" style="width:0%"></div></div></div>
+        <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-45p" style="width:0%"></div></div></div>
+      </div>
+      <div class="age-sum-indicator under" id="aud-presencial-age-sum" style="margin-top:6px">Total: 0%</div>
+    </div>`;
   }
 
   const wrapClass = fullWidth ? 'form-group full-width' : 'form-group';
@@ -2466,8 +2938,7 @@ function renderReviewSummary() {
   // Segmentos selecionados
   const segmentos = Array.from(document.querySelectorAll('#segmentPillGrid .segment-pill.selected')).map(p => p.textContent.trim());
 
-  // Mídia Kit / Materiais info
-  const pdfName = document.getElementById('pdfName')?.textContent || '';
+  // Materiais info
   const videoUrlVal = document.getElementById('videoUrl')?.value || '';
   const linkExterno = document.getElementById('opp-link-externo')?.value || '';
 
@@ -2589,8 +3060,6 @@ function collectFormData() {
   data.videoUrl = document.getElementById('videoUrl')?.value || '';
   data.linkExterno = document.getElementById('opp-link-externo')?.value || '';
 
-  // PDF
-  data.pdfName = document.getElementById('pdfName')?.textContent || '';
 
   // Template-specific fields
   data.templateFields = [];
@@ -2638,19 +3107,21 @@ function collectFormData() {
   data.segmentos = Array.from(document.querySelectorAll('#segmentPillGrid .segment-pill.selected'))
     .map(p => p.textContent.trim());
 
-  // Redes sociais
+  // Redes sociais — arquitetura dinâmica (canal-cards)
   data.socials = [];
-  document.querySelectorAll('#social-networks-container .social-network-group').forEach(group => {
-    const network = group.dataset.network;
-    const prefix = group.dataset.prefix;
-    const values = Array.from(group.querySelectorAll('.social-entry input'))
-      .map(i => i.value.trim()).filter(Boolean);
-    if (values.length > 0) {
-      const labelMap = { instagram:'Instagram', tiktok:'TikTok', youtube:'YouTube', linkedin:'LinkedIn' };
-      values.forEach(v => {
-        data.socials.push({ network: labelMap[network] || network, handle: prefix + v });
-      });
-    }
+  document.querySelectorAll('#social-networks-container .canal-card').forEach(card => {
+    const profileId = card.dataset.profileId;
+    const network   = card.dataset.network;
+    if (!profileId || !network) return;
+    const usernameInput = document.getElementById('canal-username-' + profileId);
+    const username = usernameInput ? usernameInput.value.trim() : '';
+    if (!username) return;
+    const urlPfx = CANAL_URL_PREFIX[network] || { text: '' };
+    data.socials.push({
+      network: CANAL_META[network]?.label || network,
+      handle: urlPfx.text + username,
+      profileId
+    });
   });
 
   return data;
@@ -2751,30 +3222,7 @@ function renderPreview() {
     tagsEl.innerHTML = `<span style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhum segmento selecionado</span>`;
   }
 
-  // Tab: Público
-  renderEditableField('pvPublico', 'publico', 'Clique para descrever o público-alvo desta oportunidade');
-  renderEditableField('pvDemografico', 'demografico', 'Clique para adicionar dados demográficos (faixa etária, gênero, região, etc.)');
-
-  // Tab: Cotas
-  const pvCotas = document.getElementById('pvCotas');
-  if (d.cotas.length > 0) {
-    pvCotas.innerHTML = d.cotas.map(c => {
-      let html = `<div class="pv-cota-card"><div class="pv-cota-name">${c.nome}</div>`;
-      if (c.valor) html += `<div class="pv-cota-price">R$ ${Number(c.valor).toLocaleString('pt-BR')}</div>`;
-      if (c.vagas) html += `<div class="pv-cota-vagas">${c.vagas} vaga${c.vagas != 1 ? 's' : ''}</div>`;
-      if (c.beneficios.length > 0) {
-        html += `<ul class="pv-cota-beneficios">${c.beneficios.map(b=>`<li>${b}</li>`).join('')}</ul>`;
-      }
-      return html + '</div>';
-    }).join('');
-  } else {
-    pvCotas.innerHTML = `<div class="pv-empty-state" style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhuma cota de patrocínio definida</div>`;
-  }
-
-  // Entregas
-  renderEditableField('pvEntregas', 'entregas', 'Clique para descrever as entregas que o patrocinador receberá');
-
-  // Tab: Canais
+  // Tab: Canais (em Visão geral)
   const pvCanais = document.getElementById('pvCanais');
   if (d.socials.length > 0) {
     pvCanais.innerHTML = d.socials.map(s => {
@@ -2790,9 +3238,6 @@ function renderPreview() {
   } else {
     pvCanais.innerHTML = `<div class="pv-empty-state" style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhuma rede social adicionada no formulário</div>`;
   }
-
-  // Métricas
-  renderEditableField('pvMetricas', 'metricas', 'Clique para adicionar métricas de audiência (alcance médio, engajamento, etc.)');
 
   // Reset to first tab
   switchPreviewTab('visao', document.querySelector('.pv-tab'));
@@ -3318,7 +3763,7 @@ function closeInlineEditor(event) {
 }
 
 function updateCompleteness() {
-  const editableKeys = ['prazo_inicio', 'publico', 'demografico', 'entregas', 'metricas'];
+  const editableKeys = ['prazo_inicio'];
   const filled = editableKeys.filter(k => previewEditData[k]).length;
   const pct = Math.round((filled / editableKeys.length) * 100);
   const fillEl = document.getElementById('pvCompletenessFill');
@@ -3336,30 +3781,874 @@ function updateCompleteness() {
 }
 
 /* ══════════════════════════════════════════════
-   REDES SOCIAIS — MÚLTIPLOS PERFIS
+   REDES SOCIAIS — ARQUITETURA DINÂMICA
+   Cada addCanal() cria um card independente com profileId único
+   profileId = network + '-' + index (ex: instagram-0, instagram-1)
 ══════════════════════════════════════════════ */
-function addSocialEntry(networkGroup) {
-  const entries = networkGroup.querySelector('.social-entries');
-  if (entries.querySelectorAll('.social-entry').length >= 3) {
-    showToast('Máximo de 3 perfis por rede', 'error'); return;
+
+/* ══════════════════════════════════════════════
+   AUDIENCE PANELS — dados por profileId
+   profileId = network + '-' + index (ex: instagram-0)
+══════════════════════════════════════════════ */
+
+/** Abre/fecha o painel de dados de audiência de um canal */
+function toggleAudiencePanel(profileId) {
+  const panel = document.getElementById('aud-panel-' + profileId);
+  if (!panel) return;
+  panel.classList.toggle('open');
+  const arrow = panel.querySelector('.audience-panel-arrow');
+  if (arrow) arrow.style.transform = panel.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+/** Alterna entre Estimativa e Dado real para um canal */
+function toggleEstimate(profileId) {
+  const sw    = document.getElementById('est-toggle-' + profileId);
+  const badge = document.getElementById('est-badge-' + profileId);
+  if (!sw || !badge) return;
+  const isReal = sw.classList.toggle('is-real');
+  badge.textContent   = isReal ? 'Dado real' : 'Estimativa';
+  badge.classList.toggle('is-real', isReal);
+}
+
+/** Atualiza barras de faixa etária e indicador de soma para um canal */
+function updateAgeBars(profileId) {
+  const ranges = ['1317', '1824', '2534', '3544', '45p'];
+  let total = 0;
+  ranges.forEach(r => {
+    const input = document.getElementById('aud-' + profileId + '-age-' + r);
+    const bar   = document.getElementById('agebar-' + profileId + '-' + r);
+    const val   = parseFloat(input?.value) || 0;
+    total += val;
+    if (bar) bar.style.width = Math.min(val, 100) + '%';
+  });
+  const indicator = document.getElementById('aud-' + profileId + '-age-sum');
+  if (!indicator) return;
+  const rounded = Math.round(total * 10) / 10;
+  indicator.textContent = 'Total: ' + rounded + '%';
+  indicator.className = 'age-sum-indicator ' + (rounded === 100 ? 'ok' : rounded > 100 ? 'over' : 'under');
+}
+
+/** Seleciona/deseleciona uma pílula de formato */
+function toggleFormatPill(el) {
+  el.classList.toggle('selected');
+}
+
+/* ── Helpers de Seguidores K/M ── */
+
+/** Formata número bruto para exibição: 1500 → "1.5k", 2000000 → "2M" */
+function formatFollowers(n) {
+  if (!n || isNaN(n)) return '';
+  if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (n >= 1000)    return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return String(n);
+}
+
+/** Converte string exibida de volta para número: "26k" → 26000, "1.2M" → 1200000 */
+function parseFollowers(str) {
+  if (!str) return null;
+  const s = str.trim().toLowerCase().replace(',', '.');
+  if (s.endsWith('m')) return Math.round(parseFloat(s) * 1000000) || null;
+  if (s.endsWith('k')) return Math.round(parseFloat(s) * 1000)    || null;
+  const n = parseInt(s.replace(/\D/g, ''), 10);
+  return isNaN(n) ? null : n;
+}
+
+/** Chamado a cada keypress no campo seguidores.
+ *  Enquanto digita: formata com pontos como separador de milhar (padrão pt-BR): 2.350.000
+ *  Preserva posição do cursor corretamente.
+ */
+function onSeguidoresInput(el, profileId) {
+  // Salva posição do cursor antes de reformatar
+  const selStart = el.selectionStart;
+  const prevLen  = el.value.length;
+
+  // Remove tudo que não for dígito
+  const digits = el.value.replace(/\D/g, '');
+
+  if (!digits) {
+    el.value = '';
+    return;
   }
-  const prefix = networkGroup.dataset.prefix;
-  const padMap = {'instagram.com/':'110px','tiktok.com/@':'100px','youtube.com/':'105px','linkedin.com/in/':'118px'};
-  const padLeft = padMap[prefix] || '110px';
-  const div = document.createElement('div');
-  div.className = 'social-entry';
-  div.style.cssText = 'display:flex;gap:8px;align-items:center';
-  div.innerHTML = `
-    <div class="social-input-wrapper" style="flex:1">
-      <span class="social-input-prefix">${prefix}</span>
-      <input type="text" class="form-control" placeholder="outro perfil" style="padding-left:${padLeft}">
+
+  // Formata com pontos a cada 3 dígitos (pt-BR: 2.350.000)
+  const formatted = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  el.value = formatted;
+
+  // Reposiciona cursor levando em conta pontos inseridos/removidos
+  const newLen   = el.value.length;
+  const cursorAdj = newLen - prevLen;
+  const newCursor = Math.max(0, selStart + cursorAdj);
+  try { el.setSelectionRange(newCursor, newCursor); } catch(e) {}
+}
+
+/* ── Pie chart de gênero ── */
+
+/** Atualiza o donut SVG conforme F% e M% são digitados.
+ *  Valida que F + M ≤ 100 — caso ultrapasse, clampa o campo atual e destaca em vermelho.
+ *  SVG: viewBox 120×120, cx/cy=60, r=42, stroke-width=20, circumference≈263.9
+ *  Dois arcos: feminino (rosa #E1306C) e masculino (azul #4A90D9)
+ */
+function updateGenderPie(profileId) {
+  const fEl   = document.getElementById('aud-' + profileId + '-genero-f');
+  const mEl   = document.getElementById('aud-' + profileId + '-genero-m');
+  const arcF  = document.getElementById('gender-pie-f-' + profileId);
+  const arcM  = document.getElementById('gender-pie-m-' + profileId);
+  const txtF  = document.getElementById('gender-pie-txt-f-' + profileId);
+  const txtM  = document.getElementById('gender-pie-txt-m-' + profileId);
+  if (!arcF || !fEl || !mEl) return;
+
+  let f = parseFloat(fEl.value) || 0;
+  let m = parseFloat(mEl.value) || 0;
+
+  // Garante que cada valor não exceda 100 individualmente
+  f = Math.min(Math.max(f, 0), 100);
+  m = Math.min(Math.max(m, 0), 100);
+
+  // Valida soma ≤ 100 — clampa o campo ativo
+  if (f + m > 100) {
+    if (document.activeElement === fEl) {
+      f = Math.max(0, 100 - m);
+      fEl.value = f;
+    } else {
+      m = Math.max(0, 100 - f);
+      mEl.value = m;
+    }
+    fEl.style.borderColor = '#c0392b';
+    mEl.style.borderColor = '#c0392b';
+    setTimeout(() => { fEl.style.borderColor = ''; mEl.style.borderColor = ''; }, 900);
+  } else {
+    fEl.style.borderColor = '';
+    mEl.style.borderColor = '';
+  }
+
+  const C = 2 * Math.PI * 42; // r=42 → ≈263.89
+  const hasData = (f > 0 || m > 0);
+
+  if (!hasData) {
+    // Estado vazio: arco feminino cobre tudo em cinza (já é o fundo)
+    arcF.setAttribute('stroke-dasharray', '0 ' + C.toFixed(2));
+    if (arcM) arcM.setAttribute('stroke-dasharray', C.toFixed(2) + ' ' + C.toFixed(2));
+    if (txtF) { txtF.textContent = '—'; txtF.setAttribute('fill', '#A89880'); }
+    if (txtM) txtM.textContent = '';
+    updateGenderSum(profileId, f, m);
+    return;
+  }
+
+  // Arco feminino: f% da circunferência, começa em -90°
+  const dashF = (f / 100) * C;
+  arcF.setAttribute('stroke-dasharray', dashF.toFixed(2) + ' ' + C.toFixed(2));
+  arcF.setAttribute('stroke-dashoffset', '0');
+
+  // Arco masculino: m% da circunferência, começa onde feminino termina
+  if (arcM) {
+    const dashM = (m / 100) * C;
+    const offsetM = -(dashF);   // negativo desloca no sentido horário
+    arcM.setAttribute('stroke-dasharray', dashM.toFixed(2) + ' ' + C.toFixed(2));
+    arcM.setAttribute('stroke-dashoffset', offsetM.toFixed(2));
+  }
+
+  // Textos centrais
+  if (txtF) {
+    txtF.textContent = f > 0 ? f + '%' : '';
+    txtF.setAttribute('fill', '#E1306C');
+  }
+  if (txtM) {
+    txtM.textContent = m > 0 ? m + '%' : '';
+  }
+
+  updateGenderSum(profileId, f, m);
+}
+
+/** Atualiza o indicador de quanto falta para M+F somar 100% */
+function updateGenderSum(profileId, f, m) {
+  const indicator = document.getElementById('gender-sum-' + profileId);
+  if (!indicator) return;
+  if (f === undefined || m === undefined) {
+    const fEl = document.getElementById('aud-' + profileId + '-genero-f');
+    const mEl = document.getElementById('aud-' + profileId + '-genero-m');
+    f = parseFloat(fEl?.value) || 0;
+    m = parseFloat(mEl?.value) || 0;
+  }
+  const total   = Math.round((f + m) * 10) / 10;
+  const falta   = Math.round((100 - total) * 10) / 10;
+  if (total === 100) {
+    indicator.textContent = '✓ 100% — gênero completo';
+    indicator.className   = 'gender-sum-indicator ok';
+  } else if (total > 100) {
+    indicator.textContent = '⚠ Total: ' + total + '% (excede 100%)';
+    indicator.className   = 'gender-sum-indicator over';
+  } else if (total === 0) {
+    indicator.textContent = 'Preencha masculino e feminino';
+    indicator.className   = 'gender-sum-indicator under';
+  } else {
+    indicator.textContent = 'Falta ' + falta + '% para completar 100%';
+    indicator.className   = 'gender-sum-indicator under';
+  }
+}
+
+/* ── Slider de faixa etária ── */
+
+const AGE_RANGES = ['1317', '1824', '2534', '3544', '45p'];
+
+/** Calcula a soma de todas as faixas exceto a indicada */
+function _ageOtherSum(profileId, excludeRange) {
+  let sum = 0;
+  AGE_RANGES.forEach(r => {
+    if (r === excludeRange) return;
+    const inp = document.getElementById('aud-' + profileId + '-age-' + r);
+    sum += parseFloat(inp?.value) || 0;
+  });
+  return sum;
+}
+
+/** Sincroniza o slider → input numérico, clamping para que total não passe de 100 */
+function syncSlider(profileId, range, value) {
+  const input  = document.getElementById('aud-' + profileId + '-age-' + range);
+  const slider = document.getElementById('slider-' + profileId + '-' + range);
+  if (!input) return;
+
+  const otherSum = _ageOtherSum(profileId, range);
+  const maxVal   = Math.max(0, 100 - otherSum);
+  const clamped  = Math.min(parseFloat(value) || 0, maxVal);
+
+  input.value = clamped;
+  if (slider && parseFloat(slider.value) !== clamped) slider.value = clamped;
+  updateAgeBars(profileId);
+}
+
+/** Sincroniza o input numérico → slider (bidirecional), clamping para total ≤ 100 */
+function syncInputToSlider(profileId, range, value) {
+  const slider = document.getElementById('slider-' + profileId + '-' + range);
+  const input  = document.getElementById('aud-' + profileId + '-age-' + range);
+  if (!slider) return;
+
+  const otherSum = _ageOtherSum(profileId, range);
+  const maxVal   = Math.max(0, 100 - otherSum);
+  const clamped  = Math.min(Math.max(parseFloat(value) || 0, 0), maxVal);
+
+  slider.value = clamped;
+  if (input && parseFloat(input.value) > clamped) input.value = clamped;
+}
+
+/* ══════════════════════════════════════════════
+   ADICIONAR / REMOVER CANAIS DINAMICAMENTE
+══════════════════════════════════════════════ */
+
+/** Metadados de cada rede (nome legível + SVG ícone inline) */
+const CANAL_SVG = {
+  instagram: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`,
+  tiktok:    `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.87a8.18 8.18 0 004.78 1.52V7.02a4.85 4.85 0 01-1.01-.33z"/></svg>`,
+  youtube:   `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 001.46 6.42 29 29 0 001 12a29 29 0 00.46 5.58 2.78 2.78 0 001.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 001.95-1.96A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>`,
+  linkedin:  `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>`,
+  twitch:    `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2H3v16h5v4l4-4h5l4-4V2z"/><line x1="11" y1="7" x2="11" y2="11"/><line x1="16" y1="7" x2="16" y2="11"/></svg>`,
+  kwai:      `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="9,8 17,12 9,16" fill="currentColor" stroke="none"/></svg>`,
+  kick:      `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 8v8M9 12l3-4h3M9 12l3 4h3" stroke-linecap="round"/></svg>`,
+};
+
+const CANAL_META = {
+  instagram: { label: 'Instagram',  icon: CANAL_SVG.instagram },
+  tiktok:    { label: 'TikTok',     icon: CANAL_SVG.tiktok    },
+  youtube:   { label: 'YouTube',    icon: CANAL_SVG.youtube   },
+  linkedin:  { label: 'LinkedIn',   icon: CANAL_SVG.linkedin  },
+  twitch:    { label: 'Twitch',     icon: CANAL_SVG.twitch    },
+  kwai:      { label: 'Kwai',       icon: CANAL_SVG.kwai      },
+  kick:      { label: 'Kick',       icon: CANAL_SVG.kick      },
+};
+
+/* ── Contador de canais por plataforma (permite múltiplos do mesmo tipo) ── */
+const _canalCounters = {};
+
+/** Formatos disponíveis por rede */
+const CANAL_FORMATS = {
+  instagram: ['Reels', 'Stories', 'Post carrossel', 'Post estático', 'Live'],
+  tiktok:    ['Vídeo curto', 'Live', 'Stories', 'Série'],
+  youtube:   ['Vídeo longo', 'Shorts', 'Live', 'Community post'],
+  linkedin:  ['Post', 'Artigo', 'Vídeo', 'Newsletter'],
+  twitch:    ['Stream', 'Clip', 'VOD'],
+  kwai:      ['Vídeo', 'Live'],
+  kick:      ['Stream', 'Clip', 'VOD'],
+};
+
+/** Prefixo de URL por rede */
+const CANAL_URL_PREFIX = {
+  instagram: { text: 'instagram.com/', padding: '112px' },
+  tiktok:    { text: 'tiktok.com/@',   padding: '102px' },
+  youtube:   { text: 'youtube.com/',   padding: '108px' },
+  linkedin:  { text: 'linkedin.com/in/', padding: '125px' },
+  twitch:    { text: 'twitch.tv/',     padding: '92px'  },
+  kwai:      { text: 'kwai.com/',      padding: '88px'  },
+  kick:      { text: 'kick.com/',      padding: '88px'  },
+};
+
+/** Abre/fecha o picker de canais — mostra TODAS as plataformas sempre */
+function openCanalPicker() {
+  const picker = document.getElementById('canal-picker');
+  if (!picker) return;
+  const isOpen = picker.style.display !== 'none';
+  if (isOpen) { picker.style.display = 'none'; return; }
+
+  // Popula lista com todos os canais disponíveis (sem filtro — múltiplos permitidos)
+  const list = document.getElementById('canal-picker-list');
+  list.innerHTML = '';
+  Object.keys(CANAL_META).forEach(net => {
+    const meta = CANAL_META[net];
+    const btn  = document.createElement('button');
+    btn.type   = 'button';
+    btn.style.cssText = 'display:flex;align-items:center;gap:9px;width:100%;padding:8px 10px;border:none;border-radius:8px;background:none;cursor:pointer;font-size:13px;font-weight:500;color:var(--text);font-family:var(--font-body);text-align:left;transition:background .12s';
+    btn.innerHTML = `<span style="display:flex;align-items:center;color:var(--gray-4);flex-shrink:0">${meta.icon}</span><span>${meta.label}</span>`;
+    btn.onmouseover = () => btn.style.background = 'var(--gray-1)';
+    btn.onmouseout  = () => btn.style.background = 'none';
+    btn.onclick     = () => addCanal(net);
+    list.appendChild(btn);
+  });
+  picker.style.display = 'block';
+
+  // Fecha ao clicar fora
+  setTimeout(() => {
+    function outsideClick(e) {
+      const area = document.getElementById('add-canal-area');
+      if (area && !area.contains(e.target)) {
+        picker.style.display = 'none';
+        document.removeEventListener('click', outsideClick);
+      }
+    }
+    document.addEventListener('click', outsideClick);
+  }, 0);
+}
+
+/** Gera o HTML completo de um card de canal dinamicamente */
+function addCanal(network) {
+  if (!_canalCounters[network]) _canalCounters[network] = 0;
+  const idx       = _canalCounters[network]++;
+  const profileId = network + '-' + idx;
+  const meta      = CANAL_META[network];
+  const urlPfx    = CANAL_URL_PREFIX[network] || { text: network + '.com/', padding: '100px' };
+  const formats   = CANAL_FORMATS[network] || [];
+
+  // Pills de formato
+  const formatPills = formats.map(f =>
+    `<span class="format-pill" onclick="toggleFormatPill(this)">${f}</span>`
+  ).join('');
+
+  // Faixas etárias (5 ranges)
+  const ageRows = [
+    { id: '1317', label: '13–17 anos' },
+    { id: '1824', label: '18–24 anos' },
+    { id: '2534', label: '25–34 anos' },
+    { id: '3544', label: '35–44 anos' },
+    { id: '45p',  label: '45+ anos'   },
+  ].map(row => `
+    <div class="age-row">
+      <span class="age-label">${row.label}</span>
+      <div class="age-controls" style="flex:1">
+        <input type="range" min="0" max="100" value="0" class="age-slider" style="width:100%"
+          id="slider-${profileId}-${row.id}"
+          oninput="syncSlider('${profileId}','${row.id}',this.value)">
+        <div class="age-input-wrap">
+          <input type="number" min="0" max="100" value="" placeholder="0" class="age-input"
+            id="aud-${profileId}-age-${row.id}"
+            oninput="syncInputToSlider('${profileId}','${row.id}',this.value);updateAgeBars('${profileId}')">
+          <span class="age-pct-label">%</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  const cardHTML = `
+<div class="canal-card" id="canal-card-${profileId}" data-profile-id="${profileId}" data-network="${network}">
+
+  <!-- ── Header ── -->
+  <div class="canal-card-header" id="canal-card-header-${profileId}">
+    <span class="canal-card-icon">${meta.icon}</span>
+    <span class="canal-card-label">${meta.label}</span>
+    <div class="canal-card-username-wrap">
+      <span class="canal-card-username-prefix" id="canal-prefix-${profileId}">${urlPfx.text}</span>
+      <input type="text" class="canal-card-username-input" id="canal-username-${profileId}"
+        placeholder="@seuusuario"
+        style="padding-left:${urlPfx.padding}"
+        oninput="onCanalUsernameInput('${profileId}')">
     </div>
-    <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:18px;padding:6px;flex-shrink:0">✕</button>
+    <span class="canal-card-saved-badge" id="canal-saved-badge-${profileId}">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Salvo
+    </span>
+    <button type="button" class="canal-card-edit-icon" onclick="editCanal('${profileId}')" title="Editar canal">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </button>
+    <button type="button" class="canal-card-remove-btn" onclick="confirmRemoveCanal('${profileId}')" title="Remover canal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <!-- ── Painel de dados do público (colapsável) ── -->
+  <div class="audience-panel" id="aud-panel-${profileId}">
+
+    <!-- Toggle header do painel -->
+    <div class="audience-panel-toggle" onclick="toggleAudiencePanel('${profileId}')">
+      <span style="font-size:12px;font-weight:700;color:var(--gray-4);display:flex;align-items:center;gap:7px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Dados do Público
+      </span>
+      <svg class="audience-panel-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+
+    <div class="audience-panel-body" id="aud-body-${profileId}">
+
+      <!-- Seguidores -->
+      <div class="form-group">
+        <label class="form-label" for="aud-${profileId}-seguidores">Seguidores</label>
+        <div style="position:relative">
+          <input type="text" id="aud-${profileId}-seguidores" class="form-input"
+            placeholder="Ex: 2.350.000"
+            oninput="onSeguidoresInput(this,'${profileId}')">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:7px">
+          <span style="font-size:11.5px;color:var(--gray-3)">Dado estimado?</span>
+          <div class="estimate-toggle" id="est-toggle-${profileId}" onclick="toggleEstimate('${profileId}')">
+            <div class="estimate-toggle-knob"></div>
+          </div>
+          <span class="estimate-badge" id="est-badge-${profileId}">Estimativa</span>
+        </div>
+      </div>
+
+      <!-- Formatos -->
+      <div class="form-group">
+        <label class="form-label">Melhores formatos de conteúdo</label>
+        <div class="format-pills-wrap">${formatPills}</div>
+      </div>
+
+      <!-- Período de referência -->
+      <div class="form-group">
+        <label class="form-label">Período de referência dos dados</label>
+        <div class="period-chips" id="period-chips-${profileId}">
+          <span class="period-chip selected" data-days="30"  onclick="selectPeriodChip('${profileId}',this)">Últimos 30 dias</span>
+          <span class="period-chip"          data-days="90"  onclick="selectPeriodChip('${profileId}',this)">Últimos 3 meses</span>
+          <span class="period-chip"          data-days="180" onclick="selectPeriodChip('${profileId}',this)">Últimos 6 meses</span>
+          <span class="period-chip"          data-days="365" onclick="selectPeriodChip('${profileId}',this)">Último ano</span>
+          <span class="period-chip"          data-days="custom" onclick="selectPeriodChip('${profileId}',this)">Personalizado</span>
+        </div>
+        <!-- Datas calculadas automaticamente para chips fixos -->
+        <div class="period-date-display" id="period-date-display-${profileId}"></div>
+        <!-- Campos manuais apenas para Personalizado -->
+        <div class="period-custom-row" id="period-custom-${profileId}">
+          <input type="date" class="form-input" id="aud-${profileId}-data-inicio"
+            onchange="updateCustomPeriodDisplay('${profileId}')">
+          <span style="font-size:12px;color:var(--gray-3)">até</span>
+          <input type="date" class="form-input" id="aud-${profileId}-data-fim"
+            onchange="updateCustomPeriodDisplay('${profileId}')">
+        </div>
+        <input type="hidden" id="aud-${profileId}-periodo" value="30">
+      </div>
+
+      <!-- Gênero -->
+      <div class="form-group">
+        <label class="form-label">Distribuição por gênero</label>
+        <div class="gender-chart-layout">
+          <!-- Lado masculino (esquerdo) -->
+          <div class="gender-side gender-side-male">
+            <div class="gender-legend-item">
+              <span class="gender-legend-dot" style="background:#4A90D9"></span>
+              <span class="gender-legend-label">Masculino</span>
+            </div>
+            <div class="gender-input-wrap">
+              <input type="number" min="0" max="100" class="gender-input" placeholder="0"
+                id="aud-${profileId}-genero-m"
+                oninput="updateGenderPie('${profileId}')">
+              <span class="gender-pct">%</span>
+            </div>
+          </div>
+          <!-- Pie chart (centro) -->
+          <div class="gender-pie-wrap">
+            <svg class="gender-pie-svg" viewBox="0 0 120 120">
+              <!-- Fundo cinza -->
+              <circle cx="60" cy="60" r="42" fill="none" stroke="#E0D8CC" stroke-width="20"/>
+              <!-- Arco feminino (rosa) -->
+              <circle id="gender-pie-f-${profileId}" cx="60" cy="60" r="42" fill="none"
+                stroke="#E1306C" stroke-width="20"
+                stroke-dasharray="0 263.89"
+                stroke-linecap="butt"
+                transform="rotate(-90 60 60)"/>
+              <!-- Arco masculino (azul) -->
+              <circle id="gender-pie-m-${profileId}" cx="60" cy="60" r="42" fill="none"
+                stroke="#4A90D9" stroke-width="20"
+                stroke-dasharray="0 263.89"
+                stroke-linecap="butt"
+                transform="rotate(-90 60 60)"/>
+              <!-- Textos centrais -->
+              <text id="gender-pie-txt-f-${profileId}" x="60" y="57" text-anchor="middle"
+                font-size="13" font-weight="700" fill="#A89880" font-family="DM Sans,sans-serif">—</text>
+              <text id="gender-pie-txt-m-${profileId}" x="60" y="71" text-anchor="middle"
+                font-size="11" font-weight="600" fill="#4A90D9" font-family="DM Sans,sans-serif"></text>
+            </svg>
+          </div>
+          <!-- Lado feminino (direito) -->
+          <div class="gender-side gender-side-female">
+            <div class="gender-legend-item">
+              <span class="gender-legend-dot" style="background:#E1306C"></span>
+              <span class="gender-legend-label">Feminino</span>
+            </div>
+            <div class="gender-input-wrap">
+              <input type="number" min="0" max="100" class="gender-input" placeholder="0"
+                id="aud-${profileId}-genero-f"
+                oninput="updateGenderPie('${profileId}')">
+              <span class="gender-pct">%</span>
+            </div>
+          </div>
+        </div>
+        <!-- Indicador de progresso M+F -->
+        <div class="gender-sum-indicator under" id="gender-sum-${profileId}">Preencha masculino e feminino</div>
+      </div>
+
+      <!-- Faixa etária -->
+      <div class="form-group">
+        <label class="form-label">Faixa etária do público</label>
+        ${ageRows}
+        <div class="age-sum-indicator under" id="aud-${profileId}-age-sum">Total: 0%</div>
+      </div>
+
+    </div><!-- /audience-panel-body -->
+  </div><!-- /audience-panel -->
+
+  <!-- ── Footer com botão Salvar (some quando salvo) ── -->
+  <div class="canal-card-footer" id="canal-card-footer-${profileId}">
+    <button type="button" class="btn-save-canal" id="btn-save-${profileId}" onclick="saveCanal('${profileId}')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Salvar canal
+    </button>
+  </div>
+
+</div>`;
+
+  // Insere card no container
+  const container = document.getElementById('social-networks-container');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.innerHTML = cardHTML.trim();
+  container.appendChild(div.firstElementChild);
+
+  // Fecha picker
+  const picker = document.getElementById('canal-picker');
+  if (picker) picker.style.display = 'none';
+
+  // Inicializa o display de datas do período padrão (30 dias)
+  const defaultDisplay = document.getElementById('period-date-display-' + profileId);
+  if (defaultDisplay) {
+    defaultDisplay.textContent = _calcPeriodRange(30);
+    defaultDisplay.style.display = 'block';
+  }
+
+  // Abre o painel de dados do público automaticamente
+  setTimeout(() => {
+    toggleAudiencePanel(profileId);
+    // Foca no campo de username
+    const usernameInput = document.getElementById('canal-username-' + profileId);
+    if (usernameInput) usernameInput.focus();
+  }, 50);
+}
+
+/** Callback ao digitar no campo username do card (sem funcionalidade especial por ora) */
+function onCanalUsernameInput(profileId) {
+  // Futuramente: validação de username
+}
+
+/** Helper: marca campo com borda vermelha temporária */
+function _flashError(el) {
+  if (!el) return;
+  el.style.borderColor = '#c0392b';
+  el.style.boxShadow   = '0 0 0 3px rgba(192,57,43,.15)';
+  setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1400);
+}
+
+/** Abre painel e faz scroll até o elemento */
+function _openAndScroll(profileId, el) {
+  const panel = document.getElementById('aud-panel-' + profileId);
+  if (panel && !panel.classList.contains('open')) toggleAudiencePanel(profileId);
+  setTimeout(() => { if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 180);
+}
+
+/** Salva o canal: valida todos os campos obrigatórios, fecha painel, marca header como salvo */
+function saveCanal(profileId) {
+
+  // 1 — @Usuário
+  const usernameInput = document.getElementById('canal-username-' + profileId);
+  if (!usernameInput || !usernameInput.value.trim()) {
+    _flashError(usernameInput);
+    usernameInput?.focus();
+    showToast('Preencha o @usuário do canal antes de salvar', 'error');
+    return;
+  }
+
+  // Abre painel para validações internas (garante que campos existam no DOM)
+  const panel = document.getElementById('aud-panel-' + profileId);
+  const wasOpen = panel?.classList.contains('open');
+  if (!wasOpen && panel) toggleAudiencePanel(profileId);
+
+  // 2 — Seguidores
+  const segInput = document.getElementById('aud-' + profileId + '-seguidores');
+  if (!segInput || !segInput.value.trim()) {
+    _flashError(segInput);
+    _openAndScroll(profileId, segInput);
+    showToast('Informe o número de seguidores do canal', 'error');
+    return;
+  }
+
+  // 3 — Formatos de conteúdo (ao menos 1 pill selecionado)
+  const formatWrap = document.querySelector('#canal-card-' + profileId + ' .format-pills-wrap');
+  const hasFormat  = formatWrap && formatWrap.querySelector('.format-pill.selected');
+  if (!hasFormat) {
+    _openAndScroll(profileId, formatWrap);
+    showToast('Selecione ao menos um formato de conteúdo', 'error');
+    return;
+  }
+
+  // 4 — Período: se Personalizado, datas devem estar preenchidas
+  const periodoInput = document.getElementById('aud-' + profileId + '-periodo');
+  if (periodoInput?.value === 'custom') {
+    const dtInicio = document.getElementById('aud-' + profileId + '-data-inicio');
+    const dtFim    = document.getElementById('aud-' + profileId + '-data-fim');
+    if (!dtInicio?.value || !dtFim?.value) {
+      _flashError(dtInicio);
+      _flashError(dtFim);
+      _openAndScroll(profileId, dtInicio);
+      showToast('Preencha as datas do período personalizado', 'error');
+      return;
+    }
+  }
+
+  // 5 — Gênero: deve somar exatamente 100%
+  const fInput = document.getElementById('aud-' + profileId + '-genero-f');
+  const mInput = document.getElementById('aud-' + profileId + '-genero-m');
+  const fVal   = parseFloat(fInput?.value) || 0;
+  const mVal   = parseFloat(mInput?.value) || 0;
+  if (fVal === 0 && mVal === 0) {
+    _flashError(fInput);
+    _flashError(mInput);
+    _openAndScroll(profileId, fInput);
+    showToast('Preencha a distribuição por gênero (masculino e feminino)', 'error');
+    return;
+  }
+  const genderIndicator = document.getElementById('gender-sum-' + profileId);
+  if (genderIndicator && !genderIndicator.classList.contains('ok')) {
+    _flashError(fInput);
+    _flashError(mInput);
+    _openAndScroll(profileId, fInput);
+    showToast('Masculino + Feminino precisam somar 100%', 'error');
+    return;
+  }
+
+  // 6 — Faixa etária: ao menos uma faixa deve ser > 0
+  const ageRanges = ['1317','1824','2534','3544','45p'];
+  // Usa o slider como fonte de verdade (tem value numérico mesmo sem o input ser digitado)
+  const hasAnyAge = ageRanges.some(r => {
+    const slider = document.getElementById('slider-' + profileId + '-' + r);
+    const input  = document.getElementById('aud-' + profileId + '-age-' + r);
+    return (parseFloat(slider?.value) || 0) > 0 || (parseFloat(input?.value) || 0) > 0;
+  });
+  if (!hasAnyAge) {
+    const firstAgeInput = document.getElementById('aud-' + profileId + '-age-1317');
+    _openAndScroll(profileId, firstAgeInput);
+    showToast('Preencha ao menos uma faixa etária do público', 'error');
+    return;
+  }
+  // Se tem dados de idade, total deve ser 100%
+  const ageIndicator = document.getElementById('aud-' + profileId + '-age-sum');
+  if (ageIndicator && !ageIndicator.classList.contains('ok')) {
+    _openAndScroll(profileId, ageIndicator);
+    showToast('A faixa etária precisa somar 100%', 'error');
+    return;
+  }
+
+  // ✅ Tudo válido — fecha painel e marca card como salvo
+  if (panel && panel.classList.contains('open')) toggleAudiencePanel(profileId);
+
+  const card = document.getElementById('canal-card-' + profileId);
+  if (card) card.classList.add('saved'); // footer some via CSS
+
+  // Badge verde: aparece, depois faz fade e some após 2.5s
+  const badge = document.getElementById('canal-saved-badge-' + profileId);
+  if (badge) {
+    badge.style.display = 'flex';
+    badge.classList.remove('fading');
+    clearTimeout(badge._fadeTimer);
+    badge._fadeTimer = setTimeout(() => {
+      badge.classList.add('fading');
+      setTimeout(() => { badge.style.display = 'none'; badge.classList.remove('fading'); }, 500);
+    }, 2500);
+  }
+
+  showToast('Canal salvo com sucesso!', 'success');
+}
+
+/** Reabre o painel para edição, remove estado salvo */
+function editCanal(profileId) {
+  const card  = document.getElementById('canal-card-' + profileId);
+  const badge = document.getElementById('canal-saved-badge-' + profileId);
+
+  if (card) card.classList.remove('saved');
+
+  // Garante que badge some imediatamente ao editar
+  if (badge) {
+    clearTimeout(badge._fadeTimer);
+    badge.style.display = 'none';
+    badge.classList.remove('fading');
+  }
+
+  // Abre painel se fechado
+  const panel = document.getElementById('aud-panel-' + profileId);
+  if (panel && !panel.classList.contains('open')) toggleAudiencePanel(profileId);
+}
+
+/** Pede confirmação inline antes de remover o canal */
+function confirmRemoveCanal(profileId) {
+  const card = document.getElementById('canal-card-' + profileId);
+  if (!card) return;
+
+  // Se já existe um confirm aberto neste card, ignora
+  if (card.querySelector('.canal-remove-confirm')) return;
+
+  const header = document.getElementById('canal-card-header-' + profileId);
+
+  // Cria banner de confirmação inline abaixo do header
+  const confirm = document.createElement('div');
+  confirm.className = 'canal-remove-confirm';
+  confirm.innerHTML = `
+    <span class="canal-remove-confirm-text">Remover este canal?</span>
+    <button type="button" class="canal-remove-confirm-yes" onclick="removeCanal('${profileId}')">Sim, remover</button>
+    <button type="button" class="canal-remove-confirm-no" onclick="this.closest('.canal-remove-confirm').remove()">Cancelar</button>
   `;
-  entries.appendChild(div);
-  div.querySelector('input').focus();
-  if (entries.querySelectorAll('.social-entry').length >= 3)
-    networkGroup.querySelector('.social-add-btn').style.display = 'none';
+
+  // Insere logo após o header
+  header.insertAdjacentElement('afterend', confirm);
+
+  // Auto-fecha após 6s se não interagir
+  confirm._autoClose = setTimeout(() => confirm.remove(), 6000);
+}
+
+/** Remove o card do canal do DOM */
+function removeCanal(profileId) {
+  const card = document.getElementById('canal-card-' + profileId);
+  if (card) {
+    card.style.transition = 'opacity .22s, transform .22s';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(.97)';
+    setTimeout(() => card.remove(), 230);
+  }
+}
+
+/* ── Chips de período de referência ── */
+
+/** Formata uma Date como "dd de mês de yyyy" em pt-BR */
+function _formatDatePT(date) {
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho',
+                 'julho','agosto','setembro','outubro','novembro','dezembro'];
+  return date.getDate() + ' de ' + meses[date.getMonth()] + ' de ' + date.getFullYear();
+}
+
+/** Calcula datas de início/fim para N dias atrás e retorna string legível */
+function _calcPeriodRange(days) {
+  const end   = new Date();
+  end.setDate(end.getDate() - 1); // ontem como fim
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
+  return _formatDatePT(start) + ' – ' + _formatDatePT(end);
+}
+
+/** Seleciona um chip de período, mostra datas calculadas e controla campos manuais */
+function selectPeriodChip(profileId, el) {
+  document.querySelectorAll('#period-chips-' + profileId + ' .period-chip')
+    .forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+
+  const customRow   = document.getElementById('period-custom-' + profileId);
+  const dateDisplay = document.getElementById('period-date-display-' + profileId);
+  const hiddenInput = document.getElementById('aud-' + profileId + '-periodo');
+
+  if (el.dataset.days === 'custom') {
+    if (customRow)   customRow.classList.add('visible');
+    if (dateDisplay) dateDisplay.style.display = 'none';
+    if (hiddenInput) hiddenInput.value = 'custom';
+    updateCustomPeriodDisplay(profileId);
+  } else {
+    if (customRow)   customRow.classList.remove('visible');
+    if (hiddenInput) hiddenInput.value = el.dataset.days;
+    const range = _calcPeriodRange(parseInt(el.dataset.days));
+    if (dateDisplay) {
+      dateDisplay.textContent = range;
+      dateDisplay.style.display = 'block';
+    }
+  }
+}
+
+/** Atualiza o display de datas para o modo Personalizado */
+function updateCustomPeriodDisplay(profileId) {
+  const startInput = document.getElementById('aud-' + profileId + '-data-inicio');
+  const endInput   = document.getElementById('aud-' + profileId + '-data-fim');
+  const dateDisplay = document.getElementById('period-date-display-' + profileId);
+  if (!dateDisplay) return;
+  const sv = startInput?.value;
+  const ev = endInput?.value;
+  if (sv && ev) {
+    const s = new Date(sv + 'T12:00:00');
+    const e = new Date(ev + 'T12:00:00');
+    dateDisplay.textContent = _formatDatePT(s) + ' – ' + _formatDatePT(e);
+    dateDisplay.style.display = 'block';
+  } else {
+    dateDisplay.style.display = 'none';
+  }
+}
+
+/** Valida dados de audiência de todos os canais dinâmicos (chamada no nextStep do painel 3)
+ *  Retorna true se ok para avançar, false se há erro (e exibe toast).
+ */
+function validateAudiencePanels() {
+  // Obrigatório: pelo menos 1 canal salvo
+  const savedCards = document.querySelectorAll('#social-networks-container .canal-card.saved');
+  if (savedCards.length === 0) {
+    showToast('Adicione e salve pelo menos 1 canal de rede social para continuar', 'error');
+    // Destaca visualmente o botão "Adicionar canal"
+    const addBtn = document.getElementById('add-canal-btn');
+    if (addBtn) {
+      addBtn.style.borderColor = 'var(--red)';
+      addBtn.style.color = 'var(--red)';
+      addBtn.style.transform = 'scale(1.03)';
+      setTimeout(() => {
+        addBtn.style.borderColor = 'var(--gray-2)';
+        addBtn.style.color = 'var(--gray-3)';
+        addBtn.style.transform = '';
+      }, 2000);
+      addBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return false;
+  }
+
+  const cards = document.querySelectorAll('#social-networks-container .canal-card');
+  for (const card of cards) {
+    const profileId = card.dataset.profileId;
+    if (!profileId) continue;
+    const panel = document.getElementById('aud-panel-' + profileId);
+    if (!panel) continue;
+
+    // Verifica se algum campo de idade foi preenchido
+    const ranges = ['1317', '1824', '2534', '3544', '45p'];
+    const hasAnyAge = ranges.some(r => {
+      const v = parseFloat(document.getElementById('aud-' + profileId + '-age-' + r)?.value) || 0;
+      return v > 0;
+    });
+    if (!hasAnyAge) continue; // sem dados de idade → ok (campo opcional)
+
+    // Se tem dados de idade, soma deve ser exatamente 100
+    const indicator = document.getElementById('aud-' + profileId + '-age-sum');
+    const isOk = indicator?.classList.contains('ok');
+    if (!isOk) {
+      const network  = card.dataset.network || profileId;
+      const netLabel = CANAL_META[network]?.label || network;
+      showToast('Faixa etária de ' + netLabel + ' precisa somar 100%', 'error');
+      // Abre o painel e rola até ele
+      if (panel && !panel.classList.contains('open')) toggleAudiencePanel(profileId);
+      panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+  }
+  return true;
 }
 
 /* ══════════════════════════════════════════════
@@ -3409,33 +4698,12 @@ function toggleSegmentNew(pill) {
 }
 
 /* ══════════════════════════════════════════════
-   UPLOAD — PDF
+   UPLOAD — FOTOS
 ══════════════════════════════════════════════ */
 function triggerUpload(type) {
-  if (type === 'pdf') document.getElementById('pdfInput').click();
   if (type === 'photos') document.getElementById('photosInput').click();
 }
 
-function previewFile(input, prevId, nameId) {
-  const file = input.files[0];
-  if (!file) return;
-  document.getElementById(nameId).textContent = file.name;
-  document.getElementById(prevId).style.display = 'block';
-  document.getElementById('pdfZone').style.display = 'none';
-}
-
-function removeFile(type) {
-  if (type === 'pdf') {
-    document.getElementById('pdfInput').value = '';
-    document.getElementById('pdfPreview').style.display = 'none';
-    document.getElementById('pdfZone').style.display = 'block';
-    document.getElementById('pdfName').textContent = '';
-  }
-}
-
-/* ══════════════════════════════════════════════
-   UPLOAD — FOTOS
-══════════════════════════════════════════════ */
 
 // Focal points em memória: { 0: {x:50,y:20}, 1: {x:50,y:20}, ... }
 let _focalPoints = {};
@@ -3826,6 +5094,7 @@ function collectOppData() {
   const tpl = TEMPLATES[tplKey] || {};
   const nome = document.getElementById('opp-nome')?.value?.trim() || '';
   const desc = document.getElementById('opp-desc')?.value?.trim() || '';
+  const objetivos = document.getElementById('opp-objetivos')?.value?.trim() || '';
   const estadoEl = document.getElementById('opp-estado');
   const cidadeEl = document.getElementById('opp-cidade');
   const estadoVal = estadoEl?.options[estadoEl.selectedIndex]?.text || '';
@@ -3857,20 +5126,108 @@ function collectOppData() {
   const videoUrl = document.getElementById('videoUrl')?.value?.trim() || '';
   const linkExterno = document.getElementById('opp-link-externo')?.value?.trim() || '';
 
-  // Redes sociais
+  // Redes sociais + dados de audiência por canal — arquitetura dinâmica
   const redesSociais = {};
-  document.querySelectorAll('#social-networks-container .social-network-group').forEach(group => {
-    const network = group.dataset.network;
-    const prefix = group.dataset.prefix || '';
-    const values = Array.from(group.querySelectorAll('.social-entry input'))
-      .map(i => i.value.trim()).filter(Boolean).map(v => prefix + v);
-    if (values.length > 0) redesSociais[network] = values;
+  const publicoCanais = {};
+  document.querySelectorAll('#social-networks-container .canal-card').forEach(card => {
+    const profileId = card.dataset.profileId;
+    const network   = card.dataset.network;
+    if (!profileId || !network) return;
+
+    // Username / handle
+    const usernameInput = document.getElementById('canal-username-' + profileId);
+    const username = usernameInput ? usernameInput.value.trim() : '';
+    if (username) {
+      const urlPfx = CANAL_URL_PREFIX[network] || { text: '' };
+      if (!redesSociais[network]) redesSociais[network] = [];
+      redesSociais[network].push(urlPfx.text + username);
+    }
+
+    // Dados de audiência
+    const seguidoresRaw = document.getElementById('aud-' + profileId + '-seguidores')?.value?.trim() || '';
+    const seguidoresNum = parseFollowers(seguidoresRaw);
+    const generoF       = parseFloat(document.getElementById('aud-' + profileId + '-genero-f')?.value) || null;
+    const generoM       = parseFloat(document.getElementById('aud-' + profileId + '-genero-m')?.value) || null;
+    const ageRanges     = {};
+    ['1317','1824','2534','3544','45p'].forEach(r => {
+      const v = parseFloat(document.getElementById('aud-' + profileId + '-age-' + r)?.value);
+      if (!isNaN(v) && v > 0) ageRanges[r] = v;
+    });
+    // Formatos selecionados
+    const formatos = Array.from(
+      card.querySelectorAll('.format-pill.selected')
+    ).map(p => p.textContent.trim());
+    // Período
+    let periodo = document.getElementById('aud-' + profileId + '-periodo')?.value || '';
+    if (periodo === 'custom') {
+      const ini = document.getElementById('aud-' + profileId + '-data-inicio')?.value || '';
+      const fim = document.getElementById('aud-' + profileId + '-data-fim')?.value || '';
+      if (ini && fim) {
+        const fmt = iso => { const [y,m,d] = iso.split('-'); return d+'/'+m+'/'+y.slice(2); };
+        periodo = fmt(ini) + ' a ' + fmt(fim);
+      } else {
+        periodo = ini ? 'a partir de ' + ini : '';
+      }
+    }
+    const isReal = document.getElementById('est-toggle-' + profileId)?.classList.contains('is-real') || false;
+    const cidade = document.getElementById('aud-' + profileId + '-cidade')?.value?.trim() || '';
+
+    const hasData = seguidoresNum || generoF || generoM ||
+                    Object.keys(ageRanges).length > 0 || formatos.length > 0 || cidade;
+    if (hasData) {
+      publicoCanais[profileId] = {
+        network,
+        tipo_dado: isReal ? 'real' : 'estimativa',
+        seguidores: seguidoresNum || null,
+        genero: (generoF !== null || generoM !== null) ? { f: generoF, m: generoM } : null,
+        faixa_etaria: Object.keys(ageRanges).length > 0 ? ageRanges : null,
+        formatos: formatos.length > 0 ? formatos : null,
+        cidade: cidade || null,
+        periodo_referencia: periodo || null
+      };
+    }
   });
 
+  // Coleta perfil do público presencial (template evento)
+  let publicoPresencial = null;
+  if (tplKey === 'evento') {
+    const pGeneroF    = parseFloat(document.getElementById('presencial-genero-f')?.value) || null;
+    const pGeneroM    = parseFloat(document.getElementById('presencial-genero-m')?.value) || null;
+    const pAgeRanges  = {};
+    ['1317','1824','2534','3544','45p'].forEach(r => {
+      const v = parseFloat(document.getElementById('aud-presencial-age-' + r)?.value);
+      if (!isNaN(v) && v > 0) pAgeRanges[r] = v;
+    });
+    const pHistorico  = document.getElementById('historico-publico')?.value?.trim() || null;
+    const pSocioEl    = document.getElementById('perfil-socioeconomico');
+    const pSocio      = pSocioEl ? (pSocioEl.options[pSocioEl.selectedIndex]?.text || null) : null;
+    const pContexto   = document.getElementById('presencial-contexto')?.value?.trim() || null;
+    const pPeriodoEl  = document.getElementById('presencial-periodo');
+    const pPeriodo    = pPeriodoEl ? (pPeriodoEl.options[pPeriodoEl.selectedIndex]?.text || null) : null;
+    const pIsReal     = document.getElementById('est-toggle-presencial')?.classList.contains('is-real') || false;
+    const hasPresData = pGeneroF || pGeneroM || Object.keys(pAgeRanges).length > 0 || pHistorico || pContexto;
+    if (hasPresData) {
+      publicoPresencial = {
+        tipo_dado: pIsReal ? 'real' : 'estimativa',
+        historico: pHistorico,
+        perfil_socioeconomico: (pSocio && pSocio !== 'Selecione…') ? pSocio : null,
+        genero: (pGeneroF !== null || pGeneroM !== null) ? { f: pGeneroF, m: pGeneroM } : null,
+        faixa_etaria: Object.keys(pAgeRanges).length > 0 ? pAgeRanges : null,
+        periodo_referencia: (pPeriodo && pPeriodo !== 'Selecione…') ? pPeriodo : null,
+        contexto: pContexto
+      };
+    }
+  }
+
   // Detalhes específicos do template
+  const SKIP_TYPES = new Set(['section-heading','presential-audience-toggle','presential-age-ranges']);
   const detalhes = {};
   if (tpl && tpl.fields) {
     tpl.fields.forEach(f => {
+      // Pula campos de layout e campos de público presencial (coletados separadamente)
+      if (SKIP_TYPES.has(f.type)) return;
+      if (['historico-publico','perfil-socioeconomico','presencial-genero-f','presencial-genero-m',
+           'presencial-contexto','presencial-periodo','presencial-est-toggle','presencial-faixas-etarias'].includes(f.id)) return;
       let val = '';
       if (f.type === 'select') {
         const el = document.getElementById(f.id);
@@ -3903,6 +5260,22 @@ function collectOppData() {
     if (d || l) datasEvento.push({ data: d, local: l });
   });
 
+  // Recorrência do evento (apenas template 'evento')
+  const hasRecorrencia = document.getElementById('has-recorrencia')?.checked || false;
+  if (hasRecorrencia) {
+    const tipoRecEl = document.getElementById('tipo-recorrencia');
+    const tipoRec = tipoRecEl ? (tipoRecEl.options[tipoRecEl.selectedIndex]?.value || '') : '';
+    if (tipoRec === 'personalizado') {
+      const datasExtras = Array.from(
+        document.querySelectorAll('#datas-extras-list input')
+      ).map(el => el.value.trim()).filter(Boolean);
+      detalhes['recorrencia'] = 'Personalizado' + (datasExtras.length > 0 ? ': ' + datasExtras.join(', ') : '');
+    } else if (tipoRec) {
+      const labels = { semanal: 'Semanal', quinzenal: 'Quinzenal', mensal: 'Mensal', anual: 'Anual' };
+      detalhes['recorrencia'] = labels[tipoRec] || tipoRec;
+    }
+  }
+
   // Cotas
   const cotasHabilitadas = !!document.getElementById('cotas-toggle-switch')?.classList.contains('active');
   const cotasData = [];
@@ -3917,11 +5290,17 @@ function collectOppData() {
     });
   }
 
+  // Slug — campo do passo 7
+  const slugEl = document.getElementById('opp-slug');
+  const slugValue = slugEl ? slugEl.value.trim() : '';
+
   return {
     titulo: nome,
+    slug: slugValue || null,
     categoria: catMap[tplKey] || tpl.label || tplKey || 'Evento',
     categoria_slug: tplKey || 'evento',
     descricao_curta: desc,
+    descricao_completa: objetivos || null,
     localizacao: localizacao,
     alcance: alcance_clean,
     tags: segmentos.length > 0 ? segmentos : null,
@@ -4002,53 +5381,12 @@ async function uploadPhotos(oppId, token) {
   return { imagens: urls, imagem_capa: capaUrl, imagens_focal: focalMap };
 }
 
-/**
- * Upload PDF to Supabase Storage.
- */
-async function uploadPDF(oppId, token) {
-  const input = document.getElementById('pdfInput');
-  if (!input || !input.files || !input.files.length) return null;
-  try {
-    const file = input.files[0];
-    // ── Validação de upload (segurança) ──
-    if (typeof validateFileUpload === 'function') {
-      const check = validateFileUpload(file, {
-        allowedTypes: ['application/pdf'],
-        allowedExtensions: ['.pdf'],
-        maxSizeMB: 20
-      });
-      if (!check.valid) {
-        if (typeof showToast === 'function') showToast(check.error, 'error');
-        console.warn('[Upload] PDF validation failed:', check.error);
-        return null;
-      }
-    }
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const fileName = 'opp-' + oppId + '-midia-kit-' + safeName;
-    const formData = new FormData();
-    formData.append('', file);
-    const res = await fetch(
-      SUPABASE_URL + '/storage/v1/object/oportunidades/' + fileName,
-      { method: 'POST', body: file,
-        headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_KEY,
-          'Content-Type': file.type || 'application/pdf' } }
-    );
-    if (res.ok) {
-      console.log('[Upload] PDF uploaded:', fileName);
-      return SUPABASE_URL + '/storage/v1/object/public/oportunidades/' + fileName;
-    } else {
-      const errText = await res.text();
-      console.error('[Upload] PDF error:', res.status, errText);
-    }
-  } catch (err) { console.warn('[Upload] PDF failed:', err); }
-  return null;
-}
 
 /* ══════════════════════════════════════════════
    SALVAR RASCUNHO
 ══════════════════════════════════════════════ */
 async function saveDraft() {
-  const data = collectOppData();
+  const data = mergePreviewData(collectOppData());
   data.status = 'rascunho';
   data.ativo = false;
 
@@ -4093,14 +5431,11 @@ async function saveDraft() {
       oppId = rows[0]?.id;
     }
 
-    // Upload de arquivos (Fix 3 — feedback se falhar)
+    // Upload de fotos
     if (oppId) {
       const { imagens, imagem_capa, imagens_focal } = await uploadPhotos(oppId, token);
-      const pdfUrl = await uploadPDF(oppId, token);
-      if (imagens.length > 0 || pdfUrl) {
-        const patch = {};
-        if (imagens.length > 0) { patch.imagens = imagens; patch.imagem_capa = imagem_capa; patch.imagens_focal = imagens_focal; }
-        if (pdfUrl) patch.midia_kit_url = pdfUrl;
+      if (imagens.length > 0) {
+        const patch = { imagens, imagem_capa, imagens_focal };
         await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
           method: 'PATCH', body: JSON.stringify(patch),
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
@@ -4123,16 +5458,97 @@ async function saveDraft() {
 /* ══════════════════════════════════════════════
    PUBLICAR
 ══════════════════════════════════════════════ */
-async function publishOpportunity() {
-  const data = collectOppData();
+/**
+ * Mescla os dados preenchidos no Step 6 (preview) no objeto de dados da oportunidade.
+ * - publico            → publico_descricao (coluna dedicada)
+ * - demografico        → detalhes.demografico (JSONB)
+ * - entregas           → detalhes.entregas (JSONB)
+ * - metricas_alcance   → detalhes.metricas_alcance (JSONB)
+ * - metricas_engajamento → detalhes.metricas_engajamento (JSONB)
+ * - metricas_impressoes  → detalhes.metricas_impressoes (JSONB)
+ * - prazo_inicio/fim   → detalhes.prazo_inicio / prazo_fim (JSONB)
+ * - prazo_continua     → detalhes.prazo_continua (JSONB)
+ */
+function mergePreviewData(data) {
+  if (!previewEditData || Object.keys(previewEditData).length === 0) return data;
 
-  // ── Validações obrigatórias (Fix 5) ──
+  // publico_descricao — coluna própria
+  if (previewEditData.publico) data.publico_descricao = previewEditData.publico;
+
+  // Campos extras → dentro de detalhes JSONB (não sobrescreve chaves existentes do template)
+  const extraDetalhes = {};
+  const detalheKeys = [
+    'demografico', 'entregas',
+    'metricas_alcance', 'metricas_engajamento', 'metricas_impressoes',
+    'prazo_inicio', 'prazo_fim', 'prazo_continua', 'prazo_sem_fim'
+  ];
+  detalheKeys.forEach(k => {
+    if (previewEditData[k] != null && previewEditData[k] !== '') {
+      extraDetalhes[k] = previewEditData[k];
+    }
+  });
+  if (Object.keys(extraDetalhes).length > 0) {
+    data.detalhes = Object.assign({}, data.detalhes || {}, extraDetalhes);
+  }
+
+  return data;
+}
+
+async function publishOpportunity() {
+  const data = mergePreviewData(collectOppData());
+
+  // ── Validações obrigatórias ──
   if (!data.titulo) { showToast('Preencha o nome da oportunidade.', 'error'); return; }
+  if (!data.descricao_curta) { showToast('Preencha a descrição da oportunidade.', 'error'); return; }
   if (!data.localizacao) { showToast('Selecione o estado e cidade da oportunidade.', 'error'); return; }
   const hasPhotos = document.querySelectorAll('#photosGrid .photo-thumb').length > 0;
   if (!hasPhotos) { showToast('Adicione pelo menos uma foto.', 'error'); return; }
   if (data.cotas_habilitadas && (!data.cotas_data || data.cotas_data.length === 0)) {
     showToast('Adicione pelo menos uma cota ou desative as cotas.', 'error'); return;
+  }
+
+  // ── Validação: slug obrigatório e único ──
+  if (!data.slug) {
+    showToast('Defina o link público da oportunidade antes de publicar.', 'error');
+    nextStep(7);
+    return;
+  }
+  const slugOk = await validateSlugUnique(true);
+  if (!slugOk) {
+    showToast('O slug escolhido já está em uso. Altere o link público da oportunidade.', 'error');
+    nextStep(7);
+    return;
+  }
+
+  // ── Validação: campos obrigatórios do template ──
+  const tplKey = formState.selectedTemplate;
+  const tpl = TEMPLATES[tplKey];
+  if (tpl && tpl.fields) {
+    for (const f of tpl.fields) {
+      if (!f.required) continue;
+      const el = document.getElementById(f.id);
+      if (!el) continue;
+      let val = '';
+      if (f.type === 'select') {
+        val = el.options[el.selectedIndex]?.value || '';
+        if (val === '' || val === 'Selecione…') val = '';
+      } else if (f.type === 'text' || f.type === 'textarea') {
+        val = el.value.trim();
+      }
+      if (!val) {
+        showToast('Preencha o campo obrigatório: ' + f.label, 'error');
+        nextStep(4); // leva de volta ao step de detalhes específicos do template
+        return;
+      }
+    }
+  }
+
+  // ── Validação: pelo menos 1 canal social ──
+  const savedCanais = document.querySelectorAll('#social-networks-container .canal-card.saved');
+  if (savedCanais.length === 0) {
+    showToast('Adicione e salve pelo menos 1 canal de rede social antes de publicar.', 'error');
+    nextStep(3); // leva de volta ao step de materiais/canais
+    return;
   }
 
   // ── Refresh token antes de operação longa (Fix 8) ──
@@ -4175,7 +5591,7 @@ async function publishOpportunity() {
       console.log('[Publish] Opportunity created:', oppId);
     }
 
-    // Upload photos and PDF (Fix 3 — feedback de erro nos uploads)
+    // Upload fotos
     if (oppId) {
       let uploadErrors = [];
       const { imagens, imagem_capa, imagens_focal } = await uploadPhotos(oppId, token);
@@ -4183,21 +5599,15 @@ async function publishOpportunity() {
       const newUploaded = imagens.filter(u => !document.querySelector('[data-existing-url="' + u + '"]')).length;
       if (expectedPhotos > 0 && newUploaded === 0) uploadErrors.push('fotos');
 
-      const pdfUrl = await uploadPDF(oppId, token);
-      const pdfInput = document.getElementById('pdfInput');
-      if (pdfInput && pdfInput.files && pdfInput.files.length > 0 && !pdfUrl) uploadErrors.push('mídia kit PDF');
-
-      if (imagens.length > 0 || pdfUrl) {
-        const patch = {};
-        if (imagens.length > 0) { patch.imagens = imagens; patch.imagem_capa = imagem_capa; patch.imagens_focal = imagens_focal; }
-        if (pdfUrl) patch.midia_kit_url = pdfUrl;
+      if (imagens.length > 0) {
+        const patch = { imagens, imagem_capa, imagens_focal };
         const patchRes = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
           method: 'PATCH', body: JSON.stringify(patch),
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
         });
-        if (!patchRes.ok) uploadErrors.push('salvar arquivos');
-        console.log('[Publish] Files uploaded:', imagens.length, 'photos', pdfUrl ? '+ PDF' : '');
+        if (!patchRes.ok) uploadErrors.push('salvar fotos');
+        console.log('[Publish] Photos uploaded:', imagens.length);
       }
 
       if (uploadErrors.length > 0) {
@@ -4329,6 +5739,12 @@ function maybePreFillEdit() {
     updateChar(descEl, 'descCount', 300);
   }
 
+  const objetivosEl = document.getElementById('opp-objetivos');
+  if (objetivosEl && opp.descricao_completa) {
+    objetivosEl.value = opp.descricao_completa;
+    updateChar(objetivosEl, 'objetivosCount', 800);
+  }
+
   // Cidade: tenta extrair estado e cidade de "Cidade, UF — Brasil" ou "Cidade, UF"
   const locStr = opp.localizacao || opp.cidade || '';
   if (locStr) {
@@ -4382,28 +5798,22 @@ function maybePreFillEdit() {
     if (videoEl) videoEl.value = opp.video_url;
   }
 
-  // --- Redes sociais ---
+  // --- Redes sociais — arquitetura dinâmica ---
   const redesSociais = opp.redes_sociais || {};
   if (Object.keys(redesSociais).length > 0) {
     Object.entries(redesSociais).forEach(([network, values]) => {
-      const group = document.querySelector('.social-network-group[data-network="' + network + '"]');
-      if (!group) return;
-      const entriesContainer = group.querySelector('.social-entries');
-      if (!entriesContainer) return;
-      const prefix = group.dataset.prefix || '';
       const valArr = Array.isArray(values) ? values : [values];
-      // Preenche entradas existentes e cria novas se necessário
-      valArr.forEach((val, i) => {
-        // Remove o prefix para exibir apenas o handle/path
-        const displayVal = val.startsWith(prefix) ? val.slice(prefix.length) : val;
-        let inputs = entriesContainer.querySelectorAll('.social-entry input');
-        if (i < inputs.length) {
-          inputs[i].value = displayVal;
-        } else {
-          // Adiciona nova entrada
-          addSocialEntry(group);
-          inputs = entriesContainer.querySelectorAll('.social-entry input');
-          if (inputs[i]) inputs[i].value = displayVal;
+      const urlPfx = CANAL_URL_PREFIX[network] || { text: '' };
+      valArr.forEach(val => {
+        // Cria card dinamicamente e preenche o username
+        addCanal(network);
+        // O último card adicionado tem o profileId mais recente
+        const counter = (_canalCounters[network] || 1) - 1;
+        const profileId = network + '-' + counter;
+        const usernameInput = document.getElementById('canal-username-' + profileId);
+        if (usernameInput) {
+          const displayVal = val.startsWith(urlPfx.text) ? val.slice(urlPfx.text.length) : val;
+          usernameInput.value = displayVal;
         }
       });
     });
@@ -4473,6 +5883,25 @@ function maybePreFillEdit() {
     formState._pendingCotasHabilitadas = cotasHabilitadas;
   }
 
+  // --- Campos do preview (previewEditData) — restaurar de publico_descricao e detalhes ---
+  if (opp.publico_descricao) previewEditData.publico = opp.publico_descricao;
+  const previewDetalheKeys = [
+    'demografico', 'entregas',
+    'metricas_alcance', 'metricas_engajamento', 'metricas_impressoes',
+    'prazo_inicio', 'prazo_fim', 'prazo_continua', 'prazo_sem_fim'
+  ];
+  previewDetalheKeys.forEach(k => {
+    if (detalhes[k] != null && detalhes[k] !== '') previewEditData[k] = detalhes[k];
+  });
+  // Reconstruir metricas combinado
+  if (previewEditData.metricas_alcance || previewEditData.metricas_engajamento || previewEditData.metricas_impressoes) {
+    const parts = [];
+    if (previewEditData.metricas_alcance)     parts.push('Alcance: ' + previewEditData.metricas_alcance);
+    if (previewEditData.metricas_engajamento) parts.push('Engajamento: ' + previewEditData.metricas_engajamento);
+    if (previewEditData.metricas_impressoes)  parts.push('Impressões: ' + previewEditData.metricas_impressoes);
+    if (parts.length > 0) previewEditData.metricas = parts.join('\n');
+  }
+
   // Limpa o sessionStorage após usar
   sessionStorage.removeItem('edit_opp');
 
@@ -4490,7 +5919,7 @@ function enableClickableStepper() {
   if (!stepper) return;
   stepper.classList.add('edit-mode');
 
-  for (let i = 0; i < TOTAL_STEPS; i++) {
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
     const dot = document.getElementById('step-dot-' + i);
     if (!dot) continue;
     dot.addEventListener('click', function() {
@@ -4543,17 +5972,23 @@ function loadMockData() {
   const linkEl = document.getElementById('opp-link-externo');
   if (linkEl) linkEl.value = 'https://coparelevantiasurf.com.br';
 
-  // --- Step 3: Materiais / Redes sociais ---
-  // Preencher Instagram
-  const igInput = document.querySelector('.social-network-group[data-network="instagram"] .social-entry input');
+  // --- Step 3: Materiais / Redes sociais — arquitetura dinâmica ---
+  // Adiciona e preenche Instagram
+  addCanal('instagram');
+  const igProfileId = 'instagram-' + ((_canalCounters['instagram'] || 1) - 1);
+  const igInput = document.getElementById('canal-username-' + igProfileId);
   if (igInput) igInput.value = 'coparelevantiasurf';
 
-  // Preencher YouTube
-  const ytInput = document.querySelector('.social-network-group[data-network="youtube"] .social-entry input');
+  // Adiciona e preenche YouTube
+  addCanal('youtube');
+  const ytProfileId = 'youtube-' + ((_canalCounters['youtube'] || 1) - 1);
+  const ytInput = document.getElementById('canal-username-' + ytProfileId);
   if (ytInput) ytInput.value = 'CopaRelevantiaSurf';
 
-  // Preencher TikTok
-  const ttInput = document.querySelector('.social-network-group[data-network="tiktok"] .social-entry input');
+  // Adiciona e preenche TikTok
+  addCanal('tiktok');
+  const ttProfileId = 'tiktok-' + ((_canalCounters['tiktok'] || 1) - 1);
+  const ttInput = document.getElementById('canal-username-' + ttProfileId);
   if (ttInput) ttInput.value = 'coparelevantiasurf';
 
   // Vídeo
@@ -4706,6 +6141,8 @@ async function init() {
   requireAuth('rightsholder', 'login.html');
   await initSession();
   maybePreFillEdit();
+  // Garante que o painel inicial fica visível (panel-0 foi removido; panel-1 começa oculto)
+  if (currentStep === 1) nextStep(1);
   loadMockData();
 
   // Fecha calendários do date picker ao clicar fora deles

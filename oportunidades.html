@@ -719,7 +719,7 @@ mobileOverlay.addEventListener('click', function(e) {
   // Supabase indisponível — mostra aviso em vez de dados falsos
   OPPORTUNITIES = [];
   console.warn('[Catalog] Could not load from Supabase');
-  var grid = document.getElementById('oppGrid');
+  var grid = document.getElementById('cardsGrid');
   if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#A89880;font-family:DM Sans,sans-serif"><p style="font-size:18px;font-weight:600;margin-bottom:8px">Não foi possível carregar as oportunidades</p><p style="font-size:14px">Verifique sua conexão e <a href="javascript:location.reload()" style="color:#B8860B;text-decoration:underline">tente novamente</a>.</p></div>';
 })();
 </script>

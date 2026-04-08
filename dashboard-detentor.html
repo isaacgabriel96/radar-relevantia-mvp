@@ -1154,7 +1154,7 @@ tbody tr:last-child td { border-bottom: none; }
     <a class="nav-item" data-section="oportunidades" onclick="showSection('oportunidades')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
       Minhas Oportunidades
-      <span class="nav-badge" id="navBadgeOps">3</span>
+      <span class="nav-badge" id="navBadgeOps">0</span>
     </a>
 
     <div class="nav-section-label">Minha Conta</div>
@@ -1201,7 +1201,7 @@ tbody tr:last-child td { border-bottom: none; }
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
-        <span class="notif-badge" id="notifBadge">3</span>
+        <span class="notif-badge hidden" id="notifBadge">0</span>
       </button>
     </div>
     <div class="topbar-avatar" id="topbarAvatar" style="display:none">IG</div>
@@ -1295,11 +1295,11 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="sub-tabs">
         <button class="sub-tab active" id="subtab-publicadas" onclick="switchSubTab('publicadas')">
           Publicadas
-          <span class="sub-tab-badge">3</span>
+          <span class="sub-tab-badge" id="pub-badge-count">0</span>
         </button>
         <button class="sub-tab" id="subtab-negociacoes" onclick="switchSubTab('negociacoes')">
           Negociações
-          <span class="sub-tab-badge" id="neg-badge-count">10</span>
+          <span class="sub-tab-badge" id="neg-badge-count">0</span>
         </button>
         <button class="sub-tab" id="subtab-deals" onclick="switchSubTab('deals')">
           Deals Fechados
@@ -1434,37 +1434,37 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nome da empresa</label>
-              <input class="form-input empresa-field" type="text" value="Instituto Esportivo SP" disabled>
+              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">CNPJ</label>
-              <input class="form-input empresa-field" type="text" value="12.345.678/0001-90" disabled>
+              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">Segmento</label>
               <select class="form-select empresa-field" disabled>
+                <option value="">Selecione</option>
                 <option>Esporte</option>
                 <option>Cultura</option>
                 <option>Entretenimento</option>
                 <option>Educação</option>
-                <option selected>Esporte</option>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label">Telefone</label>
-              <input class="form-input empresa-field" type="text" value="(11) 99999-0000" disabled>
+              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Endereço</label>
-              <input class="form-input empresa-field" type="text" value="Av. Paulista, 1000 — São Paulo, SP" disabled>
+              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Site</label>
-              <input class="form-input empresa-field" type="url" value="https://institutoesportivo.com.br" disabled>
+              <input class="form-input empresa-field" type="url" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Descrição da empresa</label>
-              <textarea class="form-textarea empresa-field" disabled>Instituto dedicado à promoção do esporte de alto rendimento, organizador de maratonas e eventos esportivos em todo o Brasil.</textarea>
+              <textarea class="form-textarea empresa-field" disabled></textarea>
             </div>
           </div>
           <div class="form-actions" id="empresaActions" style="display:none">
@@ -1518,19 +1518,19 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nome completo</label>
-              <input class="form-input perfil-field" type="text" value="Isaac Gabriel" disabled>
+              <input class="form-input perfil-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">E-mail</label>
-              <input class="form-input perfil-field" type="email" value="isaac@radar.com" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
+              <input class="form-input perfil-field" type="email" value="" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
             </div>
             <div class="form-group">
               <label class="form-label">Telefone</label>
-              <input class="form-input perfil-field" type="text" value="(11) 98765-4321" disabled>
+              <input class="form-input perfil-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">Cargo</label>
-              <input class="form-input perfil-field" type="text" value="Diretor Executivo" disabled>
+              <input class="form-input perfil-field" type="text" value="" disabled>
             </div>
           </div>
           <div class="form-actions" id="perfilActions" style="display:none">
@@ -1765,9 +1765,9 @@ tbody tr:last-child td { border-bottom: none; }
    Sem Supabase (dados mockados)
    ═══════════════════════════════════════ */
 
-// ─── DATA (from centralized demo-data.js or future API) ───
-const MOCK_USER = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detentor.user : { nome: 'Detentor', email: 'detentor@radar.com' };
-const MOCK_EMPRESA = (window.DEMO && window.DEMO.detentor) ? window.DEMO.detentor.empresa : { nome: 'Empresa' };
+// ─── DATA ───
+const MOCK_USER = { nome: 'Usuário', email: '' };
+const MOCK_EMPRESA = { nome: '' };
 
 // ─── SECTION NAMES ───
 const SECTION_TITLES = {
@@ -1786,7 +1786,11 @@ function showSectionTab(sectionId, subTab) {
   // Aguarda o DOM atualizar antes de trocar a sub-tab
   setTimeout(() => {
     if (typeof switchSubTab === 'function') switchSubTab(subTab);
-  }, 50);
+    // Atualiza breadcrumb/topbar para refletir o sub-tab ativo
+    const subTitles = { negociacoes: 'Negociações', deals: 'Deals Fechados', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
+    const topbar = document.getElementById('topbarSection');
+    if (topbar && subTitles[subTab] !== undefined) topbar.textContent = subTitles[subTab];
+  }, 55);
   // Marca o botão correto no bottom nav (sobrescreve o que showSection fez)
   setTimeout(() => {
     document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
@@ -1861,12 +1865,45 @@ function setUserInfo(nome, email) {
   document.getElementById('topbarAvatar').textContent = initials;
 }
 
+function populateDetenorFields(p) {
+  // Empresa fields: [0]=nome empresa, [1]=cnpj, [2]=segmento (select), [3]=telefone, [4]=endereço, [5]=website, [6]=descricao
+  const empresaFields = document.querySelectorAll('.empresa-field');
+  if (empresaFields[0]) empresaFields[0].value = p.empresa || '';
+  if (empresaFields[1]) empresaFields[1].value = p.cnpj || '';
+  if (empresaFields[2] && p.segmento) {
+    const opt = Array.from(empresaFields[2].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
+    if (opt) empresaFields[2].value = opt.value;
+  }
+  if (empresaFields[3]) empresaFields[3].value = p.telefone || '';
+  // index 4 = endereço (sem coluna no perfis, skip)
+  if (empresaFields[5]) empresaFields[5].value = p.website || '';
+  if (empresaFields[6]) empresaFields[6].value = p.descricao || '';
+
+  // Perfil fields: [0]=nome, [1]=email, [2]=telefone, [3]=cargo
+  const perfilFields = document.querySelectorAll('.perfil-field');
+  if (perfilFields[0]) perfilFields[0].value = p.nome || '';
+  if (perfilFields[1]) perfilFields[1].value = p.email || '';
+  if (perfilFields[2]) perfilFields[2].value = p.telefone || '';
+  if (perfilFields[3]) perfilFields[3].value = p.cargo || '';
+}
+
 // ─── LOAD USER INFO (SDK → localStorage → MOCK fallback) ───
 async function loadUserInfoDetentor() {
-  // 1. Tentar via SDK (mais confiável, tem refresh automático)
-  if (typeof restoreSessionToSDK !== 'undefined') {
-    try { await restoreSessionToSDK(); } catch (_) {}
+  // 1. PRIORITY: Forçar SDK a usar sessão do detentor
+  //    (evita contaminação por sessão de marca/admin ainda no SDK)
+  const stored = localStorage.getItem('sb_detentor_session');
+  if (stored && typeof sb !== 'undefined' && sb) {
+    try {
+      const detentorSession = JSON.parse(stored);
+      if (detentorSession.access_token && detentorSession.access_token !== 'DEMO_TOKEN') {
+        await sb.auth.setSession({
+          access_token: detentorSession.access_token,
+          refresh_token: detentorSession.refresh_token || ''
+        });
+      }
+    } catch (_) {}
   }
+  // 2. Tentar via SDK (agora com sessão correta)
   if (typeof sb !== 'undefined' && sb) {
     try {
       const { data: { session } } = await sb.auth.getSession();
@@ -1877,12 +1914,15 @@ async function loadUserInfoDetentor() {
         // Tentar buscar nome real na tabela perfis
         try {
           const token = session.access_token;
-          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa&limit=1', {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa,email,cnpj,segmento,telefone,website,descricao,cargo&limit=1', {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
           });
           if (res.ok) {
             const rows = await res.json();
-            if (rows.length > 0) nome = rows[0].nome || rows[0].empresa || nome;
+            if (rows.length > 0) {
+              nome = rows[0].nome || rows[0].empresa || nome;
+              populateDetenorFields(rows[0]);
+            }
           }
         } catch (_) {}
         setUserInfo(nome, email);
@@ -1890,8 +1930,7 @@ async function loadUserInfoDetentor() {
       }
     } catch (_) {}
   }
-  // 2. Fallback: localStorage sb_detentor_session
-  const stored = localStorage.getItem('sb_detentor_session');
+  // 3. Fallback: metadata do localStorage sb_detentor_session
   if (stored) {
     try {
       const session = JSON.parse(stored);
@@ -1902,7 +1941,7 @@ async function loadUserInfoDetentor() {
       return;
     } catch (_) {}
   }
-  // 3. Mock fallback
+  // 4. Mock fallback
   setUserInfo(MOCK_USER.nome, MOCK_USER.email);
 }
 
@@ -2103,9 +2142,9 @@ let _notifs = [];
 function loadNotifs() {
   try {
     const raw = localStorage.getItem(NOTIF_STORAGE_KEY);
-    _notifs = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(MOCK_NOTIFS));
+    _notifs = raw ? JSON.parse(raw) : [];
   } catch(e) {
-    _notifs = JSON.parse(JSON.stringify(MOCK_NOTIFS));
+    _notifs = [];
   }
   renderNotifs();
 }
@@ -2536,16 +2575,21 @@ function renderPublicadas() {
     ? MINHAS_OPPS
     : MINHAS_OPPS.filter(o => o.status === _pubFilterAtivo);
 
-  // atualiza contagem
+  // atualiza contagem e badge da aba
   const countEl = document.getElementById('pub-pills-count');
+  const pubBadge = document.getElementById('pub-badge-count');
   if (countEl) {
     const total = filtered.length;
     countEl.textContent = total > 0 ? `${total} oportunidade${total !== 1 ? 's' : ''}` : '';
   }
+  if (pubBadge) pubBadge.textContent = MINHAS_OPPS.length;
+  const navBadge = document.getElementById('navBadgeOps');
+  if (navBadge) navBadge.textContent = MINHAS_OPPS.length;
 
   if (filtered.length === 0) {
-    const labels = { publicada:'publicadas', rascunho:'em rascunho', finalizada:'encerradas', todos:'oportunidades' };
-    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--gray-3);font-size:14px">Nenhuma oportunidade ${labels[_pubFilterAtivo] || ''} encontrada.</div>`;
+    const labels = { publicada:'publicadas', rascunho:'em rascunho', finalizada:'encerradas', todos:'' };
+    const labelStr = labels[_pubFilterAtivo] !== undefined ? labels[_pubFilterAtivo] : '';
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--gray-3);font-size:14px">Nenhuma oportunidade${labelStr ? ' ' + labelStr : ''} encontrada.</div>`;
     return;
   }
 
@@ -2595,6 +2639,10 @@ function switchSubTab(tab) {
   document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('subtab-' + tab).classList.add('active');
   document.getElementById('subpanel-' + tab).classList.add('active');
+  // Atualiza topbar/breadcrumb para refletir a sub-aba ativa
+  const subTitles = { negociacoes: 'Negociações', deals: 'Deals Fechados', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
+  const topbar = document.getElementById('topbarSection');
+  if (topbar && subTitles[tab] !== undefined) topbar.textContent = subTitles[tab];
 }
 
 const chevronSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="neg-opp-chevron"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -3514,8 +3562,11 @@ async function sendNegMsg() {
                now.getHours().toString().padStart(2,'0') + ':' +
                now.getMinutes().toString().padStart(2,'0');
 
+  // Resolve o nome real do detentor (sidebar populado pelo init)
+  const _detentorNomeReal = document.getElementById('sidebarName')?.textContent?.trim() || _negAtiva.opp;
+
   // Add to local thread immediately (optimistic)
-  _negAtiva.thread.push({ autor:'detentor', nome: _negAtiva.opp, texto: text, data });
+  _negAtiva.thread.push({ autor:'detentor', nome: _detentorNomeReal, texto: text, data });
   _autoStatus(_negAtiva);
   renderNegThread(_negAtiva.thread);
   ta.value = '';
@@ -3528,7 +3579,7 @@ async function sendNegMsg() {
       negociacao_id: _negAtiva._supaId,
       autor_id: userId || _negAtiva.detentor_id,
       autor_role: 'detentor',
-      autor_nome: _negAtiva.opp,
+      autor_nome: _detentorNomeReal,
       texto: text
     });
   } else {

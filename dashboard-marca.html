@@ -862,6 +862,7 @@ tbody tr:last-child td { border-bottom: none; }
 
 <script src="shared-state.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/sanitize.js"></script>
 <script src="js/core.js"></script>
 <script src="js/demo-data.js"></script>
 
@@ -1006,7 +1007,7 @@ tbody tr:last-child td { border-bottom: none; }
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
-          <span class="notif-badge" id="notifBadge">3</span>
+          <span class="notif-badge hidden" id="notifBadge">0</span>
         </button>
       </div>
       <div class="topbar-avatar" id="topbarAvatar" style="display:none">NB</div>
@@ -1242,19 +1243,20 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nome da marca</label>
-              <input class="form-input marca-field" type="text" value="Nike Brasil" disabled>
+              <input class="form-input marca-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">CNPJ</label>
-              <input class="form-input marca-field" type="text" value="12.345.678/0001-00" disabled>
+              <input class="form-input marca-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">Segmento</label>
               <select class="form-select marca-field" disabled>
+                <option value="">Selecione</option>
                 <option>Tecnologia</option>
                 <option>Moda</option>
                 <option>Alimentos</option>
-                <option selected>Esportes</option>
+                <option>Esportes</option>
                 <option>Saúde</option>
                 <option>Automotivo</option>
                 <option>Financeiro</option>
@@ -1265,11 +1267,11 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="form-group">
               <label class="form-label">Website</label>
-              <input class="form-input marca-field" type="url" value="https://nike.com.br" disabled>
+              <input class="form-input marca-field" type="url" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Descrição da marca</label>
-              <textarea class="form-textarea marca-field" disabled>Marca líder mundial em artigos esportivos, moda atlética e inovação em performance.</textarea>
+              <textarea class="form-textarea marca-field" disabled></textarea>
             </div>
           </div>
           <div class="form-actions" id="marcaActions" style="display:none">
@@ -1292,19 +1294,19 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nome</label>
-              <input class="form-input resp-field" type="text" value="Carlos Mendes" disabled>
+              <input class="form-input resp-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">E-mail</label>
-              <input class="form-input resp-field" type="email" value="contato@nikebrasil.com" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
+              <input class="form-input resp-field" type="email" value="" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
             </div>
             <div class="form-group">
               <label class="form-label">Telefone</label>
-              <input class="form-input resp-field" type="text" value="(11) 3456-7890" disabled>
+              <input class="form-input resp-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
               <label class="form-label">Cargo</label>
-              <input class="form-input resp-field" type="text" value="Diretor de Marketing" disabled>
+              <input class="form-input resp-field" type="text" value="" disabled>
             </div>
           </div>
           <div class="form-actions" id="respActions" style="display:none">
@@ -1589,8 +1591,6 @@ tbody tr:last-child td { border-bottom: none; }
    ═══════════════════════════════════════ */
 
 // ─── DATA ───
-const MOCK_USER = (window.DEMO && window.DEMO.marca) ? window.DEMO.marca.user : { nome: 'Marca', email: 'marca@radar.com' };
-
 // Catálogo carregado do Supabase (real) ou do CATALOG demo como fallback
 let MOCK_OPPORTUNITIES = [];
 
@@ -1726,14 +1726,14 @@ async function loadUserInfo() {
       if (session?.user) {
         const user = session.user;
         const meta = user.user_metadata || {};
-        const nome = meta.nome || meta.full_name || user.email?.split('@')[0] || MOCK_USER.nome;
-        const email = user.email || MOCK_USER.email;
+        const nome = meta.nome || meta.full_name || user.email?.split('@')[0] || 'Usuário';
+        const email = user.email || '';
         setUserInfo(nome, email);
         // Also fetch perfil for empresa info
         try {
           const token = await getValidToken();
           if (token) {
-            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email&id=eq.' + user.id, {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,cnpj,segmento,website,descricao,telefone,cargo&id=eq.' + user.id, {
               headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
             });
             if (res.ok) {
@@ -1741,6 +1741,7 @@ async function loadUserInfo() {
               if (rows.length > 0) {
                 const p = rows[0];
                 setUserInfo(p.nome || nome, p.email || email, p.empresa);
+                populateConfigFields(p);
               }
             }
           }
@@ -1755,13 +1756,13 @@ async function loadUserInfo() {
     try {
       const session = JSON.parse(stored);
       const meta = session.user?.user_metadata || {};
-      const nome = meta.nome || session.user?.email?.split('@')[0] || MOCK_USER.nome;
-      const email = session.user?.email || MOCK_USER.email;
+      const nome = meta.nome || meta.full_name || session.user?.email?.split('@')[0] || 'Usuário';
+      const email = session.user?.email || '';
       setUserInfo(nome, email);
       return;
     } catch (_) {}
   }
-  setUserInfo(MOCK_USER.nome, MOCK_USER.email);
+  setUserInfo('Usuário', '');
 }
 
 function loadInteressesCount() {
@@ -1811,8 +1812,8 @@ function renderDashboardTimeline() {
     <div class="tl-item">
       <div class="tl-dot ${statusDot[p.status] || 'gold'}">${statusEmoji[p.status] || '📄'}</div>
       <div class="tl-body">
-        <div class="tl-text">Proposta para <strong>${p.opp || 'oportunidade'}</strong> — ${p.statusLabel || p.status}</div>
-        <div class="tl-time">${p.enviadaEm || ''}</div>
+        <div class="tl-text">Proposta para <strong>${escapeHtml(p.opp || 'oportunidade')}</strong> — ${escapeHtml(p.statusLabel || p.status)}</div>
+        <div class="tl-time">${escapeHtml(p.enviadaEm || '')}</div>
       </div>
     </div>
   `).join('');
@@ -1845,6 +1846,26 @@ function setUserInfo(nome, email) {
   document.getElementById('sidebarEmail').textContent = email;
   document.getElementById('sidebarAvatar').textContent = initials;
   document.getElementById('topbarAvatar').textContent = initials;
+}
+
+function populateConfigFields(p) {
+  // Marca fields: [0]=nome marca, [1]=cnpj, [2]=segmento (select), [3]=website, [4]=descricao
+  const marcaFields = document.querySelectorAll('.marca-field');
+  if (marcaFields[0]) marcaFields[0].value = p.empresa || '';
+  if (marcaFields[1]) marcaFields[1].value = p.cnpj || '';
+  if (marcaFields[2] && p.segmento) {
+    const opt = Array.from(marcaFields[2].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
+    if (opt) marcaFields[2].value = opt.value;
+  }
+  if (marcaFields[3]) marcaFields[3].value = p.website || '';
+  if (marcaFields[4]) marcaFields[4].value = p.descricao || '';
+
+  // Resp fields: [0]=nome, [1]=email, [2]=telefone, [3]=cargo
+  const respFields = document.querySelectorAll('.resp-field');
+  if (respFields[0]) respFields[0].value = p.nome || '';
+  if (respFields[1]) respFields[1].value = p.email || '';
+  if (respFields[2]) respFields[2].value = p.telefone || '';
+  if (respFields[3]) respFields[3].value = p.cargo || '';
 }
 
 // ─── NAVIGATION ───
@@ -1948,9 +1969,9 @@ let _notifs = [];
 function loadNotifs() {
   try {
     const raw = localStorage.getItem(NOTIF_STORAGE_KEY);
-    _notifs = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(MOCK_NOTIFS));
+    _notifs = raw ? JSON.parse(raw) : [];
   } catch(e) {
-    _notifs = JSON.parse(JSON.stringify(MOCK_NOTIFS));
+    _notifs = [];
   }
   renderNotifs();
 }
@@ -2382,23 +2403,13 @@ init();
 var PROPOSTAS = [];
 
 async function loadPropostas() {
-  if (!isDemoMode()) {
-    const real = await fetchNegociacoesMarca();
-    if (real !== null) {
-      PROPOSTAS = real;
-      console.log('[Prop] Loaded', real.length, 'proposals from Supabase');
-      return;
-    }
+  const real = await fetchNegociacoesMarca();
+  if (real !== null) {
+    PROPOSTAS = real;
+    return;
   }
-  // Demo mode: use SharedNeg for the authenticated demo user
-  if (isDemoMode()) {
-    PROPOSTAS = SharedNeg.byMarca('nike-brasil');
-    console.log('[Prop] Demo mode — using SharedNeg,', PROPOSTAS.length, 'proposals');
-  } else {
-    // Real mode but Supabase unavailable — show empty, not fake data
-    PROPOSTAS = [];
-    console.log('[Prop] Supabase unavailable, showing empty state');
-  }
+  // Supabase unavailable — show empty state, not fake data
+  PROPOSTAS = [];
 }
 
 async function _persistProp(p, fields) {
@@ -3132,7 +3143,10 @@ async function sendPropostaMsg() {
                now.getHours().toString().padStart(2,'0') + ':' +
                now.getMinutes().toString().padStart(2,'0');
 
-  _propostaAtiva.thread.push({ autor: 'marca', nome: _propostaAtiva.marca || 'Marca', texto: text, data });
+  // Resolve o nome real da marca (sidebar populado pelo init)
+  const _marcaNomeReal = document.getElementById('sidebarName')?.textContent?.trim() || 'Marca';
+
+  _propostaAtiva.thread.push({ autor: 'marca', nome: _marcaNomeReal, texto: text, data });
   renderMsgThread(_propostaAtiva.thread);
 
   if (_propostaAtiva._supaId && !isDemoMode()) {
@@ -3141,7 +3155,7 @@ async function sendPropostaMsg() {
       negociacao_id: _propostaAtiva._supaId,
       autor_id: userId || _propostaAtiva.marca_id,
       autor_role: 'marca',
-      autor_nome: _propostaAtiva.marca || 'Marca',
+      autor_nome: _marcaNomeReal,
       texto: text
     });
   } else { SharedNeg.save(); }
@@ -3281,10 +3295,7 @@ function renderVozHistorico() {
   }).join('')}</div>`;
 }
 
-function escapeHtml(str) {
-  if (typeof str !== 'string') return '';
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
+// escapeHtml removido — usar escapeHtml de sanitize.js
 
 // ─── FILTER PILLS + TABELA PROPOSTAS ───
 let _propFilter = 'todos';
@@ -4245,7 +4256,7 @@ async function handleModalSolicitarAcesso() {
     if (!token && typeof getValidToken === 'function') token = await getValidToken();
 
     if (!marcaId || !token) {
-      alert('Faça login para solicitar acesso.');
+      showToast('Faça login para solicitar acesso.', 'error');
       btn.disabled = false; btn.style.opacity = '1';
       btn.textContent = 'Solicitar acesso';
       return;
