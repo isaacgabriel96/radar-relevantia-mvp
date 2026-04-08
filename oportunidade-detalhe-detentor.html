@@ -1253,7 +1253,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
-      'canais(icone,label,valor,seguidores,genero_f,genero_m,faixa_etaria,ordem)' +
+      'canais(icone,label,valor,ordem)' +
       filter;
     // Use auth token so detentor can see their own private/draft records
     const token = typeof getValidToken === 'function' ? await getValidToken() : null;

@@ -1230,7 +1230,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
-      'canais(icone,label,valor,seguidores,genero_f,genero_m,faixa_etaria,ordem)' +
+      'canais(icone,label,valor,ordem)' +
       filter;
     // Usa token da marca se disponível — permite ver oportunidades com visibilidade=aprovacao
     const brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
