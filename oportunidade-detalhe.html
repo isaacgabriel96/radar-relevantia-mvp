@@ -285,6 +285,16 @@ a { text-decoration: none; color: inherit; }
 .detail-section { margin-bottom: 28px; }
 .detail-section-title { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--black); margin-bottom: 12px; }
 .detail-text { font-size: 14px; color: var(--gray-600); line-height: 1.75; }
+/* ── Rich content (Quill output) ── */
+.rich-content h2 { font-family: var(--font-heading, 'Poppins', sans-serif); font-size: 20px; font-weight: 600; color: var(--black); margin: 24px 0 8px; }
+.rich-content h3 { font-family: var(--font-heading, 'Poppins', sans-serif); font-size: 16px; font-weight: 600; color: var(--black); margin: 20px 0 6px; }
+.rich-content p { font-size: 14px; line-height: 1.75; margin-bottom: 12px; }
+.rich-content img { max-width: 100%; height: auto; border-radius: 12px; margin: 16px 0; display: block; }
+.rich-content iframe { max-width: 100%; height: auto; aspect-ratio: 16/9; border-radius: 12px; margin: 16px 0; display: block; }
+.rich-content ul, .rich-content ol { padding-left: 20px; margin-bottom: 12px; }
+.rich-content li { margin-bottom: 4px; }
+.rich-content strong { font-weight: 600; }
+.rich-content em { font-style: italic; }
 /* ── Vídeo embed ── */
 .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: var(--radius-lg); background: var(--black); }
 .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; border-radius: var(--radius-lg); }
@@ -955,7 +965,7 @@ a { text-decoration: none; color: inherit; }
               <!-- O que buscamos (exibido só se tiver descricao_completa) -->
               <div class="detail-section" id="detailObjetivosSection" style="display:none">
                 <h3 class="detail-section-title">O que buscamos em uma marca parceira</h3>
-                <p class="detail-text" id="detailObjetivos"></p>
+                <div class="detail-text rich-content" id="detailObjetivos"></div>
               </div>
               <!-- Entregas ao patrocinador (exibido só se preenchido no preview) -->
               <div class="detail-section" id="detailEntregasSection" style="display:none">
@@ -1479,11 +1489,11 @@ function renderPage(oppOverride) {
   document.getElementById('detailCategory').textContent = opp.category;
   document.getElementById('detailDesc').textContent = opp.desc;
 
-  // Objetivos (O que buscamos em uma marca parceira)
+  // Objetivos (O que buscamos — suporta HTML rico do Quill)
   var objSection = document.getElementById('detailObjetivosSection');
   var objEl = document.getElementById('detailObjetivos');
   if (objSection && objEl && opp.objetivos) {
-    objEl.textContent = opp.objetivos;
+    objEl.innerHTML = typeof sanitizeHtml === 'function' ? sanitizeHtml(opp.objetivos) : opp.objetivos;
     objSection.style.display = '';
   }
 
