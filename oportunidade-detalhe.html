@@ -1222,10 +1222,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
       'canais(icone,label,valor,ordem)' +
-      filter +
-      '&oportunidade_fatos.order=ordem.asc' +
-      '&cotas.order=ordem.asc' +
-      '&canais.order=ordem.asc';
+      filter;
     // Usa token da marca se disponível — permite ver oportunidades com visibilidade=aprovacao
     const brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
     const brandToken = brandSession && brandSession.access_token ? brandSession.access_token : null;
@@ -2630,7 +2627,7 @@ function updateFavBtnState(isFav) {
 
   // Favorito state
   var opp = oppData || getOpp();
-  updateFavBtnState(getFavIds().indexOf(opp.id) !== -1);
+  if (opp && opp.id) updateFavBtnState(getFavIds().indexOf(opp.id) !== -1);
 
   // Hide loading
   setTimeout(function() {
