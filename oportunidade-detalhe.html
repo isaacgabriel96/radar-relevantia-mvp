@@ -962,10 +962,14 @@ a { text-decoration: none; color: inherit; }
                 <h3 class="detail-section-title">Sobre a oportunidade</h3>
                 <p class="detail-text" id="detailDesc"></p>
               </div>
-              <!-- O que buscamos (exibido só se tiver descricao_completa) -->
+              <!-- Descrição completa (editor rico Quill) -->
               <div class="detail-section" id="detailObjetivosSection" style="display:none">
-                <h3 class="detail-section-title">O que buscamos em uma marca parceira</h3>
                 <div class="detail-text rich-content" id="detailObjetivos"></div>
+              </div>
+              <!-- O que buscamos em uma marca parceira (campo separado) -->
+              <div class="detail-section" id="detailBuscaSection" style="display:none">
+                <h3 class="detail-section-title">O que buscamos em uma marca parceira</h3>
+                <p class="detail-text" id="detailBusca"></p>
               </div>
               <!-- Entregas ao patrocinador (exibido só se preenchido no preview) -->
               <div class="detail-section" id="detailEntregasSection" style="display:none">
@@ -1385,6 +1389,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
       publicoCanais: (r.detalhes && r.detalhes.publico_canais) || null,
       publicoPresencial: (r.detalhes && r.detalhes.publico_presencial) || null,
+      buscaMarca: (r.detalhes && r.detalhes.busca_marca) || null,
       redes_sociais: r.redes_sociais || null,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
@@ -1495,6 +1500,14 @@ function renderPage(oppOverride) {
   if (objSection && objEl && opp.objetivos) {
     objEl.innerHTML = typeof sanitizeHtml === 'function' ? sanitizeHtml(opp.objetivos) : opp.objetivos;
     objSection.style.display = '';
+  }
+
+  // O que buscamos em uma marca parceira (campo separado em detalhes.busca_marca)
+  var buscaSection = document.getElementById('detailBuscaSection');
+  var buscaEl = document.getElementById('detailBusca');
+  if (buscaSection && buscaEl && opp.buscaMarca) {
+    buscaEl.textContent = opp.buscaMarca;
+    buscaSection.style.display = '';
   }
 
   // Entregas ao patrocinador (preenchido no Step 6 do preview)

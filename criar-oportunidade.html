@@ -1810,8 +1810,14 @@ input[type=number] { -moz-appearance: textfield; }
         </div>
 
         <div class="form-group">
-          <label>O que buscamos em uma marca parceira</label>
+          <label>Descrição completa</label>
           <div id="opp-objetivos-editor"></div>
+        </div>
+
+        <div class="form-group">
+          <label>O que buscamos em uma marca parceira</label>
+          <textarea class="form-control" id="opp-busca-marca" maxlength="500" rows="3" placeholder="Descreva o perfil ideal de patrocinador, o que você espera desta parceria…" oninput="updateChar(this,'buscaCount',500)"></textarea>
+          <div class="char-count"><span id="buscaCount">0</span>/500</div>
         </div>
 
         <div class="grid-2">
@@ -5146,6 +5152,7 @@ function collectOppData() {
   const nome = document.getElementById('opp-nome')?.value?.trim() || '';
   const desc = document.getElementById('opp-desc')?.value?.trim() || '';
   const objetivos = (quillObjetivos && quillObjetivos.root.innerHTML !== '<p><br></p>') ? quillObjetivos.root.innerHTML : '';
+  const buscaMarca = document.getElementById('opp-busca-marca')?.value?.trim() || '';
   const estadoEl = document.getElementById('opp-estado');
   const cidadeEl = document.getElementById('opp-cidade');
   const estadoVal = estadoEl?.options[estadoEl.selectedIndex]?.text || '';
@@ -5363,6 +5370,7 @@ function collectOppData() {
       var d = Object.keys(detalhes).length > 0 ? detalhes : {};
       if (Object.keys(publicoCanais).length > 0) d.publico_canais = publicoCanais;
       if (publicoPresencial) d.publico_presencial = publicoPresencial;
+      if (buscaMarca) d.busca_marca = buscaMarca;
       return Object.keys(d).length > 0 ? d : null;
     })(),
     datas_evento: datasEvento.length > 0 ? datasEvento : null,
@@ -5803,6 +5811,13 @@ function maybePreFillEdit() {
   // Carrega descrição completa no editor Quill (suporta HTML rico ou texto puro)
   if (opp.descricao_completa && typeof quillObjetivos !== 'undefined') {
     quillObjetivos.clipboard.dangerouslyPasteHTML(opp.descricao_completa);
+  }
+
+  // Carrega "O que buscamos" (campo separado em detalhes.busca_marca)
+  var buscaEl = document.getElementById('opp-busca-marca');
+  if (buscaEl && opp.detalhes && opp.detalhes.busca_marca) {
+    buscaEl.value = opp.detalhes.busca_marca;
+    updateChar(buscaEl, 'buscaCount', 500);
   }
 
   // Cidade: tenta extrair estado e cidade de "Cidade, UF — Brasil" ou "Cidade, UF"
