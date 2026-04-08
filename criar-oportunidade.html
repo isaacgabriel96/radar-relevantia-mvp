@@ -6067,6 +6067,8 @@ async function init() {
   requireAuth('rightsholder', 'login.html');
   await initSession();
   maybePreFillEdit();
+  // Garante que o painel inicial fica visível (panel-0 foi removido; panel-1 começa oculto)
+  if (currentStep === 1) nextStep(1);
   loadMockData();
 
   // Fecha calendários do date picker ao clicar fora deles
