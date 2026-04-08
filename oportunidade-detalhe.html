@@ -1200,6 +1200,8 @@ function getOpp() {
 async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
   try {
     var filter;
+    // UUID detection: string com formato UUID (8-4-4-4-12 hex) ou string numérica longa
+    var isUuid = typeof idOrPerfilSlug === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrPerfilSlug);
     if (oppSlug) {
       // Lookup by @perfil-slug/opp-slug — need to resolve perfil slug first
       const pRes = await sbPublicFetch('/rest/v1/perfis?select=id&slug=eq.' + encodeURIComponent(idOrPerfilSlug));
@@ -1207,7 +1209,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       const pRows = await pRes.json();
       if (!pRows || pRows.length === 0) return null;
       filter = '&detentor_id=eq.' + pRows[0].id + '&slug=eq.' + encodeURIComponent(oppSlug);
-    } else if (typeof idOrPerfilSlug === 'number') {
+    } else if (typeof idOrPerfilSlug === 'number' || isUuid) {
       filter = '&id=eq.' + idOrPerfilSlug;
     } else {
       filter = '&slug=eq.' + encodeURIComponent(idOrPerfilSlug);
@@ -1224,7 +1226,15 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       '&oportunidade_fatos.order=ordem.asc' +
       '&cotas.order=ordem.asc' +
       '&canais.order=ordem.asc';
-    const res = await sbPublicFetch(path);
+    // Usa token da marca se disponível — permite ver oportunidades com visibilidade=aprovacao
+    const brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+    const brandToken = brandSession && brandSession.access_token ? brandSession.access_token : null;
+    const fetchHeaders = {
+      'apikey': SUPABASE_KEY,
+      'Authorization': brandToken ? ('Bearer ' + brandToken) : ('Bearer ' + SUPABASE_KEY),
+      'Content-Type': 'application/json'
+    };
+    const res = await fetch(SUPABASE_URL + path, { headers: fetchHeaders });
     if (!res.ok) return null;
     const rows = await res.json();
     if (!rows || rows.length === 0) return null;
@@ -2552,7 +2562,11 @@ function updateFavBtnState(isFav) {
     }
   } else {
     var rawId = params.get('id');
-    id = rawId ? parseInt(rawId) : null;
+    // Suporta tanto IDs inteiros quanto UUIDs — não usar parseInt pois corrompe UUIDs
+    if (rawId) {
+      var parsed = parseInt(rawId);
+      id = !isNaN(parsed) ? parsed : rawId; // número se for inteiro, string se for UUID
+    }
   }
 
   if (!id && !oppSlug) {
@@ -2600,15 +2614,18 @@ function updateFavBtnState(isFav) {
     // ─────────────────────────────────────────────────────────────────────────
 
   } else {
-    // Supabase não retornou dados — mostrar erro em vez de mock silencioso
+    // Supabase não retornou dados — mostrar página de erro inline sem redirecionar
     var ls = document.getElementById('loadingScreen');
     if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.3s'; setTimeout(function(){ ls.style.display = 'none'; }, 300); }
-    if (typeof showToast === 'function') showToast('Oportunidade não encontrada ou indisponível.', 'error');
-    // Redirecionar ao dashboard após 2s
-    setTimeout(function() {
-      var ref = document.referrer;
-      window.location.href = (ref && ref.includes('dashboard')) ? ref : 'dashboard-marca.html';
-    }, 2000);
+    var mainEl = document.querySelector('.main-content') || document.querySelector('main') || document.querySelector('.page-content');
+    if (mainEl) {
+      mainEl.innerHTML = '<div style="text-align:center;padding:80px 24px;max-width:480px;margin:0 auto;">' +
+        '<div style="font-size:48px;margin-bottom:16px;">🔍</div>' +
+        '<p style="font-family:var(--font-heading,Poppins,sans-serif);font-size:20px;font-weight:600;color:var(--black,#1A1200);margin-bottom:8px;">Oportunidade não encontrada</p>' +
+        '<p style="font-size:14px;color:var(--gray-500,#7A6A58);line-height:1.6;margin-bottom:28px;">O link pode estar incorreto ou esta oportunidade não está mais disponível.</p>' +
+        '<a href="dashboard-marca.html" style="display:inline-block;padding:10px 24px;background:var(--black,#1A1200);color:#fff;border-radius:100px;font-size:14px;font-weight:500;text-decoration:none;">← Voltar ao Radar</a>' +
+        '</div>';
+    }
   }
 
   // Favorito state
