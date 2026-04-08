@@ -1802,8 +1802,7 @@ input[type=number] { -moz-appearance: textfield; }
 
         <div class="form-group">
           <label>O que buscamos em uma marca parceira</label>
-          <div class="form-hint" style="margin-bottom:8px">Descreva o perfil ideal de patrocinador, seus objetivos e o que você espera desta parceria. Esta informação aparece para as marcas na página da oportunidade.</div>
-          <textarea class="form-control" id="opp-objetivos" maxlength="800" rows="4" placeholder="Ex: Buscamos marcas com alinhamento de valores ao esporte e estilo de vida ativo, com interesse em visibilidade junto ao público jovem adulto (25–40 anos)…" oninput="updateChar(this,'objetivosCount',800)"></textarea>
+          <textarea class="form-control" id="opp-objetivos" maxlength="800" rows="4" placeholder="Descreva o perfil ideal de patrocinador, seus objetivos e o que você espera desta parceria…" oninput="updateChar(this,'objetivosCount',800)"></textarea>
           <div class="char-count"><span id="objetivosCount">0</span>/800</div>
         </div>
 
@@ -2085,9 +2084,6 @@ input[type=number] { -moz-appearance: textfield; }
       <!-- Tabs de navegação -->
       <div class="pv-tabs">
         <button class="pv-tab active" onclick="switchPreviewTab('visao', this)">Visão geral</button>
-        <button class="pv-tab" onclick="switchPreviewTab('publico', this)">Público</button>
-        <button class="pv-tab" onclick="switchPreviewTab('cotas', this)">Cotas & Entregas</button>
-        <button class="pv-tab" onclick="switchPreviewTab('canais', this)">Canais</button>
       </div>
 
       <!-- Tab: Visão geral -->
@@ -2115,53 +2111,7 @@ input[type=number] { -moz-appearance: textfield; }
             <span style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhum segmento selecionado</span>
           </div>
         </div>
-      </div>
-
-      <!-- Tab: Público -->
-      <div class="pv-tab-content" id="pvTab-publico">
-        <div class="form-card" style="margin:0">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Público-alvo</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('publico')" id="pvPublico">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para descrever o público-alvo desta oportunidade</span>
-          </div>
-        </div>
         <div class="form-card" style="margin-top:16px">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Dados demográficos</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('demografico')" id="pvDemografico">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para adicionar dados demográficos (faixa etária, gênero, região, etc.)</span>
-          </div>
-        </div>
-        <div class="form-card" style="margin-top:16px">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Métricas de audiência</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('metricas')" id="pvMetricas">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para adicionar métricas de audiência (alcance médio, engajamento, impressões, etc.)</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Cotas & Entregas -->
-      <div class="pv-tab-content" id="pvTab-cotas">
-        <div class="form-card" style="margin:0">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Cotas de patrocínio</div></div>
-          <div id="pvCotas">
-            <div class="pv-empty-state" style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhuma cota de patrocínio definida</div>
-          </div>
-        </div>
-        <div class="form-card" style="margin-top:16px">
-          <div class="card-header"><div class="card-title" style="font-size:16px">Entregas ao patrocinador</div></div>
-          <div class="editable-placeholder" onclick="openInlineEditor('entregas')" id="pvEntregas">
-            <span class="ep-icon">+</span>
-            <span class="ep-text">Clique para descrever as entregas que o patrocinador receberá</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tab: Canais -->
-      <div class="pv-tab-content" id="pvTab-canais">
-        <div class="form-card" style="margin:0">
           <div class="card-header"><div class="card-title" style="font-size:16px">Canais e alcance</div></div>
           <div id="pvCanais">
             <div class="pv-empty-state" style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhuma rede social adicionada no formulário</div>
@@ -3138,30 +3088,7 @@ function renderPreview() {
     tagsEl.innerHTML = `<span style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhum segmento selecionado</span>`;
   }
 
-  // Tab: Público
-  renderEditableField('pvPublico', 'publico', 'Clique para descrever o público-alvo desta oportunidade');
-  renderEditableField('pvDemografico', 'demografico', 'Clique para adicionar dados demográficos (faixa etária, gênero, região, etc.)');
-
-  // Tab: Cotas
-  const pvCotas = document.getElementById('pvCotas');
-  if (d.cotas.length > 0) {
-    pvCotas.innerHTML = d.cotas.map(c => {
-      let html = `<div class="pv-cota-card"><div class="pv-cota-name">${c.nome}</div>`;
-      if (c.valor) html += `<div class="pv-cota-price">R$ ${Number(c.valor).toLocaleString('pt-BR')}</div>`;
-      if (c.vagas) html += `<div class="pv-cota-vagas">${c.vagas} vaga${c.vagas != 1 ? 's' : ''}</div>`;
-      if (c.beneficios.length > 0) {
-        html += `<ul class="pv-cota-beneficios">${c.beneficios.map(b=>`<li>${b}</li>`).join('')}</ul>`;
-      }
-      return html + '</div>';
-    }).join('');
-  } else {
-    pvCotas.innerHTML = `<div class="pv-empty-state" style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhuma cota de patrocínio definida</div>`;
-  }
-
-  // Entregas
-  renderEditableField('pvEntregas', 'entregas', 'Clique para descrever as entregas que o patrocinador receberá');
-
-  // Tab: Canais
+  // Tab: Canais (em Visão geral)
   const pvCanais = document.getElementById('pvCanais');
   if (d.socials.length > 0) {
     pvCanais.innerHTML = d.socials.map(s => {
@@ -3177,9 +3104,6 @@ function renderPreview() {
   } else {
     pvCanais.innerHTML = `<div class="pv-empty-state" style="color:var(--gray-3);font-size:13px;font-style:italic">Nenhuma rede social adicionada no formulário</div>`;
   }
-
-  // Métricas
-  renderEditableField('pvMetricas', 'metricas', 'Clique para adicionar métricas de audiência (alcance médio, engajamento, etc.)');
 
   // Reset to first tab
   switchPreviewTab('visao', document.querySelector('.pv-tab'));
@@ -3705,7 +3629,7 @@ function closeInlineEditor(event) {
 }
 
 function updateCompleteness() {
-  const editableKeys = ['prazo_inicio', 'publico', 'demografico', 'entregas', 'metricas'];
+  const editableKeys = ['prazo_inicio'];
   const filled = editableKeys.filter(k => previewEditData[k]).length;
   const pct = Math.round((filled / editableKeys.length) * 100);
   const fillEl = document.getElementById('pvCompletenessFill');
