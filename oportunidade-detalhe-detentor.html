@@ -1245,10 +1245,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
       'canais(icone,label,valor,seguidores,genero_f,genero_m,faixa_etaria,ordem)' +
-      filter +
-      '&oportunidade_fatos.order=ordem.asc' +
-      '&cotas.order=ordem.asc' +
-      '&canais.order=ordem.asc';
+      filter;
     const res = await sbPublicFetch(path);
     if (!res.ok) return null;
     const rows = await res.json();
@@ -1260,17 +1257,20 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
     const city = r.localizacao ? r.localizacao.split(',')[0].trim() : '';
 
     // Build facts from oportunidade_fatos table
-    const facts = (r.oportunidade_fatos || []).map(f => ({
+    // Sort by ordem client-side (avoids PostgREST nested order= which can 400)
+    const sortByOrdem = arr => [...(arr || [])].sort((a,b) => (a.ordem||0) - (b.ordem||0));
+
+    const facts = sortByOrdem(r.oportunidade_fatos).map(f => ({
       icon: f.icone || '📌', label: f.label || '', value: f.valor || ''
     }));
 
     // Build publico facts from fatos with tipo='publico'
-    const publicoFacts = (r.oportunidade_fatos || [])
+    const publicoFacts = sortByOrdem(r.oportunidade_fatos)
       .filter(f => f.tipo === 'publico')
       .map(f => ({ icon: f.icone || '👤', label: f.label || '', value: f.valor || '' }));
 
     // General facts (non-publico)
-    const generalFacts = (r.oportunidade_fatos || [])
+    const generalFacts = sortByOrdem(r.oportunidade_fatos)
       .filter(f => f.tipo !== 'publico')
       .map(f => ({ icon: f.icone || '📌', label: f.label || '', value: f.valor || '' }));
 
@@ -1282,8 +1282,8 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       });
     }
 
-    // Cotas — from cotas table or cotas_data JSON
-    let cotasArr = (r.cotas || []).map(c => ({
+    // Cotas — from cotas table (sorted) or cotas_data JSON
+    let cotasArr = sortByOrdem(r.cotas).map(c => ({
       emoji: c.icone || '🏆', name: c.nome || '', desc: '', price: c.preco || ''
     }));
     if (cotasArr.length === 0 && r.cotas_data) {
@@ -1295,8 +1295,8 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       }));
     }
 
-    // Canais — from canais table or redes_sociais JSON (with rich data)
-    let canaisArr = (r.canais || []).map(c => ({
+    // Canais — from canais table (sorted) or redes_sociais JSON (with rich data)
+    let canaisArr = sortByOrdem(r.canais).map(c => ({
       icon: c.icone || '📱',
       name: c.label || '',
       reach: c.valor || '',
