@@ -928,17 +928,18 @@ a { text-decoration: none; color: inherit; }
         <div class="gallery-strip-dots" id="galleryStripDots"></div>
       </div>
 
-      <!-- BODY: TABS + SIDEBAR -->
+      <!-- STICKY TABS (fora do grid para sticky funcionar) -->
+      <div class="detail-tabs" id="detailTabsNav">
+        <button class="tab-btn active" data-section="section-visao" onclick="scrollToSection('section-visao', this)">Visão geral</button>
+        <button class="tab-btn" data-section="section-canais" onclick="scrollToSection('section-canais', this)">Canais</button>
+        <button class="tab-btn" data-section="section-cotas" onclick="scrollToSection('section-cotas', this)">Cotas & Entregas</button>
+      </div>
+
+      <!-- BODY: CONTENT + SIDEBAR -->
       <div class="detail-body">
 
-        <!-- LEFT: TABS -->
+        <!-- LEFT: CONTENT -->
         <div>
-          <div class="detail-tabs" id="detailTabsNav">
-            <button class="tab-btn active" data-section="section-visao" onclick="scrollToSection('section-visao', this)">Visão geral</button>
-            <button class="tab-btn" data-section="section-canais" onclick="scrollToSection('section-canais', this)">Canais</button>
-            <button class="tab-btn" data-section="section-cotas" onclick="scrollToSection('section-cotas', this)">Cotas & Entregas</button>
-          </div>
-
           <div class="tab-content-wrap">
 
             <!-- SECTION: Visao geral -->

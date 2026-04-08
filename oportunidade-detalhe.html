@@ -272,12 +272,11 @@ a { text-decoration: none; color: inherit; }
 .detail-body { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start; }
 
 /* ─── TABS ─── */
-.detail-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--gray-200); margin-bottom: 24px; overflow-x: auto; }
+.detail-tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--gray-200); margin-bottom: 0; overflow-x: auto; position: sticky; top: 64px; background: var(--gray-100, #FAF8F5); z-index: 20; padding-top: 8px; }
 .tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--gray-500); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
 .tab-btn:hover { color: var(--text); }
 .tab-btn.active { color: var(--text); border-bottom-color: var(--gold); font-weight: 600; }
 .tab-panel { display: block; }
-.detail-tabs { position: sticky; top: 0; background: var(--body-bg, #FAF8F5); z-index: 20; padding-top: 8px; margin-top: -8px; }
 
 /* ─── TAB CONTENT ─── */
 .detail-section { margin-bottom: 28px; }
@@ -934,17 +933,18 @@ a { text-decoration: none; color: inherit; }
         <div class="gallery-strip-dots" id="galleryStripDots"></div>
       </div>
 
-      <!-- BODY: TABS + SIDEBAR -->
+      <!-- STICKY TABS (fora do grid para sticky funcionar) -->
+      <div class="detail-tabs" id="detailTabsNav">
+        <button class="tab-btn active" data-section="tab-visao">Visão geral</button>
+        <button class="tab-btn" data-section="tab-canais">Canais</button>
+        <button class="tab-btn" data-section="tab-cotas">Cotas & Entregas</button>
+      </div>
+
+      <!-- BODY: CONTENT + SIDEBAR -->
       <div class="detail-body">
 
-        <!-- LEFT: TABS -->
+        <!-- LEFT: CONTENT -->
         <div>
-          <div class="detail-tabs" id="detailTabsNav">
-            <button class="tab-btn active" data-section="tab-visao">Visão geral</button>
-            <button class="tab-btn" data-section="tab-canais">Canais</button>
-            <button class="tab-btn" data-section="tab-cotas">Cotas & Entregas</button>
-          </div>
-
           <div class="tab-content-wrap">
 
             <!-- TAB: Visao geral -->
