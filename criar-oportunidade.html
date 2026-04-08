@@ -5420,7 +5420,7 @@ function mergePreviewData(data) {
 async function publishOpportunity() {
   const data = mergePreviewData(collectOppData());
 
-  // ── Validações obrigatórias (Fix 5) ──
+  // ── Validações obrigatórias ──
   if (!data.titulo) { showToast('Preencha o nome da oportunidade.', 'error'); return; }
   if (!data.descricao_curta) { showToast('Preencha a descrição da oportunidade.', 'error'); return; }
   if (!data.localizacao) { showToast('Selecione o estado e cidade da oportunidade.', 'error'); return; }
@@ -5428,6 +5428,37 @@ async function publishOpportunity() {
   if (!hasPhotos) { showToast('Adicione pelo menos uma foto.', 'error'); return; }
   if (data.cotas_habilitadas && (!data.cotas_data || data.cotas_data.length === 0)) {
     showToast('Adicione pelo menos uma cota ou desative as cotas.', 'error'); return;
+  }
+
+  // ── Validação: campos obrigatórios do template ──
+  const tplKey = formState.selectedTemplate;
+  const tpl = TEMPLATES[tplKey];
+  if (tpl && tpl.fields) {
+    for (const f of tpl.fields) {
+      if (!f.required) continue;
+      const el = document.getElementById(f.id);
+      if (!el) continue;
+      let val = '';
+      if (f.type === 'select') {
+        val = el.options[el.selectedIndex]?.value || '';
+        if (val === '' || val === 'Selecione…') val = '';
+      } else if (f.type === 'text' || f.type === 'textarea') {
+        val = el.value.trim();
+      }
+      if (!val) {
+        showToast('Preencha o campo obrigatório: ' + f.label, 'error');
+        nextStep(2); // leva de volta ao step de detalhes específicos
+        return;
+      }
+    }
+  }
+
+  // ── Validação: pelo menos 1 canal social ──
+  const savedCanais = document.querySelectorAll('#social-networks-container .canal-card.saved');
+  if (savedCanais.length === 0) {
+    showToast('Adicione e salve pelo menos 1 canal de rede social antes de publicar.', 'error');
+    nextStep(3); // leva de volta ao step de materiais/canais
+    return;
   }
 
   // ── Refresh token antes de operação longa (Fix 8) ──
