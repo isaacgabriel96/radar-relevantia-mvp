@@ -1408,7 +1408,7 @@ var arrowSvg = '<svg width="12" height="12" viewBox="0 0 20 20" fill="currentCol
 function buildOppCard(o) {
   var cfg = CAT_CONFIG[o.category] || CAT_CONFIG['Cultura'];
   var grad = o.gradient || cfg.gradient;
-  var oppHref = (o.perfilSlug && o.slug) ? 'oportunidade-detalhe.html?@' + o.perfilSlug + '/' + o.slug : 'oportunidade-detalhe.html?id=' + o.id;
+  var oppHref = o.slug ? 'oportunidade-detalhe.html?@' + o.slug : 'oportunidade-detalhe.html?id=' + o.id;
   return '<a class="opp-card" href="' + oppHref + '">' +
     '<div class="opp-card-image" style="background:' + grad + '">' +
       catIcon(o.category) +
@@ -2048,7 +2048,7 @@ function goToFullEdit() {
     // Verificar ownership
     if (oppData.detentor_id !== LOGGED_USER.id) {
       console.warn('[Detentor Detail] Not the owner! Redirecting...');
-      window.location.href = 'oportunidade-detalhe.html?id=' + oppData.id;
+      window.location.href = 'oportunidade-detalhe.html?@' + (oppData.slug || oppData.id);
       return;
     }
 

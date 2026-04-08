@@ -2159,7 +2159,7 @@ function renderOpportunities(opps) {
            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
          </div>`;
     var cardTag = isApproval ? 'div' : 'a';
-    var cardHref = isApproval ? '' : `href="oportunidade-detalhe.html?${(opp.perfilSlug && opp.slug) ? '@' + opp.perfilSlug + '/' + opp.slug : 'id=' + opp.id}"`;
+    var cardHref = isApproval ? '' : `href="oportunidade-detalhe.html?@${opp.slug || opp.id}"`;
     var cardClick = isApproval ? `onclick="abrirModalAprovacaoById(this)"` : '';
     var cardData = isApproval ? `data-opp-title="${(opp.title||'').replace(/"/g,'&quot;')}" data-opp-org="${(opp.org||'').replace(/"/g,'&quot;')}"` : '';
     return `
@@ -4076,7 +4076,7 @@ function renderMinhasSolicitacoes() {
 
   function oppLink(sol) {
     var o = sol.opp;
-    if (o && o.perfis && o.perfis.slug && o.slug) return 'oportunidade-detalhe.html?@' + o.perfis.slug + '/' + o.slug;
+    if (o && o.slug) return 'oportunidade-detalhe.html?@' + o.slug;
     return 'oportunidade-detalhe.html?id=' + sol.oportunidade_id;
   }
 

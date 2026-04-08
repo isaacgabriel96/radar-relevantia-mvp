@@ -2603,9 +2603,9 @@ function renderPublicadas() {
     if (isPublicada) {
       leftBtn   = `<button class="btn-encerrar" onclick="encerrarOportunidade(${o.id})">Encerrar</button>`;
       rightBtns = `<button class="btn btn-ghost btn-sm" onclick="editarOportunidade(${o.id})">Editar</button>
-                   <a href="oportunidade-detalhe-detentor.html?${(o.perfilSlug && o.slug) ? '@' + o.perfilSlug + '/' + o.slug : 'id=' + o.id}" class="btn btn-ghost btn-sm">Ver →</a>`;
+                   <a href="oportunidade-detalhe-detentor.html?@${o.slug}" class="btn btn-ghost btn-sm">Ver →</a>`;
     } else if (isFinalizada) {
-      rightBtns = `<a href="oportunidade-detalhe-detentor.html?${(o.perfilSlug && o.slug) ? '@' + o.perfilSlug + '/' + o.slug : 'id=' + o.id}" class="btn btn-ghost btn-sm">Ver →</a>`;
+      rightBtns = `<a href="oportunidade-detalhe-detentor.html?@${o.slug}" class="btn btn-ghost btn-sm">Ver →</a>`;
     } else {
       leftBtn   = `<button class="btn-excluir" onclick="excluirOportunidade(${o.id})">Excluir</button>`;
       rightBtns = `<button class="btn btn-ghost btn-sm" onclick="editarOportunidade(${o.id})">Editar</button>

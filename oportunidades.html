@@ -635,7 +635,7 @@ function renderCards() {
     const cardBg = o.imagem_capa
       ? 'url(' + o.imagem_capa + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat'
       : (o.gradient || cfg.gradient);
-    var oppHref = (o.perfilSlug && o.slug) ? 'oportunidade-detalhe.html?@' + o.perfilSlug + '/' + o.slug : 'oportunidade-detalhe.html?id=' + o.id;
+    var oppHref = o.slug ? 'oportunidade-detalhe.html?@' + o.slug : 'oportunidade-detalhe.html?id=' + o.id;
     const isApproval = (o.visibilidade === 'aprovacao');
     const imageClass = isApproval ? 'card-image is-approval' : 'card-image';
     const visBadgeHtml = isApproval

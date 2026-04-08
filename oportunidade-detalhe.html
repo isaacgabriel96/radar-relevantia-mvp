@@ -1230,7 +1230,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
-      'canais(icone,label,valor,ordem)' +
+      'canais(icone,label,valor,seguidores,genero_f,genero_m,faixa_etaria,ordem)' +
       filter;
     // Usa token da marca se disponível — permite ver oportunidades com visibilidade=aprovacao
     const brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
@@ -1391,8 +1391,8 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       tags: r.tags || [],
       publico: r.publico_descricao || '',
       publicoFacts: publicoFacts.length > 0 ? publicoFacts : undefined,
-      publicoCanais: r.publico_canais || null,
-      publicoPresencial: r.publico_presencial || null,
+      publicoCanais: (r.detalhes && r.detalhes.publico_canais) || null,
+      publicoPresencial: (r.detalhes && r.detalhes.publico_presencial) || null,
       redes_sociais: r.redes_sociais || null,
       cotas: cotasArr.length > 0 ? cotasArr : undefined,
       canais: canaisArr.length > 0 ? canaisArr : undefined,
@@ -1445,7 +1445,7 @@ var arrowSvg = '<svg width="12" height="12" viewBox="0 0 20 20" fill="currentCol
 function buildOppCard(o) {
   var cfg = CAT_CONFIG[o.category] || CAT_CONFIG['Cultura'];
   var grad = o.gradient || cfg.gradient;
-  var oppHref = (o.perfilSlug && o.slug) ? 'oportunidade-detalhe.html?@' + o.perfilSlug + '/' + o.slug : 'oportunidade-detalhe.html?id=' + o.id;
+  var oppHref = o.slug ? 'oportunidade-detalhe.html?@' + o.slug : 'oportunidade-detalhe.html?id=' + o.id;
   return '<a class="opp-card" href="' + oppHref + '">' +
     '<div class="opp-card-image" style="background:' + grad + '">' +
       catIcon(o.category) +

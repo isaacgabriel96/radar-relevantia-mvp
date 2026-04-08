@@ -5308,10 +5308,16 @@ function collectOppData() {
     video_url: videoUrl || null,
     link_externo: linkExterno || null,
     redes_sociais: Object.keys(redesSociais).length > 0 ? redesSociais : null,
-    detalhes: Object.keys(detalhes).length > 0 ? detalhes : null,
+    detalhes: (function() {
+      var d = Object.keys(detalhes).length > 0 ? detalhes : {};
+      if (Object.keys(publicoCanais).length > 0) d.publico_canais = publicoCanais;
+      if (publicoPresencial) d.publico_presencial = publicoPresencial;
+      return Object.keys(d).length > 0 ? d : null;
+    })(),
     datas_evento: datasEvento.length > 0 ? datasEvento : null,
     cotas_habilitadas: cotasHabilitadas,
     cotas_data: cotasData.length > 0 ? cotasData : null,
+    formato: detalhes['Formato'] || null,
     visibilidade: formState.selectedVisibility || 'publica',
     status: 'publicada',
     ativo: true
