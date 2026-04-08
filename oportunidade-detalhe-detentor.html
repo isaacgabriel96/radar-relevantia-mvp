@@ -1537,12 +1537,15 @@ function renderPage(oppOverride) {
 
   // Modal cota select — esconde o grupo inteiro se não houver cotas definidas
   var cotaGroup = document.getElementById('modal-cota-group');
+  var cotaSelect = document.getElementById('modalCotaSelect');
   if (opp.cotas && opp.cotas.length > 0) {
-    var cotaSelectHtml = '<option value="">Selecione uma cota</option>';
-    opp.cotas.forEach(function(c) {
-      cotaSelectHtml += '<option>' + escapeHtml(c.name) + ' — ' + escapeHtml(c.price) + '</option>';
-    });
-    document.getElementById('modalCotaSelect').innerHTML = cotaSelectHtml;
+    if (cotaSelect) {
+      var cotaSelectHtml = '<option value="">Selecione uma cota</option>';
+      opp.cotas.forEach(function(c) {
+        cotaSelectHtml += '<option>' + escapeHtml(c.name) + ' — ' + escapeHtml(c.price) + '</option>';
+      });
+      cotaSelect.innerHTML = cotaSelectHtml;
+    }
     if (cotaGroup) cotaGroup.style.display = '';
   } else {
     if (cotaGroup) cotaGroup.style.display = 'none';
