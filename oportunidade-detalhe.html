@@ -2214,7 +2214,13 @@ function renderPage(oppOverride) {
   window.openOppModal = function(idx) {
     _currentOppIdx = idx;
     renderOppModal(idx);
-    document.getElementById('oppModalOverlay').classList.add('open');
+    var overlay = document.getElementById('oppModalOverlay');
+    overlay.classList.add('open');
+    // Esconder nav arrows e counter se só tem 1 oportunidade
+    var single = _oppItems.length <= 1;
+    overlay.querySelector('.opp-modal-prev').style.display = single ? 'none' : '';
+    overlay.querySelector('.opp-modal-next').style.display = single ? 'none' : '';
+    document.getElementById('oppModalCounter').style.display = single ? 'none' : '';
     document.body.style.overflow = 'hidden';
   };
   window.closeOppModal = function() {
