@@ -946,7 +946,7 @@ a { text-decoration: none; color: inherit; }
       <div class="detail-tabs" id="detailTabsNav">
         <button class="tab-btn active" data-section="tab-visao">Visão geral</button>
         <button class="tab-btn" data-section="tab-canais">Canais</button>
-        <button class="tab-btn" data-section="tab-cotas">Cotas & Entregas</button>
+        <button class="tab-btn" data-section="tab-cotas">Oportunidades</button>
       </div>
 
       <!-- BODY: CONTENT + SIDEBAR -->
@@ -1711,7 +1711,17 @@ function renderPage(oppOverride) {
     var AGE_LABELS = { '1317': '13–17', '1824': '18–24', '2534': '25–34', '3544': '35–44', '45p': '45+' };
     var AGE_ORDER  = ['1317', '1824', '2534', '3544', '45p'];
 
-    // ── Build per-channel card HTML ───────────────────────────────────────
+    // ── Format follower count ─────────────────────────────────────────────
+    function fmtFollowers(n) {
+      if (!n) return '';
+      n = Number(n);
+      if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'K';
+      return String(n);
+    }
+
+    // ── Build per-channel card HTML (accordion) ──────────────────────────
+    var _cardCounter = 0;
     function buildChannelCard(network, data, handles) {
       var meta    = NET_META[network] || { label: network, icon: '', color: '#888' };
       var handlesList = (handles && handles[network]) ? (Array.isArray(handles[network]) ? handles[network] : [handles[network]]) : [];
@@ -1719,32 +1729,36 @@ function renderPage(oppOverride) {
       var isReal    = data.tipo_dado === 'real';
       var badgeTxt  = isReal ? 'Dado real' : 'Estimativa';
       var badgeCls  = isReal ? 'aud-data-badge' : 'aud-data-badge estimativa';
+      var segStr    = data.seguidores ? fmtFollowers(data.seguidores) + ' seguidores' : '';
+      var cardId    = 'aud-accord-' + (++_cardCounter);
+      var isFirst   = _cardCounter === 1;
 
-      // Header
+      // ── Header (always visible, clickable) ──
       var html = '<div class="aud-channel-card">';
-      html += '<div class="aud-channel-header">';
+      html += '<div class="aud-channel-header" style="cursor:pointer" onclick="(function(e){var b=document.getElementById(\'' + cardId + '\');var f=document.getElementById(\'' + cardId + '-footer\');if(!b)return;var open=b.style.display!==\'none\';b.style.display=open?\'none\':\'\';if(f)f.style.display=open?\'none\':\'\';e.currentTarget.querySelector(\'.aud-chevron\').textContent=open?\'▼\':\'▲\';})(event)">';
       html += '<div class="aud-channel-title-row">';
       html += '<span class="aud-channel-icon" style="color:' + meta.color + '">' + meta.icon + '</span>';
       html += '<div>';
       html += '<div class="aud-channel-name">' + escapeHtml(meta.label) + '</div>';
-      if (handleStr) html += '<div class="aud-channel-handle">' + escapeHtml(handleStr) + '</div>';
+      var subParts = [];
+      if (handleStr) subParts.push(handleStr);
+      if (segStr) subParts.push(segStr);
+      if (subParts.length > 0) html += '<div class="aud-channel-handle">' + escapeHtml(subParts.join('  ·  ')) + '</div>';
       html += '</div>';
       html += '</div>';
+      html += '<div style="display:flex;align-items:center;gap:8px">';
       html += '<span class="' + badgeCls + '">' + escapeHtml(badgeTxt) + '</span>';
+      html += '<span class="aud-chevron" style="font-size:12px;color:var(--gray-3);user-select:none">' + (isFirst ? '▲' : '▼') + '</span>';
+      html += '</div>';
       html += '</div>';
 
-      // Body
-      html += '<div class="aud-channel-body">';
+      // ── Body (collapsible — first card open, rest closed) ──
+      html += '<div class="aud-channel-body" id="' + cardId + '" style="' + (isFirst ? '' : 'display:none') + '">';
 
-      // Seguidores + Engajamento row
-      if (data.seguidores || data.engajamento) {
+      // Seguidores stat
+      if (data.seguidores) {
         html += '<div class="aud-stats-row">';
-        if (data.seguidores) {
-          html += '<div class="aud-stat"><div class="aud-stat-label">Seguidores</div><div class="aud-stat-value">' + escapeHtml(data.seguidores) + '</div></div>';
-        }
-        if (data.engajamento) {
-          html += '<div class="aud-stat"><div class="aud-stat-label">Engajamento</div><div class="aud-stat-value">' + escapeHtml(data.engajamento) + '</div></div>';
-        }
+        html += '<div class="aud-stat"><div class="aud-stat-label">Seguidores</div><div class="aud-stat-value">' + fmtFollowers(data.seguidores) + '</div></div>';
         html += '</div>';
       }
 
@@ -1792,15 +1806,9 @@ function renderPage(oppOverride) {
         html += '</div>';
       }
 
-      // Contexto
-      if (data.contexto) {
-        html += '<div class="aud-section-label">Contexto</div>';
-        html += '<p style="font-size:13px;color:var(--gray-4);line-height:1.55;margin:0">' + escapeHtml(data.contexto) + '</p>';
-      }
-
       // Cidade
       if (data.cidade) {
-        html += '<div style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--gray-4)">';
+        html += '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;color:var(--gray-4)">';
         html += '<svg viewBox="0 0 20 20" fill="currentColor" style="width:12px;height:12px;flex-shrink:0"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>';
         html += escapeHtml(data.cidade);
         html += '</div>';
@@ -1810,7 +1818,7 @@ function renderPage(oppOverride) {
 
       // Footer — período de referência
       if (data.periodo_referencia) {
-        html += '<div class="aud-period-footer">Referência: ' + escapeHtml(data.periodo_referencia) + '</div>';
+        html += '<div class="aud-period-footer" id="' + cardId + '-footer" style="' + (isFirst ? '' : 'display:none') + '">Referência: ' + escapeHtml(data.periodo_referencia) + '</div>';
       }
 
       html += '</div>';// aud-channel-card
