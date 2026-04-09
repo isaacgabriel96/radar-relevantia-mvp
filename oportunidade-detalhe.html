@@ -352,12 +352,12 @@ a { text-decoration: none; color: inherit; }
 
 /* ── Section Dividers ── */
 .section-divider { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--gray-200); }
-.section-divider-title { font-family: var(--font-heading); font-size: 24px; font-weight: 700; color: var(--black); letter-spacing: -0.02em; margin-bottom: 4px; }
+.section-divider-title { font-family: var(--font-heading); font-size: 26px; font-weight: 700; color: var(--black); letter-spacing: -0.02em; margin-bottom: 6px; }
 .section-divider-sub { font-size: 14px; color: var(--gray-400); margin-bottom: 24px; }
 
 /* ── Oportunidade Modal ── */
-.opp-modal-overlay { position: fixed; inset: 0; background: rgba(26,18,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.25s ease, visibility 0.25s; }
-.opp-modal-overlay.open { opacity: 1; visibility: visible; }
+.opp-modal-overlay { position: fixed; inset: 0; background: rgba(26,18,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.25s ease, visibility 0.25s; }
+.opp-modal-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
 .opp-modal { background: var(--white); border-radius: 20px; width: 90%; max-width: 820px; max-height: 85vh; overflow: hidden; padding: 0; box-shadow: 0 24px 80px rgba(30,22,0,0.2); transform: translateY(16px) scale(0.97); transition: transform 0.25s ease; }
 .opp-modal-overlay.open .opp-modal { transform: translateY(0) scale(1); }
 .opp-modal-inner { display: flex; min-height: 320px; max-height: 85vh; }
@@ -2386,7 +2386,10 @@ function renderPage(oppOverride) {
   // Click → smooth scroll (desabilita spy durante animação)
   tabBtns.forEach(function(btn) {
     btn.addEventListener('click', function() {
-      var target = document.getElementById(btn.dataset.section);
+      var sectionId = btn.dataset.section;
+      // Scroll para o divider (título da seção) se existir, senão para o tab-panel
+      var dividerMap = { 'tab-canais': 'divider-canais', 'tab-cotas': 'divider-cotas' };
+      var target = document.getElementById(dividerMap[sectionId] || sectionId);
       if (!target) return;
       isScrollingFromClick = true;
       // Atualiza aba imediatamente
@@ -2401,7 +2404,12 @@ function renderPage(oppOverride) {
     });
   });
 
-  // Scroll spy via scroll event (mais confiável que IntersectionObserver)
+  // Scroll spy via scroll event — usa dividers como referência quando existem
+  var dividerMap = { 'tab-canais': 'divider-canais', 'tab-cotas': 'divider-cotas' };
+  var spyTargets = sectionIds.map(function(id) {
+    return document.getElementById(dividerMap[id] || id);
+  }).filter(Boolean);
+
   var ticking = false;
   function onScroll() {
     if (isScrollingFromClick) return;
@@ -2412,8 +2420,8 @@ function renderPage(oppOverride) {
       var tabsBar = document.getElementById('detailTabsNav');
       var threshold = (tabsBar ? tabsBar.getBoundingClientRect().bottom : 80) + 40;
       var activeId = sectionIds[0]; // default: first
-      for (var i = sections.length - 1; i >= 0; i--) {
-        if (sections[i].getBoundingClientRect().top <= threshold) {
+      for (var i = spyTargets.length - 1; i >= 0; i--) {
+        if (spyTargets[i] && spyTargets[i].getBoundingClientRect().top <= threshold) {
           activeId = sectionIds[i];
           break;
         }
