@@ -5088,6 +5088,16 @@ function addCota() {
       <label style="font-size:12px;font-weight:600;color:var(--gray-3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Vagas disponíveis</label>
       <input type="number" class="form-control cota-vagas" placeholder="Ex: 3 (deixe vazio para ilimitado)" min="1" style="max-width:260px">
     </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Descrição <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-3)">(opcional)</span></label>
+      <textarea class="form-control cota-descricao" placeholder="Descreva brevemente esta cota..." rows="2" style="resize:vertical"></textarea>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:600;color:var(--gray-3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Fotos da cota <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-3)">(até 3)</span></label>
+      <div class="cota-photos-grid" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      <input type="file" class="cota-photo-input" accept="image/*" multiple style="display:none" onchange="handleCotaPhotoSelect(this)">
+      <button type="button" class="btn btn-ghost" style="padding:7px 16px;font-size:12px;margin-top:6px" onclick="this.previousElementSibling.click()">+ Adicionar fotos</button>
+    </div>
     <div>
       <label style="font-size:12px;font-weight:600;color:var(--gray-3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:8px">Benefícios incluídos</label>
       <div class="cota-beneficios-list"></div>
@@ -5118,6 +5128,74 @@ function renumerarCotas() {
     const title = card.querySelector('.cota-card-title');
     if (title) title.textContent = `Cota ${i + 1}`;
   });
+}
+
+// ── Per-cota photo upload handling ──
+function handleCotaPhotoSelect(input) {
+  const card = input.closest('.cota-card');
+  if (!card) return;
+  const grid = card.querySelector('.cota-photos-grid');
+  if (!grid) return;
+  const files = Array.from(input.files || []);
+  const existing = grid.querySelectorAll('.cota-photo-thumb').length;
+  const maxPhotos = 3;
+  const remaining = maxPhotos - existing;
+  if (remaining <= 0) { input.value = ''; return; }
+
+  files.slice(0, remaining).forEach(function(file) {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const thumb = document.createElement('div');
+      thumb.className = 'cota-photo-thumb';
+      thumb.style.cssText = 'width:80px;height:80px;border-radius:8px;overflow:hidden;position:relative;border:1px solid var(--gray-2);flex-shrink:0';
+      thumb.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">' +
+        '<button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.6);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1">&times;</button>';
+      grid.appendChild(thumb);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+/**
+ * Upload per-cota photos to Supabase Storage.
+ * Returns array of public URLs for each cota.
+ */
+async function uploadCotaPhotos(oppId, cotaIdx, card, token) {
+  const grid = card.querySelector('.cota-photos-grid');
+  if (!grid) return [];
+  const thumbs = grid.querySelectorAll('.cota-photo-thumb');
+  if (!thumbs.length) return [];
+
+  const urls = [];
+  for (let i = 0; i < thumbs.length; i++) {
+    const img = thumbs[i].querySelector('img');
+    const src = img ? img.src : '';
+
+    // Already uploaded (existing URL from edit mode)
+    const existingUrl = thumbs[i].getAttribute('data-existing-url');
+    if (existingUrl) { urls.push(existingUrl); continue; }
+
+    // New photo (data: URI)
+    if (!src || !src.startsWith('data:')) continue;
+    try {
+      const res = await fetch(src);
+      const blob = await res.blob();
+      const ext = blob.type.split('/')[1] || 'jpg';
+      const fileName = 'cotas/' + oppId + '/' + cotaIdx + '/' + Date.now() + '-' + i + '.' + ext;
+      const uploadRes = await fetch(
+        SUPABASE_URL + '/storage/v1/object/oportunidades/' + fileName,
+        { method: 'POST', body: blob,
+          headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_KEY,
+            'Content-Type': blob.type, 'x-upsert': 'true' } }
+      );
+      if (uploadRes.ok) {
+        urls.push(SUPABASE_URL + '/storage/v1/object/public/oportunidades/' + fileName);
+      }
+    } catch (err) { console.warn('[Upload] Cota photo', cotaIdx, i, 'failed:', err); }
+  }
+  return urls;
 }
 
 /* ══════════════════════════════════════════════
@@ -5343,7 +5421,9 @@ function collectOppData() {
         nome: card.querySelector('.cota-nome')?.value || 'Cota ' + (i+1),
         valor: card.querySelector('.cota-valor')?.value || '',
         vagas: card.querySelector('.cota-vagas')?.value || '',
-        beneficios: Array.from(card.querySelectorAll('.cota-beneficios-list input')).map(el => el.value).filter(Boolean)
+        descricao: card.querySelector('.cota-descricao')?.value || '',
+        beneficios: Array.from(card.querySelectorAll('.cota-beneficios-list input')).map(el => el.value).filter(Boolean),
+        imagens: [] // populated after upload via uploadCotaPhotos()
       });
     });
   }
@@ -5506,6 +5586,25 @@ async function saveDraft() {
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
         });
+      }
+
+      // Upload per-cota photos and patch cotas_data
+      if (data.cotas_data && data.cotas_data.length > 0) {
+        const cotaCards = document.querySelectorAll('#cotas-list .cota-card');
+        let cotasUpdated = false;
+        for (let ci = 0; ci < cotaCards.length && ci < data.cotas_data.length; ci++) {
+          try {
+            const cotaImgs = await uploadCotaPhotos(oppId, ci, cotaCards[ci], token);
+            if (cotaImgs.length > 0) { data.cotas_data[ci].imagens = cotaImgs; cotasUpdated = true; }
+          } catch (e) { console.warn('[Draft] Cota photo upload failed:', e); }
+        }
+        if (cotasUpdated) {
+          await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
+            method: 'PATCH', body: JSON.stringify({ cotas_data: data.cotas_data }),
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+          });
+        }
       }
     }
 
@@ -5677,6 +5776,26 @@ async function publishOpportunity() {
         });
         if (!patchRes.ok) uploadErrors.push('salvar fotos');
         console.log('[Publish] Photos uploaded:', imagens.length);
+      }
+
+      // Upload per-cota photos and patch cotas_data with image URLs
+      if (data.cotas_data && data.cotas_data.length > 0) {
+        const cotaCards = document.querySelectorAll('#cotas-list .cota-card');
+        let cotasUpdated = false;
+        for (let ci = 0; ci < cotaCards.length && ci < data.cotas_data.length; ci++) {
+          try {
+            const cotaImgs = await uploadCotaPhotos(oppId, ci, cotaCards[ci], token);
+            if (cotaImgs.length > 0) { data.cotas_data[ci].imagens = cotaImgs; cotasUpdated = true; }
+          } catch (e) { console.warn('[Publish] Cota photo upload failed for cota', ci, e); }
+        }
+        if (cotasUpdated) {
+          await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
+            method: 'PATCH', body: JSON.stringify({ cotas_data: data.cotas_data }),
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+          });
+          console.log('[Publish] Cota photos updated');
+        }
       }
 
       if (uploadErrors.length > 0) {
