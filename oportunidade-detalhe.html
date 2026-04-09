@@ -311,15 +311,42 @@ a { text-decoration: none; color: inherit; }
 .tag-gold { background: var(--gold-pale); border-color: rgba(184,134,11,0.2); color: var(--gold); font-weight: 600; }
 
 /* Cotas */
-.cotas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
-.cota-card { background: var(--white); border: 2px solid var(--gray-200); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: all 0.2s; }
-.cota-card:hover { border-color: var(--gray-300); }
-.cota-card.selected { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,134,11,0.12); }
-.cota-img { height: 80px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 36px; }
-.cota-body { padding: 16px; }
-.cota-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-.cota-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; margin-bottom: 10px; }
-.cota-price { font-size: 13px; color: var(--gold); font-weight: 600; }
+/* ── Oportunidades list (ex-Cotas) ── */
+.opps-list { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+.opp-card-h { display: flex; background: var(--white); border: 1.5px solid var(--gray-200); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: all 0.2s; }
+.opp-card-h:hover { border-color: var(--gray-300); box-shadow: 0 4px 16px rgba(30,22,0,0.06); }
+.opp-card-h-img { width: 200px; min-height: 160px; background: var(--gray-100); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 36px; position: relative; }
+.opp-card-h-img img { width: 100%; height: 100%; object-fit: cover; }
+.opp-card-h-body { flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; }
+.opp-card-h-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.opp-card-h-name { font-size: 17px; font-weight: 700; color: var(--text); }
+.opp-card-h-price { font-size: 15px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+.opp-card-h-desc { font-size: 12px; color: var(--gray-500); line-height: 1.55; }
+.opp-card-h-pills { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.opp-card-h-pill { font-size: 9px; font-weight: 600; color: var(--gold); background: var(--gold-pale, #FBF5E6); border: 1px solid rgba(184,134,11,0.2); padding: 3px 8px; border-radius: 100px; }
+.opp-card-h-pill.more { color: var(--gray-400); background: var(--gray-100); border-color: var(--gray-200); }
+.opp-card-h-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+.opp-card-h-vagas { font-size: 11px; color: var(--gray-400); }
+.opp-card-h-vagas.exclusive { color: #c53030; font-weight: 600; }
+.opp-card-h-link { font-size: 11px; color: var(--gold); font-weight: 600; }
+/* Photo carousel dots inside card */
+.opp-card-h-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; }
+.opp-card-h-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+.opp-card-h-dot.active { background: #fff; width: 12px; border-radius: 3px; }
+/* Photo nav arrows */
+.opp-card-h-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 26px; height: 26px; border-radius: 50%; background: rgba(0,0,0,0.45); color: #fff; border: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
+.opp-card-h-img:hover .opp-card-h-arrow { opacity: 1; }
+.opp-card-h-arrow.prev { left: 6px; }
+.opp-card-h-arrow.next { right: 6px; }
+
+/* ── Oportunidade Modal ── */
+.opp-modal-overlay { position: fixed; inset: 0; background: rgba(26,18,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.opp-modal { background: var(--white); border-radius: 20px; width: 90%; max-width: 680px; max-height: 85vh; overflow-y: auto; padding: 0; box-shadow: 0 24px 80px rgba(30,22,0,0.2); }
+.opp-modal-nav { position: fixed; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; background: var(--white); border: none; cursor: pointer; font-size: 22px; font-weight: 700; color: var(--black); box-shadow: 0 2px 12px rgba(0,0,0,0.15); z-index: 1001; transition: all 0.15s; }
+.opp-modal-nav:hover { background: var(--gray-100); }
+.opp-modal-prev { left: max(16px, calc(50% - 380px)); }
+.opp-modal-next { right: max(16px, calc(50% - 380px)); }
+.opp-modal-counter { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 600; color: var(--white); z-index: 1001; }
 
 /* Canais */
 .canais-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
@@ -723,7 +750,7 @@ a { text-decoration: none; color: inherit; }
   .detail-section-title { font-size: 16px; }
   .detail-facts { grid-template-columns: 1fr 1fr; gap: 10px; }
   .fact-item { padding: 12px; }
-  .cotas-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opp-card-h-img { width: 160px; min-height: 140px; }
   .canais-grid { grid-template-columns: 1fr; }
   /* ── Owner section ── */
   .owner-section { margin-top: 32px; padding-top: 32px; }
@@ -763,7 +790,8 @@ a { text-decoration: none; color: inherit; }
   .tab-btn { padding: 10px 8px; font-size: 11px; }
   .detail-title { font-size: 20px; }
   .detail-facts { grid-template-columns: 1fr; }
-  .cotas-grid { grid-template-columns: 1fr; }
+  .opp-card-h { flex-direction: column; }
+  .opp-card-h-img { width: 100%; min-height: 140px; }
   .opp-cards-grid { grid-template-columns: 1fr; }
   .opp-card-image { height: 160px; }
   .opp-card-desc { display: -webkit-box; }
@@ -1019,13 +1047,21 @@ a { text-decoration: none; color: inherit; }
               </div>
             </div>
 
-            <!-- SECTION: Cotas -->
+            <!-- SECTION: Oportunidades (ex-Cotas) -->
             <div class="tab-panel" id="tab-cotas">
               <div class="detail-section">
-                <h3 class="detail-section-title">Cotas disponíveis</h3>
-                <p class="detail-text" style="margin-bottom:0">Cada cota oferece ativações exclusivas e diferentes níveis de visibilidade.</p>
-                <div class="cotas-grid" id="cotasGrid"></div>
+                <h3 class="detail-section-title">Oportunidades disponíveis</h3>
+                <p class="detail-text" style="margin-bottom:12px">Escolha a experiência ideal para sua marca</p>
+                <div class="opps-list" id="cotasGrid"></div>
               </div>
+            </div>
+
+            <!-- MODAL: Detalhe de oportunidade -->
+            <div class="opp-modal-overlay" id="oppModalOverlay" style="display:none" onclick="if(event.target===this)closeOppModal()">
+              <button class="opp-modal-nav opp-modal-prev" onclick="navOppModal(-1)">‹</button>
+              <div class="opp-modal" id="oppModal"></div>
+              <button class="opp-modal-nav opp-modal-next" onclick="navOppModal(1)">›</button>
+              <div class="opp-modal-counter" id="oppModalCounter"></div>
             </div>
 
           </div>
@@ -1945,39 +1981,112 @@ function renderPage(oppOverride) {
 
   var EMPTY_STATE_HTML = '<div style="padding:32px 16px;text-align:center;color:var(--gray-3);font-family:var(--font-body);font-size:14px;">Informações sendo preparadas pelo detentor.</div>';
 
-  // Cotas
+  // Oportunidades (ex-Cotas) — cards horizontais com click para modal
+  var _oppItems = opp.cotas || [];
+  var _currentOppIdx = 0;
   var cotasHtml = '';
-  if (opp.cotas && opp.cotas.length > 0) {
-    opp.cotas.forEach(function(c, i) {
-      cotasHtml += '<div class="cota-card' + (i === 0 ? ' selected' : '') + '">';
-      cotasHtml += '<div class="cota-img">' + escapeHtml(c.emoji) + '</div>';
-      cotasHtml += '<div class="cota-body">';
-      cotasHtml += '<div class="cota-name">' + escapeHtml(c.name) + '</div>';
-      // Benefícios como pills
-      if (c.beneficios && c.beneficios.length > 0) {
-        cotasHtml += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">';
-        c.beneficios.forEach(function(b) {
-          cotasHtml += '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:var(--gray-1);color:var(--gray-600);font-size:12px;font-weight:500;line-height:1.3">' +
-            '<span style="font-size:10px;color:var(--gold)">✦</span>' +
-            escapeHtml(b) +
-            '</span>';
-        });
+  if (_oppItems.length > 0) {
+    _oppItems.forEach(function(c, i) {
+      var maxPills = 3;
+      var bens = c.beneficios || [];
+      var vagasNum = c.vagas != null ? Number(c.vagas) : null;
+      var isExclusive = vagasNum === 1;
+
+      cotasHtml += '<div class="opp-card-h" onclick="openOppModal(' + i + ')">';
+      // Foto/emoji area
+      cotasHtml += '<div class="opp-card-h-img">' + escapeHtml(c.emoji) + '</div>';
+      // Body
+      cotasHtml += '<div class="opp-card-h-body">';
+      cotasHtml += '<div class="opp-card-h-top"><div class="opp-card-h-name">' + escapeHtml(c.name) + '</div><div class="opp-card-h-price">' + escapeHtml(c.price) + '</div></div>';
+      if (c.desc) cotasHtml += '<div class="opp-card-h-desc">' + escapeHtml(c.desc) + '</div>';
+      // Pills (max 3 + "+N")
+      if (bens.length > 0) {
+        cotasHtml += '<div class="opp-card-h-pills">';
+        bens.slice(0, maxPills).forEach(function(b) { cotasHtml += '<span class="opp-card-h-pill">✦ ' + escapeHtml(b) + '</span>'; });
+        if (bens.length > maxPills) cotasHtml += '<span class="opp-card-h-pill more">+' + (bens.length - maxPills) + '</span>';
         cotasHtml += '</div>';
-      } else if (c.desc) {
-        cotasHtml += '<div class="cota-desc">' + escapeHtml(c.desc) + '</div>';
       }
-      // Vagas disponíveis
-      if (c.vagas != null) {
-        cotasHtml += '<div style="font-size:12px;color:var(--gray-4);margin-top:4px">👥 ' + escapeHtml(String(c.vagas)) + ' vaga' + (Number(c.vagas) !== 1 ? 's' : '') + ' disponível' + (Number(c.vagas) !== 1 ? 'is' : '') + '</div>';
-      }
-      cotasHtml += '<div class="cota-price">' + escapeHtml(c.price) + '</div>';
+      // Footer
+      cotasHtml += '<div class="opp-card-h-footer">';
+      if (vagasNum != null) {
+        cotasHtml += '<span class="opp-card-h-vagas' + (isExclusive ? ' exclusive' : '') + '">' +
+          vagasNum + ' vaga' + (vagasNum !== 1 ? 's' : '') + (isExclusive ? ' — exclusivo' : ' disponível' + (vagasNum !== 1 ? 'is' : '')) + '</span>';
+      } else { cotasHtml += '<span></span>'; }
+      cotasHtml += '<span class="opp-card-h-link">Ver detalhes →</span>';
       cotasHtml += '</div>';
-      cotasHtml += '</div>';
+      cotasHtml += '</div>';// body
+      cotasHtml += '</div>';// card
     });
   } else {
     cotasHtml = EMPTY_STATE_HTML;
   }
   document.getElementById('cotasGrid').innerHTML = cotasHtml;
+
+  // Modal functions
+  window.openOppModal = function(idx) {
+    _currentOppIdx = idx;
+    renderOppModal(idx);
+    document.getElementById('oppModalOverlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+  window.closeOppModal = function() {
+    document.getElementById('oppModalOverlay').style.display = 'none';
+    document.body.style.overflow = '';
+  };
+  window.navOppModal = function(dir) {
+    _currentOppIdx += dir;
+    if (_currentOppIdx < 0) _currentOppIdx = _oppItems.length - 1;
+    if (_currentOppIdx >= _oppItems.length) _currentOppIdx = 0;
+    renderOppModal(_currentOppIdx);
+  };
+  // ESC to close
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeOppModal();
+    if (e.key === 'ArrowLeft') navOppModal(-1);
+    if (e.key === 'ArrowRight') navOppModal(1);
+  });
+
+  function renderOppModal(idx) {
+    var c = _oppItems[idx];
+    if (!c) return;
+    var bens = c.beneficios || [];
+    var vagasNum = c.vagas != null ? Number(c.vagas) : null;
+    var isExclusive = vagasNum === 1;
+
+    var h = '<div style="padding:28px 32px">';
+    // Close
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">';
+    h += '<div>';
+    h += '<div style="font-size:22px;font-weight:700;color:var(--black)">' + escapeHtml(c.name) + '</div>';
+    if (vagasNum != null) {
+      h += '<div style="font-size:12px;margin-top:4px;color:' + (isExclusive ? '#c53030' : 'var(--gray-4)') + ';font-weight:' + (isExclusive ? '600' : '500') + '">' +
+        vagasNum + ' vaga' + (vagasNum !== 1 ? 's' : '') + (isExclusive ? ' — exclusivo' : ' disponível' + (vagasNum !== 1 ? 'is' : '')) + '</div>';
+    }
+    h += '</div>';
+    h += '<div style="font-size:20px;font-weight:700;color:var(--gold)">' + escapeHtml(c.price) + '</div>';
+    h += '</div>';
+
+    // Separator
+    h += '<div style="border-top:1px solid var(--gray-1);margin-bottom:20px"></div>';
+
+    // Contrapartidas em lista vertical
+    if (bens.length > 0) {
+      h += '<div style="font-size:14px;font-weight:700;color:var(--black);margin-bottom:12px">Contrapartidas incluídas</div>';
+      bens.forEach(function(b, i) {
+        h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:' + (i % 2 === 0 ? 'var(--gray-1,#F5F0E8)' : 'var(--white)') + ';margin-bottom:2px;font-size:13px;color:var(--black)">';
+        h += '<span style="color:var(--gold);font-size:12px;flex-shrink:0">✦</span>';
+        h += escapeHtml(b);
+        h += '</div>';
+      });
+    }
+
+    // CTA
+    h += '<button onclick="closeOppModal();openModal()" style="width:100%;margin-top:20px;padding:14px;border-radius:100px;background:var(--black);color:var(--white);font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit">＋ Manifestar interesse nesta oportunidade</button>';
+    h += '</div>';
+
+    document.getElementById('oppModal').innerHTML = h;
+    document.getElementById('oppModalCounter').textContent = (idx + 1) + ' / ' + _oppItems.length;
+  }
 
   // Canais
   var canaisHtml = '';
@@ -2040,13 +2149,7 @@ function renderPage(oppOverride) {
     if (cotaGroup) cotaGroup.style.display = 'none';
   }
 
-  // Cota click handlers
-  document.querySelectorAll('.cota-card').forEach(function(card) {
-    card.addEventListener('click', function() {
-      document.querySelectorAll('.cota-card').forEach(function(c) { c.classList.remove('selected'); });
-      this.classList.add('selected');
-    });
-  });
+  // Opp card click handlers — now handled by onclick="openOppModal(i)" inline
 
   // Owner section — usa _orgData do Supabase quando disponível, cai no mock apenas para dados de demo
   var orgFromSupabase = opp._orgData || null;
