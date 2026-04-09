@@ -269,6 +269,24 @@ a { text-decoration: none; color: inherit; }
 }
 .gallery-strip-dot.active { background: var(--gold); width: 14px; border-radius: 3px; }
 
+/* ─── GALLERY ADAPTIVE MODES ─── */
+/* 1-3 fotos: full-width hero com carousel */
+.detail-gallery.gallery-carousel { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.detail-gallery.gallery-carousel .gallery-thumb { display: none; }
+.detail-gallery.gallery-carousel .gallery-main { grid-row: 1; border-radius: var(--radius-lg); }
+/* 4 fotos: main + 3 thumbs (esconde 4º thumb) */
+.detail-gallery.gallery-4 .gallery-thumb:nth-child(5) { display: none; }
+.detail-gallery.gallery-4 .gallery-thumb:nth-child(2) { grid-row: 1 / -1; border-radius: 0; }
+/* Carousel arrows inside gallery-main */
+.gallery-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.45); color: #fff; border: none; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; z-index: 2; }
+.gallery-main:hover .gallery-arrow { opacity: 1; }
+.gallery-arrow.prev { left: 12px; }
+.gallery-arrow.next { right: 12px; }
+/* Carousel dots inside gallery-main */
+.gallery-dots { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2; }
+.gallery-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.45); transition: all 0.2s; }
+.gallery-dot.active { background: #fff; width: 18px; border-radius: 4px; }
+
 /* ─── BODY LAYOUT ─── */
 .detail-body { display: grid; grid-template-columns: 1fr 360px; gap: 28px; align-items: start; }
 
@@ -1624,15 +1642,16 @@ function renderPage(oppOverride) {
 
   // Meta removido do header — campos não são universais entre templates
 
-  // Gallery (desktop) — layout 1+4 com focal points
+  // Gallery (desktop) — adaptável por quantidade de fotos
   document.getElementById('galleryBadge').textContent = opp.category;
   var imgs = opp.images || [];
   var focalMap = opp.imagens_focal || {};
   var fallbacks = ['#e0d8cc', '#d0c8b8', '#c8c0b0', '#bfb8a8'];
-
-  // Main (capa)
-  var mainUrl = opp.imagem_capa || imgs[0];
+  var galleryEl = document.querySelector('.detail-gallery');
   var mainEl = document.getElementById('galleryMain');
+  var mainUrl = opp.imagem_capa || imgs[0];
+
+  // Set main photo
   if (mainUrl) {
     var fp = focalMap[mainUrl] || { x: 50, y: 20 };
     mainEl.style.background = 'url(' + mainUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
@@ -1640,32 +1659,74 @@ function renderPage(oppOverride) {
     mainEl.style.background = opp.gradient || '#1a1a2e';
   }
 
-  // 4 thumbs: gThumb0→imgs[1], gThumb2→imgs[3], gThumb1→imgs[2], gThumb3→imgs[4]
-  // HTML order maps to grid: col2/row1, col3/row1, col2/row2, col3/row2
-  var thumbMapping = [
-    { id: 'gThumb0', imgIdx: 1 },  // col2/row1
-    { id: 'gThumb2', imgIdx: 3 },  // col3/row1
-    { id: 'gThumb1', imgIdx: 2 },  // col2/row2
-    { id: 'gThumb3', imgIdx: 4 }   // col3/row2 (has +N overlay)
-  ];
-  for (var ti = 0; ti < thumbMapping.length; ti++) {
-    var thumbEl = document.getElementById(thumbMapping[ti].id);
-    var imgUrl = imgs[thumbMapping[ti].imgIdx];
-    if (imgUrl) {
-      var fp = focalMap[imgUrl] || { x: 50, y: 20 };
-      thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
-    } else {
-      thumbEl.style.background = fallbacks[ti];
+  if (imgs.length <= 3) {
+    // ── MODO CAROUSEL (1-3 fotos): full-width hero ──
+    galleryEl.classList.add('gallery-carousel');
+    if (imgs.length > 1) {
+      // Adicionar setas e dots dentro do gallery-main
+      var arrowsHtml = '<button class="gallery-arrow prev" onclick="slideGallery(-1)">&#8249;</button>';
+      arrowsHtml += '<button class="gallery-arrow next" onclick="slideGallery(1)">&#8250;</button>';
+      arrowsHtml += '<div class="gallery-dots">';
+      imgs.forEach(function(_, i) { arrowsHtml += '<div class="gallery-dot' + (i === 0 ? ' active' : '') + '"></div>'; });
+      arrowsHtml += '</div>';
+      mainEl.insertAdjacentHTML('beforeend', arrowsHtml);
     }
-  }
+    // Carousel state
+    var _gallerySlideIdx = 0;
+    window.slideGallery = function(dir) {
+      if (imgs.length < 2) return;
+      _gallerySlideIdx += dir;
+      if (_gallerySlideIdx < 0) _gallerySlideIdx = imgs.length - 1;
+      if (_gallerySlideIdx >= imgs.length) _gallerySlideIdx = 0;
+      var url = imgs[_gallerySlideIdx];
+      var fp = focalMap[url] || { x: 50, y: 20 };
+      mainEl.style.background = 'url(' + url + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+      mainEl.querySelectorAll('.gallery-dot').forEach(function(d, i) { d.classList.toggle('active', i === _gallerySlideIdx); });
+    };
 
-  // "+N fotos" overlay na última célula
-  var moreEl = document.getElementById('galleryMore');
-  if (imgs.length > 5) {
-    moreEl.textContent = '+' + (imgs.length - 5) + ' fotos';
-    moreEl.style.display = 'flex';
+  } else if (imgs.length === 4) {
+    // ── MODO 4 FOTOS: main + 3 thumbs ──
+    galleryEl.classList.add('gallery-4');
+    var thumbMapping4 = [
+      { id: 'gThumb0', imgIdx: 1 },
+      { id: 'gThumb2', imgIdx: 3 },
+      { id: 'gThumb1', imgIdx: 2 }
+    ];
+    for (var ti = 0; ti < thumbMapping4.length; ti++) {
+      var thumbEl = document.getElementById(thumbMapping4[ti].id);
+      var imgUrl = imgs[thumbMapping4[ti].imgIdx];
+      if (imgUrl) {
+        var fp = focalMap[imgUrl] || { x: 50, y: 20 };
+        thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+      }
+    }
+    document.getElementById('galleryMore').style.display = 'none';
+
   } else {
-    moreEl.style.display = 'none';
+    // ── MODO 5+ FOTOS: layout original 1+4 ──
+    var thumbMapping = [
+      { id: 'gThumb0', imgIdx: 1 },
+      { id: 'gThumb2', imgIdx: 3 },
+      { id: 'gThumb1', imgIdx: 2 },
+      { id: 'gThumb3', imgIdx: 4 }
+    ];
+    for (var ti = 0; ti < thumbMapping.length; ti++) {
+      var thumbEl = document.getElementById(thumbMapping[ti].id);
+      var imgUrl = imgs[thumbMapping[ti].imgIdx];
+      if (imgUrl) {
+        var fp = focalMap[imgUrl] || { x: 50, y: 20 };
+        thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+      } else {
+        thumbEl.style.background = fallbacks[ti];
+      }
+    }
+    var moreEl = document.getElementById('galleryMore');
+    if (imgs.length > 5) {
+      moreEl.textContent = '+' + (imgs.length - 5) + ' fotos';
+      moreEl.style.display = 'flex';
+    } else {
+      moreEl.style.display = 'none';
+    }
   }
 
   // Gallery strip mobile (scroll snap, edge-to-edge) — todas as fotos reais
