@@ -427,6 +427,15 @@ a { text-decoration: none; color: inherit; }
 .canal-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
 .canal-reach { font-size: 12px; color: var(--gray-400); }
 
+/* ─── INCENTIVO FISCAL ─── */
+.incentivo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.incentivo-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(30,22,0,0.04); }
+.incentivo-card .incentivo-label { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); margin-bottom: 6px; font-family: var(--font-body); }
+.incentivo-card .incentivo-value { font-size: 18px; color: var(--black); font-family: var(--font-heading); font-weight: 600; }
+.incentivo-status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; font-family: var(--font-body); }
+.incentivo-status-badge.aprovado { background: rgba(76,175,80,0.1); color: #2E7D32; }
+.incentivo-status-badge.em_andamento { background: rgba(255,152,0,0.1); color: #E65100; }
+
 /* ─── AUDIENCE CHANNEL CARDS (tab Público) ─── */
 .aud-channels-grid { display: flex; flex-direction: column; gap: 18px; }
 .aud-channel-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
@@ -1058,6 +1067,7 @@ a { text-decoration: none; color: inherit; }
       <div class="detail-tabs" id="detailTabsNav">
         <button class="tab-btn active" data-section="tab-visao">Visão geral</button>
         <button class="tab-btn" data-section="tab-canais">Canais</button>
+        <button class="tab-btn" data-section="tab-incentivo" id="tabBtnIncentivo" style="display:none">Incentivo fiscal</button>
         <button class="tab-btn" data-section="tab-cotas">Oportunidades</button>
       </div>
 
@@ -1152,6 +1162,19 @@ a { text-decoration: none; color: inherit; }
               <div class="detail-section" id="canaisFallbackSection">
                 <h3 class="detail-section-title">Canais e redes sociais</h3>
                 <div class="canais-grid" id="canaisGrid"></div>
+              </div>
+            </div>
+
+            <!-- DIVIDER: Incentivo Fiscal -->
+            <div class="section-divider" id="divider-incentivo" style="display:none">
+              <div class="section-divider-title">Incentivo fiscal</div>
+              <div class="section-divider-sub">Este projeto é apoiado por lei de incentivo fiscal</div>
+            </div>
+
+            <!-- SECTION: Incentivo Fiscal -->
+            <div class="tab-panel" id="tab-incentivo" style="display:none">
+              <div class="detail-section">
+                <div class="incentivo-grid" id="incentivoGrid"></div>
               </div>
             </div>
 
@@ -1380,7 +1403,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
     const path = '/rest/v1/oportunidades?select=' +
       'id,slug,detentor_id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
       'preco_minimo,formato,bg_gradient,imagens,imagem_capa,imagens_focal,tags,publico_descricao,visibilidade,' +
-      'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,midia_kit_url,' +
+      'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,projeto_incentivado,incentivo_data,midia_kit_url,' +
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
@@ -1563,6 +1586,8 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       linkExterno: r.link_externo || null,
       datasEvento: r.datas_evento || null,
       cotasData: r.cotas_data || null,
+      projetoIncentivado: !!r.projeto_incentivado,
+      incentivoData: r.incentivo_data || null,
       sidebar: {
         evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || '') : '',
         cotasQty: cotasArr.length > 0 ? cotasArr.length + ' modalidade' + (cotasArr.length > 1 ? 's' : '') : (r.cotas_habilitadas ? 'Disponível' : 'A definir'),
@@ -1956,6 +1981,48 @@ function renderPage(oppOverride) {
     html += '</div>';
     content.innerHTML = html;
     section.style.display = '';
+  })();
+
+  // Incentivo fiscal
+  (function renderIncentivo() {
+    var divider = document.getElementById('divider-incentivo');
+    var panel   = document.getElementById('tab-incentivo');
+    var grid    = document.getElementById('incentivoGrid');
+    var tabBtn  = document.getElementById('tabBtnIncentivo');
+    if (!divider || !panel || !grid) return;
+
+    if (!opp.projetoIncentivado || !opp.incentivoData) {
+      divider.style.display = 'none';
+      panel.style.display = 'none';
+      if (tabBtn) tabBtn.style.display = 'none';
+      return;
+    }
+
+    var d = opp.incentivoData;
+    var valorFormatado = typeof formatCurrency === 'function' ? formatCurrency(d.valor, d.moeda || 'BRL') : (d.valor || '—');
+    var statusLabel = d.status === 'aprovado' ? 'Aprovado' : 'Em andamento';
+
+    grid.innerHTML =
+      '<div class="incentivo-card">' +
+        '<div class="incentivo-label">Lei</div>' +
+        '<div class="incentivo-value">' + escapeHtml(d.lei_nome || '—') + '</div>' +
+      '</div>' +
+      '<div class="incentivo-card">' +
+        '<div class="incentivo-label">Categoria</div>' +
+        '<div class="incentivo-value">' + escapeHtml(d.categoria || '—') + '</div>' +
+      '</div>' +
+      '<div class="incentivo-card">' +
+        '<div class="incentivo-label">Valor</div>' +
+        '<div class="incentivo-value">' + escapeHtml(valorFormatado) + '</div>' +
+      '</div>' +
+      '<div class="incentivo-card">' +
+        '<div class="incentivo-label">Status</div>' +
+        '<div class="incentivo-value"><span class="incentivo-status-badge ' + (d.status || 'aprovado') + '">' + escapeHtml(statusLabel) + '</span></div>' +
+      '</div>';
+
+    divider.style.display = 'block';
+    panel.style.display = 'block';
+    if (tabBtn) tabBtn.style.display = '';
   })();
 
   // ── Público tab — per-channel cards ──────────────────────────────────────
@@ -2591,7 +2658,7 @@ function renderPage(oppOverride) {
     btn.addEventListener('click', function() {
       var sectionId = btn.dataset.section;
       // Scroll para o divider (título da seção) se existir, senão para o tab-panel
-      var dividerMap = { 'tab-visao': 'divider-visao', 'tab-canais': 'divider-canais', 'tab-cotas': 'divider-cotas' };
+      var dividerMap = { 'tab-visao': 'divider-visao', 'tab-canais': 'divider-canais', 'tab-incentivo': 'divider-incentivo', 'tab-cotas': 'divider-cotas' };
       var target = document.getElementById(dividerMap[sectionId] || sectionId);
       if (!target) return;
       isScrollingFromClick = true;
@@ -2610,7 +2677,7 @@ function renderPage(oppOverride) {
   });
 
   // Scroll spy via scroll event — usa dividers como referência quando existem
-  var dividerMap = { 'tab-visao': 'divider-visao', 'tab-canais': 'divider-canais', 'tab-cotas': 'divider-cotas' };
+  var dividerMap = { 'tab-visao': 'divider-visao', 'tab-canais': 'divider-canais', 'tab-incentivo': 'divider-incentivo', 'tab-cotas': 'divider-cotas' };
   var spyTargets = sectionIds.map(function(id) {
     return document.getElementById(dividerMap[id] || id);
   }).filter(Boolean);

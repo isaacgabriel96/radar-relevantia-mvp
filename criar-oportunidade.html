@@ -2025,6 +2025,83 @@ input[type=number] { -moz-appearance: textfield; }
         </div>
       </div>
 
+      <!-- Card: Projeto Incentivado -->
+      <div class="form-card">
+        <div class="form-card-header" style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+          <div>
+            <h3 class="form-card-title">Projeto incentivado por lei fiscal?</h3>
+            <p class="form-card-subtitle">Informe se o projeto é apoiado por lei de incentivo (Rouanet, LIE, Paulo Gustavo, etc.)</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span id="incentivo-toggle-label" style="font-size:14px;color:var(--gray-3)">Não</span>
+            <button type="button" id="incentivo-toggle-switch" class="toggle-switch" onclick="toggleIncentivoSection()">
+              <div class="toggle-knob"></div>
+            </button>
+          </div>
+        </div>
+
+        <div id="incentivo-section" style="display:none;margin-top:24px">
+          <!-- Lei -->
+          <div class="form-group">
+            <label for="incentivo-lei">Lei de incentivo *</label>
+            <select id="incentivo-lei" class="form-input">
+              <option value="">Selecione a lei</option>
+              <option value="rouanet">Lei Rouanet (Lei Federal 8.313/91)</option>
+              <option value="lie">Lei de Incentivo ao Esporte — LIE (11.438/06)</option>
+              <option value="paulo_gustavo">Lei Paulo Gustavo</option>
+              <option value="iss">ISS — Lei Municipal de Incentivo</option>
+              <option value="icms">ICMS — Lei Estadual de Incentivo</option>
+              <option value="pronac">PRONAC</option>
+              <option value="outras">Outras</option>
+            </select>
+          </div>
+
+          <!-- Categoria -->
+          <div class="form-group">
+            <label for="incentivo-categoria">Categoria *</label>
+            <select id="incentivo-categoria" class="form-input">
+              <option value="">Selecione a categoria</option>
+              <option value="Cultura">Cultura</option>
+              <option value="Esporte">Esporte</option>
+              <option value="Educação">Educação</option>
+              <option value="Saúde">Saúde</option>
+              <option value="Assistência Social">Assistência Social</option>
+              <option value="Meio Ambiente">Meio Ambiente</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+
+          <!-- Valor + Moeda -->
+          <div class="form-group">
+            <label for="incentivo-valor">Valor aprovado / captado *</label>
+            <div style="display:flex;gap:8px">
+              <select id="incentivo-moeda" class="form-input" style="max-width:110px" onchange="reformatIncentivoValor()">
+                <option value="BRL">R$ BRL</option>
+                <option value="USD">$ USD</option>
+                <option value="EUR">€ EUR</option>
+                <option value="GBP">£ GBP</option>
+              </select>
+              <input type="text" id="incentivo-valor" class="form-input" placeholder="R$ 0,00" oninput="maskCurrency(this, document.getElementById('incentivo-moeda').value)">
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="form-group">
+            <label>Status do incentivo *</label>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="radio" name="incentivo-status" value="aprovado" checked>
+                <span>Aprovado</span>
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="radio" name="incentivo-status" value="em_andamento">
+                <span>Em andamento</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="step-actions">
         <button class="btn btn-ghost" onclick="nextStep(3)">← Voltar</button>
         <button class="btn btn-primary" onclick="nextStep(5)">
@@ -2931,6 +3008,35 @@ function _applyPendingDetalhes(tplKey) {
     }
     formState._pendingCotas = null;
     formState._pendingCotasHabilitadas = false;
+  }
+
+  // Projeto Incentivado
+  const incentivoData = formState._pendingIncentivo;
+  const projetoIncentivado = formState._pendingIncentivoHabilitado;
+  if (projetoIncentivado) {
+    const toggle = document.getElementById('incentivo-toggle-switch');
+    const section = document.getElementById('incentivo-section');
+    const label = document.getElementById('incentivo-toggle-label');
+    if (toggle && !toggle.classList.contains('active')) {
+      toggle.classList.add('active');
+    }
+    if (label) { label.textContent = 'Sim'; label.style.color = 'var(--brown-warm)'; }
+    if (section) section.style.display = 'block';
+    const d = incentivoData || {};
+    if (d.lei) document.getElementById('incentivo-lei').value = d.lei;
+    if (d.categoria) document.getElementById('incentivo-categoria').value = d.categoria;
+    if (d.moeda) document.getElementById('incentivo-moeda').value = d.moeda;
+    if (d.valor) {
+      const input = document.getElementById('incentivo-valor');
+      input.value = d.valor;
+      maskCurrency(input, d.moeda || 'BRL');
+    }
+    if (d.status) {
+      const radio = document.querySelector(`input[name="incentivo-status"][value="${d.status}"]`);
+      if (radio) radio.checked = true;
+    }
+    formState._pendingIncentivo = null;
+    formState._pendingIncentivoHabilitado = false;
   }
 }
 
@@ -4799,6 +4905,23 @@ function toggleCotasSection() {
   }
 }
 
+function toggleIncentivoSection() {
+  const section = document.getElementById('incentivo-section');
+  const toggle  = document.getElementById('incentivo-toggle-switch');
+  const label   = document.getElementById('incentivo-toggle-label');
+  if (!section || !toggle) return;
+  const isActive = toggle.classList.toggle('active');
+  label.textContent = isActive ? 'Sim' : 'Não';
+  label.style.color = isActive ? 'var(--brown-warm)' : 'var(--gray-3)';
+  section.style.display = isActive ? 'block' : 'none';
+}
+
+function reformatIncentivoValor() {
+  const input = document.getElementById('incentivo-valor');
+  const moeda = document.getElementById('incentivo-moeda')?.value || 'BRL';
+  if (input && input.value) maskCurrency(input, moeda);
+}
+
 function addCota() {
   const list = document.getElementById('cotas-list');
   if (!list) return;
@@ -5330,6 +5453,23 @@ function collectOppData() {
     });
   }
 
+  // Projeto Incentivado
+  const projetoIncentivado = !!document.getElementById('incentivo-toggle-switch')?.classList.contains('active');
+  let incentivoData = null;
+  if (projetoIncentivado) {
+    const leiSelect = document.getElementById('incentivo-lei');
+    const rawValor  = (document.getElementById('incentivo-valor')?.value || '').replace(/\D/g, '');
+    const statusRadio = document.querySelector('input[name="incentivo-status"]:checked');
+    incentivoData = {
+      lei: leiSelect?.value || '',
+      lei_nome: leiSelect?.selectedOptions?.[0]?.text || '',
+      categoria: document.getElementById('incentivo-categoria')?.value || '',
+      valor: rawValor,
+      moeda: document.getElementById('incentivo-moeda')?.value || 'BRL',
+      status: statusRadio?.value || 'aprovado'
+    };
+  }
+
   // Slug — campo do passo 7
   const slugEl = document.getElementById('opp-slug');
   const slugValue = slugEl ? slugEl.value.trim() : '';
@@ -5358,6 +5498,8 @@ function collectOppData() {
     datas_evento: datasEvento.length > 0 ? datasEvento : null,
     cotas_habilitadas: cotasHabilitadas,
     cotas_data: cotasData.length > 0 ? cotasData : null,
+    projeto_incentivado: projetoIncentivado,
+    incentivo_data: incentivoData,
     formato: detalhes['Formato'] || null,
     visibilidade: formState.selectedVisibility || 'publica',
     status: 'publicada',
@@ -6014,11 +6156,16 @@ function maybePreFillEdit() {
   const cotasData = opp.cotas_data || null;
   const cotasHabilitadas = opp.cotas_habilitadas || false;
 
-  if (Object.keys(detalhes).length > 0 || cotasData || cotasHabilitadas) {
+  const incentivoData = opp.incentivo_data || null;
+  const projetoIncentivado = opp.projeto_incentivado || false;
+
+  if (Object.keys(detalhes).length > 0 || cotasData || cotasHabilitadas || projetoIncentivado) {
     // Armazena para aplicar quando o step 4 for renderizado
     formState._pendingDetalhes = detalhes;
     formState._pendingCotas = cotasData;
     formState._pendingCotasHabilitadas = cotasHabilitadas;
+    formState._pendingIncentivo = incentivoData;
+    formState._pendingIncentivoHabilitado = projetoIncentivado;
   }
 
   // --- Campos do preview (previewEditData) — restaurar de publico_descricao e detalhes ---

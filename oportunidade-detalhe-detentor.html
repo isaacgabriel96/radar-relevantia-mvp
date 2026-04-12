@@ -361,6 +361,15 @@ a { text-decoration: none; color: inherit; }
 .canal-faixa-wrap { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
 .canal-faixa-tag { padding: 2px 8px; background: var(--gray-100); border-radius: 100px; font-size: 10px; font-weight: 600; color: var(--gray-500); }
 
+/* Incentivo fiscal */
+.incentivo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.incentivo-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 16px; padding: 20px; box-shadow: 0 1px 2px rgba(30,22,0,0.04); }
+.incentivo-card .incentivo-label { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--gray-400); margin-bottom: 6px; font-family: var(--font-body); }
+.incentivo-card .incentivo-value { font-size: 18px; color: var(--black); font-family: var(--font-heading); font-weight: 600; }
+.incentivo-status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; font-family: var(--font-body); }
+.incentivo-status-badge.aprovado { background: rgba(76,175,80,0.1); color: #2E7D32; }
+.incentivo-status-badge.em_andamento { background: rgba(255,152,0,0.1); color: #E65100; }
+
 /* ─── INTEREST CARD (SIDEBAR) ─── */
 .interest-card {
   background: var(--white);
@@ -943,6 +952,7 @@ a { text-decoration: none; color: inherit; }
       <div class="detail-tabs" id="detailTabsNav">
         <button class="tab-btn active" data-section="section-visao" onclick="scrollToSection('section-visao', this)">Visão geral</button>
         <button class="tab-btn" data-section="section-canais" onclick="scrollToSection('section-canais', this)">Canais</button>
+        <button class="tab-btn" data-section="section-incentivo" id="tabBtnIncentivo" style="display:none" onclick="scrollToSection('section-incentivo', this)">Incentivo fiscal</button>
         <button class="tab-btn" data-section="section-cotas" onclick="scrollToSection('section-cotas', this)">Cotas & Entregas</button>
       </div>
 
@@ -976,6 +986,15 @@ a { text-decoration: none; color: inherit; }
               <div class="detail-section">
                 <h3 class="detail-section-title">Canais e redes sociais</h3>
                 <div class="canais-grid" id="canaisGrid"></div>
+              </div>
+            </section>
+
+            <!-- SECTION: Incentivo Fiscal -->
+            <section class="detail-section-block" id="section-incentivo" style="display:none">
+              <div class="detail-section">
+                <h3 class="detail-section-title">Incentivo fiscal</h3>
+                <p class="detail-text" style="margin-bottom:16px">Detalhes do apoio via lei de incentivo fiscal.</p>
+                <div class="incentivo-grid" id="incentivoGrid"></div>
               </div>
             </section>
 
@@ -1085,7 +1104,6 @@ const OPPORTUNITIES = [
       { icon: '👥', label: 'Participantes', value: '35.000 atletas' },
       { icon: '🌍', label: 'Países representados', value: '+60 países' },
       { icon: '📺', label: 'Transmissão', value: 'TV aberta + streaming' },
-      { icon: '⏱️', label: 'Prazo de proposta', value: '20 de março de 2025' }
     ],
     tags: ['Esportes & Fitness', 'Alimentação saudável', 'Tecnologia wearable', 'Suplementação', 'Vestuário esportivo', 'Bebidas isotônicas'],
     publico: 'O público da Maratona de São Paulo é composto majoritariamente por adultos de 25 a 45 anos, com nível de escolaridade superior, renda acima da média e alto poder de influência nas redes sociais.',
@@ -1110,7 +1128,7 @@ const OPPORTUNITIES = [
       { icon: '✉️', name: 'Newsletter', reach: '120k inscritos · 42% open rate' },
       { icon: '📱', name: 'App oficial', reach: '85k downloads · 3.2 sessões/semana' }
     ],
-    sidebar: { evento: '12 de outubro, 2025', prazo: '5 dias restantes', cotasQty: '3 modalidades', formato: 'Evento presencial + digital', participantes: '35.000 atletas' }
+    sidebar: { evento: '12 de outubro, 2025', cotasQty: '3 modalidades', formato: 'Evento presencial + digital', participantes: '35.000 atletas' }
   },
   {
     id: 2, title: 'Festival de Verão Salvador', org: 'Verão Produções', orgInitials: 'VP',
@@ -1124,7 +1142,6 @@ const OPPORTUNITIES = [
       { icon: '👥', label: 'Público esperado', value: '120.000 pessoas' },
       { icon: '🎵', label: 'Artistas confirmados', value: '+30 atrações' },
       { icon: '📺', label: 'Transmissão', value: 'Multishow + YouTube' },
-      { icon: '⏱️', label: 'Prazo de proposta', value: '15 de outubro de 2026' }
     ],
     tags: ['Entretenimento', 'Bebidas', 'Moda', 'Telecomunicações', 'Cosméticos'],
     publico: 'O público do Festival de Verão Salvador é jovem, entre 18 e 35 anos, predominantemente classes A e B, com alta presença digital e engajamento social.',
@@ -1147,7 +1164,7 @@ const OPPORTUNITIES = [
       { icon: '▶️', name: 'YouTube', reach: '180k inscritos · 500k views/mês' },
       { icon: '📘', name: 'Facebook', reach: '340k seguidores' }
     ],
-    sidebar: { evento: 'Fevereiro, 2027', prazo: '12 dias restantes', cotasQty: '3 modalidades', formato: 'Festival presencial + digital', participantes: '120.000 pessoas' }
+    sidebar: { evento: 'Fevereiro, 2027', cotasQty: '3 modalidades', formato: 'Festival presencial + digital', participantes: '120.000 pessoas' }
   }
 ];
 
@@ -1216,7 +1233,7 @@ function getDefaultOpp(id) {
       { icon: '📘', name: 'Facebook', reach: 'Sob consulta' },
       { icon: '▶️', name: 'YouTube', reach: 'Sob consulta' }
     ],
-    sidebar: { evento: b.date, prazo: 'Aberto', cotasQty: '3 modalidades', formato: 'Presencial + digital', participantes: 'Sob consulta' }
+    sidebar: { evento: b.date, cotasQty: '3 modalidades', formato: 'Presencial + digital', participantes: 'Sob consulta' }
   };
 }
 
@@ -1261,7 +1278,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
     const path = '/rest/v1/oportunidades?select=' +
       'id,slug,detentor_id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
       'preco_minimo,formato,bg_gradient,imagens,imagem_capa,imagens_focal,tags,publico_descricao,visibilidade,' +
-      'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,' +
+      'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,projeto_incentivado,incentivo_data,' +
       'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
@@ -1378,14 +1395,16 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       visibilidade: r.visibilidade || 'publica',
       sidebar: {
         evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || r.alcance || '') : (r.alcance || ''),
-        prazo: r.cotas_data && r.cotas_data[0] && r.cotas_data[0].prazo ? r.cotas_data[0].prazo : 'Em aberto',
         cotasQty: cotasArr.length > 0 ? cotasArr.length + ' modalidade' + (cotasArr.length > 1 ? 's' : '') : (r.cotas_habilitadas ? 'Disponível' : 'A definir'),
         formato: r.formato || '',
         participantes: r.alcance || '',
         preco: r.preco_minimo || null
       },
       // Org data for owner section
-      _orgData: orgData
+      _orgData: orgData,
+      // Incentivo fiscal
+      projetoIncentivado: !!r.projeto_incentivado,
+      incentivoData: r.incentivo_data || null
     };
   } catch (err) {
     console.error('[fetchOppDetail] Failed:', err);
@@ -1461,7 +1480,7 @@ function renderPage(oppOverride) {
   opp.city = opp.city || '';
   opp.date = opp.date || '';
   opp.price = opp.price || 0;
-  opp.sidebar = opp.sidebar || { evento: '', prazo: '', cotasQty: '', formato: '', participantes: '' };
+  opp.sidebar = opp.sidebar || { evento: '', cotasQty: '', formato: '', participantes: '' };
 
   document.title = opp.title + ' — Radar Relevantia';
 
@@ -1692,6 +1711,26 @@ function renderPage(oppOverride) {
     document.getElementById('canaisGrid').innerHTML = EMPTY_STATE_HTML;
   }
 
+  // Incentivo fiscal
+  var incentivoSection = document.getElementById('section-incentivo');
+  var incentivoGrid = document.getElementById('incentivoGrid');
+  var incentivoTabBtn = document.getElementById('tabBtnIncentivo');
+  if (opp.projetoIncentivado && opp.incentivoData && incentivoSection && incentivoGrid) {
+    var d = opp.incentivoData;
+    var valorFmt = (typeof formatCurrency === 'function') ? formatCurrency(d.valor, d.moeda || 'BRL') : (d.valor || '—');
+    var statusLbl = d.status === 'aprovado' ? 'Aprovado' : 'Em andamento';
+    incentivoGrid.innerHTML =
+      '<div class="incentivo-card"><div class="incentivo-label">Lei</div><div class="incentivo-value">' + escapeHtml(d.lei_nome || '—') + '</div></div>' +
+      '<div class="incentivo-card"><div class="incentivo-label">Categoria</div><div class="incentivo-value">' + escapeHtml(d.categoria || '—') + '</div></div>' +
+      '<div class="incentivo-card"><div class="incentivo-label">Valor</div><div class="incentivo-value">' + valorFmt + '</div></div>' +
+      '<div class="incentivo-card"><div class="incentivo-label">Status</div><div class="incentivo-value"><span class="incentivo-status-badge ' + (d.status || '') + '">' + statusLbl + '</span></div></div>';
+    incentivoSection.style.display = '';
+    if (incentivoTabBtn) incentivoTabBtn.style.display = '';
+  } else {
+    if (incentivoSection) incentivoSection.style.display = 'none';
+    if (incentivoTabBtn) incentivoTabBtn.style.display = 'none';
+  }
+
   // ── Sidebar card — info rica ─────────────────────────────────────────────
   document.getElementById('interestPrice').textContent = 'Entre em contato';
   var sb = opp.sidebar || {};
@@ -1704,9 +1743,6 @@ function renderPage(oppOverride) {
   }
   if (sb.evento) {
     infoHtml += '<div class="interest-row"><span class="interest-row-label">Data / Evento</span><span class="interest-row-value">' + escapeHtml(sb.evento) + '</span></div>';
-  }
-  if (sb.prazo) {
-    infoHtml += '<div class="interest-row"><span class="interest-row-label">Prazo</span><span class="interest-row-value deadline">' + escapeHtml(sb.prazo) + '</span></div>';
   }
   if (sb.cotasQty) {
     infoHtml += '<div class="interest-row"><span class="interest-row-label">Cotas</span><span class="interest-row-value">' + escapeHtml(sb.cotasQty) + '</span></div>';
@@ -1817,7 +1853,7 @@ function scrollToSection(sectionId, btn) {
 
 // IntersectionObserver: auto-highlight active tab as user scrolls
 (function initScrollSpy() {
-  var sectionIds = ['section-visao', 'section-canais', 'section-cotas'];
+  var sectionIds = ['section-visao', 'section-canais', 'section-incentivo', 'section-cotas'];
   var activeSection = null;
   function setActive(sectionId) {
     if (activeSection === sectionId) return;

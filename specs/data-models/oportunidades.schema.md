@@ -32,6 +32,8 @@ A tabela `oportunidades` armazena as oportunidades de patrocinio criadas pelos d
 | `datas_evento` | jsonb | Sim | null | Datas do evento |
 | `cotas_habilitadas` | boolean | Sim | false | Se o sistema de cotas esta ativo |
 | `cotas_data` | jsonb | Sim | null | Array de cotas com beneficios |
+| `projeto_incentivado` | boolean | Nao | false | Indica se o projeto tem incentivo fiscal |
+| `incentivo_data` | jsonb | Sim | null | Detalhes do incentivo fiscal (lei, categoria, valor, moeda, status) |
 | `visibilidade` | text | Nao | 'publica' | 'publica', 'aprovacao', 'convidadas' |
 | `status` | text | Nao | - | 'rascunho' ou 'publicada' |
 | `ativo` | boolean | Nao | - | Se a oportunidade esta ativa |
@@ -118,6 +120,46 @@ Quando `cotas_habilitadas = true`, o campo `cotas_data` contem um array JSON de 
 // 3. Busca cota com nome matching (case-insensitive, trim)
 // 4. Retorna array de beneficios
 ```
+
+---
+
+## Estrutura JSONB: incentivo_data
+
+Quando `projeto_incentivado = true`, o campo `incentivo_data` contem um objeto JSON com detalhes do incentivo fiscal:
+
+```json
+{
+  "lei": "rouanet",
+  "lei_nome": "Lei Rouanet (Lei Federal 8.313/91)",
+  "categoria": "Cultura",
+  "valor": "500000",
+  "moeda": "BRL",
+  "status": "aprovado"
+}
+```
+
+### Campos
+
+| Campo | Tipo | Descricao |
+|-------|------|-----------|
+| `lei` | string | Chave interna: `rouanet`, `lie`, `paulo_gustavo`, `iss`, `icms`, `pronac`, `outras` |
+| `lei_nome` | string | Texto visivel da lei selecionada (para render sem lookup) |
+| `categoria` | string | Cultura, Esporte, Educacao, Saude, Assistencia Social, Meio Ambiente, Outros |
+| `valor` | string | Valor numerico sem mascara (ex: "500000" = R$ 500.000,00) |
+| `moeda` | string | BRL, USD, EUR, GBP |
+| `status` | string | `aprovado` ou `em_andamento` |
+
+### Leis Suportadas
+
+| Chave (`lei`) | Nome Completo |
+|---------------|---------------|
+| `rouanet` | Lei Rouanet (Lei Federal 8.313/91) |
+| `lie` | Lei de Incentivo ao Esporte — LIE (11.438/06) |
+| `paulo_gustavo` | Lei Paulo Gustavo |
+| `iss` | ISS — Lei Municipal de Incentivo |
+| `icms` | ICMS — Lei Estadual de Incentivo |
+| `pronac` | PRONAC |
+| `outras` | Outras |
 
 ---
 

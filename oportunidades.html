@@ -350,6 +350,20 @@ a { text-decoration: none; color: inherit; }
 }
 .opp-card:hover .card-link { gap: 8px; }
 
+/* ─── INCENTIVO FISCAL BADGE ─── */
+.catalog-badge-incentivo {
+  position: absolute; top: 12px; left: 12px;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #B8860B, #C8A84B);
+  color: #fff;
+  font-size: 11px; font-weight: 600;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+
 /* ─── VISIBILITY BADGES ─── */
 .vis-badge {
   position: absolute; top: 12px; right: 12px;
@@ -648,6 +662,7 @@ function renderCards() {
       '<div class="' + imageClass + '" style="background:' + cardBg + '">' +
         (o.imagem_capa ? '' : cfg.icon()) +
         '<span class="card-badge ' + cfg.badge + '">' + o.category + '</span>' +
+        (o.projetoIncentivado ? '<span class="catalog-badge-incentivo">Incentivo fiscal</span>' : '') +
         visBadgeHtml +
       '</div>' +
       '<div class="card-body">' +
