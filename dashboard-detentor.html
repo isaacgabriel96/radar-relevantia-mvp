@@ -2419,13 +2419,23 @@ async function dashSelectBrandfetchBrand(brand) {
       if (res.ok) {
         const data = await res.json();
         const desc = data.description || data.longDescription || '';
+        const descFields = document.querySelectorAll('.empresa-field');
+
+        // Pré-preencher descrição (index 4)
         if (desc) {
           _dashSelectedBrand.description = desc;
-          // Pré-preencher campo de descrição na tela (apenas visualmente — salva ao confirmar)
-          const descFields = document.querySelectorAll('.empresa-field');
-          // index 4 = descricao
           if (descFields[4] && !descFields[4].value) {
             descFields[4].value = desc;
+          }
+        }
+
+        // Pré-preencher site (index 3) — extrai do array links
+        const websiteLink = (data.links || []).find(l => l.type === 'website');
+        const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
+        if (websiteUrl) {
+          _dashSelectedBrand.website = websiteUrl;
+          if (descFields[3] && !descFields[3].value) {
+            descFields[3].value = websiteUrl;
           }
         }
       }
@@ -2484,13 +2494,46 @@ function fecharModalMudancaEmpresa() {
 async function confirmarSolicitacaoMudancaEmpresa() {
   fecharModalMudancaEmpresa();
   if (!_dashSelectedBrand) return;
-  // Salvar a solicitação como pendente na tabela perfis (campo empresa_change_pending)
-  // Por ora: salvar direto com status de pendência via toast informativo
-  // (coluna empresa_change_pending pode ser adicionada depois; por ora registra como nota)
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+      const userId = session.user.id;
+      const token  = session.access_token;
+      const payload = {
+        empresa_change_pending: JSON.stringify({
+          name:         _dashSelectedBrand.name        || '',
+          domain:       _dashSelectedBrand.domain      || '',
+          icon:         _dashSelectedBrand.icon        || '',
+          description:  _dashSelectedBrand.description || '',
+          website:      _dashSelectedBrand.website     || '',
+          requested_at: new Date().toISOString()
+        })
+      };
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/perfis?id=eq.${userId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey':        SUPABASE_KEY,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type':  'application/json',
+            'Prefer':        'return=minimal'
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('Erro ao salvar mudança pendente:', errText);
+      }
+    }
+  } catch (e) {
+    console.error('Erro ao salvar empresa_change_pending:', e);
+  }
+
   showToast('Solicitação enviada! Um admin vai revisar a mudança em breve.', 'success');
-  // Reset search
   dashClearCompany();
-  // Fechar edição
   if (editingEmpresa) toggleEditEmpresa();
 }
 

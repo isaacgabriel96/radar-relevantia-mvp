@@ -485,6 +485,11 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
           Detentores
           <span class="sidebar-badge red" id="badgeDetentores">—</span>
         </div>
+        <div class="sidebar-item" onclick="showSection('mudancas-marca', this)">
+          <span class="sidebar-item-icon">🔄</span>
+          Mudanças de Marca
+          <span class="sidebar-badge red" id="badgeMudancasMarca" style="display:none">0</span>
+        </div>
       </div>
       <div class="sidebar-section">
         <div class="sidebar-label">Operações</div>
@@ -670,6 +675,37 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
               </thead>
               <tbody id="tbodyDetentores">
                 <tr><td colspan="9"><div class="empty-state"><div class="spinner"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MUDANÇAS DE MARCA -->
+      <div id="section-mudancas-marca" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Mudanças de Marca</h1>
+          <p class="page-sub">Solicitações de alteração de empresa feitas por detentores — aprovar ou rejeitar</p>
+        </div>
+        <div class="table-card">
+          <div class="table-header" style="border-top:none;">
+            <span class="table-title">Solicitações Pendentes</span>
+            <span class="table-count" id="countMudancasMarca">carregando...</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Detentor</th>
+                  <th>Empresa Atual</th>
+                  <th>Nova Empresa</th>
+                  <th>Domínio</th>
+                  <th>Solicitado em</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyMudancasMarca">
+                <tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -1344,10 +1380,11 @@ function showSection(name, el) {
   if (el) el.classList.add('active');
 
   // Lazy load
-  if (name === 'embaixadores') loadEmbaixadores();
-  if (name === 'marcas')       loadMarcas();
-  if (name === 'detentores')   loadDetentores();
-  if (name === 'deals')        loadDeals();
+  if (name === 'embaixadores')    loadEmbaixadores();
+  if (name === 'marcas')          loadMarcas();
+  if (name === 'detentores')      loadDetentores();
+  if (name === 'deals')           loadDeals();
+  if (name === 'mudancas-marca')  loadMudancasMarca();
 }
 
 // ── Load all data ─────────────────────────────────────────────
@@ -1358,7 +1395,8 @@ async function loadAllData() {
     loadMarcas(),
     loadDetentores(),
     loadRecentActivity(),
-    loadDeals()
+    loadDeals(),
+    loadMudancasMarca()
   ]);
 }
 
@@ -2151,6 +2189,137 @@ async function rejeitarContrato(negId) {
     alert('Contrato rejeitado. O motivo foi salvo.');
     closeDealModal();
     await Promise.all([loadDeals(), loadStats()]);
+  } catch (err) {
+    alert('Erro ao rejeitar: ' + err.message);
+    console.error(err);
+  }
+}
+
+// ── Mudanças de Marca ──────────────────────────────────────
+async function loadMudancasMarca() {
+  const tbody = document.getElementById('tbodyMudancasMarca');
+  const count = document.getElementById('countMudancasMarca');
+  const badge = document.getElementById('badgeMudancasMarca');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></td></tr>';
+
+  try {
+    const res = await sbFetch(
+      '/rest/v1/perfis?empresa_change_pending=not.is.null&select=id,nome,email,empresa,empresa_change_pending'
+    );
+    if (!res.ok) throw new Error(await res.text());
+    const rows = await res.json();
+
+    // Update badge
+    if (badge) {
+      if (rows.length > 0) {
+        badge.textContent = rows.length;
+        badge.style.display = '';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    if (count) count.textContent = `${rows.length} solicitação(ões)`;
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Nenhuma solicitação pendente.</div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r => {
+      let pending = {};
+      try { pending = JSON.parse(r.empresa_change_pending || '{}'); } catch(e) {}
+      const reqAt = pending.requested_at
+        ? new Date(pending.requested_at).toLocaleString('pt-BR')
+        : '—';
+      const iconHtml = pending.icon
+        ? `<img src="${pending.icon}" alt="" style="width:28px;height:28px;border-radius:6px;object-fit:contain;background:#f5f5f5;margin-right:8px;vertical-align:middle;">`
+        : '';
+      return `<tr id="mudanca-row-${r.id}">
+        <td>
+          <div style="font-weight:600">${sanitizeText(r.nome || '—')}</div>
+          <div style="font-size:12px;color:#888">${sanitizeText(r.email || '')}</div>
+        </td>
+        <td>${sanitizeText(r.empresa || '—')}</td>
+        <td>
+          <div style="display:flex;align-items:center">
+            ${iconHtml}
+            <div>
+              <div style="font-weight:600">${sanitizeText(pending.name || '—')}</div>
+              ${pending.website ? `<div style="font-size:12px;color:#888">${sanitizeText(pending.website)}</div>` : ''}
+            </div>
+          </div>
+        </td>
+        <td style="font-size:13px;color:#888">${sanitizeText(pending.domain || '—')}</td>
+        <td style="font-size:13px">${reqAt}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn-sm btn-approve" onclick="aprovarMudancaMarca('${r.id}')">✅ Aprovar</button>
+            <button class="btn-sm btn-reject"  onclick="rejeitarMudancaMarca('${r.id}')">✕ Rejeitar</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="color:red">Erro: ${err.message}</div></td></tr>`;
+    console.error(err);
+  }
+}
+
+async function aprovarMudancaMarca(perfilId) {
+  if (!confirm('Aprovar essa mudança de empresa?')) return;
+  try {
+    // Fetch the pending data first
+    const res = await sbFetch(`/rest/v1/perfis?id=eq.${perfilId}&select=empresa_change_pending`);
+    if (!res.ok) throw new Error(await res.text());
+    const [row] = await res.json();
+    if (!row) throw new Error('Perfil não encontrado');
+
+    let pending = {};
+    try { pending = JSON.parse(row.empresa_change_pending || '{}'); } catch(e) {}
+
+    // Apply the new empresa data and clear pending
+    const patch = {
+      empresa:                pending.name        || null,
+      empresa_domain:         pending.domain      || null,
+      logo_url:               pending.icon        || null,
+      website:                pending.website     || null,
+      descricao:              pending.description || null,
+      empresa_change_pending: null
+    };
+    const resP = await sbFetch(`/rest/v1/perfis?id=eq.${perfilId}`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body:    JSON.stringify(patch)
+    });
+    if (!resP.ok) throw new Error(await resP.text());
+
+    // Remove row from table
+    const row$ = document.getElementById(`mudanca-row-${perfilId}`);
+    if (row$) row$.remove();
+
+    // Update count
+    await loadMudancasMarca();
+    alert('Mudança aprovada! Empresa do detentor atualizada.');
+  } catch (err) {
+    alert('Erro ao aprovar: ' + err.message);
+    console.error(err);
+  }
+}
+
+async function rejeitarMudancaMarca(perfilId) {
+  if (!confirm('Rejeitar essa solicitação de mudança?')) return;
+  try {
+    const resP = await sbFetch(`/rest/v1/perfis?id=eq.${perfilId}`, {
+      method:  'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body:    JSON.stringify({ empresa_change_pending: null })
+    });
+    if (!resP.ok) throw new Error(await resP.text());
+
+    await loadMudancasMarca();
+    alert('Solicitação rejeitada.');
   } catch (err) {
     alert('Erro ao rejeitar: ' + err.message);
     console.error(err);
