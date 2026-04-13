@@ -150,6 +150,7 @@
   .company-result-item:last-child { border-bottom: none; }
   .company-result-item:hover { background: var(--gray-bg); }
   .company-result-avatar { width: 36px; height: 36px; border-radius: 8px; background: var(--gold-pale); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--gold); flex-shrink: 0; }
+  .company-result-avatar img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
   .company-result-info .name { font-size: 13px; font-weight: 500; color: var(--black); }
   .company-result-info .meta { font-size: 11px; color: var(--gray-light); margin-top: 1px; }
   .company-create-option { padding: 12px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(201,168,76,0.04); border-top: 1.5px dashed rgba(201,168,76,0.3); transition: background 0.15s; }
@@ -717,10 +718,11 @@
       <div class="mode-section" id="section-create">
         <div class="section-label">Dados da nova empresa</div>
         <div class="form-grid cols-2">
-          <div class="form-group span-2">
+          <div class="form-group span-2" style="position:relative;">
             <label>Nome da empresa <span class="req">*</span></label>
-            <input type="text" id="companyName" placeholder="Razão social ou nome fantasia">
+            <input type="text" id="companyName" placeholder="Razão social ou nome fantasia" oninput="handleBrandfetchSearch(this.value)" autocomplete="off">
             <span class="field-error" id="companyNameError">Informe o nome da empresa.</span>
+            <div class="company-results" id="brandfetchResults"></div>
           </div>
           <div class="form-group"><label>CNPJ <span style="font-size:11px;font-weight:400;color:var(--gray-light);margin-left:4px;">(opcional)</span></label><input type="text" placeholder="00.000.000/0001-00" id="cnpj" oninput="formatCNPJ(this)"></div>
           <div class="form-group">
@@ -1217,6 +1219,49 @@
     document.getElementById('section-create').classList[mode === 'create' ? 'add' : 'remove']('active');
   }
 
+  // ─── BRANDFETCH AUTOCOMPLETE ───
+  const BRANDFETCH_CLIENT_ID = '1idE-ar9WXT49s6Qb2f';
+  let _bfTimer = null;
+
+  function handleBrandfetchSearch(val) {
+    clearTimeout(_bfTimer);
+    const results = document.getElementById('brandfetchResults');
+    if (val.length < 2) { results.classList.remove('show'); results.innerHTML = ''; return; }
+    _bfTimer = setTimeout(() => fetchBrandfetchSuggestions(val), 320);
+  }
+
+  async function fetchBrandfetchSuggestions(query) {
+    const results = document.getElementById('brandfetchResults');
+    try {
+      const res = await fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(query)}?c=${BRANDFETCH_CLIENT_ID}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) { results.classList.remove('show'); return; }
+      results.innerHTML = data.slice(0, 6).map(b => {
+        const avatarContent = b.icon
+          ? `<img src="${b.icon}" alt="${b.name || ''}" onerror="this.parentElement.textContent='${(b.name||'?')[0].toUpperCase()}'"/>`
+          : `${(b.name || '?')[0].toUpperCase()}`;
+        return `<div class="company-result-item" onclick="selectBrandfetchBrand(${JSON.stringify(b.name||'')}, ${JSON.stringify(b.domain||'')})">
+          <div class="company-result-avatar">${avatarContent}</div>
+          <div class="company-result-info">
+            <div class="name">${b.name || b.domain}</div>
+            <div class="meta">${b.domain || ''}</div>
+          </div>
+        </div>`;
+      }).join('');
+      results.classList.add('show');
+    } catch(e) { /* silencioso — autocomplete é progressivo */ }
+  }
+
+  function selectBrandfetchBrand(name, domain) {
+    document.getElementById('companyName').value = name;
+    document.getElementById('brandfetchResults').classList.remove('show');
+    if (domain) {
+      const websiteEl = document.getElementById('website');
+      if (websiteEl && !websiteEl.value) websiteEl.value = 'https://' + domain;
+    }
+  }
+
   // ─── PRÉ-PREENCHIMENTO DA EMPRESA PELO E-MAIL ───
   // Domínios genéricos que NÃO devem ser usados como nome de empresa
   const GENERIC_DOMAINS = ['gmail','yahoo','hotmail','outlook','icloud','live','uol','bol','terra',
@@ -1434,6 +1479,9 @@
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.company-search-box')) document.getElementById('companyResults').classList.remove('show');
+    if (!e.target.closest('#companyName') && !e.target.closest('#brandfetchResults')) {
+      document.getElementById('brandfetchResults').classList.remove('show');
+    }
   });
 
   // ─── URL VALIDATION ───
