@@ -1293,8 +1293,8 @@ input[type=number] { -moz-appearance: textfield; }
   overflow: hidden; box-shadow: var(--shadow-sm); margin-bottom: 20px;
 }
 .pv-cover {
-  display: grid; grid-template-columns: 1fr 120px 120px;
-  grid-template-rows: 1fr 1fr; gap: 3px; height: 220px;
+  display: grid; grid-template-columns: 1fr 160px 160px;
+  grid-template-rows: 1fr 1fr; gap: 4px; height: 320px;
   background: var(--gray-1); position: relative; overflow: hidden;
 }
 .pv-cover-main {
@@ -1309,7 +1309,7 @@ input[type=number] { -moz-appearance: textfield; }
   background-color: var(--gray-2);
 }
 .pv-cover-badge {
-  position: absolute; bottom: 8px; left: 8px;
+  position: absolute; bottom: 12px; left: 12px;
   background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
   color: var(--white); border-radius: var(--radius-pill);
   padding: 3px 9px; font-size: 10px; font-weight: 500; letter-spacing: .2px;
@@ -5500,8 +5500,6 @@ function collectOppData() {
     cotas_data: cotasData.length > 0 ? cotasData : null,
     projeto_incentivado: projetoIncentivado,
     incentivo_data: incentivoData,
-    publico_canais: Object.keys(publicoCanais).length > 0 ? publicoCanais : null,
-    publico_presencial: publicoPresencial,
     formato: detalhes['Formato'] || null,
     visibilidade: formState.selectedVisibility || 'publica',
     status: 'publicada',
