@@ -2027,16 +2027,16 @@ input[type=number] { -moz-appearance: textfield; }
 
       <!-- Card: Projeto Incentivado -->
       <div class="form-card">
-        <div class="form-card-header" style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+        <div onclick="toggleIncentivoSection()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none">
           <div>
-            <h3 class="form-card-title">Projeto incentivado por lei fiscal?</h3>
-            <p class="form-card-subtitle">Informe se o projeto é apoiado por lei de incentivo (Rouanet, LIE, Paulo Gustavo, etc.)</p>
+            <div style="font-family:var(--font-heading);font-size:17px;font-weight:600;color:var(--text);margin-bottom:3px">Projeto incentivado por lei fiscal?</div>
+            <div style="font-size:13px;color:var(--gray-3)">Informe se o projeto é apoiado por lei de incentivo (Rouanet, LIE, Paulo Gustavo, etc.)</div>
           </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <span id="incentivo-toggle-label" style="font-size:14px;color:var(--gray-3)">Não</span>
-            <button type="button" id="incentivo-toggle-switch" class="toggle-switch" onclick="toggleIncentivoSection()">
+          <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+            <span id="incentivo-toggle-label" style="font-size:13px;font-weight:600;color:var(--gray-3)">Não</span>
+            <div id="incentivo-toggle-switch" class="toggle-switch" onclick="event.stopPropagation();toggleIncentivoSection()">
               <div class="toggle-knob"></div>
-            </button>
+            </div>
           </div>
         </div>
 
