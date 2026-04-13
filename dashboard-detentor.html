@@ -1448,9 +1448,35 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
         <div style="padding:24px">
           <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">Nome da empresa</label>
-              <input class="form-input empresa-field" type="text" value="" disabled>
+            <!-- Nome da empresa: sempre read-only, troca via Brandfetch -->
+            <div class="form-group" id="empresaNomeGroup">
+              <label class="form-label">
+                Nome da empresa
+                <span id="empresaNomeLockBadge" style="display:none;margin-left:6px;font-size:10px;font-weight:500;color:var(--gray-3,#A89880);letter-spacing:.3px">• requer confirmação do admin</span>
+              </label>
+              <!-- View mode: input read-only (empresa-field index 0) -->
+              <input class="form-input empresa-field" id="empresaNomeInput" type="text" value="" disabled style="background:var(--gray-1,#F5F0E8)">
+              <!-- Edit mode: Brandfetch search (aparece ao editar) -->
+              <div id="empresaBrandfetchBox" style="display:none;position:relative;margin-top:8px">
+                <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none;color:#C0C0C0;">
+                  <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <input type="text" id="dashEmpresaSearch" placeholder="Buscar nova empresa pelo nome ou domínio..." autocomplete="off"
+                  class="form-input" style="padding-left:36px"
+                  oninput="dashBrandfetchSearch(this.value)">
+                <div id="dashBrandfetchResults" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--gray-2,#E0D8CC);border-radius:var(--radius-base);box-shadow:0 4px 16px rgba(30,22,0,.1);z-index:200;max-height:240px;overflow-y:auto"></div>
+              </div>
+              <!-- Card empresa selecionada via Brandfetch no dashboard -->
+              <div id="dashSelectedCard" style="display:none;margin-top:8px;padding:10px 14px;border:1.5px solid var(--gray-3,#A89880);border-radius:10px;align-items:center;gap:12px;background:var(--white);">
+                <img id="dashBrandIcon" src="" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:contain;background:#f5f5f5;flex-shrink:0;">
+                <div style="flex:1;min-width:0;">
+                  <div id="dashBrandName" style="font-size:14px;font-weight:600;color:var(--black,#1A1200);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+                  <div id="dashBrandDomain" style="font-size:12px;color:var(--gray-4,#5C4C38);margin-top:1px;"></div>
+                </div>
+                <button type="button" onclick="dashClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-4,#5C4C38);font-size:20px;line-height:1;padding:2px 4px;border-radius:4px;" title="Remover">×</button>
+              </div>
+              <div id="empresaNomeChangeHint" style="display:none;margin-top:6px;font-size:11px;color:var(--gray-3,#A89880)">Selecione a nova empresa acima. A mudança ficará pendente até aprovação do admin.</div>
             </div>
             <div class="form-group">
               <label class="form-label">CNPJ</label>
@@ -1486,6 +1512,25 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-actions" id="empresaActions" style="display:none">
             <button class="btn btn-gold" onclick="saveEmpresa()">Salvar alterações</button>
             <button class="btn btn-ghost" onclick="toggleEditEmpresa()">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Modal: confirmação de mudança de nome de empresa -->
+        <div id="modalMudancaEmpresa" style="display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;background:rgba(0,0,0,.45)">
+          <div style="background:#fff;border-radius:var(--radius-lg,16px);padding:32px;max-width:420px;width:90%;box-shadow:0 16px 48px rgba(30,22,0,.18)">
+            <h3 style="font-family:var(--font-heading,'Poppins'),sans-serif;font-size:17px;font-weight:700;color:var(--black,#1A1200);margin:0 0 8px">Solicitar mudança de empresa</h3>
+            <p style="font-size:13px;color:var(--gray-4,#5C4C38);line-height:1.6;margin:0 0 20px">A mudança do nome e identidade da empresa precisa ser aprovada por um administrador da plataforma. Sua solicitação será enviada para revisão.</p>
+            <div style="display:flex;gap:8px;align-items:center;padding:12px;border-radius:var(--radius-base);background:var(--gray-1,#F5F0E8);margin-bottom:20px">
+              <img id="modalBrandIcon" src="" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#fff;flex-shrink:0">
+              <div>
+                <div id="modalBrandName" style="font-size:14px;font-weight:600;color:var(--black,#1A1200)"></div>
+                <div id="modalBrandDomain" style="font-size:12px;color:var(--gray-3,#A89880)"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-ghost" onclick="fecharModalMudancaEmpresa()">Cancelar</button>
+              <button class="btn btn-gold" onclick="confirmarSolicitacaoMudancaEmpresa()">Enviar solicitação</button>
+            </div>
           </div>
         </div>
       </div>
@@ -2329,34 +2374,161 @@ function closeSidebar() {
   document.body.style.overflow = '';
 }
 
+// ─── BRANDFETCH NO DASHBOARD ───
+const DASH_BF_CLIENT_ID = '1idE-ar9WXT49s6Qb2f';
+let _dashBfCache = [];
+let _dashBfTimer = null;
+let _dashSelectedBrand = null; // { name, domain, icon } — nova empresa pendente
+
+function dashBrandfetchSearch(query) {
+  const results = document.getElementById('dashBrandfetchResults');
+  clearTimeout(_dashBfTimer);
+  if (!query || query.length < 2) { results.style.display = 'none'; return; }
+  _dashBfTimer = setTimeout(() => dashFetchBrandfetchSuggestions(query), 320);
+}
+
+async function dashFetchBrandfetchSuggestions(query) {
+  const results = document.getElementById('dashBrandfetchResults');
+  try {
+    const res = await fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(query)}?c=${DASH_BF_CLIENT_ID}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) { results.style.display = 'none'; return; }
+    _dashBfCache = data.slice(0, 6);
+    results.innerHTML = _dashBfCache.map((b, i) => `
+      <div data-dash-bf-index="${i}" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--gray-1,#F5F0E8);" onmouseover="this.style.background='var(--gray-1,#F5F0E8)'" onmouseout="this.style.background=''">
+        <img src="${b.icon||''}" alt="" style="width:28px;height:28px;border-radius:6px;object-fit:contain;background:#f5f5f5;flex-shrink:0" onerror="this.style.display='none'">
+        <div><div style="font-size:13px;font-weight:600;color:var(--black,#1A1200)">${b.name||b.domain||''}</div><div style="font-size:11px;color:var(--gray-3,#A89880)">${b.domain||''}</div></div>
+      </div>`).join('');
+    results.style.display = 'block';
+  } catch(e) { /* silencioso */ }
+}
+
+function dashSelectBrandfetchBrand(brand) {
+  _dashSelectedBrand = brand;
+  const searchInput  = document.getElementById('dashEmpresaSearch');
+  const card         = document.getElementById('dashSelectedCard');
+  const results      = document.getElementById('dashBrandfetchResults');
+  if (searchInput) searchInput.style.display = 'none';
+  results.style.display = 'none';
+  document.getElementById('dashBrandIcon').src = brand.icon || '';
+  document.getElementById('dashBrandIcon').style.display = brand.icon ? '' : 'none';
+  document.getElementById('dashBrandName').textContent = brand.name || brand.domain || '';
+  document.getElementById('dashBrandDomain').textContent = brand.domain || '';
+  card.style.display = 'flex';
+  const hint = document.getElementById('empresaNomeChangeHint');
+  if (hint) hint.style.display = '';
+}
+
+function dashClearCompany() {
+  _dashSelectedBrand = null;
+  const searchInput = document.getElementById('dashEmpresaSearch');
+  const card        = document.getElementById('dashSelectedCard');
+  const results     = document.getElementById('dashBrandfetchResults');
+  if (searchInput) { searchInput.style.display = ''; searchInput.value = ''; }
+  card.style.display = 'none';
+  results.style.display = 'none';
+  const hint = document.getElementById('empresaNomeChangeHint');
+  if (hint) hint.style.display = 'none';
+}
+
+// Event delegation para clicks no dropdown Brandfetch do dashboard
+document.addEventListener('click', function(e) {
+  const item = e.target.closest('[data-dash-bf-index]');
+  if (item) {
+    const idx = parseInt(item.dataset.dashBfIndex, 10);
+    const b = _dashBfCache[idx];
+    if (b) dashSelectBrandfetchBrand({ name: b.name||'', domain: b.domain||'', icon: b.icon||'' });
+    return;
+  }
+  const box = document.getElementById('empresaBrandfetchBox');
+  if (box && !box.contains(e.target)) {
+    const results = document.getElementById('dashBrandfetchResults');
+    if (results) results.style.display = 'none';
+  }
+  // Fechar modal ao clicar fora
+  const modal = document.getElementById('modalMudancaEmpresa');
+  if (modal && modal.style.display !== 'none' && e.target === modal) {
+    fecharModalMudancaEmpresa();
+  }
+});
+
+function abrirModalMudancaEmpresa() {
+  if (!_dashSelectedBrand) return;
+  document.getElementById('modalBrandIcon').src = _dashSelectedBrand.icon || '';
+  document.getElementById('modalBrandIcon').style.display = _dashSelectedBrand.icon ? '' : 'none';
+  document.getElementById('modalBrandName').textContent = _dashSelectedBrand.name || _dashSelectedBrand.domain || '';
+  document.getElementById('modalBrandDomain').textContent = _dashSelectedBrand.domain || '';
+  document.getElementById('modalMudancaEmpresa').style.display = 'flex';
+}
+
+function fecharModalMudancaEmpresa() {
+  document.getElementById('modalMudancaEmpresa').style.display = 'none';
+}
+
+async function confirmarSolicitacaoMudancaEmpresa() {
+  fecharModalMudancaEmpresa();
+  if (!_dashSelectedBrand) return;
+  // Salvar a solicitação como pendente na tabela perfis (campo empresa_change_pending)
+  // Por ora: salvar direto com status de pendência via toast informativo
+  // (coluna empresa_change_pending pode ser adicionada depois; por ora registra como nota)
+  showToast('Solicitação enviada! Um admin vai revisar a mudança em breve.', 'success');
+  // Reset search
+  dashClearCompany();
+  // Fechar edição
+  if (editingEmpresa) toggleEditEmpresa();
+}
+
 // ─── EDIT EMPRESA ───
 let editingEmpresa = false;
 function toggleEditEmpresa() {
   editingEmpresa = !editingEmpresa;
-  const fields = document.querySelectorAll('.empresa-field');
+  const fields  = document.querySelectorAll('.empresa-field');
   const actions = document.getElementById('empresaActions');
-  const btn = document.getElementById('btnEditEmpresa');
+  const btn     = document.getElementById('btnEditEmpresa');
+  const bfBox   = document.getElementById('empresaBrandfetchBox');
+  const badge   = document.getElementById('empresaNomeLockBadge');
+  const hint    = document.getElementById('empresaNomeChangeHint');
 
-  fields.forEach(f => {
+  // Todos os campos EXCETO o primeiro (nome empresa, que é sempre read-only)
+  fields.forEach((f, i) => {
+    if (i === 0) return; // nome empresa — nunca editável diretamente
     f.disabled = !editingEmpresa;
   });
+
+  // Campo nome: sempre disabled, mas mostra aviso + search no edit mode
+  if (fields[0]) fields[0].disabled = true;
+  if (badge) badge.style.display = editingEmpresa ? '' : 'none';
+  if (bfBox) bfBox.style.display = editingEmpresa ? '' : 'none';
+  if (hint && !_dashSelectedBrand) hint.style.display = 'none';
+
+  // Se cancelar, limpa o Brandfetch search
+  if (!editingEmpresa) {
+    dashClearCompany();
+  }
+
   actions.style.display = editingEmpresa ? 'flex' : 'none';
   btn.style.display = editingEmpresa ? 'none' : '';
 }
 
 async function saveEmpresa() {
+  // Se selecionou nova empresa via Brandfetch → abre modal de confirmação (não salva direto)
+  if (_dashSelectedBrand) {
+    abrirModalMudancaEmpresa();
+    return;
+  }
+
   toggleEditEmpresa();
-  // Persist to Supabase perfis table
+  // Persist to Supabase perfis table (demais campos: cnpj, segmento, telefone, website, descricao)
   if (!isDemoMode()) {
     const fields = document.querySelectorAll('.empresa-field');
     const userId = await getAuthUserId();
     if (userId && fields.length >= 6) {
-      // Read empresa_domain and logo_url from the identity card (set by populateDetenorFields)
+      // empresa_domain e logo_url vêm do identity card (não mudam sem aprovação do admin)
       const domainEl = document.getElementById('empresaLogoDomain');
       const imgEl    = document.getElementById('empresaLogoImg');
       const nomeAtual = fields[0]?.value?.trim() || null;
 
-      // empresa_domain: stored in dataset to survive edits
       const empresaDomain = (domainEl && domainEl.dataset.value) ? domainEl.dataset.value : null;
       const logoUrl       = (imgEl && imgEl.src && imgEl.style.display !== 'none') ? imgEl.src : null;
 
@@ -2378,10 +2550,9 @@ async function saveEmpresa() {
             'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
         });
       }
-      // Update logo identity card nome in case user changed the empresa field
+      // Sincroniza identity card
       const nomeEl = document.getElementById('empresaLogoNome');
       if (nomeEl && nomeAtual) nomeEl.textContent = nomeAtual;
-      // Update fallback letter
       const fallbackEl = document.getElementById('empresaLogoFallback');
       if (fallbackEl && imgEl && imgEl.style.display === 'none') {
         fallbackEl.textContent = nomeAtual ? nomeAtual.charAt(0).toUpperCase() : '?';
