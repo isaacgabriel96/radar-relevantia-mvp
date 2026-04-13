@@ -153,18 +153,8 @@
   .company-result-avatar img { width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
   .company-result-info .name { font-size: 13px; font-weight: 500; color: var(--black); }
   .company-result-info .meta { font-size: 11px; color: var(--gray-light); margin-top: 1px; }
-  .company-create-option { padding: 12px 16px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: rgba(201,168,76,0.04); border-top: 1.5px dashed rgba(201,168,76,0.3); transition: background 0.15s; }
-  .company-create-option:hover { background: rgba(201,168,76,0.08); }
-  .create-icon { width: 36px; height: 36px; border-radius: 8px; border: 1.5px dashed var(--gold); display: flex; align-items: center; justify-content: center; color: var(--gold); flex-shrink: 0; }
-  .company-create-option span { font-size: 13px; font-weight: 500; color: var(--gold); }
 
-  .mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1.5px solid var(--gray-border); border-radius: 10px; overflow: hidden; margin-bottom: 28px; }
-  .mode-btn { padding: 14px 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: none; background: var(--white); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--gray-light); transition: all 0.2s; text-align: left; }
-  .mode-btn:first-child { border-right: 1.5px solid var(--gray-border); }
-  .mode-btn.active { background: var(--black); color: var(--white); }
-  .mode-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-  .mode-section { display: none; }
-  .mode-section.active { display: block; }
+  /* modo único — sem toggle */
 
   .selected-company { display: none; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(201,168,76,0.06); border: 1.5px solid var(--gold); border-radius: 10px; margin-top: 8px; }
   .selected-company.show { display: flex; }
@@ -677,79 +667,25 @@
     <div class="step-panel" id="step-2">
       <div class="step-header">
         <div class="step-badge">Passo 2 de 4</div>
-        <h1 class="step-title">Empresa</h1>
-        <p class="step-subtitle">Vincule sua conta a uma empresa já cadastrada no Radar ou crie uma nova.</p>
+        <h1 class="step-title">Encontre sua empresa</h1>
+        <p class="step-subtitle">Digite o nome da empresa para localizar e vincular sua conta.</p>
       </div>
       <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:50%"></div></div>
 
-      <div class="mode-toggle">
-        <button class="mode-btn active" onclick="setCompanyMode('search')" id="mode-search">
-          <svg viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
-          Encontrar empresa existente
-        </button>
-        <button class="mode-btn" onclick="setCompanyMode('create')" id="mode-create">
-          <svg viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-          Criar nova empresa
-        </button>
+      <div class="company-search-box">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="7" cy="7" r="4.5" stroke="#9A9A9A" stroke-width="1.4"/>
+          <path d="M10.5 10.5L14 14" stroke="#9A9A9A" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <input type="text" placeholder="Digite o nome da sua empresa..." id="companySearch" oninput="handleBrandfetchSearch(this.value)" autocomplete="off">
+        <div class="company-results" id="brandfetchResults"></div>
       </div>
-
-      <div class="mode-section active" id="section-search">
-        <div class="section-label">Buscar empresa cadastrada</div>
-        <div class="company-search-box">
-          <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="7" cy="7" r="4.5" stroke="#9A9A9A" stroke-width="1.4"/>
-            <path d="M10.5 10.5L14 14" stroke="#9A9A9A" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
-          <input type="text" placeholder="Nome da empresa ou CNPJ..." id="companySearch" oninput="handleCompanySearch(this.value)" autocomplete="off">
-          <div class="company-results" id="companyResults">
-            <div class="company-result-item" onclick="selectCompany('Ambev','Bebidas • São Paulo')"><div class="company-result-avatar">A</div><div class="company-result-info"><div class="name">Ambev</div><div class="meta">Bebidas • São Paulo</div></div></div>
-            <div class="company-result-item" onclick="selectCompany('Itaú Unibanco','Financeiro • São Paulo')"><div class="company-result-avatar">I</div><div class="company-result-info"><div class="name">Itaú Unibanco</div><div class="meta">Financeiro • São Paulo</div></div></div>
-            <div class="company-result-item" onclick="selectCompany('Natura &amp;Co','Cosméticos • São Paulo')"><div class="company-result-avatar">N</div><div class="company-result-info"><div class="name">Natura &amp;Co</div><div class="meta">Cosméticos • São Paulo</div></div></div>
-            <div class="company-create-option" onclick="setCompanyMode('create')"><div class="create-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M2 8h12" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/></svg></div><span>Não encontrei minha empresa — cadastrar nova</span></div>
-          </div>
-        </div>
-        <div class="selected-company" id="selectedCompany">
-          <div class="selected-company-avatar" id="selectedAvatar">A</div>
-          <div><div class="selected-company-name" id="selectedName">Ambev</div><div class="selected-company-meta" id="selectedMeta">Bebidas • São Paulo</div></div>
-          <span class="selected-company-change" onclick="clearCompany()">Trocar</span>
-        </div>
+      <div class="selected-company" id="selectedCompany">
+        <div class="selected-company-avatar" id="selectedAvatar">A</div>
+        <div><div class="selected-company-name" id="selectedName"></div><div class="selected-company-meta" id="selectedMeta"></div></div>
+        <span class="selected-company-change" onclick="clearCompany()">Trocar</span>
       </div>
-
-      <div class="mode-section" id="section-create">
-        <div class="section-label">Dados da nova empresa</div>
-        <div class="form-grid cols-2">
-          <div class="form-group span-2" style="position:relative;">
-            <label>Nome da empresa <span class="req">*</span></label>
-            <input type="text" id="companyName" placeholder="Razão social ou nome fantasia" oninput="handleBrandfetchSearch(this.value)" autocomplete="off">
-            <span class="field-error" id="companyNameError">Informe o nome da empresa.</span>
-            <div class="company-results" id="brandfetchResults"></div>
-          </div>
-          <div class="form-group"><label>CNPJ <span style="font-size:11px;font-weight:400;color:var(--gray-light);margin-left:4px;">(opcional)</span></label><input type="text" placeholder="00.000.000/0001-00" id="cnpj" oninput="formatCNPJ(this)"></div>
-          <div class="form-group">
-            <label>Setor <span class="req">*</span></label>
-            <select id="companySector">
-              <option value="" disabled selected>Setor da empresa</option>
-              <option>Alimentação &amp; Bebidas</option><option>Automobilístico</option><option>Banco &amp; Financeiro</option>
-              <option>Cosméticos &amp; Beleza</option><option>E-commerce &amp; Varejo</option><option>Educação</option>
-              <option>Entretenimento</option><option>Farmácia &amp; Saúde</option><option>Moda &amp; Vestuário</option>
-              <option>Serviços</option><option>Tecnologia</option><option>Telecom</option><option>Outro</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Porte</label>
-            <select>
-              <option value="" disabled selected>Porte da empresa</option>
-              <option>Startup / MEI</option><option>Pequena (até 49 funcionários)</option>
-              <option>Média (50–299)</option><option>Grande (300+)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Website</label>
-            <input type="url" id="website" placeholder="www.empresa.com.br" onblur="validateUrl(this)">
-            <span class="field-error" id="websiteError">URL inválida. Use o formato: https://www.site.com.br</span>
-          </div>
-        </div>
-      </div>
+      <span class="field-error" id="companySearchError" style="display:none;margin-top:6px;">Selecione uma empresa para continuar.</span>
 
       <div class="step-actions">
         <button class="btn-back" onclick="goToStep(1)">
@@ -1115,12 +1051,11 @@
     const telefone      = phoneRaw ? dialCode + ' ' + phoneRaw : '';
     const cargo         = document.getElementById('role').value;
 
-    // Step 1 — empresa (modo create)
-    const empresa  = document.getElementById('companyName').value.trim()
-                     || document.getElementById('companySearch').value.trim();
-    const cnpj     = document.getElementById('cnpj').value.trim();
-    const segmento = document.getElementById('companySector').value;
-    const website  = document.getElementById('website').value.trim();
+    // Step 2 — empresa selecionada via Brandfetch
+    const empresa  = (_selectedBrand?.name || document.getElementById('companySearch').value.trim());
+    const website  = _selectedBrand?.domain ? 'https://' + _selectedBrand.domain : '';
+    const cnpj     = ''; // não coletado neste fluxo
+    const segmento = ''; // não coletado neste fluxo
 
     // Step 3 — perfil de consumo
     const perfil_consumo = Array.from(
@@ -1194,34 +1129,11 @@
     }
   }
 
-  // ─── COMPANY SEARCH ───
-  function handleCompanySearch(val) {
-    document.getElementById('companyResults').classList[val.length >= 2 ? 'add' : 'remove']('show');
-  }
-  function selectCompany(name, meta) {
-    document.getElementById('companySearch').value = name;
-    document.getElementById('companyResults').classList.remove('show');
-    document.getElementById('selectedAvatar').textContent = name[0];
-    document.getElementById('selectedName').textContent = name;
-    document.getElementById('selectedMeta').textContent = meta;
-    document.getElementById('selectedCompany').classList.add('show');
-    document.getElementById('companySearch').style.display = 'none';
-  }
-  function clearCompany() {
-    document.getElementById('selectedCompany').classList.remove('show');
-    document.getElementById('companySearch').style.display = '';
-    document.getElementById('companySearch').value = '';
-  }
-  function setCompanyMode(mode) {
-    document.getElementById('mode-search').classList[mode === 'search' ? 'add' : 'remove']('active');
-    document.getElementById('mode-create').classList[mode === 'create' ? 'add' : 'remove']('active');
-    document.getElementById('section-search').classList[mode === 'search' ? 'add' : 'remove']('active');
-    document.getElementById('section-create').classList[mode === 'create' ? 'add' : 'remove']('active');
-  }
-
-  // ─── BRANDFETCH AUTOCOMPLETE ───
+  // ─── COMPANY SEARCH (Brandfetch) ───
   const BRANDFETCH_CLIENT_ID = '1idE-ar9WXT49s6Qb2f';
   let _bfTimer = null;
+  // Armazena dados da empresa selecionada para o submit
+  let _selectedBrand = null;
 
   function handleBrandfetchSearch(val) {
     clearTimeout(_bfTimer);
@@ -1238,10 +1150,11 @@
       const data = await res.json();
       if (!Array.isArray(data) || data.length === 0) { results.classList.remove('show'); return; }
       results.innerHTML = data.slice(0, 6).map(b => {
+        const safeB = JSON.stringify({ name: b.name||'', domain: b.domain||'', icon: b.icon||'' });
         const avatarContent = b.icon
           ? `<img src="${b.icon}" alt="${b.name || ''}" onerror="this.parentElement.textContent='${(b.name||'?')[0].toUpperCase()}'"/>`
           : `${(b.name || '?')[0].toUpperCase()}`;
-        return `<div class="company-result-item" onclick="selectBrandfetchBrand(${JSON.stringify(b.name||'')}, ${JSON.stringify(b.domain||'')})">
+        return `<div class="company-result-item" onclick="selectBrandfetchBrand(${safeB})">
           <div class="company-result-avatar">${avatarContent}</div>
           <div class="company-result-info">
             <div class="name">${b.name || b.domain}</div>
@@ -1253,14 +1166,42 @@
     } catch(e) { /* silencioso — autocomplete é progressivo */ }
   }
 
-  function selectBrandfetchBrand(name, domain) {
-    document.getElementById('companyName').value = name;
+  function selectBrandfetchBrand(brand) {
+    _selectedBrand = brand;
+    // Atualiza o input de busca com o nome selecionado
+    const searchInput = document.getElementById('companySearch');
+    searchInput.value = brand.name || brand.domain;
+    // Fecha dropdown
     document.getElementById('brandfetchResults').classList.remove('show');
-    if (domain) {
-      const websiteEl = document.getElementById('website');
-      if (websiteEl && !websiteEl.value) websiteEl.value = 'https://' + domain;
+    // Mostra card selecionado
+    const firstLetter = (brand.name || brand.domain || '?')[0].toUpperCase();
+    const avatarEl = document.getElementById('selectedAvatar');
+    if (brand.icon) {
+      avatarEl.innerHTML = `<img src="${brand.icon}" alt="${brand.name}" style="width:100%;height:100%;object-fit:contain;border-radius:8px;" onerror="this.parentElement.textContent='${firstLetter}'">`;
+    } else {
+      avatarEl.textContent = firstLetter;
     }
+    document.getElementById('selectedName').textContent = brand.name || brand.domain;
+    document.getElementById('selectedMeta').textContent = brand.domain || '';
+    document.getElementById('selectedCompany').classList.add('show');
+    searchInput.style.display = 'none';
+    // Esconde erro se estava visível
+    const errEl = document.getElementById('companySearchError');
+    if (errEl) errEl.style.display = 'none';
   }
+
+  function clearCompany() {
+    _selectedBrand = null;
+    document.getElementById('selectedCompany').classList.remove('show');
+    const searchInput = document.getElementById('companySearch');
+    searchInput.style.display = '';
+    searchInput.value = '';
+    searchInput.focus();
+    document.getElementById('brandfetchResults').classList.remove('show');
+  }
+
+  // Mantida para compatibilidade (prefillCompanyFromEmail usa setCompanyMode internamente)
+  function setCompanyMode() { /* no-op — modo único agora */ }
 
   // ─── PRÉ-PREENCHIMENTO DA EMPRESA PELO E-MAIL ───
   // Domínios genéricos que NÃO devem ser usados como nome de empresa
@@ -1290,94 +1231,41 @@
     const rootDomain = domain.split('.')[0];
     if (!domain || GENERIC_DOMAINS.includes(rootDomain)) return; // domínio genérico, ignora
 
-    // Muda para modo "criar empresa" e preenche campos
-    setCompanyMode('create');
-
-    const nameInput = document.getElementById('companyName');
-    const websiteInput = document.getElementById('website');
     const suggestedName = domainToName(domain);
-
-    if (nameInput && !nameInput.value) {
-      nameInput.value = suggestedName;
-      // Destaque visual suave para indicar que foi preenchido automaticamente
-      nameInput.classList.add('prefilled');
-      setTimeout(() => nameInput.classList.remove('prefilled'), 2200);
-      // Hint de sugestão abaixo do campo
+    const searchInput = document.getElementById('companySearch');
+    if (searchInput && !searchInput.value) {
+      searchInput.value = suggestedName;
+      // Hint de sugestão
       const existingHint = document.getElementById('prefillHint');
       if (!existingHint) {
         const hint = document.createElement('p');
         hint.id = 'prefillHint';
         hint.className = 'prefill-hint';
-        hint.textContent = 'Sugerido com base no seu e-mail — edite se necessário';
-        nameInput.parentNode.appendChild(hint);
+        hint.textContent = '✦ Sugerido com base no seu e-mail — edite se necessário';
+        searchInput.parentNode.appendChild(hint);
       }
-    }
-    if (websiteInput && !websiteInput.value) {
-      websiteInput.value = 'https://www.' + domain;
+      // Dispara busca Brandfetch automaticamente
+      handleBrandfetchSearch(suggestedName);
     }
     _prefillDone = true;
   }
 
   // ─── VALIDAÇÃO ETAPA 2 ───
   function validateStep2() {
-    const mode = document.getElementById('section-create').classList.contains('active') ? 'create' : 'search';
     let ok = true;
 
-    if (mode === 'search') {
-      // Precisa ter uma empresa selecionada (card .show visível)
-      const selected = document.getElementById('selectedCompany');
-      if (!selected || !selected.classList.contains('show')) {
-        // Nenhuma empresa selecionada — destaca o campo de busca
-        const searchInput = document.getElementById('companySearch');
-        if (searchInput) {
-          searchInput.classList.add('error');
-          searchInput.placeholder = 'Selecione uma empresa ou crie uma nova';
-          setTimeout(() => {
-            searchInput.classList.remove('error');
-            searchInput.placeholder = 'Nome da empresa ou CNPJ...';
-          }, 3000);
-          searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          searchInput.focus();
-        }
-        ok = false;
+    // Precisa ter uma empresa selecionada via Brandfetch
+    if (!_selectedBrand) {
+      const searchInput = document.getElementById('companySearch');
+      const errEl = document.getElementById('companySearchError');
+      if (searchInput) {
+        searchInput.classList.add('error');
+        setTimeout(() => searchInput.classList.remove('error'), 3000);
+        searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        searchInput.focus();
       }
-    } else {
-      // Modo criar: nome e setor são obrigatórios
-      const nameVal = (document.getElementById('companyName')?.value || '').trim();
-      if (!nameVal) {
-        markInputError('companyName', true);
-        showFieldError('companyNameError', 'Informe o nome da empresa.');
-        ok = false;
-      } else {
-        markInputError('companyName', false);
-        hideFieldError('companyNameError');
-      }
-
-      const sectorVal = document.getElementById('companySector')?.value || '';
-      if (!sectorVal) {
-        markInputError('companySector', true);
-        ok = false;
-      } else {
-        markInputError('companySector', false);
-      }
-
-      // CNPJ — opcional, mas se preenchido deve ser válido (checksum)
-      const cnpjVal = (document.getElementById('cnpj')?.value || '').trim();
-      if (cnpjVal && typeof validateCNPJ === 'function' && !validateCNPJ(cnpjVal)) {
-        markInputError('cnpj', true);
-        const cnpjInput = document.getElementById('cnpj');
-        if (cnpjInput) { cnpjInput.style.borderColor = 'var(--red)'; }
-        ok = false;
-        // Mostra toast informativo
-        if (typeof showToast === 'function') showToast('CNPJ inválido. Verifique os dígitos.', 'error');
-      } else {
-        markInputError('cnpj', false);
-      }
-
-      if (!ok) {
-        const firstErr = document.querySelector('#section-create input.error, #section-create select.error');
-        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      if (errEl) errEl.style.display = 'block';
+      ok = false;
     }
     return ok;
   }
@@ -1478,9 +1366,8 @@
   }
 
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.company-search-box')) document.getElementById('companyResults').classList.remove('show');
-    if (!e.target.closest('#companyName') && !e.target.closest('#brandfetchResults')) {
-      document.getElementById('brandfetchResults').classList.remove('show');
+    if (!e.target.closest('#companySearch') && !e.target.closest('#brandfetchResults')) {
+      document.getElementById('brandfetchResults')?.classList.remove('show');
     }
   });
 
