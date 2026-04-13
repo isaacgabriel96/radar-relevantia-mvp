@@ -5500,6 +5500,8 @@ function collectOppData() {
     cotas_data: cotasData.length > 0 ? cotasData : null,
     projeto_incentivado: projetoIncentivado,
     incentivo_data: incentivoData,
+    publico_canais: Object.keys(publicoCanais).length > 0 ? publicoCanais : null,
+    publico_presencial: publicoPresencial,
     formato: detalhes['Formato'] || null,
     visibilidade: formState.selectedVisibility || 'publica',
     status: 'publicada',
