@@ -353,31 +353,34 @@ select:disabled { background: var(--gray-1); color: var(--gray-5); cursor: not-a
     <div class="form-section">
       <div class="section-label"><span class="section-label-icon">🏢</span>Dados da empresa</div>
 
-      <div class="form-row">
-        <div class="form-group" style="position:relative;">
-          <label>Nome da empresa <span class="req">*</span></label>
-          <!-- Brandfetch search box -->
-          <div class="det-company-search-box" id="det-company-search-box" style="position:relative;">
-            <svg class="det-search-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none;color:#C0C0C0;">
-              <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            <input type="text" id="f-empresa" placeholder="Buscar empresa..." autocomplete="off"
-              style="padding-left:36px;"
-              oninput="detHandleBrandfetchSearch(this.value)">
-            <div id="detBrandfetchResults" class="det-bf-dropdown"></div>
-          </div>
-          <!-- Card empresa selecionada -->
-          <div id="detSelectedCard" style="display:none; margin-top:8px; padding:10px 12px; border:1.5px solid var(--gray-3); border-radius:8px; display:none; align-items:center; gap:10px; background:var(--white);">
-            <img id="detBrandIcon" src="" alt="" style="width:32px;height:32px;border-radius:6px;object-fit:contain;background:#f5f5f5;flex-shrink:0;">
-            <div style="flex:1;min-width:0;">
-              <div id="detBrandName" style="font-size:14px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-              <div id="detBrandDomain" style="font-size:11px;color:var(--gray-5);"></div>
-            </div>
-            <button type="button" onclick="detClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-5);font-size:18px;line-height:1;padding:0 2px;" title="Remover">×</button>
-          </div>
-          <span class="field-error" id="det-empresaError" style="font-size:11px;display:none;color:#D32F2F;margin-top:4px;"></span>
+      <!-- Nome da empresa — linha cheia -->
+      <div class="form-group" style="position:relative;">
+        <label>Nome da empresa <span class="req">*</span></label>
+        <!-- Brandfetch search box -->
+        <div class="det-company-search-box" id="det-company-search-box" style="position:relative;">
+          <svg class="det-search-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none;color:#C0C0C0;">
+            <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <input type="text" id="f-empresa" placeholder="Buscar empresa pelo nome ou domínio..." autocomplete="off"
+            style="padding-left:36px;"
+            oninput="detHandleBrandfetchSearch(this.value)">
+          <div id="detBrandfetchResults" class="det-bf-dropdown"></div>
         </div>
+        <!-- Card empresa selecionada -->
+        <div id="detSelectedCard" style="display:none; margin-top:8px; padding:10px 14px; border:1.5px solid var(--gray-3); border-radius:10px; align-items:center; gap:12px; background:var(--white);">
+          <img id="detBrandIcon" src="" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:contain;background:#f5f5f5;flex-shrink:0;">
+          <div style="flex:1;min-width:0;">
+            <div id="detBrandName" style="font-size:14px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+            <div id="detBrandDomain" style="font-size:12px;color:var(--gray-4);margin-top:1px;"></div>
+          </div>
+          <button type="button" onclick="detClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-4);font-size:20px;line-height:1;padding:2px 4px;border-radius:4px;" title="Remover">×</button>
+        </div>
+        <span class="field-error" id="det-empresaError" style="font-size:11px;display:none;color:#D32F2F;margin-top:4px;"></span>
+      </div>
+
+      <!-- Segmento — linha cheia logo abaixo -->
+      <div class="form-row">
         <div class="form-group">
           <label>Segmento <span class="req">*</span></label>
           <div class="select-wrap">
