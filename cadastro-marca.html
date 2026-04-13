@@ -1142,6 +1142,9 @@
     _bfTimer = setTimeout(() => fetchBrandfetchSuggestions(val), 320);
   }
 
+  // cache dos resultados Brandfetch para uso no event listener
+  let _bfCache = [];
+
   async function fetchBrandfetchSuggestions(query) {
     const results = document.getElementById('brandfetchResults');
     try {
@@ -1149,12 +1152,12 @@
       if (!res.ok) return;
       const data = await res.json();
       if (!Array.isArray(data) || data.length === 0) { results.classList.remove('show'); return; }
-      results.innerHTML = data.slice(0, 6).map(b => {
-        const safeB = JSON.stringify({ name: b.name||'', domain: b.domain||'', icon: b.icon||'' });
+      _bfCache = data.slice(0, 6);
+      results.innerHTML = _bfCache.map((b, i) => {
         const avatarContent = b.icon
-          ? `<img src="${b.icon}" alt="${b.name || ''}" onerror="this.parentElement.textContent='${(b.name||'?')[0].toUpperCase()}'"/>`
+          ? `<img src="${b.icon}" alt="" onerror="this.parentElement.textContent='${(b.name||'?')[0].toUpperCase()}'"/>`
           : `${(b.name || '?')[0].toUpperCase()}`;
-        return `<div class="company-result-item" onclick="selectBrandfetchBrand(${safeB})">
+        return `<div class="company-result-item" data-bf-index="${i}">
           <div class="company-result-avatar">${avatarContent}</div>
           <div class="company-result-info">
             <div class="name">${b.name || b.domain}</div>
@@ -1365,6 +1368,16 @@
     else { badge.textContent = 'Inválido'; badge.className = 'code-badge invalid'; }
   }
 
+  // Event delegation: clique em item do dropdown Brandfetch
+  document.getElementById('brandfetchResults').addEventListener('click', (e) => {
+    const item = e.target.closest('[data-bf-index]');
+    if (!item) return;
+    const idx = parseInt(item.getAttribute('data-bf-index'), 10);
+    const brand = _bfCache[idx];
+    if (brand) selectBrandfetchBrand({ name: brand.name||'', domain: brand.domain||'', icon: brand.icon||'' });
+  });
+
+  // Fecha dropdown ao clicar fora
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#companySearch') && !e.target.closest('#brandfetchResults')) {
       document.getElementById('brandfetchResults')?.classList.remove('show');
