@@ -1470,13 +1470,13 @@ tbody tr:last-child td { border-bottom: none; }
                 <div id="dashBrandfetchResults" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--gray-2,#E0D8CC);border-radius:var(--radius-base);box-shadow:0 4px 16px rgba(30,22,0,.1);z-index:200;max-height:240px;overflow-y:auto"></div>
               </div>
               <!-- Card empresa selecionada via Brandfetch no dashboard -->
-              <div id="dashSelectedCard" style="display:none;margin-top:8px;padding:10px 14px;border:1.5px solid var(--gray-3,#A89880);border-radius:10px;align-items:center;gap:12px;background:var(--white);">
-                <img id="dashBrandIcon" src="" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:contain;background:#f5f5f5;flex-shrink:0;">
+              <div id="dashSelectedCard" style="display:none;margin-top:8px;padding:12px 16px;border:1.5px solid var(--gray-3,#A89880);border-radius:10px;width:100%;box-sizing:border-box;align-items:center;gap:12px;background:var(--white);">
+                <img id="dashBrandIcon" src="" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#f5f5f5;flex-shrink:0;">
                 <div style="flex:1;min-width:0;">
                   <div id="dashBrandName" style="font-size:14px;font-weight:600;color:var(--black,#1A1200);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
                   <div id="dashBrandDomain" style="font-size:12px;color:var(--gray-4,#5C4C38);margin-top:1px;"></div>
                 </div>
-                <button type="button" onclick="dashClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-4,#5C4C38);font-size:20px;line-height:1;padding:2px 4px;border-radius:4px;" title="Remover">×</button>
+                <button type="button" onclick="dashClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-4,#5C4C38);font-size:22px;line-height:1;padding:2px 6px;border-radius:4px;" title="Remover">×</button>
               </div>
               <div id="empresaNomeChangeHint" style="display:none;margin-top:6px;font-size:11px;color:var(--gray-3,#A89880)">Selecione a nova empresa acima. A mudança ficará pendente até aprovação do admin.</div>
             </div>
@@ -1493,14 +1493,6 @@ tbody tr:last-child td { border-bottom: none; }
                 <option>Entretenimento</option>
                 <option>Educação</option>
               </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Telefone</label>
-              <input class="form-input empresa-field" type="text" value="" disabled>
-            </div>
-            <div class="form-group full">
-              <label class="form-label">Endereço</label>
-              <input class="form-input empresa-field" type="text" value="" disabled>
             </div>
             <div class="form-group full">
               <label class="form-label">Site</label>
@@ -1937,10 +1929,9 @@ function populateDetenorFields(p) {
     const opt = Array.from(empresaFields[2].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
     if (opt) empresaFields[2].value = opt.value;
   }
-  if (empresaFields[3]) empresaFields[3].value = p.telefone || '';
-  // index 4 = endereço (sem coluna no perfis, skip)
-  if (empresaFields[5]) empresaFields[5].value = p.website || '';
-  if (empresaFields[6]) empresaFields[6].value = p.descricao || '';
+  // [3]=site, [4]=descricao (telefone e endereço removidos do form)
+  if (empresaFields[3]) empresaFields[3].value = p.website || '';
+  if (empresaFields[4]) empresaFields[4].value = p.descricao || '';
 
   // Perfil fields: [0]=nome, [1]=email, [2]=telefone, [3]=cargo
   const perfilFields = document.querySelectorAll('.perfil-field');
@@ -2406,7 +2397,7 @@ async function dashFetchBrandfetchSuggestions(query) {
   } catch(e) { /* silencioso */ }
 }
 
-function dashSelectBrandfetchBrand(brand) {
+async function dashSelectBrandfetchBrand(brand) {
   _dashSelectedBrand = brand;
   const searchWrap = document.getElementById('dashSearchInputWrap');
   const card       = document.getElementById('dashSelectedCard');
@@ -2420,6 +2411,26 @@ function dashSelectBrandfetchBrand(brand) {
   card.style.display = 'flex';
   const hint = document.getElementById('empresaNomeChangeHint');
   if (hint) hint.style.display = '';
+
+  // Buscar descrição da empresa via Brandfetch brands API
+  if (brand.domain) {
+    try {
+      const res = await fetch(`https://api.brandfetch.io/v2/brands/${encodeURIComponent(brand.domain)}?c=${DASH_BF_CLIENT_ID}`);
+      if (res.ok) {
+        const data = await res.json();
+        const desc = data.description || data.longDescription || '';
+        if (desc) {
+          _dashSelectedBrand.description = desc;
+          // Pré-preencher campo de descrição na tela (apenas visualmente — salva ao confirmar)
+          const descFields = document.querySelectorAll('.empresa-field');
+          // index 4 = descricao
+          if (descFields[4] && !descFields[4].value) {
+            descFields[4].value = desc;
+          }
+        }
+      }
+    } catch(e) { /* silencioso */ }
+  }
 }
 
 function dashClearCompany() {
@@ -2523,11 +2534,11 @@ async function saveEmpresa() {
   }
 
   toggleEditEmpresa();
-  // Persist to Supabase perfis table (demais campos: cnpj, segmento, telefone, website, descricao)
+  // Persist to Supabase perfis table — [0]=nome, [1]=cnpj, [2]=segmento, [3]=site, [4]=descricao
   if (!isDemoMode()) {
     const fields = document.querySelectorAll('.empresa-field');
     const userId = await getAuthUserId();
-    if (userId && fields.length >= 6) {
+    if (userId && fields.length >= 3) {
       // empresa_domain e logo_url vêm do identity card (não mudam sem aprovação do admin)
       const domainEl = document.getElementById('empresaLogoDomain');
       const imgEl    = document.getElementById('empresaLogoImg');
@@ -2540,9 +2551,8 @@ async function saveEmpresa() {
         empresa:        nomeAtual,
         cnpj:           fields[1]?.value?.trim() || null,
         segmento:       fields[2]?.value || null,
-        telefone:       fields[3]?.value?.trim() || null,
-        website:        fields[5]?.value?.trim() || null,
-        descricao:      fields[6]?.value?.trim() || null,
+        website:        fields[3]?.value?.trim() || null,
+        descricao:      fields[4]?.value?.trim() || null,
         empresa_domain: empresaDomain,
         logo_url:       logoUrl
       };
