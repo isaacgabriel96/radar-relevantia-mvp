@@ -3090,6 +3090,16 @@ function toggleIncentivoModal(el) {
   el.classList.toggle('checked');
   var chk = document.getElementById('modalIncentivoCheck');
   if (chk) chk.checked = el.classList.contains('checked');
+  // habilita/desabilita botão: pode enviar se incentivo marcado OU assunto selecionado
+  _updateSubmitBtn();
+}
+
+function _updateSubmitBtn() {
+  var btn = document.getElementById('btn-submit');
+  if (!btn) return;
+  var hasSubject = !!document.querySelector('input[name="subject"]:checked');
+  var hasIncentivo = !!(document.getElementById('modalIncentivoCheck') || {}).checked;
+  btn.disabled = !(hasSubject || hasIncentivo);
 }
 
 function openModal() {
@@ -3172,9 +3182,7 @@ function selectSubject(el) {
   el.classList.add('selected');
   var radio = el.querySelector('input[type="radio"]');
   if (radio) radio.checked = true;
-  // habilita botão assim que um assunto é escolhido
-  var btn = document.getElementById('btn-submit');
-  if (btn) btn.disabled = false;
+  _updateSubmitBtn();
 }
 
 async function submitModal() {
