@@ -1036,6 +1036,326 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .focal-confirm-btn:hover { opacity: .9; }
 
+/* ═══════════════════════════════════════════════
+   LIVE PREVIEW — Layout 2 colunas + Card
+   ═══════════════════════════════════════════════ */
+
+/* Layout 2 colunas */
+.step2-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: stretch;
+}
+.step2-form-col { min-width: 0; }
+.step2-preview-col {
+  position: relative;
+}
+.step2-preview-sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 88px;
+}
+.step2-preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--gray-3);
+  margin-bottom: 12px;
+}
+
+/* Upload de foto — campo drag & drop */
+.photo-upload-area {
+  border: 2px dashed var(--gray-2);
+  border-radius: var(--radius-md);
+  background: var(--gray-1);
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.photo-upload-area:hover {
+  border-color: var(--gold-border);
+  background: var(--gold-muted);
+}
+.photo-upload-area.has-photos {
+  padding: 12px;
+  border-style: solid;
+  border-color: var(--gray-2);
+  background: var(--white);
+}
+.photo-upload-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  line-height: 1;
+  opacity: 0.5;
+}
+.photo-upload-text {
+  font-size: 13px;
+  color: var(--gray-3);
+  line-height: 1.5;
+}
+.photo-upload-text strong {
+  color: var(--gold);
+  font-weight: 600;
+}
+.photo-upload-hint {
+  font-size: 11px;
+  color: var(--gray-3);
+  margin-top: 4px;
+}
+
+/* Card do catálogo (opp-card) */
+.opp-card {
+  background: var(--white);
+  border: 1px solid rgba(26,18,0,0.07);
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+.opp-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold-gradient);
+  opacity: 0;
+  transition: opacity 0.22s;
+  border-radius: 18px 18px 0 0;
+}
+
+/* Hero */
+.olc-hero {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.olc-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.22) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+.olc-hero-tag {
+  position: absolute;
+  bottom: 12px; right: 12px;
+  z-index: 3;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 100px;
+  padding: 4px 11px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.95);
+  letter-spacing: 0.01em;
+}
+
+/* Corpo do card */
+.opp-card-body {
+  padding: 24px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0;
+}
+.opp-card-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.opp-card-desc {
+  font-size: 13px;
+  color: var(--gray-500, var(--gray-3));
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+  margin-bottom: 16px;
+}
+.opp-card-divider {
+  height: 1px;
+  background: rgba(26,18,0,0.06);
+  margin-bottom: 14px;
+}
+.opp-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.olc-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.olc-logo {
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  background: var(--gray-1);
+  border: 1px solid rgba(26,18,0,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--gray-600, var(--gray-4));
+  flex-shrink: 0;
+}
+.olc-brand-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500, var(--gray-3));
+}
+.olc-arrow-btn {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(26,18,0,0.1);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-400, var(--gray-3));
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+.olc-arrow-btn svg { width: 13px; height: 13px; }
+
+/* Live preview card — non-interactive (except hero carousel) */
+.lp-card { pointer-events: none; }
+.lp-card .olc-hero { pointer-events: auto; }
+
+/* Botão favorito (decorativo) */
+.opp-fav-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  z-index: 4;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.22);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.25);
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.92);
+  font-size: 15px;
+  cursor: default;
+  transition: all 0.18s;
+}
+
+/* Badge contagem de fotos */
+.olc-hero-count {
+  position: absolute;
+  top: 10px; left: 10px;
+  z-index: 4;
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius-pill);
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.95);
+  letter-spacing: 0.01em;
+}
+.olc-hero-count svg {
+  width: 11px; height: 11px;
+  opacity: 0.85;
+}
+
+/* Dots de navegação */
+.olc-hero-dots {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 5px; z-index: 4;
+}
+.olc-hero-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  transition: background 0.22s, transform 0.22s;
+  cursor: pointer; border: none; padding: 0; flex-shrink: 0;
+}
+.olc-hero-dot.active {
+  background: rgba(255,255,255,0.95); transform: scale(1.3);
+}
+
+/* Setas prev/next */
+.olc-hero-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 4;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.88); backdrop-filter: blur(8px);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.18s, background 0.18s;
+  pointer-events: none;
+}
+.olc-hero-nav svg { width: 12px; height: 12px; color: var(--black); }
+.olc-hero-nav.prev { left: 8px; }
+.olc-hero-nav.next { right: 8px; }
+.olc-hero:hover .olc-hero-nav { opacity: 1; pointer-events: auto; }
+.olc-hero-nav:hover { background: rgba(255,255,255,1); }
+
+/* Permitir clique em nav/dots/fav no lp-card */
+.lp-card .olc-hero-nav,
+.lp-card .olc-hero-dot,
+.lp-card .opp-fav-btn { pointer-events: auto; }
+
+/* Placeholder state */
+.lp-placeholder {
+  color: var(--gray-2);
+  font-style: italic;
+}
+
+/* Hero image no live preview */
+.lp-hero-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+.lp-hero-gradient-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.3s;
+}
+.lp-hero-gradient-overlay.hidden { opacity: 0; pointer-events: none; }
+
+/* Responsivo — Live Preview */
+@media (max-width: 992px) {
+  .step2-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .step2-preview-col {
+    order: -1;
+    width: 100%;
+  }
+  .step2-preview-sticky {
+    position: static;
+  }
+}
+@media (max-width: 768px) {
+  .olc-hero { height: 200px; }
+  .step2-preview-col { max-width: 100%; }
+  .step2-preview-label { text-align: center; }
+}
+
 /* ── Visibility Cards (Passo 5) ── */
 .visibility-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
 .visibility-card {
@@ -1175,6 +1495,7 @@ input[type=number] { -moz-appearance: textfield; }
 .toast-success { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
 .toast-error { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
 @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
 /* ── Success Modal ── */
 .modal-overlay {
@@ -1777,11 +2098,27 @@ input[type=number] { -moz-appearance: textfield; }
          PASSO 2 — INFORMAÇÕES BÁSICAS
     ════════════════════════════════════════════ -->
     <div id="panel-2" style="display:none">
+      <div class="step2-layout">
+
+      <!-- ═══ COLUNA ESQUERDA: Formulário ═══ -->
+      <div class="step2-form-col">
       <div class="form-card">
         <div class="card-header">
           <div id="template-badge" class="card-badge" style="display:none"></div>
           <div class="card-title">Informações Básicas</div>
           <div class="card-desc">Dados gerais da sua oportunidade — o que toda marca precisa saber de início.</div>
+        </div>
+
+        <!-- Upload de Fotos (live preview) -->
+        <div class="form-group">
+          <label>Fotos <span style="font-size:11px;font-weight:400;color:var(--gray-3)">(até 5 imagens · máx. 50 MB cada)</span></label>
+          <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('photosInputLP').click()">
+            <div class="photo-upload-icon">📷</div>
+            <div class="photo-upload-text"><strong>Clique para enviar</strong> ou arraste imagens aqui</div>
+            <div class="photo-upload-hint">JPEG, PNG ou WebP · A primeira foto será a capa do card</div>
+            <input type="file" id="photosInputLP" accept="image/jpeg,image/png,image/webp" multiple style="display:none" onchange="handleLPPhotoUpload(this)">
+          </div>
+          <div class="photos-grid" id="photosGridLP" style="display:none"></div>
         </div>
 
         <div class="form-group">
@@ -1911,6 +2248,62 @@ input[type=number] { -moz-appearance: textfield; }
           </select>
         </div>
       </div>
+      </div><!-- /step2-form-col -->
+
+      <!-- ═══ COLUNA DIREITA: Live Preview Card ═══ -->
+      <div class="step2-preview-col">
+        <div class="step2-preview-sticky">
+          <div class="step2-preview-label">Prévia do card</div>
+
+          <div class="lp-card opp-card" id="lpCard">
+            <div class="olc-hero" id="lpHero" style="position:relative">
+              <img id="lpHeroImg" class="lp-hero-img" src="" alt="" style="display:none">
+              <div id="lpHeroBg" class="lp-hero-gradient-overlay" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+                <span id="lpHeroIcon" style="font-size:44px;line-height:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3))">👤</span>
+              </div>
+              <div class="opp-fav-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              </div>
+              <div class="olc-hero-count" id="lpPhotoCount" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span id="lpPhotoCountNum">0</span>
+              </div>
+              <div class="olc-hero-tag" id="lpCategoryBadge">Personalidade</div>
+              <button class="olc-hero-nav prev" id="lpNavPrev" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="olc-hero-nav next" id="lpNavNext" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+              <div class="olc-hero-dots" id="lpDots" style="display:none"></div>
+            </div>
+            <div class="opp-card-body">
+              <div class="opp-card-title" id="lpTitle">
+                <span class="lp-placeholder">Nome da oportunidade</span>
+              </div>
+              <div class="opp-card-desc" id="lpDesc">
+                <span class="lp-placeholder">Descrição curta aparecerá aqui…</span>
+              </div>
+              <div class="opp-card-divider"></div>
+              <div class="opp-card-footer">
+                <div class="olc-brand-row">
+                  <div class="olc-logo" id="lpOrgLogo" style="background:var(--gold-gradient);color:#fff;border:none;overflow:hidden;position:relative">
+                    <img id="lpOrgLogoImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;inset:0">
+                    <span id="lpOrgLogoInitials">…</span>
+                  </div>
+                  <span class="olc-brand-name" id="lpOrgName">Carregando…</span>
+                </div>
+                <div class="olc-arrow-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /step2-preview-col -->
+
+      </div><!-- /step2-layout -->
 
       <div class="step-actions">
         <button class="btn btn-ghost" onclick="nextStep(1)">← Voltar</button>
@@ -2384,6 +2777,431 @@ const formState = {
 };
 
 /* ══════════════════════════════════════════════
+   LIVE PREVIEW — Card do catálogo em tempo real
+══════════════════════════════════════════════ */
+
+/* Gradientes por categoria */
+const LP_GRADIENTS = {
+  personalidade: { bg: 'linear-gradient(135deg,#667eea,#764ba2)', icon: '👤', label: 'Personalidade' },
+  evento:        { bg: 'linear-gradient(135deg,#f093fb,#f5576c)', icon: '🎪', label: 'Evento' },
+  artista:       { bg: 'linear-gradient(135deg,#4facfe,#00f2fe)', icon: '🎵', label: 'Artista Musical' },
+  midia:         { bg: 'linear-gradient(135deg,#43e97b,#38f9d7)', icon: '📡', label: 'Mídia' }
+};
+
+/* Estado das fotos (live preview) */
+const lpUploadedPhotos = []; // { file, url, isCover, focalPoint }
+const LP_MAX_PHOTOS = 5;
+let lpCurrentSlide = 0;
+
+/* Inicializar bindings do live preview */
+function initLivePreview() {
+  const nome = document.getElementById('opp-nome');
+  const desc = document.getElementById('opp-desc');
+  const lpTitle = document.getElementById('lpTitle');
+  const lpDesc  = document.getElementById('lpDesc');
+
+  if (!nome || !desc || !lpTitle || !lpDesc) return;
+
+  nome.addEventListener('input', function() {
+    var v = nome.value.trim();
+    lpTitle.innerHTML = v
+      ? '<span>' + v + '</span>'
+      : '<span class="lp-placeholder">Nome da oportunidade</span>';
+  });
+
+  desc.addEventListener('input', function() {
+    var v = desc.value.trim();
+    lpDesc.innerHTML = v
+      ? '<span>' + v + '</span>'
+      : '<span class="lp-placeholder">Descrição curta aparecerá aqui…</span>';
+  });
+
+  // Nav arrows do carousel
+  var navPrev = document.getElementById('lpNavPrev');
+  var navNext = document.getElementById('lpNavNext');
+  if (navPrev) navPrev.addEventListener('click', function() {
+    lpGoToSlide((lpCurrentSlide - 1 + lpUploadedPhotos.length) % lpUploadedPhotos.length);
+  });
+  if (navNext) navNext.addEventListener('click', function() {
+    lpGoToSlide((lpCurrentSlide + 1) % lpUploadedPhotos.length);
+  });
+
+  // Drag & drop na upload area
+  var uploadArea = document.getElementById('photoUploadArea');
+  if (uploadArea) {
+    uploadArea.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      uploadArea.style.borderColor = 'var(--gold)';
+      uploadArea.style.background = 'var(--gold-muted)';
+    });
+    uploadArea.addEventListener('dragleave', function() {
+      uploadArea.style.borderColor = '';
+      uploadArea.style.background = '';
+    });
+    uploadArea.addEventListener('drop', function(e) {
+      e.preventDefault();
+      uploadArea.style.borderColor = '';
+      uploadArea.style.background = '';
+      if (e.dataTransfer.files.length) lpProcessFiles(e.dataTransfer.files);
+    });
+  }
+}
+
+/* Upload de fotos (live preview) */
+function handleLPPhotoUpload(input) {
+  if (input.files.length) lpProcessFiles(input.files);
+  input.value = '';
+}
+
+function lpProcessFiles(files) {
+  var allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  for (var i = 0; i < files.length; i++) {
+    if (lpUploadedPhotos.length >= LP_MAX_PHOTOS) break;
+    var f = files[i];
+    if (!allowed.includes(f.type)) continue;
+    if (f.size > 50 * 1024 * 1024) continue;
+
+    var url = URL.createObjectURL(f);
+    var isCover = lpUploadedPhotos.length === 0;
+    lpUploadedPhotos.push({ file: f, url: url, isCover: isCover, focalPoint: null });
+  }
+  lpRenderPhotosGrid();
+  lpUpdateHeroPreview();
+}
+
+function lpRenderPhotosGrid() {
+  var grid = document.getElementById('photosGridLP');
+  var uploadArea = document.getElementById('photoUploadArea');
+
+  if (lpUploadedPhotos.length === 0) {
+    grid.style.display = 'none';
+    uploadArea.style.display = '';
+    return;
+  }
+
+  uploadArea.style.display = 'none';
+  grid.style.display = 'grid';
+
+  var html = '';
+  lpUploadedPhotos.forEach(function(p, idx) {
+    var fp = p.focalPoint;
+    var objPos = fp ? (fp.x + '% ' + fp.y + '%') : 'center top';
+    html += '<div class="photo-thumb ' + (p.isCover ? 'cover-photo' : '') + '" data-idx="' + idx + '">'
+      + '<img src="' + p.url + '" alt="Foto ' + (idx + 1) + '" style="object-position: ' + objPos + '">'
+      + '<button class="photo-remove" onclick="lpRemovePhoto(' + idx + ')" title="Remover">×</button>'
+      + '<button class="photo-cover-btn" onclick="lpSetCoverPhoto(' + idx + ')">' + (p.isCover ? '★ Capa' : 'Capa') + '</button>'
+      + '<button class="photo-focal-btn ' + (fp ? 'has-focal' : '') + '" onclick="lpOpenFocalEditor(' + idx + ')" title="Ajustar enquadramento">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/></svg>'
+      + ' Ajustar</button>'
+      + '</div>';
+  });
+
+  if (lpUploadedPhotos.length < LP_MAX_PHOTOS) {
+    html += '<div class="photo-add-slot" onclick="document.getElementById(\'photosInputLP\').click()">+</div>';
+  }
+
+  grid.innerHTML = html;
+}
+
+function lpRemovePhoto(idx) {
+  var wasCover = lpUploadedPhotos[idx].isCover;
+  URL.revokeObjectURL(lpUploadedPhotos[idx].url);
+  lpUploadedPhotos.splice(idx, 1);
+
+  if (wasCover && lpUploadedPhotos.length > 0) {
+    lpUploadedPhotos.forEach(function(p) { p.isCover = false; });
+    lpUploadedPhotos[0].isCover = true;
+  }
+
+  lpRenderPhotosGrid();
+  lpUpdateHeroPreview();
+}
+
+function lpSetCoverPhoto(idx) {
+  lpUploadedPhotos.forEach(function(p, i) { p.isCover = (i === idx); });
+  lpRenderPhotosGrid();
+  lpUpdateHeroPreview();
+}
+
+/* Carousel / Hero do card */
+function lpUpdateHeroPreview() {
+  var heroImg = document.getElementById('lpHeroImg');
+  var heroBg = document.getElementById('lpHeroBg');
+  var photoCount = document.getElementById('lpPhotoCount');
+  var photoCountNum = document.getElementById('lpPhotoCountNum');
+  var dots = document.getElementById('lpDots');
+  var navPrev = document.getElementById('lpNavPrev');
+  var navNext = document.getElementById('lpNavNext');
+
+  if (!heroImg || !heroBg) return;
+
+  var coverIdx = lpUploadedPhotos.findIndex(function(p) { return p.isCover; });
+  lpCurrentSlide = coverIdx >= 0 ? coverIdx : 0;
+
+  var n = lpUploadedPhotos.length;
+  var hasPhotos = n > 0;
+  var hasMultiple = n >= 2;
+
+  if (hasPhotos) {
+    heroImg.src = lpUploadedPhotos[lpCurrentSlide].url;
+    var fp = lpUploadedPhotos[lpCurrentSlide].focalPoint;
+    heroImg.style.objectPosition = fp ? (fp.x + '% ' + fp.y + '%') : 'center top';
+    heroImg.style.display = 'block';
+    heroBg.classList.add('hidden');
+  } else {
+    heroImg.style.display = 'none';
+    heroImg.src = '';
+    heroBg.classList.remove('hidden');
+  }
+
+  if (hasMultiple) {
+    photoCount.style.display = 'flex';
+    photoCountNum.innerHTML = (lpCurrentSlide + 1) + ' <span style="opacity:0.6">/' + n + '</span>';
+  } else {
+    photoCount.style.display = 'none';
+  }
+
+  if (hasMultiple) {
+    dots.style.display = 'flex';
+    var dotsHtml = '';
+    lpUploadedPhotos.forEach(function(_, i) {
+      dotsHtml += '<button class="olc-hero-dot' + (i === lpCurrentSlide ? ' active' : '') + '" onclick="lpGoToSlide(' + i + ')"></button>';
+    });
+    dots.innerHTML = dotsHtml;
+  } else {
+    dots.style.display = 'none';
+    dots.innerHTML = '';
+  }
+
+  navPrev.style.display = hasMultiple ? '' : 'none';
+  navNext.style.display = hasMultiple ? '' : 'none';
+}
+
+function lpGoToSlide(idx) {
+  if (idx < 0 || idx >= lpUploadedPhotos.length) return;
+  lpCurrentSlide = idx;
+
+  var heroImg = document.getElementById('lpHeroImg');
+  heroImg.src = lpUploadedPhotos[idx].url;
+  var fp = lpUploadedPhotos[idx].focalPoint;
+  heroImg.style.objectPosition = fp ? (fp.x + '% ' + fp.y + '%') : 'center top';
+
+  document.querySelectorAll('#lpDots .olc-hero-dot').forEach(function(d, i) {
+    d.classList.toggle('active', i === idx);
+  });
+
+  var n = lpUploadedPhotos.length;
+  document.getElementById('lpPhotoCountNum').innerHTML = (idx + 1) + ' <span style="opacity:0.6">/' + n + '</span>';
+}
+
+/* Focal Point Editor (live preview) */
+var _lpFocalEditorIdx = null;
+var _lpFocalTemp = null;
+
+function lpOpenFocalEditor(idx) {
+  _lpFocalEditorIdx = idx;
+  var photo = lpUploadedPhotos[idx];
+  _lpFocalTemp = photo.focalPoint ? { x: photo.focalPoint.x, y: photo.focalPoint.y } : { x: 50, y: 20 };
+
+  var overlay = document.createElement('div');
+  overlay.className = 'focal-overlay';
+  overlay.id = 'lpFocalOverlay';
+  overlay.onclick = function(e) { if (e.target === overlay) lpCloseFocalEditor(); };
+
+  overlay.innerHTML = '<div class="focal-editor">'
+    + '<div class="focal-editor-header">'
+    + '<span class="focal-editor-title">Ajustar enquadramento</span>'
+    + '<button class="focal-editor-close" onclick="lpCloseFocalEditor()">×</button>'
+    + '</div>'
+    + '<div class="focal-editor-body">'
+    + '<div class="focal-editor-left">'
+    + '<div class="focal-editor-hint">Clique na foto para mover o ponto focal</div>'
+    + '<div class="focal-image-wrap" id="lpFocalImageWrap" onclick="lpOnFocalClick(event)">'
+    + '<img src="' + photo.url + '" alt="Ajustar focal">'
+    + '<div class="focal-marker" id="lpFocalMarker" style="left:' + _lpFocalTemp.x + '%;top:' + _lpFocalTemp.y + '%"></div>'
+    + '</div>'
+    + '</div>'
+    + '<div class="focal-editor-right">'
+    + '<div class="focal-editor-hint">Preview do enquadramento</div>'
+    + '<div class="focal-previews">'
+    + '<div class="focal-preview-box">'
+    + '<div class="focal-preview-label">Card 16:9</div>'
+    + '<div class="focal-preview-card">'
+    + '<img id="lpFocalPreview16" src="' + photo.url + '" style="object-position:' + _lpFocalTemp.x + '% ' + _lpFocalTemp.y + '%">'
+    + '</div>'
+    + '</div>'
+    + '<div class="focal-preview-box">'
+    + '<div class="focal-preview-label">Thumb 1:1</div>'
+    + '<div class="focal-preview-square">'
+    + '<img id="lpFocalPreview1" src="' + photo.url + '" style="object-position:' + _lpFocalTemp.x + '% ' + _lpFocalTemp.y + '%">'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '<div class="focal-editor-footer">'
+    + '<button class="btn btn-ghost" onclick="lpCloseFocalEditor()">Cancelar</button>'
+    + '<button class="btn btn-primary" onclick="lpConfirmFocal()">Aplicar</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+}
+
+function lpOnFocalClick(e) {
+  var wrap = document.getElementById('lpFocalImageWrap');
+  var rect = wrap.getBoundingClientRect();
+  var x = ((e.clientX - rect.left) / rect.width) * 100;
+  var y = ((e.clientY - rect.top) / rect.height) * 100;
+
+  _lpFocalTemp = { x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 };
+
+  var marker = document.getElementById('lpFocalMarker');
+  marker.style.left = _lpFocalTemp.x + '%';
+  marker.style.top = _lpFocalTemp.y + '%';
+
+  var pos = _lpFocalTemp.x + '% ' + _lpFocalTemp.y + '%';
+  document.getElementById('lpFocalPreview16').style.objectPosition = pos;
+  document.getElementById('lpFocalPreview1').style.objectPosition = pos;
+}
+
+function lpConfirmFocal() {
+  if (_lpFocalEditorIdx === null) return;
+  lpUploadedPhotos[_lpFocalEditorIdx].focalPoint = { x: _lpFocalTemp.x, y: _lpFocalTemp.y };
+  lpRenderPhotosGrid();
+  lpUpdateHeroPreview();
+  lpCloseFocalEditor();
+}
+
+function lpCloseFocalEditor() {
+  var overlay = document.getElementById('lpFocalOverlay');
+  if (overlay) {
+    overlay.style.animation = 'fadeOut .12s ease';
+    setTimeout(function() { overlay.remove(); }, 120);
+  }
+  _lpFocalEditorIdx = null;
+  _lpFocalTemp = null;
+}
+
+/* Carregar organização do Supabase para o card */
+async function loadOrgForLivePreview() {
+  var logoImg = document.getElementById('lpOrgLogoImg');
+  var logoInitials = document.getElementById('lpOrgLogoInitials');
+  var orgNameEl = document.getElementById('lpOrgName');
+
+  function setFallback(empresa) {
+    var name = empresa || 'Sua organização';
+    if (orgNameEl) orgNameEl.textContent = name;
+    if (logoImg) logoImg.style.display = 'none';
+    if (logoInitials) {
+      logoInitials.style.display = '';
+      logoInitials.textContent = name.split(' ').filter(function(w) { return w.length > 0; }).slice(0,2).map(function(w) { return w[0]; }).join('').toUpperCase() || '?';
+    }
+  }
+
+  var session = null;
+  if (typeof sb !== 'undefined' && sb) {
+    var stored = localStorage.getItem('sb_detentor_session');
+    if (stored) {
+      try {
+        var detentorSession = JSON.parse(stored);
+        if (detentorSession.access_token && detentorSession.access_token !== 'DEMO_TOKEN') {
+          await sb.auth.setSession({
+            access_token: detentorSession.access_token,
+            refresh_token: detentorSession.refresh_token || ''
+          });
+        }
+      } catch (_) {}
+    }
+
+    try {
+      var data = await sb.auth.getSession();
+      if (data.data && data.data.session) session = data.data.session;
+    } catch (e) { console.warn('[LP] SDK getSession failed', e); }
+  }
+
+  if (!session) {
+    try {
+      var raw = localStorage.getItem('sb_detentor_session') || localStorage.getItem('sb_marca_session');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed.access_token && parsed.user) session = parsed;
+      }
+    } catch (_) {}
+  }
+
+  if (!session || !session.user) {
+    setFallback(null);
+    return;
+  }
+
+  try {
+    var token = session.access_token;
+    var userId = session.user.id;
+    var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=empresa,logo_url&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+
+    if (!res.ok) {
+      var meta = session.user.user_metadata || {};
+      setFallback(meta.empresa || meta.nome || null);
+      return;
+    }
+
+    var rows = await res.json();
+    if (rows.length === 0) {
+      var meta2 = session.user.user_metadata || {};
+      setFallback(meta2.empresa || meta2.nome || null);
+      return;
+    }
+
+    var perfil = rows[0];
+    var empresa = perfil.empresa || (session.user.user_metadata ? session.user.user_metadata.empresa : null) || 'Sua organização';
+
+    if (orgNameEl) orgNameEl.textContent = empresa;
+
+    var logoWrap = document.getElementById('lpOrgLogo');
+    if (perfil.logo_url && logoImg && logoInitials) {
+      logoImg.src = perfil.logo_url;
+      logoImg.style.display = 'block';
+      logoInitials.style.display = 'none';
+      if (logoWrap) {
+        logoWrap.style.background = 'var(--gray-1)';
+        logoWrap.style.border = '1px solid rgba(26,18,0,0.07)';
+      }
+      logoImg.onerror = function() {
+        logoImg.style.display = 'none';
+        logoInitials.style.display = '';
+        logoInitials.textContent = empresa.split(' ').filter(function(w) { return w.length > 0; }).slice(0,2).map(function(w) { return w[0]; }).join('').toUpperCase() || '?';
+        if (logoWrap) {
+          logoWrap.style.background = 'var(--gold-gradient)';
+          logoWrap.style.border = 'none';
+        }
+      };
+    } else {
+      setFallback(empresa);
+    }
+  } catch (err) {
+    console.error('[LP] Erro ao buscar perfil:', err);
+    setFallback(null);
+  }
+}
+
+/* Trocar categoria no live preview */
+function lpChangeCategory(key) {
+  var g = LP_GRADIENTS[key];
+  if (!g) return;
+
+  var heroBg = document.getElementById('lpHeroBg');
+  var heroIcon = document.getElementById('lpHeroIcon');
+  var badge = document.getElementById('lpCategoryBadge');
+
+  if (heroBg) heroBg.style.background = g.bg;
+  if (heroIcon) heroIcon.textContent = g.icon;
+  if (badge) badge.textContent = g.label;
+}
+
+/* ══════════════════════════════════════════════
    EDITOR QUILL — descrição rica
 ══════════════════════════════════════════════ */
 const quillObjetivos = new Quill('#opp-objetivos-editor', {
@@ -2842,6 +3660,9 @@ function selectTemplate(card) {
   card.classList.add('selected');
   const tpl = card.dataset.template;
   formState.selectedTemplate = tpl;
+
+  // Atualiza gradiente/ícone do live preview card
+  if (typeof lpChangeCategory === 'function') lpChangeCategory(tpl);
 
   // Habilita botão Próximo
   document.getElementById('btnProximo1').disabled = false;
@@ -5193,6 +6014,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (nextBtn) nextBtn.addEventListener('click', function() {
     if (mkPdfDoc && mkCurrentPage < mkPdfDoc.numPages) { mkCurrentPage++; _mkRenderPage(mkCurrentPage); }
   });
+
+  /* ── Live Preview init ── */
+  initLivePreview();
+  loadOrgForLivePreview();
 });
 
 function mkDragOver(e) { e.preventDefault(); document.getElementById('mkUploadZone').classList.add('drag-over'); }
