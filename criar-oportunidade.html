@@ -1820,6 +1820,316 @@ input[type=number] { -moz-appearance: textfield; }
   .pv-inline-editor { max-width: 100%; }
   .pv-facts-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ═══════════════════════════════════════════════
+   STEP 3: DETAIL PAGE PREVIEW
+   ═══════════════════════════════════════════════ */
+
+/* ── Step 3 Toolbar ── */
+.step3-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; margin-bottom: 24px;
+  border-bottom: 1px solid var(--gray-2);
+}
+.step3-toolbar-center { text-align: center; }
+.step3-toolbar-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--gray-3); margin-bottom: 6px;
+}
+
+/* ── Detail preview container ── */
+.detail-preview-wrap {
+  background: transparent;
+  border: none; border-radius: 0;
+  padding: 0; box-shadow: none;
+}
+.detail-wrap {
+  max-width: 100%;
+  padding: 28px 48px 80px;
+}
+
+/* ── Detail header ── */
+.detail-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 20px; margin-bottom: 12px;
+}
+.detail-header-left { flex: 1; min-width: 0; }
+.detail-category-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.detail-category {
+  font-size: 12px; font-weight: 600; color: var(--gold);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.detail-status {
+  font-size: 11px; font-weight: 600; color: var(--gray-3);
+  background: var(--gray-1); padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+.detail-title {
+  font-family: var(--font-heading);
+  font-size: 30px; font-weight: 600;
+  color: var(--black); letter-spacing: -0.02em;
+  line-height: 1.2; margin-bottom: 0;
+  overflow-wrap: break-word; word-break: break-word;
+}
+.detail-title-editable {
+  border: 2px solid transparent;
+  border-radius: 6px; padding: 2px 6px;
+  margin: -2px -6px;
+  transition: border-color 0.2s;
+  outline: none; cursor: text;
+}
+.detail-title-editable:hover { border-color: var(--gray-200, #E0D8CC); }
+.detail-title-editable:focus { border-color: var(--gold, #B8860B); }
+
+/* ── Gallery ── */
+.s3-gallery {
+  display: grid;
+  grid-template-columns: 1fr 200px 200px;
+  grid-template-rows: 1fr 1fr;
+  gap: 6px; margin-bottom: 28px;
+  height: 340px; border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.s3-gallery-main {
+  grid-row: 1 / -1; position: relative;
+  overflow: hidden; border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+  background: var(--gray-1); background-size: cover;
+  background-position: center top;
+}
+.s3-gallery-main img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center top;
+}
+.s3-gallery-badge {
+  position: absolute; bottom: 14px; left: 14px;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+  color: var(--white); padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.03em; z-index: 3;
+}
+.s3-gallery-thumb {
+  overflow: hidden; background-size: cover;
+  background-position: center top; background: var(--gray-1);
+  cursor: pointer; transition: opacity 0.15s;
+}
+.s3-gallery-thumb:hover { opacity: 0.85; }
+.s3-gallery-thumb:nth-child(2) { border-radius: 0; }
+.s3-gallery-thumb:nth-child(3) { border-radius: 0 var(--radius-lg) 0 0; }
+.s3-gallery-thumb:nth-child(4) { border-radius: 0; }
+.s3-gallery-thumb:nth-child(5) { border-radius: 0 0 var(--radius-lg) 0; }
+.s3-gallery-more {
+  width: 100%; height: 100%; background: rgba(26,18,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-family: var(--font-heading);
+  font-size: 16px; font-weight: 600;
+}
+/* Gallery carousel arrows/dots */
+.s3-gallery-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(0,0,0,0.45); color: #fff;
+  border: none; cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s; z-index: 2;
+}
+.s3-gallery-main:hover .s3-gallery-arrow { opacity: 1; }
+.s3-gallery-arrow.prev { left: 12px; }
+.s3-gallery-arrow.next { right: 12px; }
+.s3-gallery-dots {
+  position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; z-index: 2;
+}
+.s3-gallery-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,0.45); transition: all 0.2s;
+  cursor: pointer; border: none; padding: 0;
+}
+.s3-gallery-dot.active { background: #fff; width: 18px; border-radius: 4px; }
+/* Carousel mode (≤3 photos) */
+.s3-gallery.gallery-carousel {
+  grid-template-columns: 1fr; grid-template-rows: 1fr;
+  height: calc(100vh - 260px); max-height: 640px;
+}
+.s3-gallery.gallery-carousel .s3-gallery-thumb { display: none; }
+.s3-gallery.gallery-carousel .s3-gallery-main { grid-row: 1; border-radius: var(--radius-lg); }
+/* 4-photo mode: 1+3 grid */
+.s3-gallery.gallery-4 .s3-gallery-thumb:nth-child(5) { display: none; }
+.s3-gallery.gallery-4 .s3-gallery-thumb:nth-child(2) { grid-row: 1 / -1; border-radius: 0; }
+/* Gallery add button */
+.s3-gallery-add-btn {
+  position: absolute; bottom: 12px; right: 12px;
+  width: 40px; height: 40px;
+  border-radius: 50%; border: none;
+  background: rgba(0,0,0,0.6); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 5;
+  transition: background 0.2s;
+}
+.s3-gallery-add-btn:hover { background: rgba(0,0,0,0.8); }
+/* Gallery editable thumb overlay */
+.s3-gallery-thumb-editable { cursor: pointer; position: relative; }
+.s3-gallery-thumb-editable::after {
+  content: '✎'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.35); color: #fff;
+  font-size: 18px; opacity: 0; transition: opacity 0.2s;
+  border-radius: inherit;
+}
+.s3-gallery-thumb-editable:hover::after { opacity: 1; }
+/* No-photo fallback */
+.s3-gallery-fallback {
+  width: 100%; height: 100%; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 48px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+
+/* ── Tabs ── */
+.detail-tabs {
+  display: flex; gap: 4px;
+  border-bottom: 1px solid var(--gray-200);
+  margin-bottom: 0; overflow-x: auto;
+  padding-top: 8px;
+  position: sticky; top: 64px;
+  background: var(--gray-100, #FAF8F5);
+  z-index: 20;
+}
+.detail-tab-btn {
+  background: none; border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 16px; font-family: inherit;
+  font-size: 13px; font-weight: 500;
+  color: var(--gray-500); cursor: pointer;
+  white-space: nowrap; transition: all 0.15s;
+}
+.detail-tab-btn:hover { color: var(--text); }
+.s3-tab-disabled:hover { color: var(--gray-500); }
+.detail-tab-btn.active { color: var(--text); border-bottom-color: var(--gold); font-weight: 600; }
+
+/* ── Body layout ── */
+.s3-body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 32px; align-items: start;
+  padding-top: 32px;
+}
+
+/* ── Content sections ── */
+.s3-content { min-width: 0; }
+.detail-section { margin-bottom: 32px; }
+.detail-section-title {
+  font-family: var(--font-heading);
+  font-size: 18px; font-weight: 600;
+  color: var(--black); margin-bottom: 14px;
+}
+.detail-text {
+  font-size: 14px; color: var(--gray-600, #5C4C38);
+  line-height: 1.75; word-break: break-word;
+}
+.detail-text .rich-content h2 { font-family: var(--font-heading); font-size: 18px; font-weight: 600; margin: 20px 0 8px; }
+.detail-text .rich-content h3 { font-family: var(--font-heading); font-size: 16px; font-weight: 600; margin: 16px 0 6px; }
+.detail-text .rich-content p { margin-bottom: 10px; }
+.detail-text .rich-content ul, .detail-text .rich-content ol { padding-left: 20px; margin-bottom: 10px; }
+.detail-text .rich-content img { max-width: 100%; border-radius: 10px; margin: 12px 0; }
+
+/* ── Quill always-on editor (Step 3) ── */
+#s3QuillContainer .ql-toolbar {
+  border: 1px solid var(--gray-2) !important;
+  border-radius: 10px 10px 0 0;
+  background: var(--white);
+}
+#s3QuillContainer .ql-container {
+  border: 1px solid var(--gray-2) !important;
+  border-top: none !important;
+  border-radius: 0 0 10px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+}
+#s3QuillContainer .ql-editor {
+  min-height: 200px;
+  line-height: 1.75;
+  color: var(--black);
+}
+#s3QuillContainer .ql-editor.ql-blank::before {
+  color: var(--gray-3);
+  font-style: normal;
+}
+#s3QuillContainer .ql-editor img {
+  max-width: 100%; height: auto; border-radius: 10px;
+  margin: 12px 0; display: block;
+}
+#s3QuillContainer .ql-editor iframe {
+  max-width: 100%; height: auto; aspect-ratio: 16/9;
+  border-radius: 10px; margin: 12px 0; display: block;
+}
+
+/* ── Interest card (sidebar) ── */
+.s3-interest-card {
+  background: var(--white); border: 1px solid var(--gray-2);
+  border-radius: var(--radius-lg); overflow: hidden;
+  position: sticky; top: 88px;
+}
+.s3-interest-header {
+  background: var(--black); padding: 22px 24px 20px;
+}
+.s3-interest-price {
+  font-family: var(--font-heading); font-size: 26px;
+  font-weight: 700; color: var(--white);
+  margin-bottom: 3px; letter-spacing: -0.3px;
+}
+.s3-interest-price-label {
+  font-size: 11px; color: rgba(255,255,255,0.45);
+  text-transform: uppercase; letter-spacing: 0.6px;
+}
+.s3-interest-body { padding: 20px 24px 24px; }
+.s3-interest-info { display: flex; flex-direction: column; margin-bottom: 20px; }
+.s3-interest-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 11px 0; border-bottom: 1px solid var(--gray-100);
+}
+.s3-interest-row:last-child { border-bottom: none; }
+.s3-interest-row-label { font-size: 12px; color: var(--gray-400); }
+.s3-interest-row-value { font-size: 13px; font-weight: 600; color: var(--text); text-align: right; }
+.s3-btn-interest {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px; background: var(--black); color: var(--white);
+  border: none; border-radius: var(--radius-pill); font-family: inherit;
+  font-size: 14px; font-weight: 600; cursor: not-allowed; opacity: 0.6;
+}
+.s3-interest-disclaimer {
+  font-size: 11px; color: var(--gray-300); margin-top: 12px;
+  line-height: 1.6; text-align: center;
+}
+.btn-contact {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px; background: transparent; color: var(--text);
+  border: 1.5px solid var(--gray-200); border-radius: var(--radius-pill);
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  cursor: not-allowed; opacity: 0.5; margin-top: 8px;
+  transition: all 0.15s;
+}
+.btn-contact svg { width: 16px; height: 16px; }
+
+/* ── Step 3 Responsivo ── */
+@media (max-width: 992px) {
+  .s3-body { grid-template-columns: 1fr; }
+  .s3-interest-card { position: static; }
+  .s3-gallery { height: 280px; }
+  .s3-gallery.gallery-carousel { height: 300px; }
+  .detail-wrap { padding: 24px 20px 60px; }
+}
+@media (max-width: 768px) {
+  .s3-gallery {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    height: 220px;
+  }
+  .s3-gallery .s3-gallery-thumb { display: none; }
+  .s3-gallery .s3-gallery-main { grid-row: 1; border-radius: var(--radius-lg); }
+  .detail-wrap { padding: 20px 16px 40px; }
+  .detail-title { font-size: 22px; }
+  .step3-toolbar { flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .detail-tabs { top: 56px; }
+}
 </style>
 </head>
 <body>
@@ -2200,9 +2510,134 @@ input[type=number] { -moz-appearance: textfield; }
 
 
     <!-- ════════════════════════════════════════════
-         PASSO 3 — MATERIAIS (fotos, vídeo, redes)
+         PASSO 3 — PREVIEW DA PÁGINA DE DETALHE
     ════════════════════════════════════════════ -->
     <div id="panel-3" style="display:none">
+
+      <!-- Toolbar -->
+      <div class="step3-toolbar">
+        <button class="btn btn-ghost" onclick="nextStep(2)">← Voltar</button>
+        <div class="step3-toolbar-center">
+          <div class="step3-toolbar-label">Descrição da oportunidade</div>
+        </div>
+        <button class="btn btn-primary" id="s3NextBtn" onclick="nextStep(4)">Próximo: Materiais →</button>
+      </div>
+
+      <!-- Preview da página de detalhe -->
+      <div class="detail-preview-wrap">
+        <div class="detail-wrap">
+
+          <!-- HEADER -->
+          <div class="detail-header">
+            <div class="detail-header-left">
+              <div class="detail-category-row">
+                <span class="detail-category" id="s3Category">Personalidade</span>
+                <span class="detail-status">Rascunho</span>
+              </div>
+              <h1 class="detail-title detail-title-editable" id="s3Title" contenteditable="true">Nome da oportunidade</h1>
+            </div>
+          </div>
+
+          <!-- GALLERY -->
+          <div class="s3-gallery" id="s3Gallery">
+            <div class="s3-gallery-main" id="s3GalleryMain">
+              <img id="s3MainImg" src="" alt="" style="display:none">
+              <div id="s3GalleryFallback" class="s3-gallery-fallback" style="background:linear-gradient(135deg,#667eea,#764ba2)">
+                <span id="s3FallbackIcon">👤</span>
+              </div>
+              <!-- Category badge -->
+              <div class="s3-gallery-badge" id="s3GalleryBadge">Destaque</div>
+              <!-- Arrows -->
+              <button class="s3-gallery-arrow prev" id="s3ArrowPrev" style="display:none" onclick="s3GalleryNav(-1)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="s3-gallery-arrow next" id="s3ArrowNext" style="display:none" onclick="s3GalleryNav(1)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+              <!-- Dots -->
+              <div class="s3-gallery-dots" id="s3GalleryDots" style="display:none"></div>
+              <!-- Add photo button -->
+              <button class="s3-gallery-add-btn" id="s3GalleryAddBtn" onclick="s3AddGalleryPhoto()" title="Adicionar foto">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+            </div>
+            <div class="s3-gallery-thumb" id="s3Thumb1"></div>
+            <div class="s3-gallery-thumb" id="s3Thumb2"></div>
+            <div class="s3-gallery-thumb" id="s3Thumb3"></div>
+            <div class="s3-gallery-thumb" id="s3Thumb4"></div>
+          </div>
+          <!-- Hidden file inputs for gallery editing -->
+          <input type="file" id="s3GalleryFileInput" accept="image/*" multiple style="display:none" onchange="s3HandleGalleryFiles(this)">
+          <input type="file" id="s3GalleryReplaceInput" accept="image/*" style="display:none" onchange="s3HandleReplaceFile(this)">
+
+          <!-- TABS -->
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active">Visão geral</button>
+            <button class="detail-tab-btn s3-tab-disabled" disabled>Canais</button>
+            <button class="detail-tab-btn s3-tab-disabled" disabled>Oportunidades</button>
+          </div>
+
+          <!-- BODY: content + sidebar -->
+          <div class="s3-body">
+
+              <!-- LEFT: editable content sections -->
+              <div class="s3-content">
+
+                <!-- Descrição completa (Quill always-on editor) -->
+                <div class="detail-section" id="s3Section_descCompleta">
+                  <h3 class="detail-section-title">Descrição completa</h3>
+                  <div id="s3QuillContainer">
+                    <div id="s3QuillEditor"></div>
+                  </div>
+                </div>
+
+              </div><!-- /s3-content -->
+
+              <!-- RIGHT: interest card sidebar -->
+              <div class="s3-sidebar">
+                <div class="s3-interest-card">
+                  <div class="s3-interest-header">
+                    <div class="s3-interest-price">Valores sob consulta</div>
+                    <div class="s3-interest-price-label">Investimento</div>
+                  </div>
+                  <div class="s3-interest-body">
+                    <div class="s3-interest-info">
+                      <div class="s3-interest-row">
+                        <span class="s3-interest-row-label">Categoria</span>
+                        <span class="s3-interest-row-value" id="s3InterestCat">Personalidade</span>
+                      </div>
+                      <div class="s3-interest-row">
+                        <span class="s3-interest-row-label">Formato</span>
+                        <span class="s3-interest-row-value">Patrocínio</span>
+                      </div>
+                    </div>
+                    <button class="s3-btn-interest" disabled>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+                      Manifestar interesse
+                    </button>
+                    <button class="btn-contact" disabled>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                      Enviar mensagem
+                    </button>
+                    <div class="s3-interest-disclaimer">Ao manifestar interesse você poderá negociar valores e condições diretamente com o detentor.</div>
+                  </div>
+                </div>
+              </div><!-- /s3-sidebar -->
+
+          </div><!-- /s3-body -->
+
+        </div><!-- /detail-wrap -->
+      </div><!-- /detail-preview-wrap -->
+
+    </div><!-- /panel-3 -->
+
+
+    <!-- ════════════════════════════════════════════
+         PASSO 4 — DETALHES ESPECÍFICOS
+    ════════════════════════════════════════════ -->
+    <div id="panel-4" style="display:none">
+
+      <!-- ── Materiais (movido do antigo panel-3) ── -->
       <div class="form-card">
         <div class="card-header">
           <div class="card-title">Materiais</div>
@@ -2375,20 +2810,8 @@ input[type=number] { -moz-appearance: textfield; }
           <input type="url" class="form-control" id="opp-link-externo" placeholder="https://seusite.com.br">
         </div>
       </div>
+      <!-- ── /Materiais ── -->
 
-      <div class="step-actions">
-        <button class="btn btn-ghost" onclick="nextStep(2)">← Voltar</button>
-        <button class="btn btn-primary" onclick="if(validateAudiencePanels()) nextStep(4)">
-          Próximo: Detalhes →
-        </button>
-      </div>
-    </div><!-- /panel-3 -->
-
-
-    <!-- ════════════════════════════════════════════
-         PASSO 4 — DETALHES ESPECÍFICOS
-    ════════════════════════════════════════════ -->
-    <div id="panel-4" style="display:none">
       <div class="form-card">
         <div class="card-header">
           <div id="template-badge-2" class="card-badge" style="display:none"></div>
@@ -3608,10 +4031,296 @@ const TEMPLATES = {
   }
 };
 
+/* ═══════════════════════════════════════════════════════
+   STEP 3 — DETAIL PAGE PREVIEW (Gallery + Quill + Title)
+   ═══════════════════════════════════════════════════════ */
+
+let s3AlwaysOnQuill = null;
+let s3CurrentSlide = 0;
+let s3ReplacingThumbIdx = -1;
+
+const step3Data = {
+  descCompleta: '',
+  descCompletaText: ''
+};
+
+/** Called when entering step 3 — populates preview from step 1/2 data */
+function s3Enter() {
+  const nome = document.getElementById('opp-nome')?.value?.trim() || 'Nome da oportunidade';
+  const catKey = formState.selectedTemplate || 'personalidade';
+  const catLabel = LP_GRADIENTS[catKey]?.label || 'Personalidade';
+
+  // Expand layout for full-page preview
+  const mainInner = document.querySelector('.main-inner');
+  if (mainInner) mainInner.style.maxWidth = '1200px';
+
+  // Populate header
+  document.getElementById('s3Title').textContent = nome;
+  document.getElementById('s3Category').textContent = catLabel;
+  document.getElementById('s3InterestCat').textContent = catLabel;
+
+  // Inline editable title listeners (with guard)
+  const titleEl = document.getElementById('s3Title');
+  if (titleEl && !titleEl._s3ListenerAttached) {
+    titleEl._s3ListenerAttached = true;
+    titleEl.addEventListener('input', () => {
+      document.getElementById('opp-nome').value = titleEl.textContent.trim();
+    });
+    titleEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); titleEl.blur(); }
+    });
+    titleEl.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+  }
+
+  // Render gallery from lpUploadedPhotos
+  renderStep3Gallery();
+
+  // Initialize always-on Quill editor for descCompleta
+  if (s3AlwaysOnQuill) {
+    s3AlwaysOnQuill = null;
+    document.getElementById('s3QuillEditor').innerHTML = '';
+    const oldToolbar = document.querySelector('#s3QuillContainer .ql-toolbar');
+    if (oldToolbar) oldToolbar.remove();
+  }
+
+  s3AlwaysOnQuill = new Quill('#s3QuillEditor', {
+    theme: 'snow',
+    placeholder: 'Descreva em detalhes a oportunidade. O que a marca ganha? Qual o alcance? Quais formatos?',
+    modules: {
+      toolbar: [
+        [{ header: [2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['image', 'video']
+      ]
+    }
+  });
+
+  // Restore existing content if navigating back and forth
+  if (step3Data.descCompleta) {
+    s3AlwaysOnQuill.root.innerHTML = step3Data.descCompleta;
+  }
+}
+
+/** Called when leaving step 3 — saves Quill content, restores layout */
+function s3Leave() {
+  if (s3AlwaysOnQuill) {
+    const html = s3AlwaysOnQuill.root.innerHTML;
+    const text = s3AlwaysOnQuill.getText().trim();
+    step3Data.descCompleta = text ? html : '';
+    step3Data.descCompletaText = text;
+    s3AlwaysOnQuill = null;
+  }
+  // Clean up editor DOM for future re-init
+  const editorEl = document.getElementById('s3QuillEditor');
+  if (editorEl) editorEl.innerHTML = '';
+  const toolbar = document.querySelector('#s3QuillContainer .ql-toolbar');
+  if (toolbar) toolbar.remove();
+
+  // Restore layout
+  const mainInner = document.querySelector('.main-inner');
+  if (mainInner) mainInner.style.maxWidth = '';
+}
+
+/* ═══════ STEP 3 GALLERY ═══════ */
+
+function renderStep3Gallery() {
+  const gallery = document.getElementById('s3Gallery');
+  const mainEl = document.getElementById('s3GalleryMain');
+  const mainImg = document.getElementById('s3MainImg');
+  const fallback = document.getElementById('s3GalleryFallback');
+  const fallbackIcon = document.getElementById('s3FallbackIcon');
+  const arrowPrev = document.getElementById('s3ArrowPrev');
+  const arrowNext = document.getElementById('s3ArrowNext');
+  const dotsEl = document.getElementById('s3GalleryDots');
+  const n = lpUploadedPhotos.length;
+
+  // Reset classes
+  gallery.classList.remove('gallery-carousel', 'gallery-4');
+
+  // Find cover photo
+  const coverIdx = lpUploadedPhotos.findIndex(p => p.isCover);
+  s3CurrentSlide = coverIdx >= 0 ? coverIdx : 0;
+
+  const catKey = formState.selectedTemplate || 'personalidade';
+
+  if (n === 0) {
+    // Fallback: category gradient
+    gallery.classList.add('gallery-carousel');
+    const g = LP_GRADIENTS[catKey] || LP_GRADIENTS.personalidade;
+    fallback.style.background = g.bg;
+    fallbackIcon.textContent = g.icon;
+    fallback.style.display = 'flex';
+    mainImg.style.display = 'none';
+    arrowPrev.style.display = 'none';
+    arrowNext.style.display = 'none';
+    dotsEl.style.display = 'none';
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById('s3Thumb' + i).style.display = 'none';
+    }
+    return;
+  }
+
+  // Has photos
+  fallback.style.display = 'none';
+  mainImg.style.display = 'block';
+  mainImg.src = lpUploadedPhotos[s3CurrentSlide].url;
+  const mainFp = lpUploadedPhotos[s3CurrentSlide].focalPoint;
+  mainImg.style.objectPosition = mainFp ? (mainFp.x + '% ' + mainFp.y + '%') : 'center top';
+
+  // Make main image clickable to replace
+  mainImg.style.cursor = 'pointer';
+  mainImg.onclick = () => s3ReplaceThumb(s3CurrentSlide);
+
+  if (n <= 3) {
+    // Carousel mode
+    gallery.classList.add('gallery-carousel');
+    for (let i = 1; i <= 4; i++) {
+      const th = document.getElementById('s3Thumb' + i);
+      th.style.display = 'none';
+      th.classList.remove('s3-gallery-thumb-editable');
+      th.onclick = null;
+    }
+    arrowPrev.style.display = n > 1 ? '' : 'none';
+    arrowNext.style.display = n > 1 ? '' : 'none';
+    if (n > 1) {
+      dotsEl.style.display = 'flex';
+      dotsEl.innerHTML = lpUploadedPhotos.map((_, i) =>
+        '<button class="s3-gallery-dot' + (i === s3CurrentSlide ? ' active' : '') + '" onclick="s3GoToSlide(' + i + ')"></button>'
+      ).join('');
+    } else {
+      dotsEl.style.display = 'none';
+    }
+  } else if (n === 4) {
+    // 1+3 grid
+    gallery.classList.add('gallery-4');
+    arrowPrev.style.display = 'none';
+    arrowNext.style.display = 'none';
+    dotsEl.style.display = 'none';
+    for (let i = 1; i <= 3; i++) {
+      const th = document.getElementById('s3Thumb' + i);
+      th.style.display = '';
+      th.style.backgroundImage = 'url(' + lpUploadedPhotos[i].url + ')';
+      th.style.backgroundSize = 'cover';
+      const thFp = lpUploadedPhotos[i].focalPoint;
+      th.style.backgroundPosition = thFp ? (thFp.x + '% ' + thFp.y + '%') : 'center top';
+      th.innerHTML = '';
+      th.classList.add('s3-gallery-thumb-editable');
+      th.onclick = ((idx) => () => s3ReplaceThumb(idx))(i);
+    }
+    const th4 = document.getElementById('s3Thumb4');
+    th4.style.display = 'none';
+    th4.classList.remove('s3-gallery-thumb-editable');
+    th4.onclick = null;
+  } else {
+    // Default 1+4 grid (5+ photos)
+    arrowPrev.style.display = 'none';
+    arrowNext.style.display = 'none';
+    dotsEl.style.display = 'none';
+    for (let i = 1; i <= 4; i++) {
+      const th = document.getElementById('s3Thumb' + i);
+      th.style.display = '';
+      th.style.backgroundSize = 'cover';
+      const thFp2 = i < n ? lpUploadedPhotos[i].focalPoint : null;
+      th.style.backgroundPosition = thFp2 ? (thFp2.x + '% ' + thFp2.y + '%') : 'center top';
+      if (i <= n - 1) {
+        th.style.backgroundImage = 'url(' + lpUploadedPhotos[i].url + ')';
+        if (i === 4 && n > 5) {
+          th.innerHTML = '<div class="s3-gallery-more">+' + (n - 5) + ' fotos</div>';
+        } else {
+          th.innerHTML = '';
+        }
+        th.classList.add('s3-gallery-thumb-editable');
+        th.onclick = ((idx) => () => s3ReplaceThumb(idx))(i);
+      } else {
+        th.style.backgroundImage = 'none';
+        th.style.background = 'var(--gray-1)';
+        th.innerHTML = '';
+        th.classList.remove('s3-gallery-thumb-editable');
+        th.onclick = null;
+      }
+    }
+    mainImg.src = lpUploadedPhotos[0].url;
+    const fp0 = lpUploadedPhotos[0].focalPoint;
+    mainImg.style.objectPosition = fp0 ? (fp0.x + '% ' + fp0.y + '%') : 'center top';
+  }
+}
+
+function s3GalleryNav(dir) {
+  const n = lpUploadedPhotos.length;
+  if (n <= 1) return;
+  s3CurrentSlide = (s3CurrentSlide + dir + n) % n;
+  const img = document.getElementById('s3MainImg');
+  img.src = lpUploadedPhotos[s3CurrentSlide].url;
+  const fp = lpUploadedPhotos[s3CurrentSlide].focalPoint;
+  img.style.objectPosition = fp ? (fp.x + '% ' + fp.y + '%') : 'center top';
+  document.querySelectorAll('#s3GalleryDots .s3-gallery-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === s3CurrentSlide);
+  });
+}
+
+function s3GoToSlide(idx) {
+  s3CurrentSlide = idx;
+  const img = document.getElementById('s3MainImg');
+  img.src = lpUploadedPhotos[idx].url;
+  const fp = lpUploadedPhotos[idx].focalPoint;
+  img.style.objectPosition = fp ? (fp.x + '% ' + fp.y + '%') : 'center top';
+  document.querySelectorAll('#s3GalleryDots .s3-gallery-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+}
+
+/* ═══════ STEP 3 GALLERY EDITING ═══════ */
+
+function s3AddGalleryPhoto() {
+  document.getElementById('s3GalleryFileInput').click();
+}
+
+function s3HandleGalleryFiles(input) {
+  const files = Array.from(input.files);
+  files.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      lpUploadedPhotos.push({ url: e.target.result, name: f.name, isCover: false, focalPoint: null });
+      renderStep3Gallery();
+      lpRenderPhotosGrid(); // sync Step 2
+    };
+    reader.readAsDataURL(f);
+  });
+  input.value = '';
+}
+
+function s3ReplaceThumb(idx) {
+  s3ReplacingThumbIdx = idx;
+  document.getElementById('s3GalleryReplaceInput').click();
+}
+
+function s3HandleReplaceFile(input) {
+  const file = input.files[0];
+  if (!file || s3ReplacingThumbIdx < 0) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    lpUploadedPhotos[s3ReplacingThumbIdx].url = e.target.result;
+    lpUploadedPhotos[s3ReplacingThumbIdx].name = file.name;
+    renderStep3Gallery();
+    lpRenderPhotosGrid(); // sync Step 2
+    s3ReplacingThumbIdx = -1;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
 /* ══════════════════════════════════════════════
    NAVEGAÇÃO ENTRE PASSOS
 ══════════════════════════════════════════════ */
 function nextStep(n) {
+  // Hook: sair do step 3 (salvar Quill + restaurar layout)
+  if (currentStep === 3 && n !== 3) s3Leave();
+
   const panels = document.querySelectorAll('[id^="panel-"]');
   panels.forEach(p => p.style.display = 'none');
   document.getElementById('panel-' + n).style.display = 'block';
@@ -3645,6 +4354,7 @@ function nextStep(n) {
   if (label) label.textContent = 'Passo ' + stepNum + ' de ' + TOTAL_STEPS;
 
   // Hooks por passo
+  if (n === 3) s3Enter();
   if (n === 4 && formState.selectedTemplate) {
     var tplContainer = document.getElementById('template-specific-fields');
     if (tplContainer && tplContainer.children.length === 0) {
