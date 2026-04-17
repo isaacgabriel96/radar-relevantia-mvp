@@ -1858,6 +1858,12 @@ function showSectionTab(sectionId, subTab) {
 
 // ─── INIT ───
 async function init() {
+  // Oculta loading imediatamente para evitar tela em branco quando DNS falha
+  setTimeout(() => {
+    const ls = document.getElementById('loadingScreen');
+    if (ls) ls.style.display = 'none';
+  }, 0);
+
   try {
     // Demo mode banner
     showDemoBannerIfActive();
