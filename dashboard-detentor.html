@@ -1858,10 +1858,11 @@ function showSectionTab(sectionId, subTab) {
 
 // ─── INIT ───
 async function init() {
-  // Oculta loading imediatamente para evitar tela em branco quando DNS falha
+  // Oculta loading imediatamente + renderiza timeline vazia (evita skeleton preso quando DNS falha)
   setTimeout(() => {
     const ls = document.getElementById('loadingScreen');
     if (ls) ls.style.display = 'none';
+    renderDashboardTimelineDetentor();
   }, 0);
 
   try {

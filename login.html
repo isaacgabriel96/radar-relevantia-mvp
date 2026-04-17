@@ -603,7 +603,9 @@ async function doLogin() {
         if (_loginRL) _loginRL.recordFailure();
         const errEl = document.getElementById('errLogin');
         const msg = error?.message || '';
-        if (msg.toLowerCase().includes('email not confirmed')) {
+        if (msg.includes('fetch') || msg.includes('network') || msg.includes('NetworkError') || !navigator.onLine) {
+          errEl.textContent = 'Sem conexão. Verifique sua internet e tente novamente.';
+        } else if (msg.toLowerCase().includes('email not confirmed')) {
           errEl.textContent = 'Email não confirmado. Verifique sua caixa de entrada.';
         } else if (msg.toLowerCase().includes('after') && msg.toLowerCase().includes('seconds')) {
           errEl.textContent = 'Muitas tentativas. Aguarde alguns segundos e tente novamente.';
