@@ -8957,10 +8957,10 @@ async function init() {
   await window.initLang?.();
   window.applyTranslations?.();
   requireAuth('rightsholder', 'login.html');
+  // Mostra painel inicial imediatamente (sem esperar sessão) para evitar tela em branco
+  if (currentStep === 1) nextStep(1);
   await initSession();
   maybePreFillEdit();
-  // Garante que o painel inicial fica visível (panel-0 foi removido; panel-1 começa oculto)
-  if (currentStep === 1) nextStep(1);
   loadMockData();
 
   // Fecha calendários do date picker ao clicar fora deles

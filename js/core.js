@@ -85,11 +85,15 @@ async function getSessionAsync(role) {
       return null;
     }
     console.log('[getSessionAsync] Token expired for', role, '— refreshing...');
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 5000);
     const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: expired.refresh_token })
+      body: JSON.stringify({ refresh_token: expired.refresh_token }),
+      signal: ctrl.signal
     });
+    clearTimeout(tid);
     if (!res.ok) {
       console.warn('[getSessionAsync] Refresh failed:', res.status);
       localStorage.removeItem(key);
