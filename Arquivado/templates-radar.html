@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Relevantia — Templates de Perfil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #C9A43A;
+  --gold-light: #E8C96A;
+  --gold-pale: #FBF5E6;
+  --black: #111111;
+  --black-2: #222222;
+  --gray-1: #F7F7F7;
+  --gray-2: #EBEBEB;
+  --gray-3: #DDDDDD;
+  --gray-4: #B0B0B0;
+  --gray-5: #717171;
+  --text: #222222;
+  --white: #FFFFFF;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--gray-1);
+  color: var(--text);
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 300;
+  background: rgba(255,255,255,0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--gray-3);
+  padding: 0 32px;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px; font-weight: 600; color: var(--black);
+}
+.nav-logo em {
+  display: inline-block; width: 6px; height: 6px;
+  background: var(--gold); border-radius: 50%;
+  margin-left: 2px; vertical-align: middle; margin-bottom: 2px;
+  font-style: normal;
+}
+.nav-tabs {
+  display: flex; gap: 2px;
+  background: var(--gray-1); border: 1px solid var(--gray-3);
+  padding: 4px; border-radius: 100px;
+}
+.nav-tab {
+  padding: 7px 16px; border-radius: 100px;
+  border: none; background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 500; color: var(--gray-5);
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+}
+.nav-tab:hover { color: var(--black); }
+.nav-tab.active { background: white; color: var(--black); box-shadow: var(--shadow-sm); }
+.nav-back {
+  font-size: 13px; color: var(--gray-5); cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.15s;
+}
+.nav-back:hover { color: var(--gold); }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── SHARED LAYOUT ── */
+.profile-wrap {
+  max-width: 1100px; margin: 0 auto;
+  padding: 0 32px 80px;
+}
+
+/* Back button inside page */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--gray-5);
+  cursor: pointer; background: none; border: none;
+  font-family: 'DM Sans', sans-serif;
+  padding: 20px 0; transition: color 0.15s;
+}
+.back-btn:hover { color: var(--gold); }
+
+/* ── STATUS BADGE ── */
+.status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 100px;
+  font-size: 12px; font-weight: 600;
+}
+.status-open { background: #ECFDF5; color: #10B981; border: 1px solid #A7F3D0; }
+.status-limited { background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A; }
+.status-closed { background: #FEF2F2; color: #EF4444; border: 1px solid #FECACA; }
+
+/* ── SECTION TITLE ── */
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 600; color: var(--black);
+  margin-bottom: 16px;
+}
+.section-label {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--gray-5);
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--gray-2);
+}
+
+/* ── BODY TEXT ── */
+.body-text { font-size: 15px; line-height: 1.8; color: var(--gray-5); }
+
+/* ── TAGS ── */
+.tags-wrap { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag {
+  background: var(--gray-1); border: 1px solid var(--gray-2);
+  padding: 5px 14px; border-radius: 100px;
+  font-size: 12px; color: var(--text);
+}
+
+/* ── COTAS LIST ── */
+.cotas-list { display: flex; flex-direction: column; gap: 10px; }
+.cota-row {
+  display: flex; align-items: center; justify-content: space-between;
+  border: 1.5px solid var(--gray-3); border-radius: var(--radius);
+  padding: 16px 18px; transition: all 0.15s; cursor: pointer;
+  background: white;
+}
+.cota-row:hover { border-color: var(--gold); box-shadow: 0 2px 12px rgba(201,164,58,0.12); }
+.cota-name { font-size: 14px; font-weight: 600; color: var(--black); }
+.cota-desc { font-size: 12px; color: var(--gray-5); margin-top: 3px; line-height: 1.4; }
+.cota-right { text-align: right; flex-shrink: 0; margin-left: 20px; }
+.cota-price { font-size: 15px; font-weight: 600; color: var(--gold); white-space: nowrap; }
+.cota-avail { font-size: 11px; color: var(--gray-5); margin-top: 2px; }
+
+/* ── INTEREST SIDEBAR ── */
+.interest-card {
+  position: sticky; top: 84px;
+  border: 1px solid var(--gray-3); border-radius: 18px;
+  padding: 26px; box-shadow: var(--shadow-lg); background: white;
+}
+.interest-from { font-size: 12px; color: var(--gray-5); margin-bottom: 4px; }
+.interest-price {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px; font-weight: 600; color: var(--black); margin-bottom: 4px;
+}
+.interest-period { font-size: 13px; color: var(--gray-5); margin-bottom: 16px; }
+.interest-divider { height: 1px; background: var(--gray-2); margin: 18px 0; }
+.interest-rows { display: flex; flex-direction: column; gap: 11px; margin-bottom: 20px; }
+.interest-row { display: flex; justify-content: space-between; font-size: 13px; }
+.ir-label { color: var(--gray-5); }
+.ir-value { font-weight: 500; color: var(--black); text-align: right; max-width: 55%; }
+.btn-gold {
+  width: 100%; background: var(--gold); border: none;
+  padding: 15px; border-radius: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+  color: white; cursor: pointer; transition: all 0.2s; margin-bottom: 10px;
+}
+.btn-gold:hover { background: var(--black); }
+.btn-outline {
+  width: 100%; background: white; border: 1.5px solid var(--black);
+  padding: 13px; border-radius: 12px;
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  color: var(--black); cursor: pointer; transition: all 0.15s;
+}
+.btn-outline:hover { background: var(--gray-1); }
+.curadoria-box {
+  background: var(--gold-pale); border: 1px solid rgba(201,164,58,0.25);
+  border-radius: var(--radius-sm); padding: 13px; margin-top: 16px;
+  font-size: 12px; color: var(--black); line-height: 1.6;
+}
+.curadoria-box strong { color: var(--gold); }
+.disclaimer { font-size: 11px; color: var(--gray-5); text-align: center; margin-top: 12px; line-height: 1.5; }
+
+/* ── CARDS GENERIC ── */
+.card-white {
+  background: white; border: 1px solid var(--gray-2);
+  border-radius: var(--radius); padding: 20px;
+}
+
+/* ── METRICS STRIP ── */
+.metrics-strip {
+  display: grid; gap: 1px;
+  background: var(--gray-2);
+  border: 1px solid var(--gray-2);
+  border-radius: var(--radius); overflow: hidden;
+  margin-bottom: 32px;
+}
+.metric-cell { background: white; padding: 16px 20px; }
+.metric-val {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 600; color: var(--black);
+}
+.metric-lbl { font-size: 11px; color: var(--gray-5); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
+
+/* ── FACT GRID ── */
+.facts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.fact-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 13px; background: var(--gray-1); border-radius: var(--radius-sm);
+}
+.fact-icon { font-size: 17px; flex-shrink: 0; margin-top: 1px; }
+.fact-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-4); margin-bottom: 3px; font-weight: 600; }
+.fact-value { font-size: 13px; font-weight: 600; color: var(--black); }
+
+/* ── TIMELINE ── */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.timeline-item { display: flex; gap: 16px; padding-bottom: 20px; position: relative; }
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-left { display: flex; flex-direction: column; align-items: center; width: 40px; flex-shrink: 0; }
+.timeline-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--gold); border: 2px solid white;
+  box-shadow: 0 0 0 2px var(--gold); flex-shrink: 0;
+  margin-top: 4px;
+}
+.timeline-line {
+  width: 1px; flex: 1; background: var(--gray-2); margin-top: 6px;
+}
+.timeline-item:last-child .timeline-line { display: none; }
+.timeline-right { flex: 1; padding-bottom: 4px; }
+.timeline-year { font-size: 11px; font-weight: 600; color: var(--gold); letter-spacing: 0.06em; margin-bottom: 3px; }
+.timeline-event { font-size: 14px; font-weight: 600; color: var(--black); }
+.timeline-detail { font-size: 13px; color: var(--gray-5); margin-top: 2px; }
+
+/* ── BAR CHART ── */
+.bar-chart { display: flex; flex-direction: column; gap: 10px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-label { font-size: 12px; color: var(--gray-5); width: 90px; flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; height: 8px; background: var(--gray-2); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; background: var(--gold); }
+.bar-val { font-size: 12px; font-weight: 600; color: var(--black); width: 40px; flex-shrink: 0; }
+
+/* ── PLATFORM PILLS ── */
+.platform-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.platform-card {
+  border: 1px solid var(--gray-2); border-radius: var(--radius-sm);
+  padding: 14px; background: var(--gray-1);
+  display: flex; align-items: center; gap: 10px;
+}
+.platform-icon { font-size: 22px; flex-shrink: 0; }
+.platform-name { font-size: 12px; color: var(--gray-5); }
+.platform-val { font-size: 16px; font-weight: 600; color: var(--black); }
+
+/* ── CALENDAR ── */
+.cal-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.cal-item {
+  background: white; border: 1px solid var(--gray-2);
+  border-radius: var(--radius-sm); padding: 10px 8px;
+  text-align: center; cursor: pointer;
+  transition: all 0.15s;
+}
+.cal-item:hover { border-color: var(--gold); }
+.cal-item.has-event { border-color: var(--gold); background: var(--gold-pale); }
+.cal-month { font-size: 10px; color: var(--gray-5); text-transform: uppercase; letter-spacing: 0.06em; }
+.cal-event { font-size: 11px; font-weight: 600; color: var(--black); margin-top: 3px; line-height: 1.3; }
+
+/* ── PHOTO GRID ── */
+.photo-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.photo-grid-3 { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 8px; height: 280px; }
+.photo-cell {
+  background: var(--gray-2); border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; color: var(--gray-4); overflow: hidden;
+}
+.photo-cell.main { grid-row: span 2; font-size: 48px; }
+.photo-cell.tall { aspect-ratio: 4/3; }
+
+/* ── MAP PLACEHOLDER ── */
+.map-placeholder {
+  background: linear-gradient(135deg, #E8F4F0 0%, #D5EAE3 100%);
+  border: 1px solid var(--gray-2); border-radius: var(--radius);
+  height: 180px; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 8px;
+}
+.map-placeholder-icon { font-size: 36px; }
+.map-placeholder-label { font-size: 13px; color: var(--gray-5); }
+
+/* ── MEDIA MENTIONS ── */
+.media-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+.media-pill {
+  border: 1px solid var(--gray-2); border-radius: 8px;
+  padding: 10px 16px; background: var(--gray-1);
+  display: flex; align-items: center; gap: 8px;
+}
+.media-pill-icon { font-size: 18px; }
+.media-pill-name { font-size: 13px; font-weight: 600; color: var(--black); }
+.media-pill-type { font-size: 11px; color: var(--gray-5); }
+
+/* ── FLOOR PLAN ── */
+.floor-plan {
+  background: var(--gray-1); border: 1px solid var(--gray-2);
+  border-radius: var(--radius); padding: 20px;
+  position: relative; min-height: 200px;
+}
+.floor-zone {
+  position: absolute; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s;
+}
+.floor-zone:hover { filter: brightness(0.95); }
+.floor-zone-label { font-size: 11px; font-weight: 600; text-align: center; line-height: 1.3; }
+.floor-zone-icon { font-size: 18px; margin-bottom: 4px; }
+
+/* ── COUNTDOWN ── */
+.countdown-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--gray-2);
+  border: 1px solid var(--gray-2); border-radius: var(--radius); overflow: hidden;
+}
+.countdown-cell {
+  background: white; padding: 16px; text-align: center;
+}
+.countdown-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px; font-weight: 600; color: var(--black);
+}
+.countdown-unit { font-size: 11px; color: var(--gray-5); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+/* ── VAGAS RESTANTES ── */
+.vagas-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-radius: var(--radius-sm);
+  border: 1px solid var(--gray-2); background: white;
+  margin-bottom: 8px;
+}
+.vagas-indicator { display: flex; gap: 4px; }
+.vaga-dot { width: 10px; height: 10px; border-radius: 50%; }
+.vaga-dot.filled { background: var(--black); }
+.vaga-dot.empty { background: var(--gray-2); border: 1.5px solid var(--gray-3); }
+.vagas-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--black); }
+.vagas-count { font-size: 12px; color: var(--gray-5); }
+
+/* ── FORMAT CARDS (mídia) ── */
+.format-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.format-card {
+  border: 1.5px solid var(--gray-3); border-radius: var(--radius);
+  padding: 18px; background: white; cursor: pointer;
+  transition: all 0.15s;
+}
+.format-card:hover { border-color: var(--gold); box-shadow: 0 2px 12px rgba(201,164,58,0.1); }
+.format-icon { font-size: 24px; margin-bottom: 8px; }
+.format-name { font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 4px; }
+.format-metrics { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.format-metric { font-size: 12px; color: var(--gray-5); }
+.format-metric strong { color: var(--black); }
+.format-price { font-size: 14px; font-weight: 600; color: var(--gold); margin-top: 10px; }
+
+/* ── ASSET MAP (venue) ── */
+.asset-list { display: flex; flex-direction: column; gap: 8px; }
+.asset-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px; border: 1px solid var(--gray-2);
+  border-radius: var(--radius-sm); background: white;
+  cursor: pointer; transition: all 0.15s;
+}
+.asset-item:hover { border-color: var(--gold); }
+.asset-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.asset-name { flex: 1; font-size: 14px; font-weight: 500; color: var(--black); }
+.asset-price { font-size: 13px; font-weight: 600; color: var(--gold); }
+.asset-avail { font-size: 11px; color: var(--gray-5); }
+
+/* ── PAST SPONSORS ── */
+.sponsors-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.sponsor-badge {
+  border: 1px solid var(--gray-2); border-radius: 8px;
+  padding: 8px 16px; background: var(--gray-1);
+  font-size: 13px; font-weight: 500; color: var(--black);
+}
+
+/* HERO STYLES */
+.hero {
+  position: relative; overflow: hidden;
+  border-radius: 0;
+}
+.hero-inner {
+  padding: 48px 32px 36px;
+  max-width: 1100px; margin: 0 auto;
+}
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 12px;
+}
+.hero-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 40px; font-weight: 600; color: var(--black);
+  line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 10px;
+}
+.hero-title em { font-style: italic; color: var(--gold); }
+.hero-sub { font-size: 15px; color: var(--gray-5); margin-bottom: 18px; line-height: 1.5; }
+.hero-meta { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+.hero-meta-item { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--gray-5); }
+
+/* GRID LAYOUT */
+.two-col { display: grid; grid-template-columns: 1fr 340px; gap: 40px; align-items: start; margin-top: 36px; }
+.section-block { margin-bottom: 36px; padding-bottom: 36px; border-bottom: 1px solid var(--gray-2); }
+.section-block:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Radar Relevantia<em></em></div>
+  <div class="nav-tabs" id="navTabs">
+    <button class="nav-tab active" onclick="showPage('liga', this)">🏆 Liga/Clube</button>
+    <button class="nav-tab" onclick="showPage('influenciador', this)">📱 Influenciador</button>
+    <button class="nav-tab" onclick="showPage('evento', this)">🎪 Evento</button>
+    <button class="nav-tab" onclick="showPage('atleta', this)">⚡ Atleta</button>
+    <button class="nav-tab" onclick="showPage('midia', this)">📡 Mídia</button>
+    <button class="nav-tab" onclick="showPage('venue', this)">🏟️ Venue</button>
+    <button class="nav-tab" onclick="showPage('veiculo', this)">📺 Veículo de Mídia</button>
+    <button class="nav-tab" onclick="showPage('ooh', this)">🖼️ Mídia OOH</button>
+  </div>
+  <div style="width:120px"></div>
+</nav>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 1: LIGA / CLUBE
+════════════════════════════════════════════ -->
+<div class="page active" id="page-liga">
+
+  <!-- HERO -->
+  <div class="hero" style="background: linear-gradient(135deg, #FBF5E6 0%, #F5EDD0 100%); border-bottom: 1px solid var(--gray-3);">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">🏆 Liga / Clube</div>
+      <h1 class="hero-title">Liga Nordeste<br>de <em>Futsal</em></h1>
+      <div class="hero-sub">Maior competição regional de futsal do Brasil · 12 estados · Temporada 2025</div>
+      <div class="hero-meta">
+        <span class="status-badge status-open">● Cotas abertas</span>
+        <span class="hero-meta-item">📍 Nordeste, Brasil</span>
+        <span class="hero-meta-item">⭐ 4.9 · Verificado Radar</span>
+        <span class="hero-meta-item">🏅 7ª temporada</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-wrap">
+    <div class="two-col">
+
+      <!-- MAIN -->
+      <div>
+        <!-- Metrics -->
+        <div class="metrics-strip" style="grid-template-columns: repeat(4,1fr); margin-bottom: 32px;">
+          <div class="metric-cell">
+            <div class="metric-val">2.4M</div>
+            <div class="metric-lbl">Audiência TV/mês</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-val">880k</div>
+            <div class="metric-lbl">Seguidores redes</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-val">48</div>
+            <div class="metric-lbl">Jogos/temporada</div>
+          </div>
+          <div class="metric-cell">
+            <div class="metric-val">12</div>
+            <div class="metric-lbl">Estados cobertos</div>
+          </div>
+        </div>
+
+        <!-- Sobre -->
+        <div class="section-block">
+          <div class="section-title">Sobre a liga</div>
+          <p class="body-text">A Liga Nordeste de Futsal é a maior competição regional de futsal do Brasil, reunindo os 8 maiores clubes do Nordeste em 48 partidas por temporada. Transmissão garantida via SporTV e streaming no Casimiro+. Público fiel, com forte presença de famílias e comunidade esportiva em 12 estados.</p>
+        </div>
+
+        <!-- Cobertura geográfica -->
+        <div class="section-block">
+          <div class="section-title">Cobertura geográfica</div>
+          <div class="map-placeholder">
+            <div class="map-placeholder-icon">🗺️</div>
+            <div class="map-placeholder-label">12 estados do Nordeste · 8 cidades-sede</div>
+          </div>
+          <div class="facts-grid" style="margin-top: 14px;">
+            <div class="fact-item"><span class="fact-icon">🏟️</span><div><div class="fact-label">Cidades-sede</div><div class="fact-value">Fortaleza, Recife, Natal, Maceió...</div></div></div>
+            <div class="fact-item"><span class="fact-icon">📺</span><div><div class="fact-label">Transmissão</div><div class="fact-value">SporTV + Casimiro+</div></div></div>
+            <div class="fact-item"><span class="fact-icon">👥</span><div><div class="fact-label">Perfil público</div><div class="fact-value">Famílias, 25–45 anos, AB/C</div></div></div>
+            <div class="fact-item"><span class="fact-icon">📅</span><div><div class="fact-label">Temporada</div><div class="fact-value">Março a Novembro 2025</div></div></div>
+          </div>
+        </div>
+
+        <!-- Calendário -->
+        <div class="section-block">
+          <div class="section-title">Calendário da temporada</div>
+          <div class="cal-grid">
+            <div class="cal-item"><div class="cal-month">Mar</div><div class="cal-event has-event" style="border:none;background:none;font-size:11px;font-weight:600;color:var(--black)">Abertura</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Abr</div><div class="cal-event">8 jogos</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Mai</div><div class="cal-event">8 jogos</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Jun</div><div class="cal-event">8 jogos</div></div>
+            <div class="cal-item"><div class="cal-month">Jul</div><div class="cal-event" style="color:var(--gray-5)">Pausa</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Ago</div><div class="cal-event">Playoffs</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Set</div><div class="cal-event">Playoffs</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Out</div><div class="cal-event">Semis</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Nov</div><div class="cal-event">🏆 Final</div></div>
+            <div class="cal-item"><div class="cal-month">Dez</div><div class="cal-event" style="color:var(--gray-5)">Off</div></div>
+            <div class="cal-item"><div class="cal-month">Jan</div><div class="cal-event" style="color:var(--gray-5)">Off</div></div>
+            <div class="cal-item"><div class="cal-month">Fev</div><div class="cal-event" style="color:var(--gray-5)">Pré-temp.</div></div>
+          </div>
+        </div>
+
+        <!-- Patrocinadores históricos -->
+        <div class="section-block">
+          <div class="section-title">Histórico de patrocinadores</div>
+          <div class="sponsors-row">
+            <div class="sponsor-badge">Banco do Nordeste</div>
+            <div class="sponsor-badge">Aços Villares</div>
+            <div class="sponsor-badge">Energisa</div>
+            <div class="sponsor-badge">Pague Menos</div>
+            <div class="sponsor-badge">Hapvida</div>
+          </div>
+          <p class="body-text" style="margin-top:14px; font-size:13px;">Liga com histórico consolidado de parcerias. Patrocinadores recorrentes com renovação média de 3 temporadas.</p>
+        </div>
+
+        <!-- Cotas -->
+        <div class="section-block">
+          <div class="section-title">Cotas disponíveis</div>
+          <div class="cotas-list">
+            <div class="cota-row"><div><div class="cota-name">Naming Rights</div><div class="cota-desc">Nome da liga em toda comunicação oficial, transmissões e material de imprensa</div></div><div class="cota-right"><div class="cota-price">R$1.2M/ano</div><div class="cota-avail">1 vaga disponível</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Patrocinador Master</div><div class="cota-desc">Logo central em todas as camisas dos 8 times + ativação em jogos</div></div><div class="cota-right"><div class="cota-price">R$480k/temp.</div><div class="cota-avail">1 vaga disponível</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Patrocinador de Placa</div><div class="cota-desc">LED perimetral em todos os 48 jogos da temporada</div></div><div class="cota-right"><div class="cota-price">R$180k/temp.</div><div class="cota-avail">3 vagas disponíveis</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Patrocínio Digital</div><div class="cota-desc">Posts, stories e reels nas redes oficiais da liga (880k seguidores)</div></div><div class="cota-right"><div class="cota-price">R$80k/temp.</div><div class="cota-avail">2 vagas disponíveis</div></div></div>
+          </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="section-block">
+          <div class="section-title">Categorias</div>
+          <div class="tags-wrap"><span class="tag">Futsal</span><span class="tag">Nordeste</span><span class="tag">Transmissão SporTV</span><span class="tag">Família</span><span class="tag">Regional</span><span class="tag">Esporte comunitário</span></div>
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div>
+        <div class="interest-card">
+          <div class="interest-from">A partir de</div>
+          <div class="interest-price" style="color:var(--gold)">R$80k</div>
+          <div class="interest-period">/temporada</div>
+          <span class="status-badge status-open">● Cotas abertas</span>
+          <div class="interest-divider"></div>
+          <div class="interest-rows">
+            <div class="interest-row"><span class="ir-label">Modalidade</span><span class="ir-value">Futsal</span></div>
+            <div class="interest-row"><span class="ir-label">Abrangência</span><span class="ir-value">12 estados nordestinos</span></div>
+            <div class="interest-row"><span class="ir-label">Temporada</span><span class="ir-value">Mar – Nov 2025</span></div>
+            <div class="interest-row"><span class="ir-label">Jogos</span><span class="ir-value">48 partidas</span></div>
+            <div class="interest-row"><span class="ir-label">Transmissão</span><span class="ir-value">SporTV + Casimiro+</span></div>
+          </div>
+          <button class="btn-gold">Tenho interesse →</button>
+          <button class="btn-outline">Falar com curadoria</button>
+          <div class="curadoria-box"><strong>✦ Curadoria Radar</strong><br>Ativo verificado. Métricas auditadas pela nossa equipe.</div>
+          <p class="disclaimer">Sem compromisso. Retorno em até 48h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 2: INFLUENCIADOR
+════════════════════════════════════════════ -->
+<div class="page" id="page-influenciador">
+
+  <div class="hero" style="background: linear-gradient(135deg, #F8F3FC 0%, #EFE0F8 100%); border-bottom: 1px solid var(--gray-3);">
+    <div class="hero-inner" style="display: flex; align-items: flex-start; gap: 28px;">
+      <!-- Avatar grande -->
+      <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#C49AD8,#8B55B8);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:32px;color:white;flex-shrink:0;border:4px solid white;box-shadow:var(--shadow);">CR</div>
+      <div style="flex:1">
+        <div class="hero-eyebrow">📱 Influenciador</div>
+        <h1 class="hero-title" style="font-size:34px">Camila Rocha</h1>
+        <div class="hero-sub">Fitness & Lifestyle · São Paulo · Audiência 82% feminina, 25–38 anos</div>
+        <div class="hero-meta">
+          <span class="status-badge status-open">● Aceitando propostas</span>
+          <span class="hero-meta-item">⭐ 4.8 · Verificado Radar</span>
+          <span class="hero-meta-item">🏅 Parceria recorrente</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-wrap">
+    <div class="two-col">
+      <div>
+
+        <!-- Plataformas -->
+        <div class="section-block">
+          <div class="section-title">Presença por plataforma</div>
+          <div class="platform-grid">
+            <div class="platform-card"><div class="platform-icon">📸</div><div><div class="platform-name">Instagram</div><div class="platform-val">3.1M</div></div></div>
+            <div class="platform-card"><div class="platform-icon">▶️</div><div><div class="platform-name">YouTube</div><div class="platform-val">420k</div></div></div>
+            <div class="platform-card"><div class="platform-icon">🎵</div><div><div class="platform-name">TikTok</div><div class="platform-val">890k</div></div></div>
+            <div class="platform-card"><div class="platform-icon">✉️</div><div><div class="platform-name">Newsletter</div><div class="platform-val">28k</div></div></div>
+          </div>
+        </div>
+
+        <!-- Métricas de audiência -->
+        <div class="section-block">
+          <div class="section-title">Perfil da audiência</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div class="section-label">Gênero</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label">Feminino</div><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div><div class="bar-val">82%</div></div>
+                <div class="bar-row"><div class="bar-label">Masculino</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--gray-4)"></div></div><div class="bar-val">18%</div></div>
+              </div>
+            </div>
+            <div>
+              <div class="section-label">Faixa etária</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label">18–24</div><div class="bar-track"><div class="bar-fill" style="width:22%"></div></div><div class="bar-val">22%</div></div>
+                <div class="bar-row"><div class="bar-label">25–34</div><div class="bar-track"><div class="bar-fill" style="width:48%"></div></div><div class="bar-val">48%</div></div>
+                <div class="bar-row"><div class="bar-label">35–44</div><div class="bar-track"><div class="bar-fill" style="width:22%"></div></div><div class="bar-val">22%</div></div>
+                <div class="bar-row"><div class="bar-label">45+</div><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--gray-4)"></div></div><div class="bar-val">8%</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="bar-chart" style="margin-top:20px">
+            <div class="section-label">Top estados (% da audiência)</div>
+            <div class="bar-row"><div class="bar-label">São Paulo</div><div class="bar-track"><div class="bar-fill" style="width:34%"></div></div><div class="bar-val">34%</div></div>
+            <div class="bar-row"><div class="bar-label">Rio de Janeiro</div><div class="bar-track"><div class="bar-fill" style="width:18%"></div></div><div class="bar-val">18%</div></div>
+            <div class="bar-row"><div class="bar-label">Minas Gerais</div><div class="bar-track"><div class="bar-fill" style="width:12%"></div></div><div class="bar-val">12%</div></div>
+            <div class="bar-row"><div class="bar-label">Outros</div><div class="bar-track"><div class="bar-fill" style="width:36%;background:var(--gray-4)"></div></div><div class="bar-val">36%</div></div>
+          </div>
+        </div>
+
+        <!-- Métricas de performance -->
+        <div class="section-block">
+          <div class="section-title">Performance</div>
+          <div class="metrics-strip" style="grid-template-columns:repeat(4,1fr)">
+            <div class="metric-cell"><div class="metric-val">6.8%</div><div class="metric-lbl">Engajamento médio</div></div>
+            <div class="metric-cell"><div class="metric-val">210k</div><div class="metric-lbl">Média de views/reel</div></div>
+            <div class="metric-cell"><div class="metric-val">R$7,10</div><div class="metric-lbl">CPE médio</div></div>
+            <div class="metric-cell"><div class="metric-val">92%</div><div class="metric-lbl">Satisf. de parceiros</div></div>
+          </div>
+        </div>
+
+        <!-- Formatos -->
+        <div class="section-block">
+          <div class="section-title">Formatos disponíveis</div>
+          <div class="cotas-list">
+            <div class="cota-row"><div><div class="cota-name">Post Feed (Instagram)</div><div class="cota-desc">Post estático ou carrossel · Menção de produto ou serviço · Legenda autoral</div></div><div class="cota-right"><div class="cota-price">R$22k</div><div class="cota-avail">2x disponível/mês</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Reels</div><div class="cota-desc">Vídeo integrado ou dedicado à marca · Avg 210k views</div></div><div class="cota-right"><div class="cota-price">R$38k</div><div class="cota-avail">1x disponível/mês</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Stories</div><div class="cota-desc">Sequência de 3 stories com swipe-up ou link na bio</div></div><div class="cota-right"><div class="cota-price">R$12k</div><div class="cota-avail">4x disponível/mês</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Vídeo YouTube</div><div class="cota-desc">Inserção de 60–90s em vídeo orgânico · Avg +100k views</div></div><div class="cota-right"><div class="cota-price">R$55k</div><div class="cota-avail">1x disponível/mês</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Pacote Mensal</div><div class="cota-desc">2 posts + 2 reels + 8 stories por mês · Presença consistente</div></div><div class="cota-right"><div class="cota-price">R$95k/mês</div><div class="cota-avail">Vaga disponível</div></div></div>
+          </div>
+        </div>
+
+        <!-- Cases -->
+        <div class="section-block">
+          <div class="section-title">Parcerias anteriores</div>
+          <div class="sponsors-row">
+            <div class="sponsor-badge">Nike Brasil</div><div class="sponsor-badge">Herbalife</div><div class="sponsor-badge">Raia Drogasil</div><div class="sponsor-badge">Nestlé</div><div class="sponsor-badge">Panasonic</div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Nichos</div>
+          <div class="tags-wrap"><span class="tag">Fitness</span><span class="tag">Nutrição</span><span class="tag">Lifestyle</span><span class="tag">Bem-estar</span><span class="tag">Moda esportiva</span><span class="tag">Classe AB</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="interest-card">
+          <div class="interest-from">Investimento a partir de</div>
+          <div class="interest-price" style="color:var(--gold)">R$12k</div>
+          <div class="interest-period">/publicação</div>
+          <span class="status-badge status-open">● Aceitando propostas</span>
+          <div class="interest-divider"></div>
+          <div class="interest-rows">
+            <div class="interest-row"><span class="ir-label">Nicho</span><span class="ir-value">Fitness / Lifestyle</span></div>
+            <div class="interest-row"><span class="ir-label">Plataformas</span><span class="ir-value">IG, YT, TikTok</span></div>
+            <div class="interest-row"><span class="ir-label">Público principal</span><span class="ir-value">Mulheres 25–38, AB</span></div>
+            <div class="interest-row"><span class="ir-label">Engajamento</span><span class="ir-value">6.8%</span></div>
+            <div class="interest-row"><span class="ir-label">Exclusividade</span><span class="ir-value">Disponível (por nicho)</span></div>
+          </div>
+          <button class="btn-gold">Tenho interesse →</button>
+          <button class="btn-outline">Falar com curadoria</button>
+          <div class="curadoria-box"><strong>✦ Curadoria Radar</strong><br>Métricas verificadas. Histórico de entregas auditado.</div>
+          <p class="disclaimer">Sem compromisso. Retorno em até 48h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 3: EVENTO
+════════════════════════════════════════════ -->
+<div class="page" id="page-evento">
+
+  <div class="hero" style="background: linear-gradient(135deg, #FBF0E6 0%, #F5E0CC 100%); border-bottom: 1px solid var(--gray-3);">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">🎪 Evento</div>
+      <h1 class="hero-title">Festival Moto <em>Nordeste</em></h1>
+      <div class="hero-sub">7ª edição · Fortaleza, CE · Setembro 2025 · 120 mil visitantes esperados</div>
+      <div class="hero-meta">
+        <span class="status-badge status-limited">⚠ Poucas cotas restantes</span>
+        <span class="hero-meta-item">📍 Fortaleza, CE</span>
+        <span class="hero-meta-item">⭐ 4.7 · Verificado Radar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-wrap">
+    <div class="two-col">
+      <div>
+
+        <!-- Countdown -->
+        <div class="section-block">
+          <div class="section-title">Contagem regressiva</div>
+          <div class="countdown-strip">
+            <div class="countdown-cell"><div class="countdown-num">178</div><div class="countdown-unit">Dias</div></div>
+            <div class="countdown-cell"><div class="countdown-num">14</div><div class="countdown-unit">Horas</div></div>
+            <div class="countdown-cell"><div class="countdown-num">32</div><div class="countdown-unit">Minutos</div></div>
+            <div class="countdown-cell" style="background:var(--gold-pale)"><div class="countdown-num" style="color:var(--gold)">Set/25</div><div class="countdown-unit">Data do evento</div></div>
+          </div>
+        </div>
+
+        <!-- Métricas -->
+        <div class="section-block">
+          <div class="metrics-strip" style="grid-template-columns:repeat(4,1fr)">
+            <div class="metric-cell"><div class="metric-val">120k</div><div class="metric-lbl">Público esperado</div></div>
+            <div class="metric-cell"><div class="metric-val">28M</div><div class="metric-lbl">Alcance mídia</div></div>
+            <div class="metric-cell"><div class="metric-val">3</div><div class="metric-lbl">Dias de evento</div></div>
+            <div class="metric-cell"><div class="metric-val">7ª</div><div class="metric-lbl">Edição</div></div>
+          </div>
+        </div>
+
+        <!-- Sobre -->
+        <div class="section-block">
+          <div class="section-title">Sobre o evento</div>
+          <p class="body-text">O maior festival de motociclismo do Nordeste, realizado anualmente em Fortaleza. Shows nacionais, exposição de motos customizadas, manobras e área de experiências de marca. Cobertura confirmada: SBT, Band e os principais portais regionais. Público predominantemente masculino, 25–45 anos, renda AB/C.</p>
+          <div class="facts-grid" style="margin-top: 16px;">
+            <div class="fact-item"><span class="fact-icon">📍</span><div><div class="fact-label">Local</div><div class="fact-value">Centro de Eventos do Ceará</div></div></div>
+            <div class="fact-item"><span class="fact-icon">📺</span><div><div class="fact-label">Mídia parceira</div><div class="fact-value">SBT, Band, portais regionais</div></div></div>
+            <div class="fact-item"><span class="fact-icon">👥</span><div><div class="fact-label">Perfil do público</div><div class="fact-value">Homens 25–45, AB/C</div></div></div>
+            <div class="fact-item"><span class="fact-icon">🏍️</span><div><div class="fact-label">Atrações</div><div class="fact-value">Shows, expo, manobras, food</div></div></div>
+          </div>
+        </div>
+
+        <!-- Vagas por cota -->
+        <div class="section-block">
+          <div class="section-title">Disponibilidade de cotas</div>
+          <div class="vagas-row">
+            <div class="vagas-indicator"><div class="vaga-dot filled"></div><div class="vaga-dot empty"></div><div class="vaga-dot empty"></div></div>
+            <div class="vagas-name">Patrocínio Master</div>
+            <div class="vagas-count">1 de 1 — <strong style="color:#EF4444">última vaga</strong></div>
+          </div>
+          <div class="vagas-row">
+            <div class="vagas-indicator"><div class="vaga-dot filled"></div><div class="vaga-dot filled"></div><div class="vaga-dot empty"></div></div>
+            <div class="vagas-name">Patrocínio Ouro</div>
+            <div class="vagas-count">1 de 2 preenchida</div>
+          </div>
+          <div class="vagas-row">
+            <div class="vagas-indicator"><div class="vaga-dot filled"></div><div class="vaga-dot empty"></div><div class="vaga-dot empty"></div><div class="vaga-dot empty"></div></div>
+            <div class="vagas-name">Patrocínio Prata</div>
+            <div class="vagas-count">1 de 4 preenchida</div>
+          </div>
+          <div class="vagas-row">
+            <div class="vagas-indicator"><div class="vaga-dot empty"></div><div class="vaga-dot empty"></div><div class="vaga-dot empty"></div></div>
+            <div class="vagas-name">Apoio Digital</div>
+            <div class="vagas-count">3 vagas disponíveis</div>
+          </div>
+        </div>
+
+        <!-- Cotas -->
+        <div class="section-block">
+          <div class="section-title">Cotas e entregas</div>
+          <div class="cotas-list">
+            <div class="cota-row"><div><div class="cota-name">🥇 Patrocínio Master</div><div class="cota-desc">Nome no título · Ativação exclusiva 300m² · Logo em toda comunicação · Backstage</div></div><div class="cota-right"><div class="cota-price">R$850k</div><div class="cota-avail">⚠ Última vaga</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">🥈 Patrocínio Ouro</div><div class="cota-desc">Área de ativação 100m² · Logo em palcos e comunicação · 100 ingressos VIP</div></div><div class="cota-right"><div class="cota-price">R$280k</div><div class="cota-avail">1 vaga restante</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">🥉 Patrocínio Prata</div><div class="cota-desc">Stand 30m² · Logo em bandeiras e stage · 30 ingressos VIP</div></div><div class="cota-right"><div class="cota-price">R$95k</div><div class="cota-avail">3 vagas disponíveis</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">📱 Apoio Digital</div><div class="cota-desc">Menção nas redes do evento (180k seguidores) · 30 dias antes e durante</div></div><div class="cota-right"><div class="cota-price">R$35k</div><div class="cota-avail">3 vagas disponíveis</div></div></div>
+          </div>
+        </div>
+
+        <!-- Edições anteriores -->
+        <div class="section-block">
+          <div class="section-title">Edições anteriores</div>
+          <div class="photo-grid-3">
+            <div class="photo-cell main">🏍️</div>
+            <div class="photo-cell">🎤</div>
+            <div class="photo-cell">🎪</div>
+          </div>
+          <p class="body-text" style="margin-top:12px;font-size:13px;">6 edições realizadas com crescimento médio de 18% de público ao ano. Edição 2024: 102 mil visitantes, patrocinador master Yamaha.</p>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Categorias</div>
+          <div class="tags-wrap"><span class="tag">Motociclismo</span><span class="tag">Fortaleza</span><span class="tag">Shows</span><span class="tag">Ativação presencial</span><span class="tag">Homens 25–45</span><span class="tag">AB/C</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="interest-card">
+          <div class="interest-from">Cotas a partir de</div>
+          <div class="interest-price" style="color:var(--gold)">R$35k</div>
+          <div class="interest-period">/edição</div>
+          <span class="status-badge status-limited">⚠ Poucas vagas</span>
+          <div class="interest-divider"></div>
+          <div class="interest-rows">
+            <div class="interest-row"><span class="ir-label">Local</span><span class="ir-value">Fortaleza, CE</span></div>
+            <div class="interest-row"><span class="ir-label">Data</span><span class="ir-value">Setembro 2025</span></div>
+            <div class="interest-row"><span class="ir-label">Duração</span><span class="ir-value">3 dias</span></div>
+            <div class="interest-row"><span class="ir-label">Público esperado</span><span class="ir-value">120 mil pessoas</span></div>
+            <div class="interest-row"><span class="ir-label">Edição</span><span class="ir-value">7ª (desde 2018)</span></div>
+          </div>
+          <button class="btn-gold">Garantir minha cota →</button>
+          <button class="btn-outline">Falar com curadoria</button>
+          <div class="curadoria-box"><strong>✦ Curadoria Radar</strong><br>Evento verificado. Histórico de 6 edições auditado.</div>
+          <p class="disclaimer">Sem compromisso. Retorno em até 48h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 4: ATLETA
+════════════════════════════════════════════ -->
+<div class="page" id="page-atleta">
+
+  <div class="hero" style="background: linear-gradient(135deg, #EAF2FB 0%, #D0E5F5 100%); border-bottom: 1px solid var(--gray-3);">
+    <div class="hero-inner" style="display: flex; align-items: flex-start; gap: 28px;">
+      <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#57A0D8,#1A5F9B);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:32px;color:white;flex-shrink:0;border:4px solid white;box-shadow:var(--shadow);">RS</div>
+      <div style="flex:1">
+        <div class="hero-eyebrow">⚡ Atleta</div>
+        <h1 class="hero-title" style="font-size:34px">Rafael <em>"Raio"</em> Santos</h1>
+        <div class="hero-sub">Velocista · 100m rasos · Seleção Brasileira · PR: 9.98s</div>
+        <div class="hero-meta">
+          <span class="status-badge status-open">● Aceitando propostas</span>
+          <span class="hero-meta-item">🥈 Pan-Americano 2023</span>
+          <span class="hero-meta-item">🏅 Olimpíadas Paris 2024</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-wrap">
+    <div class="two-col">
+      <div>
+
+        <!-- Métricas -->
+        <div class="section-block">
+          <div class="metrics-strip" style="grid-template-columns:repeat(4,1fr)">
+            <div class="metric-cell"><div class="metric-val">9.98s</div><div class="metric-lbl">PR 100m rasos</div></div>
+            <div class="metric-cell"><div class="metric-val">1.2M</div><div class="metric-lbl">Seguidores totais</div></div>
+            <div class="metric-cell"><div class="metric-val">4.2%</div><div class="metric-lbl">Engajamento</div></div>
+            <div class="metric-cell"><div class="metric-val">12</div><div class="metric-lbl">Comp./ano</div></div>
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="section-block">
+          <div class="section-title">Sobre o atleta</div>
+          <p class="body-text">Rafael "Raio" Santos é o velocista mais rápido do Brasil, com PR de 9.98s nos 100m rasos. Participou das Olimpíadas de Paris 2024 e foi medalha de prata no Pan-Americano. Presença constante em transmissões da Globo e SporTV. Audiência 68% masculina, 18–35 anos.</p>
+        </div>
+
+        <!-- Timeline de conquistas -->
+        <div class="section-block">
+          <div class="section-title">Trajetória de conquistas</div>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-left"><div class="timeline-dot"></div><div class="timeline-line"></div></div>
+              <div class="timeline-right"><div class="timeline-year">2019</div><div class="timeline-event">Campeão Brasileiro Sub-23</div><div class="timeline-detail">Primeiro título nacional — 10.12s</div></div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left"><div class="timeline-dot"></div><div class="timeline-line"></div></div>
+              <div class="timeline-right"><div class="timeline-year">2021</div><div class="timeline-event">Estreia na Seleção Brasileira</div><div class="timeline-detail">Sul-Americano de Atletismo — Ouro 100m</div></div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left"><div class="timeline-dot"></div><div class="timeline-line"></div></div>
+              <div class="timeline-right"><div class="timeline-year">2022</div><div class="timeline-event">Recorde Brasileiro — 9.98s</div><div class="timeline-detail">Diamond League Londres</div></div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left"><div class="timeline-dot"></div><div class="timeline-line"></div></div>
+              <div class="timeline-right"><div class="timeline-year">2023</div><div class="timeline-event">🥈 Pan-Americano Santiago</div><div class="timeline-detail">Prata nos 100m — Transmissão SporTV</div></div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-left"><div class="timeline-dot"></div><div class="timeline-line"></div></div>
+              <div class="timeline-right"><div class="timeline-year">2024</div><div class="timeline-event">🏅 Olimpíadas Paris</div><div class="timeline-detail">Finalista dos 100m — Transmissão Globo</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Próximas competições -->
+        <div class="section-block">
+          <div class="section-title">Próximas competições</div>
+          <div class="cal-grid" style="grid-template-columns:repeat(3,1fr)">
+            <div class="cal-item has-event"><div class="cal-month">Abr 2025</div><div class="cal-event">Sul-Americano · Lima</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Jun 2025</div><div class="cal-event">Diamond League · Oslo</div></div>
+            <div class="cal-item has-event"><div class="cal-month">Ago 2025</div><div class="cal-event">Mundial · Tóquio</div></div>
+          </div>
+        </div>
+
+        <!-- Mídia espontânea -->
+        <div class="section-block">
+          <div class="section-title">Presença em mídia</div>
+          <div class="media-grid">
+            <div class="media-pill"><div class="media-pill-icon">📺</div><div><div class="media-pill-name">Globo</div><div class="media-pill-type">TV aberta · Olimpíadas</div></div></div>
+            <div class="media-pill"><div class="media-pill-icon">📡</div><div><div class="media-pill-name">SporTV</div><div class="media-pill-type">Transmissões ao vivo</div></div></div>
+            <div class="media-pill"><div class="media-pill-icon">📰</div><div><div class="media-pill-name">UOL Esporte</div><div class="media-pill-type">Digital · Cobertura regular</div></div></div>
+            <div class="media-pill"><div class="media-pill-icon">📻</div><div><div class="media-pill-name">Rádio Bandeirantes</div><div class="media-pill-type">Áudio · Entrevistas</div></div></div>
+          </div>
+        </div>
+
+        <!-- Formatos -->
+        <div class="section-block">
+          <div class="section-title">Formatos de patrocínio</div>
+          <div class="cotas-list">
+            <div class="cota-row"><div><div class="cota-name">Uniforme de Competição</div><div class="cota-desc">Logo no uniforme de treino e competição · Exposição em transmissões nacionais</div></div><div class="cota-right"><div class="cota-price">R$480k/ano</div><div class="cota-avail">1 vaga — exclusivo</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Embaixador de Marca</div><div class="cota-desc">Campanhas publicitárias, eventos, conteúdo exclusivo e ações de relações públicas</div></div><div class="cota-right"><div class="cota-price">R$180k/ano</div><div class="cota-avail">Contrato anual</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Conteúdo Mensal</div><div class="cota-desc">4 posts/mês no Instagram e TikTok com menção e integração de produto</div></div><div class="cota-right"><div class="cota-price">R$48k/mês</div><div class="cota-avail">Disponível</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Ação Pontual</div><div class="cota-desc">Participação em evento, campanha ou lançamento de produto</div></div><div class="cota-right"><div class="cota-price">R$35k/ação</div><div class="cota-avail">Sob consulta</div></div></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Categorias</div>
+          <div class="tags-wrap"><span class="tag">Atletismo</span><span class="tag">Velocista</span><span class="tag">Olimpíadas 2024</span><span class="tag">Seleção Brasileira</span><span class="tag">Globo</span><span class="tag">SporTV</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="interest-card">
+          <div class="interest-from">Investimento a partir de</div>
+          <div class="interest-price" style="color:var(--gold)">R$35k</div>
+          <div class="interest-period">/ação pontual</div>
+          <span class="status-badge status-open">● Aceitando propostas</span>
+          <div class="interest-divider"></div>
+          <div class="interest-rows">
+            <div class="interest-row"><span class="ir-label">Modalidade</span><span class="ir-value">Atletismo — 100m</span></div>
+            <div class="interest-row"><span class="ir-label">Ranking</span><span class="ir-value">1º Brasil / 12º Mundo</span></div>
+            <div class="interest-row"><span class="ir-label">Público</span><span class="ir-value">Homens 18–35 (68%)</span></div>
+            <div class="interest-row"><span class="ir-label">Próx. comp.</span><span class="ir-value">Mundial Tóquio 2025</span></div>
+            <div class="interest-row"><span class="ir-label">Exclusividade</span><span class="ir-value">Disponível por categoria</span></div>
+          </div>
+          <button class="btn-gold">Tenho interesse →</button>
+          <button class="btn-outline">Falar com curadoria</button>
+          <div class="curadoria-box"><strong>✦ Curadoria Radar</strong><br>Atleta verificado. Rankings e resultados auditados.</div>
+          <p class="disclaimer">Sem compromisso. Retorno em até 48h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 5: MÍDIA / PORTAL
+════════════════════════════════════════════ -->
+<div class="page" id="page-midia">
+
+  <div class="hero" style="background: linear-gradient(135deg, #F5F8EE 0%, #E8EFD5 100%); border-bottom: 1px solid var(--gray-3);">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">📡 Mídia / Portal</div>
+      <h1 class="hero-title">Nordeste <em>Esporte</em></h1>
+      <div class="hero-sub">Maior portal esportivo independente do Nordeste · Web, Newsletter, Podcast, Social</div>
+      <div class="hero-meta">
+        <span class="status-badge status-open">● Aceitando propostas</span>
+        <span class="hero-meta-item">📍 Nordeste, Brasil</span>
+        <span class="hero-meta-item">⭐ 4.6 · Verificado Radar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-wrap">
+    <div class="two-col">
+      <div>
+
+        <!-- Métricas -->
+        <div class="section-block">
+          <div class="metrics-strip" style="grid-template-columns:repeat(4,1fr)">
+            <div class="metric-cell"><div class="metric-val">4.8M</div><div class="metric-lbl">Acessos/mês</div></div>
+            <div class="metric-cell"><div class="metric-val">320k</div><div class="metric-lbl">Assinantes newsletter</div></div>
+            <div class="metric-cell"><div class="metric-val">2.1M</div><div class="metric-lbl">Seguidores redes</div></div>
+            <div class="metric-cell"><div class="metric-val">6.2min</div><div class="metric-lbl">Tempo médio/sessão</div></div>
+          </div>
+        </div>
+
+        <!-- Sobre -->
+        <div class="section-block">
+          <div class="section-title">Sobre o veículo</div>
+          <p class="body-text">O Nordeste Esporte é o maior portal esportivo independente do Nordeste, com cobertura 24h de futebol regional e nacional. Audiência fiel e engajada, com newsletter diária para 320 mil assinantes e podcast semanal com média de 80 mil ouvintes/episódio.</p>
+        </div>
+
+        <!-- Audiência por canal -->
+        <div class="section-block">
+          <div class="section-title">Audiência por canal</div>
+          <div class="platform-grid">
+            <div class="platform-card"><div class="platform-icon">🌐</div><div><div class="platform-name">Portal Web</div><div class="platform-val">4.8M visitas/mês</div></div></div>
+            <div class="platform-card"><div class="platform-icon">✉️</div><div><div class="platform-name">Newsletter</div><div class="platform-val">320k · 42% abertura</div></div></div>
+            <div class="platform-card"><div class="platform-icon">🎙️</div><div><div class="platform-name">Podcast</div><div class="platform-val">80k ouvintes/ep.</div></div></div>
+            <div class="platform-card"><div class="platform-icon">📱</div><div><div class="platform-name">Instagram + X</div><div class="platform-val">2.1M seguidores</div></div></div>
+          </div>
+        </div>
+
+        <!-- Perfil da audiência -->
+        <div class="section-block">
+          <div class="section-title">Perfil da audiência</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div class="section-label">Gênero</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label">Masculino</div><div class="bar-track"><div class="bar-fill" style="width:68%"></div></div><div class="bar-val">68%</div></div>
+                <div class="bar-row"><div class="bar-label">Feminino</div><div class="bar-track"><div class="bar-fill" style="width:32%;background:var(--gray-4)"></div></div><div class="bar-val">32%</div></div>
+              </div>
+            </div>
+            <div>
+              <div class="section-label">Faixa etária</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label">18–24</div><div class="bar-track"><div class="bar-fill" style="width:18%"></div></div><div class="bar-val">18%</div></div>
+                <div class="bar-row"><div class="bar-label">25–34</div><div class="bar-track"><div class="bar-fill" style="width:35%"></div></div><div class="bar-val">35%</div></div>
+                <div class="bar-row"><div class="bar-label">35–44</div><div class="bar-track"><div class="bar-fill" style="width:30%"></div></div><div class="bar-val">30%</div></div>
+                <div class="bar-row"><div class="bar-label">45+</div><div class="bar-track"><div class="bar-fill" style="width:17%;background:var(--gray-4)"></div></div><div class="bar-val">17%</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formatos -->
+        <div class="section-block">
+          <div class="section-title">Formatos de patrocínio</div>
+          <div class="format-grid">
+            <div class="format-card">
+              <div class="format-icon">✍️</div>
+              <div class="format-name">Branded Content</div>
+              <p style="font-size:12px;color:var(--gray-5);line-height:1.5">Artigo ou série editorial produzida em parceria com a redação do portal. Tom jornalístico, alta credibilidade.</p>
+              <div class="format-metrics">
+                <div class="format-metric">Alcance médio: <strong>35k leitores</strong></div>
+                <div class="format-metric">Permanência: <strong>8 min</strong></div>
+              </div>
+              <div class="format-price">R$35k/mês</div>
+            </div>
+            <div class="format-card">
+              <div class="format-icon">✉️</div>
+              <div class="format-name">Newsletter Sponsor</div>
+              <p style="font-size:12px;color:var(--gray-5);line-height:1.5">Banner + menção editorial na newsletter diária enviada para 320k assinantes. Taxa de abertura 42%.</p>
+              <div class="format-metrics">
+                <div class="format-metric">Reach: <strong>134k/mês</strong></div>
+                <div class="format-metric">CTR médio: <strong>3.8%</strong></div>
+              </div>
+              <div class="format-price">R$18k/mês</div>
+            </div>
+            <div class="format-card">
+              <div class="format-icon">🎙️</div>
+              <div class="format-name">Podcast Patrocinado</div>
+              <p style="font-size:12px;color:var(--gray-5);line-height:1.5">Vinheta de abertura + menção host em 8 episódios mensais. Audiência fiel e engajada.</p>
+              <div class="format-metrics">
+                <div class="format-metric">Ouvintes/ep.: <strong>80k</strong></div>
+                <div class="format-metric">Retenção: <strong>72%</strong></div>
+              </div>
+              <div class="format-price">R$28k/mês</div>
+            </div>
+            <div class="format-card">
+              <div class="format-icon">📲</div>
+              <div class="format-name">Social Media</div>
+              <p style="font-size:12px;color:var(--gray-5);line-height:1.5">Posts patrocinados no Instagram e X com menção de marca. Conteúdo criado pela equipe do portal.</p>
+              <div class="format-metrics">
+                <div class="format-metric">Seguidores: <strong>2.1M</strong></div>
+                <div class="format-metric">Eng. médio: <strong>4.1%</strong></div>
+              </div>
+              <div class="format-price">R$15k/mês</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Categorias</div>
+          <div class="tags-wrap"><span class="tag">Futebol</span><span class="tag">Nordeste</span><span class="tag">Digital</span><span class="tag">Newsletter</span><span class="tag">Podcast</span><span class="tag">Homens 25–44</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="interest-card">
+          <div class="interest-from">Investimento a partir de</div>
+          <div class="interest-price" style="color:var(--gold)">R$15k</div>
+          <div class="interest-period">/mês</div>
+          <span class="status-badge status-open">● Aceitando propostas</span>
+          <div class="interest-divider"></div>
+          <div class="interest-rows">
+            <div class="interest-row"><span class="ir-label">Categoria</span><span class="ir-value">Esportes / Futebol</span></div>
+            <div class="interest-row"><span class="ir-label">Canais</span><span class="ir-value">Web, NL, Podcast, Social</span></div>
+            <div class="interest-row"><span class="ir-label">Público</span><span class="ir-value">Homens 25–44, NE</span></div>
+            <div class="interest-row"><span class="ir-label">Acessos/mês</span><span class="ir-value">4.8 milhões</span></div>
+            <div class="interest-row"><span class="ir-label">NL abertura</span><span class="ir-value">42% (acima do mercado)</span></div>
+          </div>
+          <button class="btn-gold">Tenho interesse →</button>
+          <button class="btn-outline">Falar com curadoria</button>
+          <div class="curadoria-box"><strong>✦ Curadoria Radar</strong><br>Veículo verificado. Métricas auditadas por terceiros.</div>
+          <p class="disclaimer">Sem compromisso. Retorno em até 48h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 6: VENUE / ARENA
+════════════════════════════════════════════ -->
+<div class="page" id="page-venue">
+
+  <div class="hero" style="background: linear-gradient(135deg, #EAF7F0 0%, #CCF0DF 100%); border-bottom: 1px solid var(--gray-3);">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">🏟️ Arena / Venue</div>
+      <h1 class="hero-title">Arena Central <em>Recife</em></h1>
+      <div class="hero-sub">Arena multiuso · 28.000 lugares · Recife, PE · Naming Rights disponível 2026</div>
+      <div class="hero-meta">
+        <span class="status-badge status-open">● Naming disponível</span>
+        <span class="hero-meta-item">📍 Recife, Pernambuco</span>
+        <span class="hero-meta-item">⭐ 4.9 · Verificado Radar</span>
+        <span class="hero-meta-item">🏟️ Inaugurada 2019</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-wrap">
+    <div class="two-col">
+      <div>
+
+        <!-- Métricas -->
+        <div class="section-block">
+          <div class="metrics-strip" style="grid-template-columns:repeat(4,1fr)">
+            <div class="metric-cell"><div class="metric-val">28k</div><div class="metric-lbl">Capacidade</div></div>
+            <div class="metric-cell"><div class="metric-val">80+</div><div class="metric-lbl">Eventos/ano</div></div>
+            <div class="metric-cell"><div class="metric-val">1.4M</div><div class="metric-lbl">Público anual</div></div>
+            <div class="metric-cell"><div class="metric-val">4.000</div><div class="metric-lbl">Vagas estac.</div></div>
+          </div>
+        </div>
+
+        <!-- Sobre -->
+        <div class="section-block">
+          <div class="section-title">Sobre a arena</div>
+          <p class="body-text">A Arena Central Recife é a principal arena multiuso do Nordeste, com capacidade para 28 mil pessoas. Sede de shows internacionais, esportes de alto nível e grandes congressos corporativos. Localização privilegiada em Recife, com fácil acesso e estacionamento para 4.000 veículos.</p>
+          <div class="facts-grid" style="margin-top:16px">
+            <div class="fact-item"><span class="fact-icon">📍</span><div><div class="fact-label">Localização</div><div class="fact-value">Recife, Pernambuco</div></div></div>
+            <div class="fact-item"><span class="fact-icon">🏗️</span><div><div class="fact-label">Inauguração</div><div class="fact-value">Março 2019</div></div></div>
+            <div class="fact-item"><span class="fact-icon">🎭</span><div><div class="fact-label">Tipo de eventos</div><div class="fact-value">Shows, esportes, feiras, corporativo</div></div></div>
+            <div class="fact-item"><span class="fact-icon">📺</span><div><div class="fact-label">Transmissões</div><div class="fact-value">+40 eventos transmitidos/ano</div></div></div>
+          </div>
+        </div>
+
+        <!-- Mapa de ativos (layout visual) -->
+        <div class="section-block">
+          <div class="section-title">Mapa de ativos de marca</div>
+          <div style="background:var(--gray-1);border:1px solid var(--gray-2);border-radius:var(--radius);padding:24px;position:relative;min-height:240px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;">
+            <!-- Centro -->
+            <div style="width:120px;height:80px;background:#DDDDDD;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--gray-5);text-align:center;line-height:1.3">ARENA<br>28k lugares</div>
+            <!-- Zonas ao redor -->
+            <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:500px">
+              <div style="background:rgba(201,164,58,0.15);border:1.5px dashed var(--gold);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--black);text-align:center">🏷️ Naming Rights<br><span style="color:var(--gold);font-size:12px">R$2.8M/ano</span></div>
+              <div style="background:rgba(201,164,58,0.08);border:1.5px dashed var(--gray-4);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--black);text-align:center">📺 LED Scoreboard<br><span style="color:var(--gray-5);font-size:12px">R$420k/ano</span></div>
+              <div style="background:rgba(201,164,58,0.08);border:1.5px dashed var(--gray-4);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--black);text-align:center">🥂 Lounge VIP<br><span style="color:var(--gray-5);font-size:12px">R$280k/ano</span></div>
+              <div style="background:rgba(201,164,58,0.08);border:1.5px dashed var(--gray-4);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--black);text-align:center">📱 Digital In-Venue<br><span style="color:var(--gray-5);font-size:12px">R$95k/ano</span></div>
+              <div style="background:rgba(201,164,58,0.08);border:1.5px dashed var(--gray-4);border-radius:8px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--black);text-align:center">🅿️ Naming Estac.<br><span style="color:var(--gray-5);font-size:12px">R$60k/ano</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de ativos detalhada -->
+        <div class="section-block">
+          <div class="section-title">Ativos disponíveis</div>
+          <div class="asset-list">
+            <div class="asset-item"><div class="asset-dot" style="background:var(--gold)"></div><div class="asset-name"><strong>Naming Rights</strong> — Nome da arena em toda comunicação oficial por 5 anos</div><div><div class="asset-price">R$2.8M/ano</div><div class="asset-avail">Contrato mínimo 5 anos</div></div></div>
+            <div class="asset-item"><div class="asset-dot" style="background:#888"></div><div class="asset-name">LED Scoreboard — Exibição no placar central em todos os eventos</div><div><div class="asset-price">R$420k/ano</div><div class="asset-avail">1 vaga disponível</div></div></div>
+            <div class="asset-item"><div class="asset-dot" style="background:#888"></div><div class="asset-name">Lounge VIP Exclusivo — Naming + 50 convites por evento</div><div><div class="asset-price">R$280k/ano</div><div class="asset-avail">2 vagas disponíveis</div></div></div>
+            <div class="asset-item"><div class="asset-dot" style="background:#888"></div><div class="asset-name">Digital In-Venue — Rede de totens e painéis digitais internos</div><div><div class="asset-price">R$95k/ano</div><div class="asset-avail">Disponível</div></div></div>
+            <div class="asset-item"><div class="asset-dot" style="background:#888"></div><div class="asset-name">Naming Estacionamento — Nome do estacionamento de 4.000 vagas</div><div><div class="asset-price">R$60k/ano</div><div class="asset-avail">Disponível</div></div></div>
+          </div>
+        </div>
+
+        <!-- Fotos da arena -->
+        <div class="section-block">
+          <div class="section-title">A arena</div>
+          <div class="photo-grid-3">
+            <div class="photo-cell main">🏟️</div>
+            <div class="photo-cell">🎤</div>
+            <div class="photo-cell">🏀</div>
+          </div>
+        </div>
+
+        <!-- Histórico de eventos -->
+        <div class="section-block">
+          <div class="section-title">Eventos realizados em 2024</div>
+          <div class="media-grid">
+            <div class="media-pill"><div class="media-pill-icon">🎤</div><div><div class="media-pill-name">Shows internacionais</div><div class="media-pill-type">12 eventos · 210k pessoas</div></div></div>
+            <div class="media-pill"><div class="media-pill-icon">⚽</div><div><div class="media-pill-name">Futebol</div><div class="media-pill-type">Sport Club · 18 jogos</div></div></div>
+            <div class="media-pill"><div class="media-pill-icon">🏀</div><div><div class="media-pill-name">NBB</div><div class="media-pill-type">Basquete · 8 jogos</div></div></div>
+            <div class="media-pill"><div class="media-pill-icon">🎪</div><div><div class="media-pill-name">Feiras e expos</div><div class="media-pill-type">6 eventos · 45k visitantes</div></div></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Categorias</div>
+          <div class="tags-wrap"><span class="tag">Naming Rights</span><span class="tag">Recife</span><span class="tag">Shows</span><span class="tag">Esportes</span><span class="tag">Corporativo</span><span class="tag">Multiuso</span><span class="tag">Nordeste</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="interest-card">
+          <div class="interest-from">Naming Rights a partir de</div>
+          <div class="interest-price" style="color:var(--gold)">R$2.8M</div>
+          <div class="interest-period">/ano · contrato 5 anos</div>
+          <span class="status-badge status-open">● Naming disponível 2026</span>
+          <div class="interest-divider"></div>
+          <div class="interest-rows">
+            <div class="interest-row"><span class="ir-label">Tipo</span><span class="ir-value">Arena multiuso</span></div>
+            <div class="interest-row"><span class="ir-label">Local</span><span class="ir-value">Recife, Pernambuco</span></div>
+            <div class="interest-row"><span class="ir-label">Capacidade</span><span class="ir-value">28.000 pessoas</span></div>
+            <div class="interest-row"><span class="ir-label">Eventos/ano</span><span class="ir-value">80+ eventos</span></div>
+            <div class="interest-row"><span class="ir-label">Público anual</span><span class="ir-value">1.4 milhão</span></div>
+          </div>
+          <button class="btn-gold">Tenho interesse →</button>
+          <button class="btn-outline">Falar com curadoria</button>
+          <div class="curadoria-box"><strong>✦ Curadoria Radar</strong><br>Arena verificada. Histórico de eventos auditado.</div>
+          <p class="disclaimer">Sem compromisso. Retorno em até 48h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 7: VEÍCULO DE MÍDIA (digital)
+════════════════════════════════════════════ -->
+<div class="page" id="page-veiculo">
+
+  <div class="hero" style="background: linear-gradient(135deg, #EEF2FB 0%, #D8E4F8 100%); border-bottom: 1px solid var(--gray-3);">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">📺 Veículo de Mídia</div>
+      <h1 class="hero-title">Grupo <em>Nordeste</em> de Comunicação</h1>
+      <div class="hero-sub">Portfólio multiplataforma · TV aberta, portal, rádio, redes sociais e newsletter · 14 estados</div>
+      <div class="hero-meta">
+        <span class="status-badge status-open">● Aceitando propostas</span>
+        <span class="hero-meta-item">📍 Recife, PE</span>
+        <span class="hero-meta-item">⭐ 4.8 · Verificado Radar</span>
+        <span class="hero-meta-item">📅 Fundado em 1968</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-wrap">
+    <div class="two-col">
+      <div>
+
+        <!-- Métricas consolidadas -->
+        <div class="section-block">
+          <div class="metrics-strip" style="grid-template-columns:repeat(4,1fr)">
+            <div class="metric-cell"><div class="metric-val">18M</div><div class="metric-lbl">Alcance mensal total</div></div>
+            <div class="metric-cell"><div class="metric-val">14</div><div class="metric-lbl">Estados cobertos</div></div>
+            <div class="metric-cell"><div class="metric-val">6</div><div class="metric-lbl">Plataformas</div></div>
+            <div class="metric-cell"><div class="metric-val">62%</div><div class="metric-lbl">Share regional</div></div>
+          </div>
+        </div>
+
+        <!-- Sobre -->
+        <div class="section-block">
+          <div class="section-title">Sobre o veículo</div>
+          <p class="body-text">O Grupo Nordeste de Comunicação é o maior conglomerado de mídia da região, com presença em TV aberta, portal de notícias, rádio AM/FM, newsletters segmentadas e redes sociais. Atinge 18 milhões de pessoas por mês em 14 estados, com forte penetração nas classes B e C.</p>
+        </div>
+
+        <!-- Portfólio de plataformas -->
+        <div class="section-block">
+          <div class="section-title">Portfólio de plataformas</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+
+            <div style="border:1px solid var(--gray-2);border-radius:var(--radius);overflow:hidden;background:white;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:28px;width:44px;flex-shrink:0;text-align:center">📺</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">TV Nordeste</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">Canal aberto · Afiliada Record · 9 estados</div>
+                </div>
+                <div style="display:flex;gap:20px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">4.2M</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Telespect./dia</div></div>
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">18.3</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Ibope médio</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--gray-2);border-radius:var(--radius);overflow:hidden;background:white;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:28px;width:44px;flex-shrink:0;text-align:center">🌐</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">NordesteonLine.com</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">Portal de notícias · Entretenimento e esportes</div>
+                </div>
+                <div style="display:flex;gap:20px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">8.1M</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Visitas/mês</div></div>
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">4.4min</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Tempo médio</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--gray-2);border-radius:var(--radius);overflow:hidden;background:white;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:28px;width:44px;flex-shrink:0;text-align:center">📻</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">Rádio Nordeste FM 98.3</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">Pop/sertanejo · Fortaleza, Recife, Natal</div>
+                </div>
+                <div style="display:flex;gap:20px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">1.8M</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Ouvintes/dia</div></div>
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">#2</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Ranking regional</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--gray-2);border-radius:var(--radius);overflow:hidden;background:white;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:28px;width:44px;flex-shrink:0;text-align:center">📱</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">Redes Sociais</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">Instagram, Facebook, YouTube, X</div>
+                </div>
+                <div style="display:flex;gap:20px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">3.4M</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Seguidores totais</div></div>
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">3.9%</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Engajamento</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--gray-2);border-radius:var(--radius);overflow:hidden;background:white;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:28px;width:44px;flex-shrink:0;text-align:center">✉️</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">Newsletter NE Hoje</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">Curadoria diária de notícias · Enviada às 7h</div>
+                </div>
+                <div style="display:flex;gap:20px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">210k</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Assinantes</div></div>
+                  <div><div style="font-size:15px;font-weight:600;color:var(--black)">38%</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Taxa de abertura</div></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Perfil da audiência consolidada -->
+        <div class="section-block">
+          <div class="section-title">Perfil da audiência consolidada</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div class="section-label">Gênero</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label">Masculino</div><div class="bar-track"><div class="bar-fill" style="width:54%"></div></div><div class="bar-val">54%</div></div>
+                <div class="bar-row"><div class="bar-label">Feminino</div><div class="bar-track"><div class="bar-fill" style="width:46%;background:var(--gray-4)"></div></div><div class="bar-val">46%</div></div>
+              </div>
+            </div>
+            <div>
+              <div class="section-label">Classe social</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label">Classe A</div><div class="bar-track"><div class="bar-fill" style="width:14%"></div></div><div class="bar-val">14%</div></div>
+                <div class="bar-row"><div class="bar-label">Classe B</div><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div><div class="bar-val">38%</div></div>
+                <div class="bar-row"><div class="bar-label">Classe C</div><div class="bar-track"><div class="bar-fill" style="width:36%"></div></div><div class="bar-val">36%</div></div>
+                <div class="bar-row"><div class="bar-label">D/E</div><div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--gray-4)"></div></div><div class="bar-val">12%</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formatos de patrocínio -->
+        <div class="section-block">
+          <div class="section-title">Formatos de patrocínio</div>
+          <div class="cotas-list">
+            <div class="cota-row"><div><div class="cota-name">Patrocínio de Programa (TV)</div><div class="cota-desc">Chamada de abertura + VT institucional de 30s + logo na vinheta · Programa escolhido pelo anunciante</div></div><div class="cota-right"><div class="cota-price">R$120k/mês</div><div class="cota-avail">Por programa</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Branded Content (Portal)</div><div class="cota-desc">Artigo ou série editorial assinada · Distribuição nas redes sociais do grupo</div></div><div class="cota-right"><div class="cota-price">R$40k/mês</div><div class="cota-avail">Disponível</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Patrocínio de Rádio</div><div class="cota-desc">Spot 30s + chamada de patrocínio de quadro · Horário nobre 7h–10h</div></div><div class="cota-right"><div class="cota-price">R$28k/mês</div><div class="cota-avail">2 vagas disponíveis</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Newsletter Sponsor</div><div class="cota-desc">Banner + menção editorial · 210k assinantes · 38% de abertura</div></div><div class="cota-right"><div class="cota-price">R$18k/mês</div><div class="cota-avail">1 vaga disponível</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Pacote Multiplataforma</div><div class="cota-desc">Presença simultânea em TV, portal, rádio e redes sociais · Proposta customizada</div></div><div class="cota-right"><div class="cota-price">Sob consulta</div><div class="cota-avail">Customizado</div></div></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Categorias</div>
+          <div class="tags-wrap"><span class="tag">TV Aberta</span><span class="tag">Portal</span><span class="tag">Rádio</span><span class="tag">Newsletter</span><span class="tag">Nordeste</span><span class="tag">Multiplataforma</span><span class="tag">B/C</span></div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR -->
+      <div>
+        <div class="interest-card">
+          <div class="interest-from">Investimento a partir de</div>
+          <div class="interest-price" style="color:var(--gold)">R$18k</div>
+          <div class="interest-period">/mês · por plataforma</div>
+          <span class="status-badge status-open">● Aceitando propostas</span>
+          <div class="interest-divider"></div>
+          <div class="interest-rows">
+            <div class="interest-row"><span class="ir-label">Tipo</span><span class="ir-value">Grupo de comunicação</span></div>
+            <div class="interest-row"><span class="ir-label">Plataformas</span><span class="ir-value">TV, Portal, Rádio, NL, Social</span></div>
+            <div class="interest-row"><span class="ir-label">Cobertura</span><span class="ir-value">14 estados</span></div>
+            <div class="interest-row"><span class="ir-label">Alcance/mês</span><span class="ir-value">18 milhões</span></div>
+            <div class="interest-row"><span class="ir-label">Share regional</span><span class="ir-value">62%</span></div>
+          </div>
+          <button class="btn-gold">Tenho interesse →</button>
+          <button class="btn-outline">Falar com curadoria</button>
+          <div class="curadoria-box"><strong>✦ Curadoria Radar</strong><br>Veículo verificado. Métricas auditadas por terceiros.</div>
+          <p class="disclaimer">Sem compromisso. Retorno em até 48h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     PAGE 8: MÍDIA OOH
+════════════════════════════════════════════ -->
+<div class="page" id="page-ooh">
+
+  <div class="hero" style="background: linear-gradient(135deg, #F0EEF8 0%, #E0DBEE 100%); border-bottom: 1px solid var(--gray-3);">
+    <div class="hero-inner">
+      <div class="hero-eyebrow">🖼️ Mídia OOH</div>
+      <h1 class="hero-title">NeoOH <em>Nordeste</em></h1>
+      <div class="hero-sub">Portfólio de mídia exterior · Outdoors, painéis digitais, mobiliário urbano, aeroportos · Recife e Fortaleza</div>
+      <div class="hero-meta">
+        <span class="status-badge status-open">● Espaços disponíveis</span>
+        <span class="hero-meta-item">📍 Recife + Fortaleza</span>
+        <span class="hero-meta-item">⭐ 4.7 · Verificado Radar</span>
+        <span class="hero-meta-item">🖼️ 1.200+ faces</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-wrap">
+    <div class="two-col">
+      <div>
+
+        <!-- Métricas -->
+        <div class="section-block">
+          <div class="metrics-strip" style="grid-template-columns:repeat(4,1fr)">
+            <div class="metric-cell"><div class="metric-val">1.200+</div><div class="metric-lbl">Faces disponíveis</div></div>
+            <div class="metric-cell"><div class="metric-val">22M</div><div class="metric-lbl">Impactos/mês</div></div>
+            <div class="metric-cell"><div class="metric-val">2</div><div class="metric-lbl">Cidades</div></div>
+            <div class="metric-cell"><div class="metric-val">R$8,20</div><div class="metric-lbl">CPM médio</div></div>
+          </div>
+        </div>
+
+        <!-- Sobre -->
+        <div class="section-block">
+          <div class="section-title">Sobre o portfólio</div>
+          <p class="body-text">A NeoOH Nordeste opera mais de 1.200 faces de mídia exterior em Recife e Fortaleza, incluindo outdoors de grande formato, painéis digitais DOOH, relógios de rua, abrigos de ônibus e espaços em aeroportos. Cobertura das principais avenidas, shoppings e zonas de alto fluxo das duas capitais.</p>
+        </div>
+
+        <!-- Tipos de formato -->
+        <div class="section-block">
+          <div class="section-title">Formatos do portfólio</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+
+            <div style="border:1px solid var(--gray-2);border-radius:var(--radius);background:white;overflow:hidden;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="width:56px;height:40px;background:linear-gradient(135deg,#E8E0F0,#D0C8E8);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🟦</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">Outdoor Iluminado</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">9×3m · Avenidas principais e vias expressas</div>
+                </div>
+                <div style="display:flex;gap:16px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:14px;font-weight:600;color:var(--black)">480</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Faces</div></div>
+                  <div><div style="font-size:14px;font-weight:600;color:var(--black)">8.2M</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Impactos/mês</div></div>
+                  <div><div style="font-size:14px;font-weight:600;color:var(--gold)">R$4.8k</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">/face/mês</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1.5px solid var(--gold);border-radius:var(--radius);background:var(--gold-pale);overflow:hidden;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="width:56px;height:40px;background:linear-gradient(135deg,#F5E898,#E8C930);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">✨</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">Painel Digital (DOOH)</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">LED full-color · Troca dinâmica de anúncios · Alta conversão</div>
+                  <div style="margin-top:4px;display:inline-block;background:var(--gold);color:white;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px">Destaque</div>
+                </div>
+                <div style="display:flex;gap:16px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:14px;font-weight:600;color:var(--black)">120</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Faces</div></div>
+                  <div><div style="font-size:14px;font-weight:600;color:var(--black)">5.6M</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Impactos/mês</div></div>
+                  <div><div style="font-size:14px;font-weight:600;color:var(--gold)">R$12k</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">/face/mês</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--gray-2);border-radius:var(--radius);background:white;overflow:hidden;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="width:56px;height:40px;background:linear-gradient(135deg,#E0EEE8,#C8E0D8);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🚏</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">Mobiliário Urbano</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">Abrigos de ônibus, relógios de rua, totens · Alta frequência de contato</div>
+                </div>
+                <div style="display:flex;gap:16px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:14px;font-weight:600;color:var(--black)">380</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Faces</div></div>
+                  <div><div style="font-size:14px;font-weight:600;color:var(--black)">6.1M</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Impactos/mês</div></div>
+                  <div><div style="font-size:14px;font-weight:600;color:var(--gold)">R$1.8k</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">/face/mês</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="border:1px solid var(--gray-2);border-radius:var(--radius);background:white;overflow:hidden;">
+              <div style="padding:16px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="width:56px;height:40px;background:linear-gradient(135deg,#EEE8E0,#E0D0C0);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">✈️</div>
+                <div style="flex:1">
+                  <div style="font-size:14px;font-weight:600;color:var(--black)">Aeroporto</div>
+                  <div style="font-size:12px;color:var(--gray-5);margin-top:2px">Galerias, embarque, área de retirada · Público AB em deslocamento</div>
+                </div>
+                <div style="display:flex;gap:16px;text-align:right;flex-shrink:0">
+                  <div><div style="font-size:14px;font-weight:600;color:var(--black)">220</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Faces</div></div>
+                  <div><div style="font-size:14px;font-weight:600;color:var(--black)">2.1M</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">Impactos/mês</div></div>
+                  <div><div style="font-size:14px;font-weight:600;color:var(--gold)">R$8.5k</div><div style="font-size:10px;color:var(--gray-5);text-transform:uppercase;letter-spacing:.06em">/face/mês</div></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Cobertura geográfica -->
+        <div class="section-block">
+          <div class="section-title">Cobertura por cidade</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="background:white;border:1px solid var(--gray-2);border-radius:var(--radius);padding:18px;">
+              <div style="font-size:13px;font-weight:600;color:var(--gray-5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">📍 Recife, PE</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label" style="width:100px">Boa Viagem</div><div class="bar-track"><div class="bar-fill" style="width:75%"></div></div><div class="bar-val">180</div></div>
+                <div class="bar-row"><div class="bar-label" style="width:100px">Centro</div><div class="bar-track"><div class="bar-fill" style="width:55%"></div></div><div class="bar-val">132</div></div>
+                <div class="bar-row"><div class="bar-label" style="width:100px">Piedade</div><div class="bar-track"><div class="bar-fill" style="width:42%"></div></div><div class="bar-val">100</div></div>
+                <div class="bar-row"><div class="bar-label" style="width:100px">Outros bairros</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--gray-4)"></div></div><div class="bar-val">238</div></div>
+              </div>
+            </div>
+            <div style="background:white;border:1px solid var(--gray-2);border-radius:var(--radius);padding:18px;">
+              <div style="font-size:13px;font-weight:600;color:var(--gray-5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">📍 Fortaleza, CE</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label" style="width:100px">Meireles</div><div class="bar-track"><div class="bar-fill" style="width:68%"></div></div><div class="bar-val">160</div></div>
+                <div class="bar-row"><div class="bar-label" style="width:100px">Centro</div><div class="bar-track"><div class="bar-fill" style="width:52%"></div></div><div class="bar-val">124</div></div>
+                <div class="bar-row"><div class="bar-label" style="width:100px">Aldeota</div><div class="bar-track"><div class="bar-fill" style="width:44%"></div></div><div class="bar-val">104</div></div>
+                <div class="bar-row"><div class="bar-label" style="width:100px">Outros bairros</div><div class="bar-track"><div class="bar-fill" style="width:30%;background:var(--gray-4)"></div></div><div class="bar-val">202</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Métricas de audiência OOH -->
+        <div class="section-block">
+          <div class="section-title">Perfil da audiência impactada</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div class="section-label">Faixa etária</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label">18–24</div><div class="bar-track"><div class="bar-fill" style="width:20%"></div></div><div class="bar-val">20%</div></div>
+                <div class="bar-row"><div class="bar-label">25–34</div><div class="bar-track"><div class="bar-fill" style="width:32%"></div></div><div class="bar-val">32%</div></div>
+                <div class="bar-row"><div class="bar-label">35–49</div><div class="bar-track"><div class="bar-fill" style="width:30%"></div></div><div class="bar-val">30%</div></div>
+                <div class="bar-row"><div class="bar-label">50+</div><div class="bar-track"><div class="bar-fill" style="width:18%;background:var(--gray-4)"></div></div><div class="bar-val">18%</div></div>
+              </div>
+            </div>
+            <div>
+              <div class="section-label">Classe social</div>
+              <div class="bar-chart">
+                <div class="bar-row"><div class="bar-label">Classe A/B</div><div class="bar-track"><div class="bar-fill" style="width:48%"></div></div><div class="bar-val">48%</div></div>
+                <div class="bar-row"><div class="bar-label">Classe C</div><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div><div class="bar-val">38%</div></div>
+                <div class="bar-row"><div class="bar-label">Classe D/E</div><div class="bar-track"><div class="bar-fill" style="width:14%;background:var(--gray-4)"></div></div><div class="bar-val">14%</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="facts-grid" style="margin-top:16px">
+            <div class="fact-item"><span class="fact-icon">🚗</span><div><div class="fact-label">Perfil de deslocamento</div><div class="fact-value">70% carro, 30% transporte público</div></div></div>
+            <div class="fact-item"><span class="fact-icon">📍</span><div><div class="fact-label">Frequência de impacto</div><div class="fact-value">Média de 18 exposições/mês/pessoa</div></div></div>
+            <div class="fact-item"><span class="fact-icon">⏱️</span><div><div class="fact-label">Melhor horário</div><div class="fact-value">7h–9h e 17h–19h (pico de tráfego)</div></div></div>
+            <div class="fact-item"><span class="fact-icon">📊</span><div><div class="fact-label">Metodologia</div><div class="fact-value">IBOPE OOH · Auditado anualmente</div></div></div>
+          </div>
+        </div>
+
+        <!-- Cotas / Pacotes -->
+        <div class="section-block">
+          <div class="section-title">Pacotes de compra</div>
+          <div class="cotas-list">
+            <div class="cota-row"><div><div class="cota-name">Face Avulsa</div><div class="cota-desc">Escolha por formato e localização · Mínimo 15 dias</div></div><div class="cota-right"><div class="cota-price">A partir de R$1.8k</div><div class="cota-avail">/face/mês</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Circuito Temático</div><div class="cota-desc">Seleção de faces por bairro, rota ou perfil de audiência · 30 a 100 faces</div></div><div class="cota-right"><div class="cota-price">Sob consulta</div><div class="cota-avail">Customizado</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Pacote DOOH Programático</div><div class="cota-desc">Veiculação em painéis digitais com segmentação por horário, clima e audiência em tempo real</div></div><div class="cota-right"><div class="cota-price">R$12k</div><div class="cota-avail">/face/mês</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Campanha de Cidade</div><div class="cota-desc">Cobertura completa de Recife ou Fortaleza · Mínimo 50 faces em todas as zonas</div></div><div class="cota-right"><div class="cota-price">A partir de R$180k</div><div class="cota-avail">/mês</div></div></div>
+            <div class="cota-row"><div><div class="cota-name">Campanha Bi-City</div><div class="cota-desc">Presença simultânea em Recife e Fortaleza · Ideal para lançamentos regionais</div></div><div class="cota-right"><div class="cota-price">A partir de R$320k</div><div class="cota-avail">/mês</div></div></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <div class="section-title">Categorias</div>
+          <div class="tags-wrap"><span class="tag">Outdoor</span><span class="tag">DOOH</span><span class="tag">Mobiliário urbano</span><span class="tag">Aeroporto</span><span class="tag">Recife</span><span class="tag">Fortaleza</span><span class="tag">Programático</span></div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR -->
+      <div>
+        <div class="interest-card">
+          <div class="interest-from">Investimento a partir de</div>
+          <div class="interest-price" style="color:var(--gold)">R$1.8k</div>
+          <div class="interest-period">/face/mês</div>
+          <span class="status-badge status-open">● Espaços disponíveis</span>
+          <div class="interest-divider"></div>
+          <div class="interest-rows">
+            <div class="interest-row"><span class="ir-label">Operadora</span><span class="ir-value">NeoOH Nordeste</span></div>
+            <div class="interest-row"><span class="ir-label">Cidades</span><span class="ir-value">Recife e Fortaleza</span></div>
+            <div class="interest-row"><span class="ir-label">Total de faces</span><span class="ir-value">1.200+</span></div>
+            <div class="interest-row"><span class="ir-label">Impactos/mês</span><span class="ir-value">22 milhões</span></div>
+            <div class="interest-row"><span class="ir-label">CPM médio</span><span class="ir-value">R$8,20</span></div>
+            <div class="interest-row"><span class="ir-label">DOOH disponível</span><span class="ir-value">Sim · 120 faces</span></div>
+          </div>
+          <button class="btn-gold">Tenho interesse →</button>
+          <button class="btn-outline">Falar com curadoria</button>
+          <div class="curadoria-box"><strong>✦ Curadoria Radar</strong><br>Portfólio verificado. Métricas auditadas pelo IBOPE OOH.</div>
+          <p class="disclaimer">Sem compromisso. Retorno em até 48h.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>

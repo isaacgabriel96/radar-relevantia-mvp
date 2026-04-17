@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insights Personalizados — Relevantia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --gold: #C9A43A; --gold-light: #E8C96A; --gold-pale: #FBF5E6;
+  --black: #111111; --black-2: #1C1C1C;
+  --g1: #F7F6F2; --g2: #EBEBEB; --g3: #DEDEDE; --g4: #B0B0B0; --g5: #717171;
+  --text: #1C1C1C; --white: #FFFFFF;
+  --green: #059669; --green-light: #D1FAE5;
+  --red: #DC2626; --red-light: #FEE2E2;
+  --indigo: #4F46E5; --indigo-light: #EEF2FF;
+  --amber: #D97706; --amber-light: #FEF3C7;
+  --r: 12px; --r-sm: 8px;
+  --sh: 0 2px 12px rgba(0,0,0,0.07);
+  --sh-lg: 0 8px 32px rgba(0,0,0,0.11);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#F0EDE6;color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;background:rgba(255,255,255,0.98);backdrop-filter:blur(16px);border-bottom:1px solid var(--g3);height:64px;display:flex;align-items:center;padding:0 32px;gap:24px}
+.nav-logo{font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;color:var(--black);letter-spacing:-0.02em;text-decoration:none}
+.nav-div{width:1px;height:16px;background:var(--g3)}
+.nav-section{font-size:10px;font-weight:600;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold)}
+.nav-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+.nav-link{font-size:13px;font-weight:500;color:var(--g5);text-decoration:none;padding:7px 12px;border-radius:20px;transition:all .15s}
+.nav-link:hover{background:var(--g1);color:var(--black)}
+.nav-link.active{color:var(--black);font-weight:600}
+.nav-btn{background:var(--black);color:white;border:none;padding:8px 18px;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s}
+.nav-btn:hover{background:var(--gold)}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:320px 1fr;min-height:100vh;padding-top:64px}
+
+/* ── LEFT PANEL: BRAND PROFILE ── */
+.profile-panel{position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;background:white;border-right:1px solid var(--g2);padding:0;display:flex;flex-direction:column;scrollbar-width:thin;scrollbar-color:var(--g3) transparent}
+.profile-panel::-webkit-scrollbar{width:4px}
+.profile-panel::-webkit-scrollbar-thumb{background:var(--g3);border-radius:100px}
+
+.profile-header{padding:24px 22px 18px;border-bottom:1px solid var(--g2)}
+.profile-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.profile-label{font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--g5)}
+.profile-edit-btn{background:none;border:1px solid var(--g3);padding:5px 12px;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:var(--black);cursor:pointer;transition:all .15s}
+.profile-edit-btn:hover{background:var(--black);color:white;border-color:var(--black)}
+.profile-edit-btn.saving{background:var(--green);color:white;border-color:var(--green)}
+
+.brand-avatar{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:10px;flex-shrink:0}
+.brand-name-input{font-family:'Playfair Display',serif;font-size:20px;font-weight:600;color:var(--black);border:none;outline:none;width:100%;background:transparent;transition:border .15s}
+.brand-name-input:focus{border-bottom:2px solid var(--gold)}
+.brand-sector{font-size:12px;color:var(--g5);margin-top:2px}
+
+/* PROFILE SECTIONS */
+.profile-section{padding:18px 22px;border-bottom:1px solid var(--g2)}
+.profile-section-title{font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--g5);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.profile-section-title span{font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--g4);cursor:pointer}
+.profile-section-title span:hover{color:var(--gold)}
+
+/* Chip selectors */
+.chips-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:100px;border:1.5px solid var(--g3);font-size:12px;font-weight:500;color:var(--g5);cursor:pointer;transition:all .15s;user-select:none;background:white}
+.chip:hover{border-color:var(--black);color:var(--black)}
+.chip.active{background:var(--black);border-color:var(--black);color:white}
+.chip.active.gold{background:var(--gold);border-color:var(--gold);color:white}
+.chip-remove{font-size:10px;opacity:0.6;margin-left:2px}
+.chip-add{border-style:dashed;color:var(--g4)}
+.chip-add:hover{border-color:var(--gold);color:var(--gold)}
+
+/* Budget slider */
+.budget-display{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.budget-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--black)}
+.budget-range{font-size:11px;color:var(--g5)}
+input[type=range]{width:100%;height:4px;border-radius:100px;background:var(--g2);outline:none;-webkit-appearance:none;cursor:pointer;margin-bottom:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--black);cursor:pointer;transition:transform .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2);background:var(--gold)}
+
+/* Match score */
+.match-score-bar{background:var(--g1);border-radius:10px;padding:14px;margin-top:4px}
+.match-score-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.match-score-label{font-size:12px;color:var(--g5)}
+.match-score-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--black)}
+.match-score-track{height:6px;background:var(--g2);border-radius:100px;overflow:hidden}
+.match-score-fill{height:100%;border-radius:100px;background:linear-gradient(90deg, var(--gold), var(--gold-light));transition:width .8s ease}
+.match-score-sub{font-size:11px;color:var(--g5);margin-top:6px}
+
+/* GEO selector */
+.geo-map-hint{font-size:11px;color:var(--g5);margin-bottom:10px;line-height:1.5}
+.geo-regions{display:flex;flex-direction:column;gap:6px}
+.geo-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:1px solid var(--g2);cursor:pointer;transition:all .15s}
+.geo-item:hover{border-color:var(--g3);background:var(--g1)}
+.geo-item.active{border-color:var(--gold);background:var(--gold-pale)}
+.geo-flag{font-size:18px;flex-shrink:0}
+.geo-name{font-size:13px;font-weight:500;color:var(--black);flex:1}
+.geo-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--g3);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .15s}
+.geo-item.active .geo-check{background:var(--gold);border-color:var(--gold);color:white}
+
+/* ── MAIN CONTENT ── */
+.main-content{padding:28px 32px 80px;min-width:0}
+
+/* Search bar */
+.search-bar-wrap{margin-bottom:24px}
+.search-bar{display:flex;align-items:center;background:white;border:1.5px solid var(--g3);border-radius:12px;padding:0 16px;box-shadow:var(--sh);transition:all .2s;gap:12px}
+.search-bar:focus-within{border-color:var(--black);box-shadow:var(--sh-lg)}
+.search-icon{font-size:16px;color:var(--g4);flex-shrink:0}
+.search-input{flex:1;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:transparent;padding:14px 0}
+.search-input::placeholder{color:var(--g4)}
+.search-filter-pills{display:flex;gap:6px;flex-shrink:0}
+.search-pill{background:var(--g1);border:1px solid var(--g2);padding:5px 12px;border-radius:100px;font-size:11px;font-weight:500;color:var(--g5);cursor:pointer;white-space:nowrap;transition:all .15s}
+.search-pill.active{background:var(--black);border-color:var(--black);color:white}
+.search-clear{background:none;border:none;color:var(--g4);cursor:pointer;font-size:18px;padding:4px;transition:color .15s;flex-shrink:0}
+.search-clear:hover{color:var(--black)}
+
+/* personalization banner */
+.persona-banner{background:linear-gradient(135deg, var(--black) 0%, #1a1a1a 100%);border-radius:var(--r);padding:20px 24px;display:flex;align-items:center;gap:16px;margin-bottom:24px;position:relative;overflow:hidden}
+.persona-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 90% 50%, rgba(201,164,58,0.12) 0%, transparent 60%)}
+.persona-banner-inner{display:flex;align-items:center;gap:16px;flex:1;position:relative;z-index:1}
+.persona-avatar{width:44px;height:44px;border-radius:10px;background:rgba(201,164,58,0.15);border:1px solid rgba(201,164,58,0.3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.persona-text{}
+.persona-greeting{font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:2px}
+.persona-headline{font-size:14px;font-weight:600;color:white;line-height:1.4}
+.persona-headline strong{color:var(--gold-light)}
+.persona-score{background:rgba(201,164,58,0.12);border:1px solid rgba(201,164,58,0.25);border-radius:8px;padding:10px 16px;text-align:center;flex-shrink:0;position:relative;z-index:1}
+.persona-score-n{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--gold-light);line-height:1}
+.persona-score-l{font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;text-transform:uppercase;letter-spacing:0.08em}
+
+/* Section headers */
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.section-eyebrow{font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.section-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--black);line-height:1.2}
+.section-count{font-size:12px;color:var(--g5)}
+.section-link{font-size:12px;font-weight:600;color:var(--black);text-decoration:none;display:flex;align-items:center;gap:4px;cursor:pointer}
+.section-link:hover{color:var(--gold)}
+
+/* Tabs */
+.tabs-row{display:flex;gap:4px;margin-bottom:20px;background:white;border-radius:10px;padding:4px;border:1px solid var(--g2);width:fit-content}
+.tab-btn{padding:7px 16px;border-radius:7px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--g5);cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{color:var(--black)}
+.tab-btn.active{background:var(--black);color:white;font-weight:600}
+
+/* Theme cards */
+.themes-list{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.theme-card{background:white;border:1px solid var(--g2);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .2s;box-shadow:var(--sh)}
+.theme-card:hover{box-shadow:var(--sh-lg);transform:translateY(-2px);border-color:var(--g3)}
+.theme-card.pinned{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold), var(--sh)}
+.theme-card-body{display:grid;grid-template-columns:60px 1fr auto;align-items:stretch}
+.theme-accent{display:flex;align-items:center;justify-content:center;font-size:26px;background:var(--g1);border-right:1px solid var(--g2);flex-shrink:0;min-height:100px}
+.theme-info{padding:16px 18px}
+.theme-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+.theme-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:600;color:var(--black)}
+.theme-tag{padding:2px 9px;border-radius:100px;font-size:10px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+.tag-hot{background:#FEE2E2;color:#DC2626}
+.tag-rising{background:var(--amber-light);color:var(--amber)}
+.tag-match{background:var(--gold-pale);color:var(--gold)}
+.tag-upcoming{background:var(--indigo-light);color:var(--indigo)}
+.tag-evergreen{background:var(--green-light);color:var(--green)}
+.theme-geo-tags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.theme-geo-tag{padding:2px 8px;border-radius:100px;background:var(--g1);border:1px solid var(--g2);font-size:10px;color:var(--g5)}
+.theme-desc{font-size:12px;color:var(--g5);line-height:1.6;margin-bottom:10px}
+.theme-metrics{display:flex;gap:18px}
+.theme-metric{}
+.theme-metric-val{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--black)}
+.theme-metric-label{font-size:10px;color:var(--g5);text-transform:uppercase;letter-spacing:0.08em}
+.theme-right{padding:16px 18px;border-left:1px solid var(--g2);display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;min-width:150px;gap:10px}
+.theme-spark{width:120px;height:40px}
+.theme-match-badge{text-align:right}
+.theme-match-n{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--black)}
+.theme-match-l{font-size:10px;color:var(--g5);text-transform:uppercase;letter-spacing:0.08em}
+.theme-opps-btn{background:var(--black);color:white;border:none;padding:7px 14px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.theme-opps-btn:hover{background:var(--gold)}
+.theme-pin-btn{background:none;border:1px solid var(--g3);padding:5px 10px;border-radius:8px;font-size:12px;cursor:pointer;transition:all .15s;color:var(--g5)}
+.theme-pin-btn.pinned{border-color:var(--gold);background:var(--gold-pale);color:var(--gold)}
+.theme-pin-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* Calendar events */
+.cal-wrap{background:white;border:1px solid var(--g2);border-radius:var(--r);margin-bottom:32px;overflow:hidden;box-shadow:var(--sh)}
+.cal-header{padding:18px 22px 14px;border-bottom:1px solid var(--g2)}
+.cal-months{display:flex;gap:4px;padding:0 22px 0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--g2)}
+.cal-months::-webkit-scrollbar{display:none}
+.cal-month-btn{padding:10px 14px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--g5);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s}
+.cal-month-btn:hover{color:var(--black)}
+.cal-month-btn.active{color:var(--black);border-bottom-color:var(--black);font-weight:600}
+.cal-month-btn.has-match{color:var(--gold)}
+.cal-month-btn.has-match.active{color:var(--black)}
+.cal-events-list{padding:12px 0}
+.cal-event{display:flex;align-items:center;gap:14px;padding:12px 22px;transition:background .15s;cursor:pointer;position:relative}
+.cal-event::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0}
+.cal-event.match::before{background:var(--gold)}
+.cal-event.normal::before{background:var(--g3)}
+.cal-event:hover{background:var(--g1)}
+.cal-event-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--g5);min-width:54px;flex-shrink:0}
+.cal-event-emoji{font-size:20px;flex-shrink:0}
+.cal-event-info{flex:1;min-width:0}
+.cal-event-name{font-size:13px;font-weight:600;color:var(--black);margin-bottom:1px}
+.cal-event-desc{font-size:11px;color:var(--g5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-event-right{flex-shrink:0;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.cal-match-badge{font-size:10px;font-weight:700;color:var(--gold);background:var(--gold-pale);padding:2px 8px;border-radius:100px}
+.cal-opps{font-size:10px;color:var(--g5)}
+
+/* Insights cards */
+.insights-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:32px}
+.insight-card{background:white;border:1px solid var(--g2);border-radius:var(--r);padding:18px;box-shadow:var(--sh);cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.insight-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.insight-card.urgent::after{background:linear-gradient(90deg,var(--gold),var(--gold-light))}
+.insight-card.strategic::after{background:linear-gradient(90deg,var(--indigo),#818CF8)}
+.insight-card.watch::after{background:linear-gradient(90deg,var(--green),#6EE7B7)}
+.insight-card:hover{box-shadow:var(--sh-lg);transform:translateY(-2px)}
+.insight-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.insight-emoji{font-size:26px}
+.insight-badge{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:100px}
+.urgent .insight-badge{background:var(--amber-light);color:var(--amber)}
+.strategic .insight-badge{background:var(--indigo-light);color:var(--indigo)}
+.watch .insight-badge{background:var(--green-light);color:var(--green)}
+.insight-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--black);margin-bottom:6px;line-height:1.3}
+.insight-desc{font-size:12px;color:var(--g5);line-height:1.65;margin-bottom:12px}
+.insight-footer{display:flex;justify-content:space-between;align-items:center}
+.insight-action{font-size:11px;font-weight:600;color:var(--black);cursor:pointer}
+.insight-action:hover{color:var(--gold)}
+.insight-meta{font-size:10px;color:var(--g5)}
+
+/* No results */
+.no-results{text-align:center;padding:60px 20px;background:white;border-radius:var(--r);border:1px dashed var(--g3)}
+.no-results-emoji{font-size:40px;margin-bottom:12px}
+.no-results-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--black);margin-bottom:8px}
+.no-results-desc{font-size:13px;color:var(--g5)}
+
+/* Profile drawer overlay */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:500;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px)}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:440px;background:white;z-index:501;transform:translateX(100%);transition:transform .3s cubic-bezier(.25,.46,.45,.94);overflow-y:auto;box-shadow:-20px 0 60px rgba(0,0,0,0.15);display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:24px 28px;border-bottom:1px solid var(--g2);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.drawer-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--black)}
+.drawer-close{background:none;border:none;font-size:24px;color:var(--g5);cursor:pointer;padding:4px;transition:color .15s;line-height:1}
+.drawer-close:hover{color:var(--black)}
+.drawer-body{padding:24px 28px;flex:1}
+.drawer-field{margin-bottom:22px}
+.drawer-label{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--g5);margin-bottom:8px}
+.drawer-input{width:100%;border:1.5px solid var(--g2);border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border .15s}
+.drawer-input:focus{border-color:var(--black)}
+.drawer-select{width:100%;border:1.5px solid var(--g2);border-radius:8px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;background:white;cursor:pointer}
+.drawer-footer{padding:20px 28px;border-top:1px solid var(--g2);flex-shrink:0}
+.drawer-save{width:100%;background:var(--black);color:white;border:none;padding:13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
+.drawer-save:hover{background:var(--gold)}
+
+/* Volume chart in insights */
+.volume-wrap{background:white;border:1px solid var(--g2);border-radius:var(--r);padding:20px;margin-bottom:24px;box-shadow:var(--sh)}
+.volume-chart-canvas{height:120px;position:relative}
+
+/* Responsive */
+@media(max-width:1100px){.app{grid-template-columns:280px 1fr}}
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .profile-panel{position:static;height:auto;border-right:none;border-bottom:1px solid var(--g2)}
+  .insights-grid{grid-template-columns:1fr}
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .35s ease both}
+
+/* Highlighted theme (search match) */
+.theme-card.highlighted{border-color:var(--gold);background:linear-gradient(to right, var(--gold-pale), white)}
+.highlight-text{background:var(--gold-pale);border-radius:2px;padding:0 2px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Relevantia</a>
+  <div class="nav-div"></div>
+  <span class="nav-section">Radar · Insights</span>
+  <div class="nav-right">
+    <a href="#" class="nav-link">Oportunidades</a>
+    <a href="#" class="nav-link active">Insights</a>
+    <button class="nav-btn" onclick="openDrawer()">✏️ Editar perfil</button>
+  </div>
+</nav>
+
+<!-- PROFILE DRAWER -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">Perfil da marca</div>
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-field">
+      <div class="drawer-label">Nome da marca</div>
+      <input class="drawer-input" id="d-brand-name" placeholder="Ex: Ambev, Itaú, Natura...">
+    </div>
+    <div class="drawer-field">
+      <div class="drawer-label">Setor / categoria</div>
+      <select class="drawer-select" id="d-sector">
+        <option value="bebidas">Bebidas & Cerveja</option>
+        <option value="financas">Finanças & Fintechs</option>
+        <option value="moda">Moda & Lifestyle</option>
+        <option value="tech">Tecnologia & Telecom</option>
+        <option value="automotivo">Automotivo</option>
+        <option value="saude">Saúde & Bem-estar</option>
+        <option value="alimentos">Alimentos</option>
+        <option value="energia">Energia</option>
+        <option value="varejo">Varejo</option>
+        <option value="cosmeticos">Cosméticos & Beauty</option>
+      </select>
+    </div>
+    <div class="drawer-field">
+      <div class="drawer-label">Budget estimado (R$)</div>
+      <input class="drawer-input" id="d-budget" placeholder="Ex: 500.000" type="number">
+    </div>
+    <div class="drawer-field">
+      <div class="drawer-label">Territórios de marca</div>
+      <div class="chips-wrap" id="d-territories">
+        <div class="chip" data-val="esporte" onclick="toggleDrawerChip(this,'territories')">⚽ Esporte</div>
+        <div class="chip" data-val="musica" onclick="toggleDrawerChip(this,'territories')">🎵 Música</div>
+        <div class="chip" data-val="cultura" onclick="toggleDrawerChip(this,'territories')">🎭 Cultura</div>
+        <div class="chip" data-val="moda_ter" onclick="toggleDrawerChip(this,'territories')">👗 Moda</div>
+        <div class="chip" data-val="gastronomia" onclick="toggleDrawerChip(this,'territories')">🍽️ Gastronomia</div>
+        <div class="chip" data-val="tech_ter" onclick="toggleDrawerChip(this,'territories')">💻 Tecnologia</div>
+        <div class="chip" data-val="sustentabilidade" onclick="toggleDrawerChip(this,'territories')">🌱 Sustentabilidade</div>
+        <div class="chip" data-val="luxo" onclick="toggleDrawerChip(this,'territories')">💎 Luxo</div>
+        <div class="chip" data-val="aventura" onclick="toggleDrawerChip(this,'territories')">🏄 Aventura</div>
+        <div class="chip" data-val="familia" onclick="toggleDrawerChip(this,'territories')">👨‍👩‍👧 Família</div>
+      </div>
+    </div>
+    <div class="drawer-field">
+      <div class="drawer-label">Geografias prioritárias</div>
+      <div class="chips-wrap" id="d-geos">
+        <div class="chip" data-val="sp" onclick="toggleDrawerChip(this,'geos')">🗺️ São Paulo</div>
+        <div class="chip" data-val="rj" onclick="toggleDrawerChip(this,'geos')">🏖️ Rio de Janeiro</div>
+        <div class="chip" data-val="ne" onclick="toggleDrawerChip(this,'geos')">☀️ Nordeste</div>
+        <div class="chip" data-val="sul" onclick="toggleDrawerChip(this,'geos')">⛰️ Sul</div>
+        <div class="chip" data-val="br" onclick="toggleDrawerChip(this,'geos')">🇧🇷 Nacional</div>
+        <div class="chip" data-val="latam" onclick="toggleDrawerChip(this,'geos')">🌎 LATAM</div>
+        <div class="chip" data-val="global" onclick="toggleDrawerChip(this,'geos')">🌍 Global</div>
+      </div>
+    </div>
+    <div class="drawer-field">
+      <div class="drawer-label">Público-alvo</div>
+      <div class="chips-wrap" id="d-audience">
+        <div class="chip" data-val="1824" onclick="toggleDrawerChip(this,'audience')">18–24</div>
+        <div class="chip" data-val="2534" onclick="toggleDrawerChip(this,'audience')">25–34</div>
+        <div class="chip" data-val="3544" onclick="toggleDrawerChip(this,'audience')">35–44</div>
+        <div class="chip" data-val="45plus" onclick="toggleDrawerChip(this,'audience')">45+</div>
+        <div class="chip" data-val="ab" onclick="toggleDrawerChip(this,'audience')">Classe A/B</div>
+        <div class="chip" data-val="bc" onclick="toggleDrawerChip(this,'audience')">Classe B/C</div>
+        <div class="chip" data-val="todos" onclick="toggleDrawerChip(this,'audience')">Todos</div>
+      </div>
+    </div>
+    <div class="drawer-field">
+      <div class="drawer-label">Objetivos de marca</div>
+      <div class="chips-wrap" id="d-goals">
+        <div class="chip" data-val="awareness" onclick="toggleDrawerChip(this,'goals')">📢 Awareness</div>
+        <div class="chip" data-val="consideracao" onclick="toggleDrawerChip(this,'goals')">🎯 Consideração</div>
+        <div class="chip" data-val="lancamento" onclick="toggleDrawerChip(this,'goals')">🚀 Lançamento</div>
+        <div class="chip" data-val="reposicionamento" onclick="toggleDrawerChip(this,'goals')">🔄 Reposicionamento</div>
+        <div class="chip" data-val="relacionamento" onclick="toggleDrawerChip(this,'goals')">🤝 Relacionamento</div>
+        <div class="chip" data-val="branding" onclick="toggleDrawerChip(this,'goals')">✨ Brand equity</div>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-footer">
+    <button class="drawer-save" onclick="saveProfile()">Salvar perfil e atualizar insights →</button>
+  </div>
+</div>
+
+<!-- APP LAYOUT -->
+<div class="app">
+
+  <!-- LEFT: PROFILE PANEL -->
+  <div class="profile-panel">
+    <div class="profile-header">
+      <div class="profile-header-top">
+        <span class="profile-label">Perfil da marca</span>
+        <button class="profile-edit-btn" id="edit-btn" onclick="openDrawer()">Editar</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <div class="brand-avatar" id="brand-avatar">🍺</div>
+        <div>
+          <div class="brand-name-input" id="brand-name-display">Ambev</div>
+          <div class="brand-sector" id="brand-sector-display">Bebidas & Cerveja</div>
+        </div>
+      </div>
+      <div class="match-score-bar">
+        <div class="match-score-top">
+          <span class="match-score-label">Match com o mercado</span>
+          <span class="match-score-val" id="match-score-val">87</span>
+        </div>
+        <div class="match-score-track">
+          <div class="match-score-fill" id="match-score-fill" style="width:87%"></div>
+        </div>
+        <div class="match-score-sub" id="match-score-sub">Forte alinhamento com esporte e festivais</div>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-title">
+        Territórios ativos
+        <span onclick="openDrawer()">+ Editar</span>
+      </div>
+      <div class="chips-wrap" id="panel-territories">
+        <span class="chip active gold">⚽ Esporte</span>
+        <span class="chip active gold">🎵 Música</span>
+        <span class="chip active gold">🎭 Cultura</span>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-title">
+        Geografias
+        <span onclick="openDrawer()">+ Editar</span>
+      </div>
+      <div class="chips-wrap" id="panel-geos">
+        <span class="chip active">🇧🇷 Nacional</span>
+        <span class="chip active">🗺️ São Paulo</span>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-title">
+        Público-alvo
+        <span onclick="openDrawer()">Alterar</span>
+      </div>
+      <div class="chips-wrap" id="panel-audience">
+        <span class="chip active">18–34</span>
+        <span class="chip active">Classe A/B</span>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-title">Budget disponível</div>
+      <div class="budget-display">
+        <span class="budget-val" id="budget-display">R$ 800k</span>
+        <span class="budget-range">por ativo</span>
+      </div>
+      <input type="range" id="budget-slider" min="50" max="5000" value="800" step="50" oninput="updateBudget(this.value)">
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-size:10px;color:var(--g5)">R$ 50k</span>
+        <span style="font-size:10px;color:var(--g5)">R$ 5M+</span>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-section-title">Objetivos</div>
+      <div class="chips-wrap" id="panel-goals">
+        <span class="chip active">📢 Awareness</span>
+        <span class="chip active">✨ Brand equity</span>
+      </div>
+    </div>
+
+    <div class="profile-section" style="border-bottom:none">
+      <div class="profile-section-title">Temas fixados</div>
+      <div id="panel-pinned" style="font-size:12px;color:var(--g5)">Nenhum tema fixado ainda.<br>Clique em ⭐ nos temas para fixar.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- Personalisation banner -->
+    <div class="persona-banner" id="persona-banner">
+      <div class="persona-banner-inner">
+        <div class="persona-avatar" id="persona-avatar">🍺</div>
+        <div class="persona-text">
+          <div class="persona-greeting">Insights personalizados para</div>
+          <div class="persona-headline" id="persona-headline">
+            <strong>Ambev</strong> — 18 temas com <strong>alto match</strong> em esporte, música e cultura nacional
+          </div>
+        </div>
+      </div>
+      <div class="persona-score">
+        <div class="persona-score-n" id="persona-score-n">87</div>
+        <div class="persona-score-l">Match score</div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar-wrap">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="search-input" placeholder="Buscar por tema, evento ou território..." oninput="onSearch()">
+        <div class="search-filter-pills">
+          <button class="search-pill active" onclick="setSearchFilter('all',this)">Todos</button>
+          <button class="search-pill" onclick="setSearchFilter('hot',this)">🔥 Em alta</button>
+          <button class="search-pill" onclick="setSearchFilter('match',this)">✦ Alta afinidade</button>
+          <button class="search-pill" onclick="setSearchFilter('upcoming',this)">📅 Próximos</button>
+        </div>
+        <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none">×</button>
+      </div>
+    </div>
+
+    <!-- Insights do mercado agora -->
+    <div class="volume-wrap">
+      <div class="section-eyebrow">Pulso do mercado agora</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div class="section-title" style="font-size:18px">Interesse por patrocínio · últimos 12 meses</div>
+          <div style="font-size:12px;color:var(--g5);margin-top:3px">Filtrado pelos territórios do perfil da sua marca</div>
+        </div>
+        <div style="display:flex;gap:16px;text-align:right">
+          <div><div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--green)">+42%</div><div style="font-size:10px;color:var(--g5)">vs ano anterior</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:18px;color:var(--black)">R$4.8B</div><div style="font-size:10px;color:var(--g5)">mercado BR 2026</div></div>
+        </div>
+      </div>
+      <div class="volume-chart-canvas"><canvas id="chart-vol"></canvas></div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <div class="section-eyebrow">Calendário estratégico</div>
+        <div class="section-title" style="font-size:18px">Janelas por mês · destacado para <span id="cal-brand-name" style="color:var(--gold)">Ambev</span></div>
+      </div>
+      <div class="cal-months" id="cal-months-row"></div>
+      <div class="cal-events-list" id="cal-events-list"></div>
+    </div>
+
+    <!-- Themes -->
+    <div>
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Temas para sua marca</div>
+          <div class="section-title">O que o mercado está de olho</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="section-count" id="themes-count">18 temas</span>
+          <div class="tabs-row">
+            <button class="tab-btn active" onclick="setThemeTab('all',this)">Todos</button>
+            <button class="tab-btn" onclick="setThemeTab('match',this)">Alta afinidade</button>
+            <button class="tab-btn" onclick="setThemeTab('trending',this)">Trending</button>
+            <button class="tab-btn" onclick="setThemeTab('pinned',this)">⭐ Fixados</button>
+          </div>
+        </div>
+      </div>
+      <div class="themes-list" id="themes-list"></div>
+    </div>
+
+    <!-- Recommendations -->
+    <div>
+      <div class="section-eyebrow">Recomendações</div>
+      <div class="section-title" style="margin-bottom:16px">Movimentos para <span id="recs-brand-name" style="color:var(--gold)">Ambev</span> agora</div>
+      <div class="insights-grid" id="insights-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── BRAND STATE ───
+let brand = {
+  name: 'Ambev',
+  avatar: '🍺',
+  sector: 'bebidas',
+  sectorLabel: 'Bebidas & Cerveja',
+  budget: 800,
+  territories: ['esporte','musica','cultura'],
+  geos: ['br','sp'],
+  audience: ['1824','2534','ab'],
+  goals: ['awareness','branding'],
+  pinned: [],
+};
+
+let searchQuery = '';
+let searchFilter = 'all';
+let themeTab = 'all';
+let activeMonth = 'abr';
+
+// ─── THEMES DATA ───
+const ALL_THEMES = [
+  { id:'copa', emoji:'⚽', name:'Copa do Mundo 2026', tags:['hot'], geos:['br','global','latam'], territories:['esporte'], sectors:['bebidas','financas','automotivo','tech','varejo'], desc:'O maior evento esportivo da história. 5 bilhões de espectadores globais. Começa em junho. Marcas que se posicionam agora nos ativos certos terão janela de 12 semanas de visibilidade máxima.', spark:[10,14,18,24,32,44,60,82,108,138,160,180], metrics:[{v:'5B+',l:'Espectadores'},{v:'+340%',l:'Interesse'},{v:'24',l:'Ativos'}], matchBase:95, window:'Jun–Jul 2026', windowColor:'#C9A43A', trending:true },
+  { id:'lolla', emoji:'🎵', name:'Lollapalooza Brasil', tags:['hot'], geos:['sp','br'], territories:['musica','cultura'], sectors:['bebidas','moda','cosmeticos','tech'], desc:'300 mil pessoas em 3 dias no Autódromo de Interlagos. Público 18–35, alta renda, digital-first. A maior ativação de marca em festivais do Brasil.', spark:[40,44,52,60,70,82,88,80,72,68,72,80], metrics:[{v:'300k',l:'Pessoas'},{v:'18–35',l:'Público'},{v:'8',l:'Ativos'}], matchBase:90, window:'3–5 Abr 2026', windowColor:'#6366F1', trending:true },
+  { id:'f1', emoji:'🏎️', name:'Fórmula 1 — GP Brasil', tags:['rising'], geos:['sp','br','global'], territories:['esporte','aventura'], sectors:['automotivo','bebidas','tech','financas'], desc:'Interlagos, novembro. 350 mil espectadores. A F1 cresce 42% em novos fãs — 38% deles mulheres. O GP do Brasil é o mais emotivo do calendário global.', spark:[35,38,42,46,50,56,62,68,74,80,90,100], metrics:[{v:'350k',l:'Público'},{v:'+42%',l:'Novos fãs'},{v:'11',l:'Ativos'}], matchBase:82, window:'Nov 2026', windowColor:'#EF4444', trending:true },
+  { id:'spfw', emoji:'🎭', name:'SPFW N58 — Moda', tags:['upcoming'], geos:['sp','br'], territories:['moda_ter','cultura','luxo'], sectors:['moda','cosmeticos','financas','automotivo'], desc:'São Paulo Fashion Week. A mais importante semana de moda da América Latina. Formadores de opinião, imprensa internacional e público premium. Alta densidade de brand equity.', spark:[55,58,55,60,65,70,68,72,68,70,72,70], metrics:[{v:'180k',l:'Público'},{v:'+62%',l:'Interesse'},{v:'7',l:'Ativos'}], matchBase:68, window:'Mai 2026', windowColor:'#10B981', trending:false },
+  { id:'casacor', emoji:'🏡', name:'CASACOR São Paulo', tags:['upcoming'], geos:['sp','br'], territories:['cultura','luxo'], sectors:['automotivo','financas','cosmeticos','energia'], desc:'O maior festival de arquitetura e design da América Latina. Público ultra-premium. Marca presença em um ambiente de aspiração máxima por 60 dias.', spark:[50,52,54,56,58,60,62,64,60,58,56,58], metrics:[{v:'120k',l:'Visitantes'},{v:'60 dias',l:'Duração'},{v:'6',l:'Ativos'}], matchBase:60, window:'Mai–Jun 2026', windowColor:'#6366F1', trending:false },
+  { id:'nba', emoji:'🏀', name:'NBA Brasil Game 2026', tags:['upcoming'], geos:['sp','br'], territories:['esporte'], sectors:['bebidas','tech','moda','financas'], desc:'Jogo oficial da NBA em São Paulo. Experiência única de associação com a maior liga de basquete do mundo. Público jovem e premium com altíssimo índice de consumo digital.', spark:[20,22,25,28,32,38,42,48,55,64,72,80], metrics:[{v:'22k',l:'Arena'},{v:'18–34',l:'Público'},{v:'5',l:'Ativos'}], matchBase:85, window:'Out 2026', windowColor:'#F59E0B', trending:true },
+  { id:'tomorrowland', emoji:'🎧', name:'Tomorrowland Brasil', tags:['rising'], geos:['sp','br','latam'], territories:['musica','aventura'], sectors:['bebidas','tech','moda'], desc:'Festival de música eletrônica em Itu, SP. 180 mil pessoas. Público 18–30, alta renda, mobilidade internacional. Uma das marcas de festival mais poderosas do mundo.', spark:[30,32,35,40,48,58,68,75,78,72,68,64], metrics:[{v:'180k',l:'Pessoas'},{v:'3 dias',l:'Duração'},{v:'5',l:'Ativos'}], matchBase:88, window:'Ago 2026', windowColor:'#6366F1', trending:true },
+  { id:'libertadores', emoji:'🏆', name:'CONMEBOL Libertadores', tags:['rising'], geos:['br','latam'], territories:['esporte'], sectors:['bebidas','financas','tech','automotivo'], desc:'A Copa Libertadores movimenta toda a América do Sul. Times brasileiros historicamente fortes. Audiência consolidada, fidelidade extrema e sentimento de identidade nacional.', spark:[60,62,65,68,72,75,78,80,82,84,86,88], metrics:[{v:'200M+',l:'Audiência'},{v:'LATAM',l:'Alcance'},{v:'8',l:'Ativos'}], matchBase:78, window:'Abr–Nov 2026', windowColor:'#C9A43A', trending:false },
+  { id:'sustentabilidade', emoji:'🌱', name:'Sustentabilidade & ESG', tags:['evergreen'], geos:['br','global'], territories:['sustentabilidade'], sectors:['energia','automotivo','financas','alimentos','cosmeticos'], desc:'Consumidores e investidores demandam posicionamento ESG claro. Ativações em eventos de impacto social e ambiental constroem reputação de longo prazo e fidelidade de marca.', spark:[40,42,44,46,48,50,52,55,58,62,66,70], metrics:[{v:'+89%',l:'Busca ESG'},{v:'Gen Z',l:'Foco'},{v:'9',l:'Ativos'}], matchBase:55, window:'Ano todo', windowColor:'#10B981', trending:false },
+  { id:'gastronomia', emoji:'🍽️', name:'Gastronomia & Food Festivals', tags:['rising'], geos:['sp','rj','br'], territories:['gastronomia','cultura'], sectors:['bebidas','alimentos','automotivo','financas'], desc:'O Brasil vive um boom gastronômico. Festivais como o Food & Wine, Paladar e eventos de chefs estrelados atraem o público mais qualificado do país. Alcance editorial massivo.', spark:[42,45,48,52,56,60,64,68,70,72,75,78], metrics:[{v:'1.2M',l:'Público/ano'},{v:'+45%',l:'Crescimento'},{v:'7',l:'Ativos'}], matchBase:72, window:'Ano todo', windowColor:'#F59E0B', trending:false },
+  { id:'maratona', emoji:'🏃', name:'Corridas & Maratonas', tags:['evergreen'], geos:['sp','rj','br'], territories:['esporte','saude'], sectors:['saude','bebidas','automotivo','moda'], desc:'São Paulo, Rio, Floripa. Mais de 500 corridas de rua por ano no Brasil. Público ativo, saudável, alta renda. Plataforma perene de associação com bem-estar e superação.', spark:[50,52,54,56,58,60,62,64,62,60,62,64], metrics:[{v:'35k+',l:'Maratona SP'},{v:'500+',l:'Corridas/ano'},{v:'6',l:'Ativos'}], matchBase:70, window:'Ano todo', windowColor:'#10B981', trending:false },
+  { id:'grammy_latino', emoji:'🎤', name:'Grammy Latino', tags:['upcoming'], geos:['latam','br','global'], territories:['musica','cultura'], sectors:['bebidas','moda','cosmeticos','tech'], desc:'O Grammy Latino impacta toda a LATAM com força especial no Brasil. Visibilidade massiva com artistas, celebridades e imprensa musical internacional. Pico de engajamento em Set.', spark:[20,22,24,28,32,38,45,55,68,80,72,60], metrics:[{v:'280M',l:'Audiência'},{v:'LATAM',l:'Alcance'},{v:'4',l:'Ativos'}], matchBase:80, window:'Set 2026', windowColor:'#C9A43A', trending:false },
+];
+
+// ─── CALENDAR DATA ───
+const CAL_EVENTS = {
+  mar:[
+    { date:'05–08 Mar', emoji:'🎭', name:'SXSW 2026', desc:'Tech, música e cultura · Austin, TX', match:['tech','musica'], opps:'4 ativos' },
+    { date:'15 Mar', emoji:'⚽', name:'Início Eliminatórias Copa', desc:'Aquecimento global · janela de ativação esportiva', match:['esporte'], opps:'12 ativos' },
+  ],
+  abr:[
+    { date:'03–05 Abr', emoji:'🎵', name:'Lollapalooza Brasil', desc:'Interlagos, SP · 300 mil pessoas · 3 dias', match:['musica','cultura','esporte'], opps:'8 ativos' },
+    { date:'20 Abr', emoji:'🏃', name:'Maratona de São Paulo', desc:'35k participantes + 200k espectadores', match:['esporte'], opps:'5 ativos' },
+  ],
+  mai:[
+    { date:'04–10 Mai', emoji:'🏡', name:'CASACOR São Paulo', desc:'Festival de design premium · 60 dias de ativação', match:['cultura','luxo'], opps:'6 ativos' },
+    { date:'21 Mai', emoji:'🎭', name:'SPFW N58', desc:'São Paulo Fashion Week · moda e lifestyle', match:['moda_ter','cultura'], opps:'7 ativos' },
+    { date:'30 Mai', emoji:'🏆', name:'Final Champions League', desc:'Audiência global 450M · pico de interesse', match:['esporte'], opps:'3 ativos' },
+  ],
+  jun:[
+    { date:'11 Jun', emoji:'⚽', name:'Copa do Mundo 2026 — INÍCIO', desc:'EUA, México, Canadá · 5B espectadores globais', match:['esporte'], opps:'24 ativos' },
+    { date:'Jun–Jul', emoji:'🌍', name:'Janela Copa · patrocínio temático', desc:'Pico histórico de engajamento de marcas', match:['esporte','bebidas_ter'], opps:'18 ativos' },
+  ],
+  jul:[
+    { date:'19 Jul', emoji:'⚽', name:'Final Copa do Mundo 2026', desc:'MetLife Stadium, NJ · 5B+ espectadores', match:['esporte'], opps:'9 ativos' },
+    { date:'Jul–Ago', emoji:'🏄', name:'Temporada WSL — Surf', desc:'Etapas no Brasil · Saquarema', match:['esporte','aventura'], opps:'4 ativos' },
+  ],
+  ago:[
+    { date:'01 Ago', emoji:'🎧', name:'Tomorrowland Brasil', desc:'Festival eletrônico · Itu, SP · 180 mil', match:['musica'], opps:'5 ativos' },
+    { date:'Ago', emoji:'🏆', name:'Libertadores · semifinais', desc:'Times brasileiros · audiência consolidada', match:['esporte'], opps:'8 ativos' },
+  ],
+  set:[
+    { date:'Set', emoji:'🎤', name:'Grammy Latino', desc:'Impacto massivo LATAM e Brasil', match:['musica','cultura'], opps:'4 ativos' },
+  ],
+  out:[
+    { date:'02–04 Out', emoji:'🏀', name:'NBA Brasil Game 2026', desc:'Jogo oficial · São Paulo · público premium', match:['esporte'], opps:'5 ativos' },
+    { date:'Out', emoji:'📚', name:'Bienal do Livro — SP', desc:'Maior evento cultural da América Latina', match:['cultura'], opps:'3 ativos' },
+  ],
+  nov:[
+    { date:'07 Nov', emoji:'🏎️', name:'GP do Brasil — F1 · Interlagos', desc:'O GP mais emotivo do calendário · 350k pessoas', match:['esporte','aventura'], opps:'11 ativos' },
+    { date:'Nov', emoji:'🏆', name:'Final da Libertadores', desc:'Clímax do futebol sul-americano', match:['esporte'], opps:'6 ativos' },
+  ],
+  dez:[
+    { date:'Dez', emoji:'🎄', name:'Fim de ano & festas', desc:'Patrocínios de entretenimento e celebrações', match:['cultura','gastronomia'], opps:'8 ativos' },
+  ],
+};
+
+const MONTHS_LIST = [
+  {k:'mar',l:'Mar'},{k:'abr',l:'Abr'},{k:'mai',l:'Mai'},{k:'jun',l:'Jun'},
+  {k:'jul',l:'Jul'},{k:'ago',l:'Ago'},{k:'set',l:'Set'},{k:'out',l:'Out'},
+  {k:'nov',l:'Nov'},{k:'dez',l:'Dez'},
+];
+
+// ─── UTILS ───
+function getMatchScore(theme) {
+  let score = theme.matchBase;
+  // boost if sector matches
+  if (theme.sectors.includes(brand.sector)) score = Math.min(99, score + 8);
+  // boost if territories overlap
+  const tOverlap = theme.territories.filter(t => brand.territories.includes(t)).length;
+  score = Math.min(99, score + tOverlap * 5);
+  // boost if geo matches
+  const gOverlap = theme.geos.filter(g => brand.geos.includes(g)).length;
+  score = Math.min(99, score + gOverlap * 3);
+  return score;
+}
+
+function computeGlobalMatch() {
+  const scores = ALL_THEMES.map(t => getMatchScore(t));
+  return Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+}
+
+function makeSpark(data, color) {
+  const w=130,h=42,p=3;
+  const min=Math.min(...data),max=Math.max(...data),range=max-min||1;
+  const pts=data.map((v,i)=>({
+    x:(p+(i/(data.length-1))*(w-p*2)).toFixed(1),
+    y:(p+(1-(v-min)/range)*(h-p*2)).toFixed(1)
+  }));
+  const ptStr=pts.map(p=>p.x+','+p.y).join(' ');
+  const area=`${ptStr} ${pts[pts.length-1].x},${h} ${pts[0].x},${h}`;
+  return `<svg viewBox="0 0 ${w} ${h}" width="130" height="42" preserveAspectRatio="none">
+    <defs><linearGradient id="g${color.replace('#','')}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <polygon points="${area}" fill="url(#g${color.replace('#','')})"/>
+    <polyline points="${ptStr}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${pts[pts.length-1].x}" cy="${pts[pts.length-1].y}" r="3" fill="${color}"/>
+  </svg>`;
+}
+
+function highlight(text) {
+  if (!searchQuery) return text;
+  const re = new RegExp(`(${searchQuery})`, 'gi');
+  return text.replace(re, '<mark class="highlight-text">$1</mark>');
+}
+
+// ─── RENDER THEMES ───
+function getFilteredThemes() {
+  let list = ALL_THEMES;
+
+  // search filter
+  if (searchFilter === 'hot') list = list.filter(t => t.trending);
+  if (searchFilter === 'match') list = list.filter(t => getMatchScore(t) >= 80);
+  if (searchFilter === 'upcoming') list = list.filter(t => t.tags.includes('upcoming'));
+
+  // tab filter
+  if (themeTab === 'match') list = list.filter(t => getMatchScore(t) >= 75);
+  if (themeTab === 'trending') list = list.filter(t => t.trending);
+  if (themeTab === 'pinned') list = list.filter(t => brand.pinned.includes(t.id));
+
+  // territory filter
+  if (brand.territories.length > 0) {
+    list = list.sort((a,b) => {
+      const aMatch = a.territories.some(t => brand.territories.includes(t));
+      const bMatch = b.territories.some(t => brand.territories.includes(t));
+      if (aMatch && !bMatch) return -1;
+      if (!aMatch && bMatch) return 1;
+      return getMatchScore(b) - getMatchScore(a);
+    });
+  }
+
+  // search query
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    list = list.filter(t =>
+      t.name.toLowerCase().includes(q) ||
+      t.desc.toLowerCase().includes(q) ||
+      t.territories.some(tr => tr.includes(q)) ||
+      t.geos.some(g => g.includes(q))
+    );
+  }
+
+  return list;
+}
+
+function renderThemes() {
+  const list = getFilteredThemes();
+  const el = document.getElementById('themes-list');
+  document.getElementById('themes-count').textContent = list.length + ' temas';
+
+  if (!list.length) {
+    el.innerHTML = `<div class="no-results"><div class="no-results-emoji">🔍</div><div class="no-results-title">Nenhum tema encontrado</div><div class="no-results-desc">Tente outros termos ou ajuste os filtros do perfil.</div></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(t => {
+    const score = getMatchScore(t);
+    const isPinned = brand.pinned.includes(t.id);
+    const isHighlighted = searchQuery && (t.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const scoreColor = score >= 85 ? '#C9A43A' : score >= 70 ? '#6366F1' : '#717171';
+    return `
+    <div class="theme-card ${isPinned ? 'pinned' : ''} ${isHighlighted ? 'highlighted' : ''} fade-in">
+      <div class="theme-card-body">
+        <div class="theme-accent" style="background:linear-gradient(135deg,${t.windowColor}22,${t.windowColor}11)">${t.emoji}</div>
+        <div class="theme-info">
+          <div class="theme-top">
+            <div class="theme-name">${highlight(t.name)}</div>
+            ${t.tags.map(tag => `<span class="theme-tag tag-${tag}">${tagLabel(tag)}</span>`).join('')}
+            ${score >= 85 ? `<span class="theme-tag tag-match">✦ Alta afinidade</span>` : ''}
+          </div>
+          <div class="theme-geo-tags">
+            ${t.geos.map(g => `<span class="theme-geo-tag">${geoLabel(g)}</span>`).join('')}
+            ${t.territories.map(tr => `<span class="theme-geo-tag" style="color:var(--black)">${terLabel(tr)}</span>`).join('')}
+          </div>
+          <div class="theme-desc">${highlight(t.desc)}</div>
+          <div class="theme-metrics">
+            ${t.metrics.map(m => `<div class="theme-metric"><div class="theme-metric-val">${m.v}</div><div class="theme-metric-label">${m.l}</div></div>`).join('')}
+          </div>
+        </div>
+        <div class="theme-right">
+          <div class="theme-spark">${makeSpark(t.spark, t.windowColor)}</div>
+          <div class="theme-match-badge">
+            <div class="theme-match-n" style="color:${scoreColor}">${score}</div>
+            <div class="theme-match-l">Afinidade</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            <button class="theme-opps-btn">${t.metrics[2]?.v || '—'} ativos →</button>
+            <button class="theme-pin-btn ${isPinned ? 'pinned' : ''}" onclick="togglePin('${t.id}',event)">${isPinned ? '⭐ Fixado' : '☆ Fixar'}</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function tagLabel(tag) {
+  return {hot:'🔥 Em alta',rising:'↑ Crescendo',upcoming:'📅 Em breve',evergreen:'✦ Perene',match:'✦ Alta afinidade'}[tag] || tag;
+}
+function geoLabel(g) {
+  return {sp:'🗺️ SP',rj:'🏖️ RJ',ne:'☀️ NE',sul:'⛰️ Sul',br:'🇧🇷 Nacional',latam:'🌎 LATAM',global:'🌍 Global'}[g] || g;
+}
+function terLabel(t) {
+  return {esporte:'⚽ Esporte',musica:'🎵 Música',cultura:'🎭 Cultura',moda_ter:'👗 Moda',gastronomia:'🍽️ Gastro',tech_ter:'💻 Tech',sustentabilidade:'🌱 ESG',luxo:'💎 Luxo',aventura:'🏄 Aventura',familia:'👨‍👩‍👧 Família'}[t] || t;
+}
+
+// ─── RENDER CALENDAR ───
+function renderCalendar() {
+  const monthsEl = document.getElementById('cal-months-row');
+  monthsEl.innerHTML = MONTHS_LIST.map(m => {
+    const evs = CAL_EVENTS[m.k] || [];
+    const hasMatch = evs.some(e => e.match.some(mt => brand.territories.includes(mt)));
+    return `<button class="cal-month-btn ${m.k===activeMonth?'active':''} ${hasMatch?'has-match':''}" onclick="setMonth('${m.k}',this)">${m.l}</button>`;
+  }).join('');
+
+  const eventsEl = document.getElementById('cal-events-list');
+  const evs = CAL_EVENTS[activeMonth] || [];
+  if (!evs.length) { eventsEl.innerHTML = `<div style="padding:24px 22px;font-size:13px;color:var(--g5)">Nenhum evento mapeado para este mês.</div>`; return; }
+
+  eventsEl.innerHTML = evs.map(e => {
+    const isMatch = e.match.some(mt => brand.territories.includes(mt));
+    return `<div class="cal-event ${isMatch ? 'match' : 'normal'}">
+      <div class="cal-event-date">${e.date}</div>
+      <div class="cal-event-emoji">${e.emoji}</div>
+      <div class="cal-event-info">
+        <div class="cal-event-name">${e.name}</div>
+        <div class="cal-event-desc">${e.desc}</div>
+      </div>
+      <div class="cal-event-right">
+        ${isMatch ? `<span class="cal-match-badge">✦ Para ${brand.name}</span>` : ''}
+        <span class="cal-opps">${e.opps}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setMonth(key, btn) {
+  activeMonth = key;
+  document.querySelectorAll('.cal-month-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const eventsEl = document.getElementById('cal-events-list');
+  const evs = CAL_EVENTS[key] || [];
+  if (!evs.length) { eventsEl.innerHTML = `<div style="padding:24px 22px;font-size:13px;color:var(--g5)">Nenhum evento mapeado para este mês.</div>`; return; }
+  eventsEl.innerHTML = evs.map(e => {
+    const isMatch = e.match.some(mt => brand.territories.includes(mt));
+    return `<div class="cal-event ${isMatch ? 'match' : 'normal'}">
+      <div class="cal-event-date">${e.date}</div>
+      <div class="cal-event-emoji">${e.emoji}</div>
+      <div class="cal-event-info">
+        <div class="cal-event-name">${e.name}</div>
+        <div class="cal-event-desc">${e.desc}</div>
+      </div>
+      <div class="cal-event-right">
+        ${isMatch ? `<span class="cal-match-badge">✦ Para ${brand.name}</span>` : ''}
+        <span class="cal-opps">${e.opps}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── RECOMMENDATIONS ───
+function renderRecommendations() {
+  const topThemes = ALL_THEMES
+    .map(t => ({...t, score: getMatchScore(t)}))
+    .sort((a,b) => b.score - a.score)
+    .slice(0,4);
+
+  const configs = [
+    { urgency:'urgent', badge:'⚡ Urgente' },
+    { urgency:'strategic', badge:'🎯 Estratégico' },
+    { urgency:'strategic', badge:'🎯 Estratégico' },
+    { urgency:'watch', badge:'✦ Perene' },
+  ];
+
+  document.getElementById('insights-grid').innerHTML = topThemes.map((t,i) => `
+    <div class="insight-card ${configs[i].urgency} fade-in">
+      <div class="insight-card-top">
+        <div class="insight-emoji">${t.emoji}</div>
+        <span class="insight-badge">${configs[i].badge}</span>
+      </div>
+      <div class="insight-title">${t.name}</div>
+      <div class="insight-desc">${t.desc.substring(0,140)}...</div>
+      <div class="insight-footer">
+        <span class="insight-action">Ver ${t.metrics[2]?.v || ''} ativos →</span>
+        <span class="insight-meta">Match ${t.score}/100</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── PANEL RENDER ───
+function updatePanel() {
+  document.getElementById('brand-avatar').textContent = brand.avatar;
+  document.getElementById('brand-name-display').textContent = brand.name;
+  document.getElementById('brand-sector-display').textContent = brand.sectorLabel;
+  document.getElementById('persona-avatar').textContent = brand.avatar;
+  document.getElementById('cal-brand-name').textContent = brand.name;
+  document.getElementById('recs-brand-name').textContent = brand.name;
+
+  const score = computeGlobalMatch();
+  document.getElementById('match-score-val').textContent = score;
+  document.getElementById('match-score-fill').style.width = score + '%';
+  document.getElementById('persona-score-n').textContent = score;
+
+  const topTheme = ALL_THEMES.map(t => ({...t, score: getMatchScore(t)})).sort((a,b)=>b.score-a.score)[0];
+  document.getElementById('match-score-sub').textContent = `Forte alinhamento com ${terLabel(brand.territories[0] || 'esporte')}`;
+  document.getElementById('persona-headline').innerHTML = `<strong>${brand.name}</strong> — ${getFilteredThemes().length} temas com <strong>alto match</strong> para seus territórios`;
+
+  // panel chips
+  document.getElementById('panel-territories').innerHTML =
+    (brand.territories.length ? brand.territories.map(t => `<span class="chip active gold">${terLabel(t)}</span>`).join('') : '<span class="chip">Nenhum selecionado</span>');
+  document.getElementById('panel-geos').innerHTML =
+    (brand.geos.length ? brand.geos.map(g => `<span class="chip active">${geoLabel(g)}</span>`).join('') : '<span class="chip">Nenhum selecionado</span>');
+  document.getElementById('panel-goals').innerHTML =
+    (brand.goals.length ? brand.goals.map(g => `<span class="chip active">${goalLabel(g)}</span>`).join('') : '<span class="chip">Nenhum selecionado</span>');
+
+  // pinned
+  const pinnedEl = document.getElementById('panel-pinned');
+  if (brand.pinned.length) {
+    pinnedEl.innerHTML = brand.pinned.map(id => {
+      const t = ALL_THEMES.find(x => x.id === id);
+      return t ? `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--g2)"><span>${t.emoji}</span><span style="font-size:12px;font-weight:500;color:var(--black)">${t.name}</span></div>` : '';
+    }).join('');
+  } else {
+    pinnedEl.innerHTML = `<span style="font-size:12px;color:var(--g5)">Nenhum tema fixado ainda.<br>Clique em ☆ nos temas para fixar.</span>`;
+  }
+}
+
+function goalLabel(g) {
+  return {awareness:'📢 Awareness',consideracao:'🎯 Consideração',lancamento:'🚀 Lançamento',reposicionamento:'🔄 Reposicionamento',relacionamento:'🤝 Relacionamento',branding:'✨ Brand equity'}[g] || g;
+}
+
+// ─── SEARCH ───
+function onSearch() {
+  searchQuery = document.getElementById('search-input').value.trim();
+  document.getElementById('search-clear').style.display = searchQuery ? 'block' : 'none';
+  renderThemes();
+}
+function setSearchFilter(val, btn) {
+  searchFilter = val;
+  document.querySelectorAll('.search-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderThemes();
+}
+function clearSearch() {
+  searchQuery = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  renderThemes();
+}
+function setThemeTab(val, btn) {
+  themeTab = val;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderThemes();
+}
+
+// ─── PIN ───
+function togglePin(id, e) {
+  e.stopPropagation();
+  const idx = brand.pinned.indexOf(id);
+  if (idx >= 0) brand.pinned.splice(idx,1);
+  else brand.pinned.push(id);
+  renderThemes();
+  updatePanel();
+}
+
+// ─── BUDGET ───
+function updateBudget(val) {
+  const v = parseInt(val);
+  document.getElementById('budget-display').textContent = v >= 1000 ? `R$ ${(v/1000).toFixed(1).replace('.0','')}M` : `R$ ${v}k`;
+  brand.budget = v;
+}
+
+// ─── DRAWER ───
+function openDrawer() {
+  // populate drawer with current brand state
+  document.getElementById('d-brand-name').value = brand.name;
+  document.getElementById('d-sector').value = brand.sector;
+  document.getElementById('d-budget').value = brand.budget;
+
+  // territories
+  document.querySelectorAll('#d-territories .chip').forEach(c => {
+    c.classList.toggle('active', brand.territories.includes(c.dataset.val));
+  });
+  document.querySelectorAll('#d-geos .chip').forEach(c => {
+    c.classList.toggle('active', brand.geos.includes(c.dataset.val));
+  });
+  document.querySelectorAll('#d-audience .chip').forEach(c => {
+    c.classList.toggle('active', brand.audience.includes(c.dataset.val));
+  });
+  document.querySelectorAll('#d-goals .chip').forEach(c => {
+    c.classList.toggle('active', brand.goals.includes(c.dataset.val));
+  });
+
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+function toggleDrawerChip(el, group) {
+  el.classList.toggle('active');
+}
+function saveProfile() {
+  const sectorMap = {
+    bebidas:'Bebidas & Cerveja', financas:'Finanças & Fintechs', moda:'Moda & Lifestyle',
+    tech:'Tecnologia & Telecom', automotivo:'Automotivo', saude:'Saúde & Bem-estar',
+    alimentos:'Alimentos', energia:'Energia', varejo:'Varejo', cosmeticos:'Cosméticos & Beauty'
+  };
+  const avatarMap = {
+    bebidas:'🍺', financas:'💳', moda:'👗', tech:'📱', automotivo:'🚗',
+    saude:'💊', alimentos:'🌾', energia:'⚡', varejo:'🛍️', cosmeticos:'💄'
+  };
+  brand.name = document.getElementById('d-brand-name').value || brand.name;
+  brand.sector = document.getElementById('d-sector').value;
+  brand.sectorLabel = sectorMap[brand.sector];
+  brand.avatar = avatarMap[brand.sector];
+  brand.budget = parseInt(document.getElementById('d-budget').value) || brand.budget;
+  brand.territories = [...document.querySelectorAll('#d-territories .chip.active')].map(c => c.dataset.val);
+  brand.geos = [...document.querySelectorAll('#d-geos .chip.active')].map(c => c.dataset.val);
+  brand.audience = [...document.querySelectorAll('#d-audience .chip.active')].map(c => c.dataset.val);
+  brand.goals = [...document.querySelectorAll('#d-goals .chip.active')].map(c => c.dataset.val);
+
+  closeDrawer();
+  updatePanel();
+  renderThemes();
+  renderCalendar();
+  renderRecommendations();
+  updateBudget(brand.budget);
+  document.getElementById('budget-slider').value = brand.budget;
+}
+
+// ─── CHARTS ───
+let volChart;
+function initCharts() {
+  const ctx = document.getElementById('chart-vol').getContext('2d');
+  volChart = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels:['Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez','Jan','Fev','Mar'],
+      datasets:[
+        {label:'Esporte',data:[55,60,110,140,80,65,70,100,60,65,72,88],borderColor:'#C9A43A',backgroundColor:'rgba(201,164,58,0.07)',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+        {label:'Música',data:[40,55,48,45,88,70,55,48,40,42,55,60],borderColor:'#6366F1',backgroundColor:'rgba(99,102,241,0.05)',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+        {label:'Cultura',data:[50,75,52,48,55,62,58,52,55,60,65,70],borderColor:'#10B981',backgroundColor:'rgba(16,185,129,0.05)',fill:true,tension:0.4,pointRadius:0,borderWidth:2},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{font:{family:'DM Sans',size:11},boxWidth:12,padding:12}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:11,family:'DM Sans'},color:'#B0B0B0'}},
+        y:{grid:{color:'#F0F0F0'},ticks:{font:{size:10,family:'DM Sans'},color:'#B0B0B0'},beginAtZero:true}
+      }
+    }
+  });
+}
+
+// ─── INIT ───
+updatePanel();
+renderThemes();
+renderCalendar();
+renderRecommendations();
+initCharts();
+</script>
+</body>
+</html>

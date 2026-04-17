@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+    (function() {
+      try {
+        const raw = localStorage.getItem('ri_client_session');
+        if (!raw) { window.location.href = 'index.html'; return; }
+        const s = JSON.parse(raw);
+        if (s.expires_at && Date.now() / 1000 > s.expires_at) {
+          localStorage.removeItem('ri_client_session');
+          window.location.href = 'index.html';
+        }
+      } catch { window.location.href = 'index.html'; }
+    })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda — Relevantia Intelligence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:          #0E0E0E;
+      --black-2:        #1A1A1A;
+      --white:          #FFFFFF;
+      --gray-1:         #F7F7F7;
+      --gray-2:         #EBEBEB;
+      --gray-3:         #DDDDDD;
+      --gray-5:         #717171;
+      --gold:           #C9A43A;
+      --gold-light:     #E8C96A;
+      --gold-pale:      #FBF5E6;
+      --gold-dark:      #9A7A24;
+      --text:           #1A1A1A;
+      --gold-gradient:  linear-gradient(135deg, #C9A43A 0%, #E8C96A 50%, #C9A43A 100%);
+      --shadow-gold:    0 8px 32px rgba(201,164,58,0.2);
+      --sidebar-w:      240px;
+
+      --blue:       #3B82F6;
+      --blue-pale:  #EFF6FF;
+      --green:      #10B981;
+      --green-pale: #ECFDF5;
+      --red:        #EF4444;
+      --red-pale:   #FEF2F2;
+    }
+
+    html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--gray-1); color: var(--text); }
+    .app { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ──────────────────────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--black); display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+    }
+
+    .sidebar-header { padding: 28px 24px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: var(--gold-gradient);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(201,164,58,0.3);
+    }
+    .logo-mark svg { width: 17px; height: 17px; }
+
+    .logo-text { display: flex; flex-direction: column; line-height: 1; }
+    .logo-name { font-size: 13px; font-weight: 600; color: var(--white); }
+    .logo-sub  { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; letter-spacing: 0.05em; text-transform: uppercase; }
+
+    .sidebar-nav { flex: 1; padding: 20px 12px; overflow-y: auto; }
+    .nav-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.25); padding: 0 12px; margin-bottom: 8px; margin-top: 16px;
+    }
+    .nav-section-label:first-child { margin-top: 0; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px;
+      text-decoration: none; font-size: 14px; font-weight: 400;
+      color: rgba(255,255,255,0.5);
+      transition: color 0.15s, background 0.15s;
+      position: relative; margin-bottom: 2px;
+    }
+    .nav-item:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+    .nav-item.active { color: var(--white); background: rgba(201,164,58,0.12); font-weight: 500; }
+    .nav-item.active::before {
+      content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 3px; height: 20px;
+      background: var(--gold-gradient);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-icon { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.6; }
+    .nav-item.active .nav-icon { opacity: 1; }
+
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .user-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; }
+
+    .user-avatar {
+      width: 32px; height: 32px;
+      background: rgba(201,164,58,0.15);
+      border: 1px solid rgba(201,164,58,0.2);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600; color: var(--gold); flex-shrink: 0;
+    }
+
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 13px; font-weight: 500; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-role { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+    .btn-logout {
+      width: 100%; height: 36px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      color: rgba(255,255,255,0.4); cursor: pointer;
+      transition: all 0.15s; margin-top: 8px;
+    }
+    .btn-logout:hover { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); }
+
+    /* ── Main ─────────────────────────────────────────────── */
+    .main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; }
+
+    .main-header {
+      background: var(--white);
+      border-bottom: 1px solid var(--gray-2);
+      padding: 0 40px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+    }
+
+    .page-breadcrumb { font-size: 13px; color: var(--gray-5); }
+    .page-breadcrumb strong { color: var(--text); font-weight: 500; }
+
+    .header-meta { font-size: 13px; color: var(--gray-5); }
+
+    .content { padding: 40px; max-width: 760px; }
+
+    .page-header { margin-bottom: 40px; }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px; font-weight: 600; color: var(--black);
+      margin-bottom: 6px; letter-spacing: -0.01em;
+    }
+
+    .page-desc { font-size: 15px; color: var(--gray-5); font-weight: 300; }
+
+    /* ── Section header ───────────────────────────────────── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-5);
+      margin-bottom: 20px;
+      margin-top: 40px;
+    }
+
+    .section-label:first-child { margin-top: 0; }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--gray-2);
+    }
+
+    /* ── Timeline ─────────────────────────────────────────── */
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 8px;
+      bottom: 8px;
+      width: 1px;
+      background: linear-gradient(180deg, var(--gray-2) 0%, rgba(201,164,58,0.2) 50%, var(--gray-2) 100%);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .timeline-item:last-child { margin-bottom: 0; }
+
+    /* Dot */
+    .timeline-dot {
+      position: absolute;
+      left: -29px;
+      top: 18px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--gray-2);
+      background: var(--white);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .timeline-dot.gold {
+      border-color: var(--gold);
+      background: var(--gold-gradient);
+      box-shadow: 0 0 0 3px rgba(201,164,58,0.15);
+    }
+
+    .timeline-dot.blue {
+      border-color: var(--blue);
+      background: var(--blue);
+    }
+
+    .timeline-dot.green {
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    .timeline-dot.red {
+      border-color: var(--red);
+      background: var(--white);
+    }
+
+    .timeline-dot.gray {
+      border-color: var(--gray-3);
+      background: var(--gray-2);
+    }
+
+    .dot-check {
+      width: 8px; height: 8px;
+    }
+
+    /* Card */
+    .timeline-card {
+      background: var(--white);
+      border: 1px solid var(--gray-2);
+      border-radius: 12px;
+      padding: 20px 24px;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+    }
+
+    .timeline-card:hover {
+      border-color: rgba(201,164,58,0.25);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      transform: translateX(2px);
+    }
+
+    .timeline-card.past { opacity: 0.65; }
+    .timeline-card.past:hover { opacity: 1; }
+
+    .timeline-card.milestone {
+      border-color: rgba(201,164,58,0.2);
+      background: var(--gold-pale);
+    }
+
+    .timeline-card.milestone:hover {
+      border-color: rgba(201,164,58,0.4);
+      box-shadow: var(--shadow-gold);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--black);
+      line-height: 1.4;
+    }
+
+    .card-date {
+      font-size: 12px;
+      color: var(--gray-5);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--gray-5);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .event-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-gold   { background: var(--gold-pale);  color: var(--gold-dark); }
+    .badge-blue   { background: var(--blue-pale);  color: var(--blue); }
+    .badge-green  { background: var(--green-pale); color: var(--green); }
+    .badge-red    { background: var(--red-pale);   color: var(--red); }
+    .badge-gray   { background: var(--gray-1);     color: var(--gray-5); }
+
+    .badge-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── Skeleton ─────────────────────────────────────────── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #F0F0F0 25%, #FAFAFA 50%, #F0F0F0 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 6px;
+    }
+
+    .skel-card {
+      background: var(--white);
+      border: 1px solid var(--gray-2);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    .skel-row { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+    .skel-title { height: 16px; width: 55%; }
+    .skel-date  { height: 13px; width: 80px; margin-top: 2px; }
+    .skel-desc  { height: 13px; width: 80%; margin-bottom: 8px; }
+    .skel-desc-short { height: 13px; width: 50%; margin-bottom: 12px; }
+    .skel-badge { height: 22px; width: 90px; border-radius: 20px; }
+
+    /* ── Empty State ──────────────────────────────────────── */
+    .empty-state {
+      padding: 80px 24px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 64px; height: 64px;
+      background: var(--gold-pale);
+      border-radius: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+    }
+    .empty-icon svg { width: 28px; height: 28px; color: var(--gold); }
+
+    .empty-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px; font-weight: 600;
+      color: var(--black); margin-bottom: 8px;
+    }
+
+    .empty-sub { font-size: 14px; color: var(--gray-5); font-weight: 300; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="dashboard.html" class="sidebar-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 20 20" fill="none">
+            <path d="M10 2L17 6V14L10 18L3 14V6L10 2Z" stroke="white" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M10 7V13M7 8.5L10 7L13 8.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">Relevantia</span>
+          <span class="logo-sub">Intelligence</span>
+        </div>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Menu</div>
+      <a href="dashboard.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+          <rect x="2" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="10" y="2" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="2" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+          <rect x="10" y="10" width="6" height="6" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Dashboard
+      </a>
+      <a href="entregaveis.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+          <path d="M3 5h12M3 9h8M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Entregáveis
+      </a>
+      <a href="relatorios.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+          <path d="M11 2H5a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V6l-3-4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M11 2v4h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 10h6M6 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Relatórios
+      </a>
+      <a href="agenda.html" class="nav-item active">
+        <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+          <rect x="2" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M6 2v4M12 2v4M2 8h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Agenda
+      </a>
+      <a href="conteudos.html" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+          <path d="M2 4a2 2 0 012-2h4l2 2h4a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        Conteúdos
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar" id="userAvatar">—</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Carregando…</div>
+          <div class="user-role">The Edge</div>
+        </div>
+      </div>
+      <button class="btn-logout" id="logoutBtn">Sair da plataforma</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="main-header">
+      <div class="page-breadcrumb"><strong>Agenda</strong></div>
+      <div class="header-meta" id="headerMeta"></div>
+    </header>
+
+    <div class="content">
+      <div class="page-header">
+        <h1 class="page-title">Cronograma</h1>
+        <p class="page-desc">Milestones, entregas e prazos do seu projeto The Edge.</p>
+      </div>
+
+      <div id="agendaContent">
+        <!-- Skeleton loading -->
+        <div class="section-label">Próximos</div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot gray"></div>
+            <div class="skel-card">
+              <div class="skel-row">
+                <div class="skeleton skel-title"></div>
+                <div class="skeleton skel-date"></div>
+              </div>
+              <div class="skeleton skel-desc"></div>
+              <div class="skeleton skel-desc-short"></div>
+              <div class="skeleton skel-badge"></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot gray"></div>
+            <div class="skel-card">
+              <div class="skel-row">
+                <div class="skeleton skel-title"></div>
+                <div class="skeleton skel-date"></div>
+              </div>
+              <div class="skeleton skel-desc"></div>
+              <div class="skeleton skel-badge"></div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot gray"></div>
+            <div class="skel-card">
+              <div class="skel-row">
+                <div class="skeleton skel-title"></div>
+                <div class="skeleton skel-date"></div>
+              </div>
+              <div class="skeleton skel-desc"></div>
+              <div class="skeleton skel-desc-short"></div>
+              <div class="skeleton skel-badge"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="js/core.js"></script>
+<script>
+  const session = requireAuth('client', 'index.html');
+  const token   = session.access_token;
+  const email   = session.user?.email || '';
+
+  const hoje = new Date().toISOString().split('T')[0];
+
+  async function loadUser() {
+    const res = await sbFetch(`/rest/v1/edge_clients?select=nome,empresa&email=eq.${encodeURIComponent(email)}&limit=1`, token);
+    if (res.ok) {
+      const d = await res.json();
+      if (d.length) {
+        document.getElementById('userName').textContent   = d[0].empresa || d[0].nome;
+        document.getElementById('userAvatar').textContent = (d[0].empresa || d[0].nome || '?')[0].toUpperCase();
+      }
+    }
+  }
+
+  async function loadAgenda() {
+    const clientRes = await sbFetch(`/rest/v1/edge_clients?select=id&email=eq.${encodeURIComponent(email)}&limit=1`, token);
+    if (!clientRes.ok) { renderEmpty('Erro ao carregar dados.'); return; }
+    const clients = await clientRes.json();
+    if (!clients.length) { renderEmpty('Agenda não encontrada.'); return; }
+    const clientId = clients[0].id;
+
+    const res = await sbFetch(
+      `/rest/v1/edge_entregaveis?select=*&client_id=eq.${clientId}&prazo=not.is.null&order=prazo.asc`,
+      token
+    );
+    if (!res.ok) { renderEmpty('Erro ao carregar cronograma.'); return; }
+    const items = await res.json();
+
+    if (items.length === 0) { renderEmpty('Nenhum item com prazo definido ainda.'); return; }
+
+    const proximos = items.filter(i => i.prazo >= hoje && i.status !== 'concluido');
+    const passados = items.filter(i => i.prazo < hoje || i.status === 'concluido');
+
+    document.getElementById('headerMeta').textContent =
+      `${proximos.length} próximo${proximos.length !== 1 ? 's' : ''} · ${passados.length} concluído${passados.length !== 1 ? 's' : ''}`;
+
+    let html = '';
+
+    if (proximos.length > 0) {
+      html += `<div class="section-label">Próximos</div>`;
+      html += `<div class="timeline">`;
+      html += proximos.map(item => buildCard(item, false)).join('');
+      html += `</div>`;
+    }
+
+    if (passados.length > 0) {
+      html += `<div class="section-label">Concluídos &amp; Passados</div>`;
+      html += `<div class="timeline">`;
+      html += passados.map(item => buildCard(item, true)).join('');
+      html += `</div>`;
+    }
+
+    document.getElementById('agendaContent').innerHTML = html;
+  }
+
+  function buildCard(item, isPast) {
+    const isConcluido = item.status === 'concluido';
+    const isAndamento = item.status === 'em_andamento';
+    const isAtrasado  = !isConcluido && item.prazo < hoje;
+
+    // Dot class
+    let dotClass = 'gray';
+    if (isConcluido)      dotClass = 'green';
+    else if (isAtrasado)  dotClass = 'red';
+    else if (isAndamento) dotClass = 'blue';
+    else                  dotClass = 'gold';
+
+    // Card class
+    let cardClass = isPast ? 'past' : '';
+    if (!isPast && isAndamento) cardClass += ' milestone';
+
+    // Badge
+    let badgeClass = 'badge-gray';
+    let badgeLabel = statusLabel(item.status);
+    if (isConcluido)      badgeClass = 'badge-green';
+    else if (isAtrasado) { badgeClass = 'badge-red'; badgeLabel = 'Atrasado'; }
+    else if (isAndamento) badgeClass = 'badge-blue';
+    else                  badgeClass = 'badge-gold';
+
+    // Dot inner
+    let dotInner = '';
+    if (isConcluido) {
+      dotInner = `<svg class="dot-check" viewBox="0 0 8 8" fill="none">
+        <path d="M1 4l2 2 4-4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+    } else if (isAtrasado) {
+      dotInner = `<svg class="dot-check" viewBox="0 0 8 8" fill="none">
+        <path d="M4 2v2.5M4 6v.5" stroke="#EF4444" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>`;
+    }
+
+    return `
+      <div class="timeline-item">
+        <div class="timeline-dot ${dotClass}">${dotInner}</div>
+        <div class="timeline-card ${cardClass.trim()}">
+          <div class="card-top">
+            <div class="card-title">${item.titulo}</div>
+            <div class="card-date">${formatDate(item.prazo)}</div>
+          </div>
+          ${item.descricao ? `<div class="card-desc">${item.descricao}</div>` : ''}
+          <span class="event-badge ${badgeClass}">
+            <span class="badge-dot"></span>
+            ${badgeLabel}
+          </span>
+        </div>
+      </div>`;
+  }
+
+  function renderEmpty(msg) {
+    document.getElementById('agendaContent').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 28 28" fill="none">
+            <rect x="3" y="5" width="22" height="19" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 3v4M19 3v4M3 11h22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M8 17h4M8 21h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="empty-title">Nenhum item na agenda</div>
+        <div class="empty-sub">${msg}</div>
+      </div>`;
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    clearSession('client');
+    window.location.href = 'index.html';
+  });
+
+  loadUser();
+  loadAgenda();
+</script>
+</body>
+</html>

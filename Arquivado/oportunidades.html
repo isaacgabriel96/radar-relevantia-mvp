@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oportunidades — Radar Relevantia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A43A;
+  --gold-light: #E8C96A;
+  --gold-pale: #FBF5E6;
+  --black: #0E0E0E;
+  --gray-600: #717171;
+  --gray-400: #9A9A9A;
+  --gray-300: #DDDDDD;
+  --gray-200: #EBEBEB;
+  --gray-100: #F4F3F0;
+  --white: #FFFFFF;
+  --text: #1A1A1A;
+
+  /* card sizes */
+  --card-h: 400px;
+  --card-w-default: 360px;   /* 3 × 360 + 2 × 14gap = 1108px — mostra 3 no viewport */
+  --card-w-featured: 560px;  /* expanded: ~1.55× o default, cresce só à direita */
+  --card-w-sm: 220px;
+  --card-h-sm: 230px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--gray-100);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ─── TOPBAR ─── */
+.topbar {
+  height: 68px;
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.topbar-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.topbar-logo em {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--gold);
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 32px;
+}
+.topbar-nav a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 100px;
+  transition: color 0.2s, background 0.2s;
+}
+.topbar-nav a:hover { color: var(--text); background: rgba(0,0,0,0.05); }
+.topbar-nav a.active {
+  color: var(--text);
+  background: rgba(201,164,58,0.1);
+  font-weight: 600;
+}
+
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Search */
+.search-wrap {
+  position: relative;
+}
+.search-wrap svg {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 15px; height: 15px;
+  color: var(--gray-400);
+  pointer-events: none;
+}
+.search-input {
+  width: 220px;
+  height: 36px;
+  border: 1px solid var(--gray-200);
+  border-radius: 100px;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(8px);
+  padding: 0 16px 0 36px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  outline: none;
+  transition: border 0.2s, background 0.2s, width 0.3s;
+}
+.search-input:focus {
+  border-color: var(--gold);
+  background: var(--white);
+  width: 280px;
+}
+.search-input::placeholder { color: var(--gray-400); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px;
+  border-radius: 100px;
+  font-size: 13px; font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-gold {
+  background: var(--gold);
+  color: var(--black);
+  font-weight: 600;
+}
+.btn-gold:hover { background: var(--gold-light); }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.12);
+  color: var(--gray-600);
+}
+.btn-ghost:hover { background: rgba(0,0,0,0.04); color: var(--text); }
+
+.user-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  color: var(--black);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ─── PAGE WRAPPER ─── */
+.page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 40px 48px 80px;
+}
+
+/* ─── PAGE HEADER ─── */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.page-eyebrow {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.eyebrow-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%; background: var(--gold);
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.7);} }
+
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px; font-weight: 600;
+  color: var(--black);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+.page-title em { font-style: italic; font-weight: 400; color: var(--gold); }
+
+
+/* ─── ADVANCED FILTER BAR ─── */
+.adv-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+.adv-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 14px;
+  padding: 6px 10px;
+}
+.adv-filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-400);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding-right: 4px;
+  border-right: 1px solid rgba(0,0,0,0.08);
+  margin-right: 2px;
+}
+.adv-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--gray-600);
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.adv-chip:hover { background: rgba(0,0,0,0.04); color: var(--text); }
+.adv-chip.active {
+  background: var(--black);
+  color: var(--white);
+  font-weight: 600;
+}
+.adv-chip.active-gold {
+  background: rgba(201,164,58,0.12);
+  border-color: rgba(201,164,58,0.3);
+  color: #a07c1a;
+  font-weight: 600;
+}
+.adv-filter-sep {
+  width: 1px; height: 20px;
+  background: rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+.adv-filter-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.adv-sort {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+  font-family: inherit;
+  color: var(--gray-600);
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  cursor: pointer; outline: none;
+  transition: border 0.2s;
+}
+.adv-sort:focus { border-color: var(--gold); }
+.adv-count-badge {
+  display: inline-flex; align-items: center;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 12px; font-weight: 600;
+  background: var(--gold-pale);
+  color: #8a6b10;
+  border: 1px solid rgba(201,164,58,0.2);
+  white-space: nowrap;
+}
+
+/* ─── SECTION HEADER ─── */
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.section-eyebrow {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--gray-400);
+  margin-bottom: 4px;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px; font-weight: 600;
+  color: var(--black);
+  letter-spacing: -0.02em;
+}
+.section-nav { display: flex; gap: 6px; }
+.nav-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; color: var(--gray-600);
+}
+.nav-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,164,58,0.06); }
+.nav-btn svg { width: 14px; height: 14px; }
+
+/* ─── CAROUSEL ─── */
+.carousel-wrap {
+  position: relative;
+  margin-bottom: 48px;
+}
+.carousel {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+  align-items: flex-start; /* cards expand to the right only, anchor at top */
+}
+.carousel::-webkit-scrollbar { display: none; }
+
+/* ─── CARD ─── */
+.opp-card {
+  flex-shrink: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  scroll-snap-align: start;
+  background: #d0cdc8;
+
+  /* default size — ALL cards start here, including first */
+  width: var(--card-w-default);
+  height: var(--card-h);
+
+  /* smooth expand — controlled by JS via .is-expanded class */
+  transition:
+    width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.4s ease;
+}
+
+/* Destaques: transição de width ainda mais lenta e suave */
+.carousel-featured .opp-card {
+  transition:
+    width 0.9s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.6s ease;
+}
+
+/* JS adds .is-expanded to the hovered card */
+.opp-card.is-expanded {
+  width: var(--card-w-featured);
+  box-shadow: 0 20px 56px rgba(0,0,0,0.16);
+  z-index: 10;
+}
+
+/* card-featured: no longer forces a fixed width —
+   it's just a marker for first-card styling */
+.opp-card.card-featured {
+  /* width intentionally not set here */
+}
+
+.card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  /* Photo "appears" on expand: starts slightly dim, becomes full brightness */
+  transition: opacity 0.5s ease, filter 0.5s ease;
+  opacity: 0.68;
+  filter: brightness(0.85) saturate(0.88);
+}
+.opp-card.is-expanded .card-img {
+  opacity: 1;
+  filter: brightness(1.0) saturate(1.04);
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(14,14,14,0) 20%,
+    rgba(14,14,14,0.45) 60%,
+    rgba(14,14,14,0.82) 100%
+  );
+}
+
+/* Frosted tag — moved to RIGHT */
+.card-tag {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 100px;
+  padding: 4px 11px;
+  font-size: 11px; font-weight: 500;
+  color: rgba(255,255,255,0.92);
+  z-index: 2;
+}
+
+/* Card body */
+.card-body {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 18px;
+  z-index: 2;
+
+  /* hide extra content by default, reveal on hover */
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-brand {
+  font-size: 10px; font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 5px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s 0.05s, transform 0.3s 0.05s;
+}
+.brand-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); }
+
+.opp-card.is-expanded .card-brand {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; font-weight: 600;
+  color: var(--white);
+  line-height: 1.25;
+}
+.opp-card.is-expanded .card-name { font-size: 19px; }
+
+.card-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 2px;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s 0.1s, transform 0.3s 0.1s;
+}
+.opp-card.is-expanded .card-meta {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-deadline {
+  font-size: 11px; color: rgba(255,255,255,0.45);
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* ─── SMALL CARDS (urgente section) ─── */
+.carousel-sm .opp-card {
+  width: var(--card-w-sm);
+  height: var(--card-h-sm);
+}
+.carousel-sm .opp-card.is-expanded {
+  width: var(--card-w-featured);
+  height: var(--card-h-sm);
+}
+.carousel-sm .opp-card .card-name { font-size: 14px; }
+.carousel-sm .opp-card.is-expanded .card-name { font-size: 16px; }
+
+/* ─── TEASER CARDS (text) ─── */
+.teaser-card {
+  flex-shrink: 0;
+  width: var(--card-w-sm);
+  height: var(--card-h-sm);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(0,0,0,0.07);
+  padding: 22px;
+  display: flex; flex-direction: column; gap: 8px;
+  cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  scroll-snap-align: start;
+}
+.teaser-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(201,164,58,0.18), 0 6px 20px rgba(201,164,58,0.08);
+}
+.teaser-icon {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  background: var(--gold-pale);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 2px;
+}
+.teaser-icon svg { width: 18px; height: 18px; color: var(--gold); }
+.teaser-title { font-size: 14px; font-weight: 600; color: var(--black); line-height: 1.3; }
+.teaser-desc  { font-size: 12px; color: var(--gray-600); line-height: 1.5; }
+.teaser-link  { margin-top: auto; font-size: 11px; font-weight: 600; color: var(--gold); }
+
+/* ─── GRID (category cards) ─── */
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 48px;
+}
+
+.grid-cat-card {
+  border-radius: 16px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(0,0,0,0.07);
+  padding: 22px;
+  display: flex; flex-direction: column; gap: 6px;
+  cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  min-height: 160px;
+}
+.grid-cat-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(201,164,58,0.18), 0 6px 20px rgba(201,164,58,0.08);
+}
+.cat-icon {
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  background: var(--gold-pale);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px;
+}
+.cat-icon svg { width: 17px; height: 17px; color: var(--gold); }
+.cat-title { font-size: 14px; font-weight: 600; color: var(--black); }
+.cat-desc  { font-size: 12px; color: var(--gray-600); line-height: 1.45; flex: 1; }
+.cat-count { font-size: 11px; font-weight: 700; color: var(--gold); margin-top: 4px; }
+
+/* Photo cards in grid */
+.grid-photo-card {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  min-height: 160px;
+  border: 1.5px solid transparent;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.grid-photo-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(201,164,58,0.18), 0 8px 28px rgba(0,0,0,0.1);
+}
+.grid-photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.grid-photo-card .card-overlay { background: linear-gradient(to bottom, rgba(14,14,14,0) 30%, rgba(14,14,14,0.75) 100%); }
+.grid-photo-card .card-body { padding: 14px; }
+.grid-photo-card .card-name { font-size: 14px; }
+.grid-photo-card .card-brand { opacity: 1; transform: none; }
+
+/* Gold CTA card */
+.cta-card {
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--gold-pale) 0%, rgba(201,164,58,0.08) 100%);
+  border: 1.5px solid rgba(201,164,58,0.2);
+  padding: 24px;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: border-color 0.25s, box-shadow 0.25s;
+  min-height: 160px;
+}
+.cta-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(201,164,58,0.25), 0 6px 20px rgba(201,164,58,0.1);
+}
+.cta-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; font-weight: 600;
+  color: var(--black); line-height: 1.3;
+}
+.cta-sub { font-size: 12px; color: var(--gray-600); line-height: 1.5; margin-top: 5px; }
+.cta-arrow {
+  align-self: flex-end;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--black);
+  display: flex; align-items: center; justify-content: center;
+}
+.cta-arrow svg { width: 14px; height: 14px; color: var(--white); }
+
+/* ─── HERO CARROSSEL dentro dos list-cards ─── */
+.olc-hero {
+  position: relative;
+  width: calc(100% + 48px);   /* sangra para fora do padding do card */
+  margin: -24px -24px 0;      /* sem margem inferior — título cola logo abaixo */
+  height: 260px;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.olc-hero-track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.olc-hero-slide {
+  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+}
+.olc-hero-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+/* overlay gradiente suave na base */
+.olc-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.28) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+/* botões prev/next */
+.olc-hero-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(8px);
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity 0.18s, background 0.18s;
+  pointer-events: none;
+}
+.olc-hero-nav svg { width: 12px; height: 12px; color: var(--black); }
+.olc-hero-nav.prev { left: 8px; }
+.olc-hero-nav.next { right: 8px; }
+.olc-hero:hover .olc-hero-nav { opacity: 1; pointer-events: auto; }
+.olc-hero-nav:hover { background: rgba(255,255,255,1); }
+/* dots */
+.olc-hero-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  z-index: 4;
+}
+.olc-hero-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  transition: background 0.22s, transform 0.22s;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  flex-shrink: 0;
+}
+.olc-hero-dot.active {
+  background: rgba(255,255,255,0.95);
+  transform: scale(1.3);
+}
+/* tag de categoria flutuante — lado direito da foto (estilo frosted) */
+.olc-hero-tag {
+  position: absolute;
+  top: 12px; right: 12px;
+  z-index: 3;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 100px;
+  padding: 4px 11px;
+  font-size: 11px; font-weight: 500;
+  color: rgba(255,255,255,0.95);
+  letter-spacing: 0.01em;
+}
+/* contador de fotos */
+.olc-hero-count {
+  position: absolute;
+  top: 10px; left: 10px;
+  z-index: 3;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  border-radius: 100px;
+  padding: 3px 8px;
+  font-size: 10px; font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  display: flex; align-items: center; gap: 4px;
+}
+.olc-hero-count svg { width: 10px; height: 10px; }
+
+/* em mobile, reduzir altura do hero */
+@media (max-width: 768px) {
+  .olc-hero { height: 200px; margin: -20px -20px 0; width: calc(100% + 40px); }
+}
+
+/* ─── LISTA DE OPORTUNIDADES (grid estático, 3 colunas) ─── */
+.opp-list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 60px;
+}
+
+.opp-list-card {
+  background: var(--white);
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.07);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  cursor: pointer;
+  transition: border-color 0.22s, box-shadow 0.22s, transform 0.22s;
+  position: relative;
+  overflow: hidden;
+}
+.opp-list-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 8px 32px rgba(201,164,58,0.1), 0 1px 4px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+
+/* linha dourada no topo ao hover */
+.opp-list-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(to right, var(--gold), var(--gold-light));
+  opacity: 0;
+  transition: opacity 0.22s;
+}
+.opp-list-card:hover::before { opacity: 1; }
+
+.olc-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px; font-weight: 600;
+  color: var(--black);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+.olc-desc {
+  font-size: 13px;
+  color: var(--gray-600);
+  line-height: 1.55;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.olc-divider {
+  height: 1px;
+  background: rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+}
+
+.olc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.olc-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.olc-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--gray-400);
+  font-weight: 500;
+}
+.olc-meta-item svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+/* brand name in footer */
+.olc-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.olc-logo {
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  background: var(--gray-100);
+  border: 1px solid rgba(0,0,0,0.07);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  color: var(--gray-600);
+  flex-shrink: 0;
+}
+.olc-brand-name {
+  font-size: 12px; font-weight: 600;
+  color: var(--gray-600);
+}
+
+/* .olc-tag removida — categoria agora fica dentro do hero como .olc-hero-tag */
+
+.olc-arrow-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--gray-400);
+  transition: all 0.18s;
+  flex-shrink: 0;
+}
+.opp-list-card:hover .olc-arrow-btn {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(201,164,58,0.06);
+}
+.olc-arrow-btn svg { width: 13px; height: 13px; }
+
+/* ─── RESPONSIVE: TABLET (≤ 1100px) ─── */
+@media (max-width: 1100px) {
+  .page { padding: 32px 32px 60px; }
+  .section-grid { grid-template-columns: repeat(2, 1fr); }
+  .opp-list-grid { grid-template-columns: repeat(2, 1fr); }
+  :root {
+    --card-w-default: 300px;
+    --card-w-featured: 460px;
+  }
+  .adv-filter { flex-wrap: wrap; }
+}
+
+/* ─── RESPONSIVE: MOBILE (≤ 768px) ─── */
+@media (max-width: 768px) {
+
+  /* ── Topbar mobile ── */
+  .topbar {
+    height: 56px;
+    padding: 0 16px;
+    gap: 10px;
+  }
+  .topbar-logo { font-size: 16px; }
+  .topbar-nav  { display: none; }
+  .search-wrap { display: none; }      /* search escondido — acesso via ícone futuramente */
+  .btn-ghost   { display: none; }      /* esconde filtros inline */
+  .btn-gold    { padding: 7px 14px; font-size: 12px; }
+  .btn-gold svg { display: none; }
+  .topbar-right { gap: 8px; }
+
+  /* ── Page ── */
+  .page { padding: 20px 16px 72px; }
+
+  /* ── Page header ── */
+  .page-header { margin-bottom: 20px; }
+  .page-title  { font-size: 24px; }
+
+  /* ── Advanced filter: scroll horizontal no mobile ── */
+  .adv-filter {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-left: -16px;
+    margin-right: -16px;
+    padding: 0 16px 4px;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .adv-filter::-webkit-scrollbar { display: none; }
+  .adv-filter-group { flex-shrink: 0; }
+  .adv-filter-right { margin-left: 0; flex-shrink: 0; }
+  .adv-count-badge { display: none; }
+
+  /* ── Section header ── */
+  .section-header { margin-bottom: 14px; }
+  .section-title  { font-size: 18px; }
+
+  /* ── Carousel base: padding lateral para peek do próximo card ── */
+  .carousel-wrap { margin-bottom: 32px; }
+  .carousel-wrap::after { width: 32px; } /* fading edge menor */
+  .carousel {
+    gap: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+    /* compensar o padding do .page para ir de borda a borda */
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-bottom: 8px;
+  }
+
+  /* ── Destaques mobile: 1 card por vez, centralizado, height generoso ── */
+  .carousel-featured {
+    scroll-snap-type: x mandatory;
+    /* padding lateral simétrico para centralizar o card */
+    padding-left: 16px;
+    padding-right: 16px;
+    justify-content: flex-start;
+  }
+  .carousel-featured .opp-card {
+    /* card ocupa quase todo o viewport deixando 24px de peek dos lados */
+    width: calc(100vw - 56px);
+    min-width: calc(100vw - 56px);
+    height: 380px; /* height generoso para respirar */
+    scroll-snap-align: center; /* snap centrado */
+    /* sem hover expansion em mobile — controlado por JS */
+    transition: box-shadow 0.3s ease;
+  }
+  /* imagem sempre visível no mobile */
+  .carousel-featured .opp-card .card-img {
+    opacity: 0.9;
+    filter: brightness(0.92) saturate(0.95);
+  }
+  /* brand e meta sempre visíveis no mobile (sem hover) */
+  .carousel-featured .opp-card .card-brand,
+  .carousel-featured .opp-card .card-meta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .carousel-featured .opp-card .card-name { font-size: 18px; }
+
+  /* ── Carousel "encerram": small cards ajustados ── */
+  .carousel-sm .opp-card {
+    width: 180px;
+    min-width: 180px;
+    height: 200px;
+  }
+  .teaser-card {
+    width: 180px;
+    min-width: 180px;
+    height: 200px;
+    padding: 16px;
+  }
+
+  /* ── Grid categorias: coluna única ── */
+  .section-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .grid-cat-card  { min-height: 120px; padding: 18px; }
+  .grid-photo-card { min-height: 160px; }
+  .cta-card       { min-height: 120px; padding: 20px; }
+
+  /* ── Lista oportunidades: coluna única no mobile ── */
+  .opp-list-grid { grid-template-columns: 1fr; gap: 12px; }
+  .olc-title { font-size: 16px; }
+  .opp-list-card { padding: 20px; }
+}
+
+/* ─── RESPONSIVE: SMALL MOBILE (≤ 390px) ─── */
+@media (max-width: 390px) {
+  .carousel-featured .opp-card {
+    width: calc(100vw - 44px);
+    min-width: calc(100vw - 44px);
+    height: 340px;
+  }
+  .page-title { font-size: 22px; }
+}
+
+/* ─── BOTTOM NAV (mobile only) ─── */
+.bottom-nav {
+  display: none;
+}
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0,0,0,0.07);
+    z-index: 200;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .bnav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--gray-400);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 8px 4px;
+    transition: color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bnav-item svg { width: 20px; height: 20px; }
+  .bnav-item.active { color: var(--gold); }
+  .bnav-item.active svg { stroke: var(--gold); }
+
+  /* Push page content above bottom nav */
+  .page { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── TOPBAR ─── -->
+<header class="topbar">
+  <div class="topbar-logo">Radar <em>Relevantia</em></div>
+
+  <nav class="topbar-nav">
+    <a href="#">Dashboard</a>
+    <a href="#" class="active">Oportunidades</a>
+    <a href="#">Minhas Propostas</a>
+    <a href="#">Detentores</a>
+    <a href="#">Relatórios</a>
+  </nav>
+
+  <div class="topbar-right">
+    <div class="search-wrap">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+      </svg>
+      <input class="search-input" type="text" placeholder="Buscar oportunidades…">
+    </div>
+    <button class="btn btn-ghost">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 10.414V15a1 1 0 01-.553.894l-4 2A1 1 0 017 17v-6.586L3.293 6.707A1 1 0 013 6V4z" clip-rule="evenodd"/></svg>
+      Filtros
+    </button>
+    <button class="btn btn-gold">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+      Nova Proposta
+    </button>
+    <div class="user-avatar">NS</div>
+  </div>
+</header>
+
+<!-- ─── PAGE ─── -->
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">
+        <span class="eyebrow-dot"></span>
+        Curadoria personalizada
+      </div>
+      <h1 class="page-title">Oportunidades <em>para você</em></h1>
+    </div>
+  </div>
+
+
+  <!-- ADVANCED FILTER -->
+  <div class="adv-filter" id="advFilter">
+
+    <!-- Grupo: Tipo -->
+    <div class="adv-filter-group">
+      <span class="adv-filter-label">Tipo</span>
+      <button class="adv-chip active" data-group="tipo">Todos</button>
+      <button class="adv-chip" data-group="tipo">Patrocínio</button>
+      <button class="adv-chip" data-group="tipo">Ativação</button>
+      <button class="adv-chip" data-group="tipo">Naming</button>
+    </div>
+
+    <!-- Grupo: Prazo -->
+    <div class="adv-filter-group">
+      <span class="adv-filter-label">Prazo</span>
+      <button class="adv-chip active" data-group="prazo">Qualquer</button>
+      <button class="adv-chip" data-group="prazo">Urgente</button>
+      <button class="adv-chip" data-group="prazo">Este mês</button>
+    </div>
+
+    <!-- Grupo: Pontos -->
+    <div class="adv-filter-group">
+      <span class="adv-filter-label">Pontos</span>
+      <button class="adv-chip active" data-group="pontos">Todos</button>
+      <button class="adv-chip" data-group="pontos">Até 50k</button>
+      <button class="adv-chip" data-group="pontos">50k–150k</button>
+      <button class="adv-chip" data-group="pontos">+150k</button>
+    </div>
+
+    <!-- Right: contagem + ordenação -->
+    <div class="adv-filter-right">
+      <span class="adv-count-badge">2.400 oportunidades</span>
+      <select class="adv-sort">
+        <option>Mais relevantes</option>
+        <option>Mais recentes</option>
+        <option>Menor pontuação</option>
+        <option>Maior pontuação</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- ══ SECTION: DESTAQUES ══ -->
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Curadoria especial</div>
+      <h2 class="section-title">Destaques da semana</h2>
+    </div>
+    <div class="section-nav">
+      <button class="nav-btn" onclick="scrollC('c1',-1)">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+      </button>
+      <button class="nav-btn" onclick="scrollC('c1',1)">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="carousel-wrap">
+    <div class="carousel carousel-featured" id="c1">
+
+      <!-- FEATURED -->
+      <div class="opp-card card-featured">
+        <img class="card-img" src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=900&q=80" alt="">
+        <div class="card-overlay"></div>
+        <div class="card-tag">Esporte</div>
+        <div class="card-body">
+          <div class="card-brand"><span class="brand-dot"></span>SP Marathon Club</div>
+          <div class="card-name">Patrocínio oficial da Maratona de São Paulo 2025</div>
+          <div class="card-meta">
+            <span class="card-deadline">
+              <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+              12 dias restantes
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2 -->
+      <div class="opp-card">
+        <img class="card-img" src="https://images.unsplash.com/photo-1429514513361-8fa32282fd5f?w=700&q=80" alt="">
+        <div class="card-overlay"></div>
+        <div class="card-tag">Música</div>
+        <div class="card-body">
+          <div class="card-brand"><span class="brand-dot"></span>Lollapalooza Brasil</div>
+          <div class="card-name">Ativação no maior festival do país</div>
+          <div class="card-meta">
+            <span class="card-deadline">20 dias</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3 -->
+      <div class="opp-card">
+        <img class="card-img" src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=700&q=80" alt="">
+        <div class="card-overlay"></div>
+        <div class="card-tag">Gastronomia</div>
+        <div class="card-body">
+          <div class="card-brand"><span class="brand-dot"></span>Mesa SP</div>
+          <div class="card-name">Festival gastronômico premium</div>
+          <div class="card-meta">
+            <span class="card-deadline">30 dias</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 4 -->
+      <div class="opp-card">
+        <img class="card-img" src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=700&q=80" alt="">
+        <div class="card-overlay"></div>
+        <div class="card-tag">Tecnologia</div>
+        <div class="card-body">
+          <div class="card-brand"><span class="brand-dot"></span>Campus Party BR</div>
+          <div class="card-name">Keynote sponsor — Campus Party 2025</div>
+          <div class="card-meta">
+            <span class="card-deadline">5 dias</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 5 -->
+      <div class="opp-card">
+        <img class="card-img" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=80" alt="">
+        <div class="card-overlay"></div>
+        <div class="card-tag">Lifestyle</div>
+        <div class="card-body">
+          <div class="card-brand"><span class="brand-dot"></span>The Collective</div>
+          <div class="card-name">Pop-up store no Iguatemi Faria Lima</div>
+          <div class="card-meta">
+            <span class="card-deadline">45 dias</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 6 -->
+      <div class="opp-card">
+        <img class="card-img" src="https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=700&q=80" alt="">
+        <div class="card-overlay"></div>
+        <div class="card-tag">Cultura</div>
+        <div class="card-body">
+          <div class="card-brand"><span class="brand-dot"></span>Museu do Amanhã</div>
+          <div class="card-name">Exposição interativa de marca</div>
+          <div class="card-meta">
+            <span class="card-deadline">60 dias</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SECTION: TODAS AS OPORTUNIDADES ══ -->
+  <div class="section-header" style="margin-top: 16px;">
+    <div>
+      <div class="section-eyebrow">Catálogo completo</div>
+      <h2 class="section-title">Todas as oportunidades</h2>
+    </div>
+    <span class="adv-count-badge">2.400 resultados</span>
+  </div>
+
+  <div class="opp-list-grid">
+
+    <!-- ── MACRO: hero carrossel reutilizável ──
+         Estrutura: .olc-hero > .olc-hero-track > N×.olc-hero-slide > img
+         + .olc-hero-badge (badge flutuante), .olc-hero-count, .olc-hero-nav ×2, .olc-hero-dots
+    -->
+
+    <!-- Card 1 — SP Marathon Club -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=800&q=80" alt="Maratona SP"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80" alt="Corrida urbana"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=800&q=80" alt="Atletas"></div>
+        </div>
+        <span class="olc-hero-tag">Esporte</span>
+        <div class="olc-hero-count">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg>
+          <span class="hero-cur">1</span>/<span class="hero-tot">3</span>
+        </div>
+        <button class="olc-hero-nav prev" aria-label="anterior">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+        </button>
+        <button class="olc-hero-nav next" aria-label="próximo">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+        </button>
+        <div class="olc-hero-dots">
+          <button class="olc-hero-dot active"></button>
+          <button class="olc-hero-dot"></button>
+          <button class="olc-hero-dot"></button>
+        </div>
+      </div>
+      <div class="olc-title">Patrocínio oficial da Maratona de São Paulo 2025</div>
+      <div class="olc-desc">Exposição de marca para 35 mil corredores e 200 mil espectadores. Inclui naming em larga escala e ativações no percurso.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">SP</div><span class="olc-brand-name">SP Marathon Club</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>12 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Card 2 — Lollapalooza -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1429514513361-8fa32282fd5f?w=800&q=80" alt="Festival"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80" alt="Show noturno"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&q=80" alt="Multidão festival"></div>
+        </div>
+        <span class="olc-hero-tag">Música</span>
+        <div class="olc-hero-count"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg><span class="hero-cur">1</span>/<span class="hero-tot">3</span></div>
+        <button class="olc-hero-nav prev" aria-label="anterior"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></button>
+        <button class="olc-hero-nav next" aria-label="próximo"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></button>
+        <div class="olc-hero-dots"><button class="olc-hero-dot active"></button><button class="olc-hero-dot"></button><button class="olc-hero-dot"></button></div>
+      </div>
+      <div class="olc-title">Ativação no maior festival do país</div>
+      <div class="olc-desc">Presença exclusiva no Lollapalooza com espaço de marca, brindes e ações de engajamento com público de 300 mil pessoas.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">LL</div><span class="olc-brand-name">Lollapalooza Brasil</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>20 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Card 3 — Campus Party -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80" alt="Campus Party"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80" alt="Tecnologia"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800&q=80" alt="Palco tech"></div>
+        </div>
+        <span class="olc-hero-tag">Tecnologia</span>
+        <div class="olc-hero-count"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg><span class="hero-cur">1</span>/<span class="hero-tot">3</span></div>
+        <button class="olc-hero-nav prev" aria-label="anterior"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></button>
+        <button class="olc-hero-nav next" aria-label="próximo"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></button>
+        <div class="olc-hero-dots"><button class="olc-hero-dot active"></button><button class="olc-hero-dot"></button><button class="olc-hero-dot"></button></div>
+      </div>
+      <div class="olc-title">Keynote sponsor — Campus Party 2025</div>
+      <div class="olc-desc">Naming rights do palco principal com 80 mil participantes. Slot de apresentação de 20 minutos e estande exclusivo.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">CP</div><span class="olc-brand-name">Campus Party BR</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>5 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Card 4 — Mesa SP -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80" alt="Gastronomia"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80" alt="Prato gourmet"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&q=80" alt="Chef cozinha"></div>
+        </div>
+        <span class="olc-hero-tag">Gastronomia</span>
+        <div class="olc-hero-count"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg><span class="hero-cur">1</span>/<span class="hero-tot">3</span></div>
+        <button class="olc-hero-nav prev" aria-label="anterior"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></button>
+        <button class="olc-hero-nav next" aria-label="próximo"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></button>
+        <div class="olc-hero-dots"><button class="olc-hero-dot active"></button><button class="olc-hero-dot"></button><button class="olc-hero-dot"></button></div>
+      </div>
+      <div class="olc-title">Festival gastronômico premium</div>
+      <div class="olc-desc">Ativação de marca em ambiente premium com chefs renomados, degustações e cobertura de mídia especializada.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">MS</div><span class="olc-brand-name">Mesa SP</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>30 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Card 5 — The Collective -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80" alt="Lifestyle loja"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800&q=80" alt="Shopping premium"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80" alt="Vitrine pop-up"></div>
+        </div>
+        <span class="olc-hero-tag">Lifestyle</span>
+        <div class="olc-hero-count"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg><span class="hero-cur">1</span>/<span class="hero-tot">3</span></div>
+        <button class="olc-hero-nav prev" aria-label="anterior"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></button>
+        <button class="olc-hero-nav next" aria-label="próximo"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></button>
+        <div class="olc-hero-dots"><button class="olc-hero-dot active"></button><button class="olc-hero-dot"></button><button class="olc-hero-dot"></button></div>
+      </div>
+      <div class="olc-title">Pop-up store no Iguatemi Faria Lima</div>
+      <div class="olc-desc">Espaço de marca no shopping mais premium de São Paulo. Público A/B, alto engajamento, 45 dias de ativação contínua.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">TC</div><span class="olc-brand-name">The Collective</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>45 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Card 6 — Museu do Amanhã -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=800&q=80" alt="Museu Rio"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=800&q=80" alt="Exposição arte"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?w=800&q=80" alt="Instalação interativa"></div>
+        </div>
+        <span class="olc-hero-tag">Cultura</span>
+        <div class="olc-hero-count"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg><span class="hero-cur">1</span>/<span class="hero-tot">3</span></div>
+        <button class="olc-hero-nav prev" aria-label="anterior"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></button>
+        <button class="olc-hero-nav next" aria-label="próximo"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></button>
+        <div class="olc-hero-dots"><button class="olc-hero-dot active"></button><button class="olc-hero-dot"></button><button class="olc-hero-dot"></button></div>
+      </div>
+      <div class="olc-title">Exposição interativa de marca</div>
+      <div class="olc-desc">Co-criação de exposição imersiva no Museu do Amanhã, Rio de Janeiro. Audiência qualificada, cobertura nacional.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">MA</div><span class="olc-brand-name">Museu do Amanhã</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>60 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Card 7 — Bienal do Livro -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80" alt="Feira de livros"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=800&q=80" alt="Biblioteca"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1524578271613-d550eacf6090?w=800&q=80" alt="Leitura cultura"></div>
+        </div>
+        <span class="olc-hero-tag">Cultura</span>
+        <div class="olc-hero-count"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg><span class="hero-cur">1</span>/<span class="hero-tot">3</span></div>
+        <button class="olc-hero-nav prev" aria-label="anterior"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></button>
+        <button class="olc-hero-nav next" aria-label="próximo"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></button>
+        <div class="olc-hero-dots"><button class="olc-hero-dot active"></button><button class="olc-hero-dot"></button><button class="olc-hero-dot"></button></div>
+      </div>
+      <div class="olc-title">Exposição e ativação cultural</div>
+      <div class="olc-desc">Presença de marca na maior feira literária do Brasil, com 700 mil visitantes e forte cobertura de mídia cultural.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">BL</div><span class="olc-brand-name">Bienal do Livro</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>7 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Card 8 — Web Summit -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&q=80" alt="Web Summit"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=800&q=80" alt="Conferência tech"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&q=80" alt="Networking evento"></div>
+        </div>
+        <span class="olc-hero-tag">Tecnologia</span>
+        <div class="olc-hero-count"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg><span class="hero-cur">1</span>/<span class="hero-tot">3</span></div>
+        <button class="olc-hero-nav prev" aria-label="anterior"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></button>
+        <button class="olc-hero-nav next" aria-label="próximo"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></button>
+        <div class="olc-hero-dots"><button class="olc-hero-dot active"></button><button class="olc-hero-dot"></button><button class="olc-hero-dot"></button></div>
+      </div>
+      <div class="olc-title">Stand premium — Web Summit Lisboa</div>
+      <div class="olc-desc">Representação de marca no maior evento de tecnologia da Europa, com 70 mil participantes de 160 países.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">WS</div><span class="olc-brand-name">Web Summit</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>55 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Card 9 — Instituto Muda -->
+    <div class="opp-list-card">
+      <div class="olc-hero" data-hero>
+        <div class="olc-hero-track">
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=800&q=80" alt="Impacto social"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&q=80" alt="Comunidade voluntária"></div>
+          <div class="olc-hero-slide"><img src="https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80" alt="Projeto social"></div>
+        </div>
+        <span class="olc-hero-tag">Impacto Social</span>
+        <div class="olc-hero-count"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg><span class="hero-cur">1</span>/<span class="hero-tot">3</span></div>
+        <button class="olc-hero-nav prev" aria-label="anterior"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg></button>
+        <button class="olc-hero-nav next" aria-label="próximo"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg></button>
+        <div class="olc-hero-dots"><button class="olc-hero-dot active"></button><button class="olc-hero-dot"></button><button class="olc-hero-dot"></button></div>
+      </div>
+      <div class="olc-title">Projeto de impacto com visibilidade nacional</div>
+      <div class="olc-desc">Patrocínio de projeto social de alto impacto com cobertura em mídia espontânea e posicionamento de marca responsável.</div>
+      <div class="olc-divider"></div>
+      <div class="olc-footer">
+        <div class="olc-meta-row">
+          <div class="olc-brand-row"><div class="olc-logo">IM</div><span class="olc-brand-name">Instituto Muda</span></div>
+          <span class="olc-meta-item"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>90 dias</span>
+        </div>
+        <button class="olc-arrow-btn"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ SECTION: CATEGORIAS ══ -->
+  <div class="section-header">
+    <div>
+      <div class="section-eyebrow">Explore</div>
+      <h2 class="section-title">Por categoria</h2>
+    </div>
+  </div>
+
+  <div class="section-grid">
+
+    <div class="grid-cat-card">
+      <div class="cat-icon"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/></svg></div>
+      <div class="cat-title">Esporte e Aventura</div>
+      <div class="cat-desc">Maratonas, triathlons, esportes radicais e competições.</div>
+      <div class="cat-count">342 oportunidades →</div>
+    </div>
+
+    <div class="grid-cat-card">
+      <div class="cat-icon"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z"/></svg></div>
+      <div class="cat-title">Música e Shows</div>
+      <div class="cat-desc">Festivais, tournês e ativações em eventos musicais.</div>
+      <div class="cat-count">215 oportunidades →</div>
+    </div>
+
+    <div class="grid-cat-card">
+      <div class="cat-icon"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg></div>
+      <div class="cat-title">Cultura e Arte</div>
+      <div class="cat-desc">Exposições, teatro, cinema e expressão cultural.</div>
+      <div class="cat-count">189 oportunidades →</div>
+    </div>
+
+    <div class="grid-cat-card">
+      <div class="cat-icon"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg></div>
+      <div class="cat-title">Lifestyle</div>
+      <div class="cat-desc">Wellness, gastronomia, moda e comportamento.</div>
+      <div class="cat-count">410 oportunidades →</div>
+    </div>
+
+    <div class="grid-photo-card">
+      <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=80" alt="">
+      <div class="card-overlay"></div>
+      <div class="card-body" style="padding:14px;">
+        <div class="card-brand" style="opacity:1;transform:none;font-size:10px;"><span class="brand-dot"></span>Influencers BR</div>
+        <div class="card-name" style="font-size:14px;margin-bottom:8px;">Campanha digital</div>
+      </div>
+    </div>
+
+    <div class="grid-photo-card">
+      <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&q=80" alt="">
+      <div class="card-overlay"></div>
+      <div class="card-body" style="padding:14px;">
+        <div class="card-brand" style="opacity:1;transform:none;font-size:10px;"><span class="brand-dot"></span>Web Summit</div>
+        <div class="card-name" style="font-size:14px;margin-bottom:8px;">Stand premium tech</div>
+      </div>
+    </div>
+
+    <div class="grid-photo-card">
+      <img src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=600&q=80" alt="">
+      <div class="card-overlay"></div>
+      <div class="card-body" style="padding:14px;">
+        <div class="card-brand" style="opacity:1;transform:none;font-size:10px;"><span class="brand-dot"></span>Instituto Muda</div>
+        <div class="card-name" style="font-size:14px;margin-bottom:8px;">Projeto social</div>
+      </div>
+    </div>
+
+    <div class="cta-card">
+      <div>
+        <div class="cta-title">Não encontrou o que procura?</div>
+        <div class="cta-sub">Envie uma proposta personalizada para qualquer detentor da plataforma.</div>
+      </div>
+      <div class="cta-arrow">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /page -->
+
+<!-- ─── BOTTOM NAV (mobile) ─── -->
+<nav class="bottom-nav">
+  <a href="#" class="bnav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/>
+    </svg>
+    Início
+  </a>
+  <a href="#" class="bnav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+    Oportunidades
+  </a>
+  <a href="#" class="bnav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+    </svg>
+    Propostas
+  </a>
+  <a href="#" class="bnav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+    Perfil
+  </a>
+</nav>
+
+<script>
+// ── HERO CARROSSEL nos list-cards ──
+(function initHeroCarousels() {
+  document.querySelectorAll('[data-hero]').forEach(function(hero) {
+    var track  = hero.querySelector('.olc-hero-track');
+    var slides = hero.querySelectorAll('.olc-hero-slide');
+    var dots   = hero.querySelectorAll('.olc-hero-dot');
+    var curEl  = hero.querySelector('.hero-cur');
+    var btnPrev = hero.querySelector('.olc-hero-nav.prev');
+    var btnNext = hero.querySelector('.olc-hero-nav.next');
+    var total  = slides.length;
+    var current = 0;
+
+    function goTo(idx) {
+      // wrap around
+      idx = ((idx % total) + total) % total;
+      current = idx;
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      dots.forEach(function(d, i) {
+        d.classList.toggle('active', i === current);
+      });
+      if (curEl) curEl.textContent = current + 1;
+    }
+
+    if (btnPrev) btnPrev.addEventListener('click', function(e) { e.stopPropagation(); goTo(current - 1); });
+    if (btnNext) btnNext.addEventListener('click', function(e) { e.stopPropagation(); goTo(current + 1); });
+
+    dots.forEach(function(dot, i) {
+      dot.addEventListener('click', function(e) { e.stopPropagation(); goTo(i); });
+    });
+
+    // touch/swipe support
+    var startX = null;
+    hero.addEventListener('touchstart', function(e) {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
+    hero.addEventListener('touchend', function(e) {
+      if (startX === null) return;
+      var diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+      startX = null;
+    }, { passive: true });
+  });
+})();
+
+// ── ADVANCED FILTER CHIPS (exclusivo por grupo) ──
+document.querySelectorAll('.adv-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    var group = chip.getAttribute('data-group');
+    document.querySelectorAll('.adv-chip[data-group="' + group + '"]').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+  });
+});
+
+// ── CAROUSEL SCROLL ──
+function scrollC(id, dir) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollBy({ left: dir * 300, behavior: 'smooth' });
+}
+
+// ── EXCLUSIVE CARD EXPANSION ──
+// Only the hovered card gets .is-expanded; all others revert to default.
+// Disabled on touch/mobile devices where hover doesn't make sense.
+(function initCardExpand() {
+  // Detect touch — on mobile we use CSS snap instead of hover expansion
+  var isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+  document.querySelectorAll('.carousel').forEach(function(carousel) {
+    // On mobile, the featured carousel uses full-width snap — skip expansion logic
+    var isFeatured = carousel.classList.contains('carousel-featured');
+    if (isTouchDevice && isFeatured) return;
+
+    var cards = carousel.querySelectorAll('.opp-card');
+
+    cards.forEach(function(card) {
+      card.addEventListener('mouseenter', function() {
+        cards.forEach(function(c) { c.classList.remove('is-expanded'); });
+        card.classList.add('is-expanded');
+      });
+    });
+
+    carousel.addEventListener('mouseleave', function() {
+      cards.forEach(function(c) { c.classList.remove('is-expanded'); });
+    });
+  });
+
+  // ── Dot indicators for featured carousel on mobile ──
+  // Renders small dots below the carousel that update as user swipes
+  var featuredCarousel = document.getElementById('c1');
+  if (featuredCarousel && isTouchDevice) {
+    var cards = featuredCarousel.querySelectorAll('.opp-card');
+    var dotsWrap = document.createElement('div');
+    dotsWrap.className = 'carousel-dots';
+    dotsWrap.style.cssText = [
+      'display:flex', 'justify-content:center', 'gap:6px',
+      'padding:10px 0 0', 'margin-bottom:8px'
+    ].join(';');
+
+    cards.forEach(function(_, i) {
+      var dot = document.createElement('span');
+      dot.style.cssText = [
+        'width:6px', 'height:6px', 'border-radius:50%',
+        'background:' + (i === 0 ? '#C9A43A' : 'rgba(0,0,0,0.18)'),
+        'transition:background 0.25s, transform 0.25s',
+        'display:inline-block'
+      ].join(';');
+      dotsWrap.appendChild(dot);
+    });
+
+    featuredCarousel.parentNode.insertBefore(dotsWrap, featuredCarousel.nextSibling);
+
+    var dots = dotsWrap.querySelectorAll('span');
+    var lastIndex = 0;
+
+    featuredCarousel.addEventListener('scroll', function() {
+      var cardW = cards[0] ? cards[0].offsetWidth + 12 : 1; // width + gap
+      var index = Math.round(featuredCarousel.scrollLeft / cardW);
+      index = Math.max(0, Math.min(index, cards.length - 1));
+      if (index !== lastIndex) {
+        dots[lastIndex].style.background = 'rgba(0,0,0,0.18)';
+        dots[lastIndex].style.transform  = 'scale(1)';
+        dots[index].style.background     = '#C9A43A';
+        dots[index].style.transform      = 'scale(1.25)';
+        lastIndex = index;
+      }
+    }, { passive: true });
+  }
+})();
+</script>
+</body>
+</html>

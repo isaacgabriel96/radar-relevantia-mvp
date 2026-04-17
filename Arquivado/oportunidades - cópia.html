@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oportunidades — Radar Relevantia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A43A;
+    --gold-light: #E8C96A;
+    --gold-pale: #FBF5E6;
+    --black: #0E0E0E;
+    --white: #FFFFFF;
+    --gray-50: #FAFAF8;
+    --gray-100: #F4F3F0;
+    --gray-200: #E8E6E1;
+    --gray-400: #A8A5A0;
+    --gray-600: #6B6865;
+    --card-w-default: 260px;
+    --card-w-expanded: 460px;
+    --card-h: 360px;
+    --topbar-h: 68px;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --transition-card: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gray-50);
+    color: var(--black);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── TOPBAR ─── */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--topbar-h);
+    z-index: 100;
+    background: rgba(250, 250, 248, 0.80);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(201,164,58,0.12);
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    gap: 24px;
+  }
+
+  .topbar-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--black);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .topbar-logo span {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .topbar-search input {
+    width: 100%;
+    height: 38px;
+    background: rgba(14,14,14,0.05);
+    border: 1px solid rgba(201,164,58,0.15);
+    border-radius: 999px;
+    padding: 0 16px 0 38px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    color: var(--black);
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .topbar-search input::placeholder { color: var(--gray-400); }
+  .topbar-search input:focus {
+    border-color: rgba(201,164,58,0.4);
+    background: rgba(14,14,14,0.03);
+  }
+
+  .topbar-search svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    width: 15px; height: 15px;
+    pointer-events: none;
+  }
+
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .topbar-link {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--gray-600);
+    text-decoration: none;
+    transition: color 0.2s;
+    padding: 6px 4px;
+  }
+  .topbar-link:hover { color: var(--black); }
+
+  .btn-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-cta:hover { background: #1c1c1c; transform: translateY(-1px); }
+
+  /* ─── MAIN CONTENT ─── */
+  .main {
+    padding-top: calc(var(--topbar-h) + 36px);
+    padding-bottom: 80px;
+    padding-left: 40px;
+    padding-right: 40px;
+    max-width: 1380px;
+    margin: 0 auto;
+  }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header {
+    margin-bottom: 36px;
+  }
+
+  .page-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--black);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .page-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .page-subtitle {
+    font-size: 14.5px;
+    color: var(--gray-600);
+    font-weight: 400;
+  }
+
+  /* ─── STATS STRIP ─── */
+  .stats-strip {
+    display: flex;
+    gap: 0;
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(201,164,58,0.12);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+
+  .stat-item {
+    flex: 1;
+    padding: 18px 24px;
+    border-right: 1px solid rgba(201,164,58,0.10);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .stat-item:last-child { border-right: none; }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+  }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--black);
+    line-height: 1;
+  }
+
+  .stat-value span {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  /* ─── FILTER CHIPS ─── */
+  .filters-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    margin-right: 4px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--gray-200);
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    color: var(--gray-600);
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .chip:hover {
+    border-color: rgba(201,164,58,0.35);
+    color: var(--black);
+  }
+
+  .chip.active {
+    background: var(--black);
+    border-color: var(--black);
+    color: var(--white);
+  }
+
+  /* ─── SECTION ─── */
+  .section {
+    margin-bottom: 52px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--black);
+  }
+
+  .section-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-400);
+    background: var(--gray-100);
+    padding: 2px 9px;
+    border-radius: 999px;
+  }
+
+  .section-nav {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+
+  .nav-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--gray-200);
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gray-600);
+    transition: all 0.2s;
+  }
+  .nav-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* ─── CAROUSEL ─── */
+  .carousel-wrap {
+    position: relative;
+  }
+
+  .carousel {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 4px;
+    /* Allow cards to breathe during expansion */
+    align-items: flex-start;
+  }
+  .carousel::-webkit-scrollbar { display: none; }
+
+  /* ─── OPPORTUNITY CARD ─── */
+  .opp-card {
+    position: relative;
+    width: var(--card-w-default);
+    min-width: var(--card-w-default);
+    height: var(--card-h);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    transition: var(--transition-card), box-shadow 0.4s ease;
+    background: var(--gray-200);
+  }
+
+  .opp-card.is-expanded {
+    width: var(--card-w-expanded);
+    min-width: var(--card-w-expanded);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.14);
+  }
+
+  /* Card image — fade in on expand, no zoom */
+  .card-img {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: opacity 0.5s ease, filter 0.5s ease;
+    opacity: 0.72;
+    filter: brightness(0.88) saturate(0.9);
+  }
+
+  .opp-card.is-expanded .card-img {
+    opacity: 1;
+    filter: brightness(1.0) saturate(1.05);
+  }
+
+  /* Overlay gradient */
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(14,14,14,0) 20%,
+      rgba(14,14,14,0.78) 100%
+    );
+    transition: opacity 0.4s ease;
+  }
+
+  .opp-card.is-expanded .card-overlay {
+    opacity: 0.9;
+  }
+
+  /* Card content bottom */
+  .card-body {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  /* Tag / badge */
+  .card-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: rgba(201,164,58,0.22);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(201,164,58,0.3);
+    border-radius: 999px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  .card-save {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.7);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .opp-card.is-expanded .card-save { opacity: 1; }
+
+  /* Title — always visible */
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--white);
+    line-height: 1.3;
+  }
+
+  /* Brand + meta — fade in on expand */
+  .card-brand {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.03em;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.35s 0.08s ease, transform 0.35s 0.08s ease;
+  }
+
+  .opp-card.is-expanded .card-brand {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 0.35s 0.14s ease, transform 0.35s 0.14s ease;
+  }
+
+  .opp-card.is-expanded .card-meta {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(6px);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.82);
+  }
+
+  /* ─── TEXT CARD (category/mixed section) ─── */
+  .text-card {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(201,164,58,0.12);
+    border-radius: var(--radius);
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.25s, box-shadow 0.25s, transform 0.25s;
+  }
+
+  .text-card:hover {
+    border-color: rgba(201,164,58,0.3);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+    transform: translateY(-2px);
+  }
+
+  .text-card .cat-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .text-card .tc-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--black);
+    line-height: 1.3;
+  }
+
+  .text-card .tc-desc {
+    font-size: 12.5px;
+    color: var(--gray-600);
+    line-height: 1.5;
+  }
+
+  .text-card .tc-footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .tc-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--gray-200);
+    object-fit: cover;
+  }
+
+  .tc-author {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--gray-600);
+  }
+
+  /* ─── MIXED GRID ─── */
+  .mixed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  /* ─── CATEGORY BANNER ─── */
+  .cat-banner {
+    grid-column: span 2;
+    background: var(--black);
+    border-radius: var(--radius);
+    padding: 28px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.25s;
+  }
+  .cat-banner:hover { transform: translateY(-2px); }
+
+  .cat-banner::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,164,58,0.18) 0%, transparent 70%);
+  }
+
+  .banner-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    background: rgba(201,164,58,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .banner-text .bl {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(201,164,58,0.7);
+    margin-bottom: 4px;
+  }
+
+  .banner-text .bt {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--white);
+  }
+
+  .banner-arrow {
+    margin-left: auto;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.6);
+    flex-shrink: 0;
+  }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-hint {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--gray-400);
+    font-size: 14px;
+  }
+
+  /* ─── SCROLLBAR FADE EDGES ─── */
+  .carousel-wrap::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 60px;
+    background: linear-gradient(to right, transparent, var(--gray-50));
+    pointer-events: none;
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-logo">Radar <span>Relevantia</span></div>
+
+  <div class="topbar-search">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="9" cy="9" r="5.5"/>
+      <path d="M13.5 13.5L17 17" stroke-linecap="round"/>
+    </svg>
+    <input type="text" placeholder="Buscar oportunidades, marcas...">
+  </div>
+
+  <nav class="topbar-right">
+    <a href="#" class="topbar-link">Explorar</a>
+    <a href="#" class="topbar-link">Marcas</a>
+    <a href="criar-oportunidade.html" class="btn-cta">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <path d="M6.5 1.5v10M1.5 6.5h10"/>
+      </svg>
+      Nova oportunidade
+    </a>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <p class="page-eyebrow">Vitrine de oportunidades</p>
+    <h1 class="page-title">Conexões que <em>importam</em></h1>
+    <p class="page-subtitle">Descubra parcerias entre marcas e detentores de audiência com relevância real.</p>
+  </div>
+
+  <!-- STATS STRIP -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-label">Oportunidades ativas</span>
+      <div class="stat-value">2<span>4</span>7</div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Marcas parceiras</span>
+      <div class="stat-value">8<span>3</span></div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Detentores cadastrados</span>
+      <div class="stat-value">1.<span>2</span>k</div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Conexões realizadas</span>
+      <div class="stat-value">4<span>1</span>8</div>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters-row">
+    <span class="filter-label">Filtrar</span>
+    <div class="chip active" data-filter="all">Todas</div>
+    <div class="chip" data-filter="moda">Moda & Lifestyle</div>
+    <div class="chip" data-filter="beleza">Beleza</div>
+    <div class="chip" data-filter="gastronomia">Gastronomia</div>
+    <div class="chip" data-filter="fitness">Fitness & Saúde</div>
+    <div class="chip" data-filter="tech">Tech</div>
+    <div class="chip" data-filter="viagem">Viagem</div>
+  </div>
+
+  <!-- SECTION 1: EM DESTAQUE -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Em destaque</h2>
+      <span class="section-count">12 oportunidades</span>
+      <div class="section-nav">
+        <button class="nav-btn" onclick="scrollC('c1', -1)" aria-label="Anterior">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M9 2L4 7l5 5"/>
+          </svg>
+        </button>
+        <button class="nav-btn" onclick="scrollC('c1', 1)" aria-label="Próximo">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M5 2l5 5-5 5"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="carousel-wrap">
+      <div class="carousel" id="c1">
+
+        <div class="opp-card" style="background:#1a1209;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Moda</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Embaixatriz de coleção primavera</h3>
+            <p class="card-brand">Maison Côté · São Paulo</p>
+            <div class="card-meta">
+              <span class="meta-pill">💼 Produto + comissão</span>
+              <span class="meta-pill">50k+ seguidores</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#0d1a14;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1574080342860-516e7b9dcac7?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Beleza</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Co-criação de linha skincare natural</h3>
+            <p class="card-brand">Raíz Botânica · Rio de Janeiro</p>
+            <div class="card-meta">
+              <span class="meta-pill">🌿 Parceria editorial</span>
+              <span class="meta-pill">20k+ seguidores</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#1a0e09;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Gastronomia</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Chef convidado para lançamento</h3>
+            <p class="card-brand">Mesa Autoral · São Paulo</p>
+            <div class="card-meta">
+              <span class="meta-pill">🍽️ Fee + visibilidade</span>
+              <span class="meta-pill">30k+ seguidores</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#0d0d1a;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Fitness</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Rosto da campanha verão activo</h3>
+            <p class="card-brand">Forma Viva · Belo Horizonte</p>
+            <div class="card-meta">
+              <span class="meta-pill">🏃 Fee fixo</span>
+              <span class="meta-pill">80k+ seguidores</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#0e160e;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Viagem</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Criador de conteúdo para resort</h3>
+            <p class="card-brand">Palácio do Mar · Búzios</p>
+            <div class="card-meta">
+              <span class="meta-pill">✈️ Hospedagem total</span>
+              <span class="meta-pill">15k+ seguidores</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#0e0e0e;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Tech</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Beta tester e review para app B2B</h3>
+            <p class="card-brand">Stackd Labs · São Paulo</p>
+            <div class="card-meta">
+              <span class="meta-pill">💻 Produto + fee</span>
+              <span class="meta-pill">10k+ seguidores</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: NOVAS ESTA SEMANA -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Novas esta semana</h2>
+      <span class="section-count">8 oportunidades</span>
+      <div class="section-nav">
+        <button class="nav-btn" onclick="scrollC('c2', -1)" aria-label="Anterior">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M9 2L4 7l5 5"/>
+          </svg>
+        </button>
+        <button class="nav-btn" onclick="scrollC('c2', 1)" aria-label="Próximo">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M5 2l5 5-5 5"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="carousel-wrap">
+      <div class="carousel" id="c2">
+
+        <div class="opp-card" style="background:#160e0a;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Moda</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Editorial de moda sustentável</h3>
+            <p class="card-brand">Verde Nobre · Curitiba</p>
+            <div class="card-meta">
+              <span class="meta-pill">🌱 Produto + divulgação</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#0a0d16;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Viagem</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Documentário de destinos nacionais</h3>
+            <p class="card-brand">Rota Brasil · Nacional</p>
+            <div class="card-meta">
+              <span class="meta-pill">🎬 Produção + fee</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#160a0e;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1526947425960-945c6e72858f?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Beleza</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Rosto para linha de perfumaria</h3>
+            <p class="card-brand">Âmbar Essencial · Porto Alegre</p>
+            <div class="card-meta">
+              <span class="meta-pill">🌸 Fee + royalties</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#0d160a;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Gastronomia</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Receitas patrocinadas para rede social</h3>
+            <p class="card-brand">Sabor Vivo · São Paulo</p>
+            <div class="card-meta">
+              <span class="meta-pill">🥗 Fee por post</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="opp-card" style="background:#0a0e16;">
+          <img class="card-img" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80" alt="">
+          <div class="card-overlay"></div>
+          <div class="card-body">
+            <div class="card-top">
+              <span class="card-tag">Tech</span>
+              <button class="card-save" aria-label="Salvar">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 1.5c.8-1.2 3.5-.8 3.5 1.8C9.5 6.5 6 10 6 10S2.5 6.5 2.5 3.3C2.5.7 5.2.3 6 1.5z"/></svg>
+              </button>
+            </div>
+            <h3 class="card-title">Embaixador de plataforma SaaS</h3>
+            <p class="card-brand">Cerebrum AI · São Paulo</p>
+            <div class="card-meta">
+              <span class="meta-pill">🤖 MRR + bônus</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- MIXED GRID: CATEGORIAS -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">Explorar por categoria</h2>
+    </div>
+
+    <div class="mixed-grid">
+
+      <div class="cat-banner">
+        <div class="banner-icon">👗</div>
+        <div class="banner-text">
+          <div class="bl">Mais buscada</div>
+          <div class="bt">Moda & Lifestyle</div>
+        </div>
+        <div class="banner-arrow">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7h8M8 4l3 3-3 3"/></svg>
+        </div>
+      </div>
+
+      <div class="text-card">
+        <span class="cat-label">Beleza</span>
+        <h3 class="tc-title">Co-criação de cosméticos naturais</h3>
+        <p class="tc-desc">Marcas buscam criadores com audiência engajada em bem-estar e autocuidado.</p>
+        <div class="tc-footer">
+          <div class="tc-avatar" style="background: linear-gradient(135deg, #e8c96a, #c9a43a);"></div>
+          <span class="tc-author">12 oportunidades abertas</span>
+        </div>
+      </div>
+
+      <div class="text-card">
+        <span class="cat-label">Gastronomia</span>
+        <h3 class="tc-title">Parcerias para restaurantes e food brands</h3>
+        <p class="tc-desc">Chefs, foodies e criadores de conteúdo culinário com relevância comprovada.</p>
+        <div class="tc-footer">
+          <div class="tc-avatar" style="background: linear-gradient(135deg, #f4a261, #e76f51);"></div>
+          <span class="tc-author">9 oportunidades abertas</span>
+        </div>
+      </div>
+
+      <div class="text-card">
+        <span class="cat-label">Fitness & Saúde</span>
+        <h3 class="tc-title">Programas de embaixada fitness</h3>
+        <p class="tc-desc">Marcas de suplementos, equipamentos e apps buscam perfis ativos e inspiradores.</p>
+        <div class="tc-footer">
+          <div class="tc-avatar" style="background: linear-gradient(135deg, #52b788, #1b4332);"></div>
+          <span class="tc-author">17 oportunidades abertas</span>
+        </div>
+      </div>
+
+      <div class="text-card">
+        <span class="cat-label">Viagem</span>
+        <h3 class="tc-title">Travel creators para resorts e destinos</h3>
+        <p class="tc-desc">Hotéis, pousadas e operadoras procuram criadores com olhar autoral para viagens.</p>
+        <div class="tc-footer">
+          <div class="tc-avatar" style="background: linear-gradient(135deg, #74b9ff, #0984e3);"></div>
+          <span class="tc-author">6 oportunidades abertas</span>
+        </div>
+      </div>
+
+      <div class="text-card">
+        <span class="cat-label">Tech</span>
+        <h3 class="tc-title">Embaixadores de produtos e apps tech</h3>
+        <p class="tc-desc">Startups e scale-ups procuram vozes relevantes no universo digital e de negócios.</p>
+        <div class="tc-footer">
+          <div class="tc-avatar" style="background: linear-gradient(135deg, #a29bfe, #6c5ce7);"></div>
+          <span class="tc-author">11 oportunidades abertas</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<script>
+  // ─── FILTER CHIPS ───
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  // ─── CAROUSEL NAVIGATION ───
+  function scrollC(id, dir) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollBy({ left: dir * 300, behavior: 'smooth' });
+  }
+
+  // ─── EXCLUSIVE CARD EXPANSION ───
+  // Only the hovered card becomes expanded; all others revert to default.
+  // Works across ALL carousels on the page.
+  (function initCardHover() {
+    // Collect every carousel
+    document.querySelectorAll('.carousel').forEach(carousel => {
+      const cards = carousel.querySelectorAll('.opp-card');
+
+      cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+          // Remove expanded from every card in this carousel
+          cards.forEach(c => c.classList.remove('is-expanded'));
+          // Expand only the hovered one
+          card.classList.add('is-expanded');
+        });
+      });
+
+      // When leaving the entire carousel, collapse everything
+      carousel.addEventListener('mouseleave', () => {
+        cards.forEach(c => c.classList.remove('is-expanded'));
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

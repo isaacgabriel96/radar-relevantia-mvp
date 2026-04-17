@@ -1,0 +1,2721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar Oportunidade — Radar Relevantia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A43A;
+  --gold-light: #E8C96A;
+  --gold-pale: #FBF5E6;
+  --black: #0E0E0E;
+  --black-2: #1A1A1A;
+  --dark: #1A1A1A;
+  --gray-600: #717171;
+  --gray-400: #9A9A9A;
+  --gray-300: #DDDDDD;
+  --gray-200: #EBEBEB;
+  --gray-100: #F7F7F7;
+  --white: #FFFFFF;
+  --text: #1A1A1A;
+  --red: #C0392B;
+  --green: #27AE60;
+  --sidebar-w: 260px;
+  --topbar-h: 64px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--gray-100);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--black);
+  height: 100vh;
+  position: fixed;
+  left: 0; top: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  transition: transform 0.3s;
+  background-image: linear-gradient(rgba(201,164,58,0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(201,164,58,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.sidebar-logo {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+}
+.sidebar-logo-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; line-height: 1.3; letter-spacing: -0.01em; }
+.sidebar-logo-title .t-white { color: var(--white); }
+.sidebar-logo-title .t-gold  { color: var(--gold); font-style: italic; font-weight: 400; }
+.sidebar-close { display: none; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 20px; cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0; margin-top: 2px; transition: color 0.2s; }
+.sidebar-close:hover { color: var(--white); }
+
+.sidebar-user { padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-light)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--black); flex-shrink: 0; }
+.user-info .user-name { font-size: 13px; font-weight: 500; color: var(--white); }
+
+.sidebar-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+.nav-section-label { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.28); padding: 10px 20px 4px; font-weight: 600; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 20px; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; text-decoration: none; color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 400; }
+.nav-item:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+.nav-item.active { background: rgba(201,164,58,0.12); color: var(--gold); border-left-color: var(--gold); font-weight: 500; }
+.nav-icon { width: 20px; height: 20px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.nav-icon svg { width: 16px; height: 16px; }
+.sidebar-footer { padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:6px; }
+.sidebar-footer a { display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.4); font-size:12px; text-decoration:none; transition:color 0.2s; }
+.sidebar-footer a:hover { color:rgba(255,255,255,0.7); }
+
+/* ─── MAIN ─── */
+.main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+.topbar {
+  height: var(--topbar-h); background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; position: sticky; top: 0; z-index: 50;
+}
+.topbar-left h1 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--black); }
+.topbar-left .breadcrumb { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; font-size: 13px;
+  font-weight: 500; cursor: pointer; transition: all 0.2s;
+  border: none; font-family: 'DM Sans', sans-serif; text-decoration: none;
+}
+.btn-primary { background: var(--black); color: var(--white); }
+.btn-primary:hover { background: var(--gold); color: var(--black); }
+.btn-outline { background: transparent; color: var(--dark); border: 1.5px solid var(--gray-200); }
+.btn-outline:hover { border-color: var(--gray-400); background: var(--gray-100); }
+.btn-lg { padding: 11px 26px; font-size: 14px; }
+.btn-sm { padding: 6px 13px; font-size: 12px; }
+
+/* ─── CONTENT ─── */
+.content { padding: 32px; flex: 1; }
+
+/* ─── CHAT SCREEN ─── */
+#screen-chat { display: none; max-width: 860px; margin: 0 auto; padding-bottom: 40px; }
+
+.chat-header {
+  display: flex; align-items: center; gap: 14px;
+  padding: 28px 0 20px;
+}
+.chat-header-back {
+  background: none; border: 1px solid var(--gray-300); border-radius: 8px;
+  padding: 7px 14px; font-size: 13px; font-weight: 500; color: var(--gray-600);
+  cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+}
+.chat-header-back:hover { border-color: var(--black); color: var(--black); }
+.chat-header-info { flex: 1; }
+.chat-header-info h2 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; color: var(--black); }
+.chat-header-info p { font-size: 13px; color: var(--gray-400); margin-top: 2px; }
+.chat-header-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--gold-pale); border: 1px solid rgba(201,164,58,0.3);
+  border-radius: 20px; padding: 5px 12px; font-size: 13px; font-weight: 500; color: var(--black);
+}
+
+.chat-window {
+  background: var(--white); border: 1px solid var(--gray-200);
+  border-radius: 16px; overflow: hidden;
+  display: flex; flex-direction: column;
+  min-height: 520px; max-height: 620px;
+}
+.chat-messages {
+  flex: 1; overflow-y: auto; padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  scroll-behavior: smooth;
+}
+.chat-msg { display: flex; gap: 10px; align-items: flex-start; max-width: 85%; }
+.chat-msg.assistant { align-self: flex-start; }
+.chat-msg.user     { align-self: flex-end; flex-direction: row-reverse; }
+
+.chat-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 15px;
+}
+.chat-msg.assistant .chat-avatar { background: var(--gold-pale); border: 1px solid rgba(201,164,58,0.3); }
+.chat-msg.user      .chat-avatar { background: var(--black); font-size: 12px; font-weight: 600; color: var(--white); }
+
+.chat-bubble {
+  padding: 12px 16px; border-radius: 14px;
+  font-size: 14px; line-height: 1.6; color: var(--text);
+}
+.chat-msg.assistant .chat-bubble {
+  background: var(--gray-100); border-bottom-left-radius: 4px;
+}
+.chat-msg.user .chat-bubble {
+  background: var(--black); color: var(--white); border-bottom-right-radius: 4px;
+}
+.chat-bubble p { margin: 0 0 8px; }
+.chat-bubble p:last-child { margin-bottom: 0; }
+.chat-bubble ul, .chat-bubble ol { padding-left: 18px; margin: 4px 0 8px; }
+.chat-bubble li { margin-bottom: 4px; }
+.chat-bubble strong { font-weight: 600; }
+
+.chat-typing {
+  display: flex; align-items: center; gap: 5px; padding: 14px 16px;
+  background: var(--gray-100); border-radius: 14px; border-bottom-left-radius: 4px;
+}
+.typing-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--gray-400);
+  animation: typingBounce 1.2s infinite ease-in-out;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+.chat-input-area {
+  border-top: 1px solid var(--gray-200); padding: 16px 20px;
+  display: flex; gap: 10px; align-items: flex-end; background: var(--white);
+}
+.chat-input-area textarea {
+  flex: 1; border: 1px solid var(--gray-300); border-radius: 10px;
+  padding: 10px 14px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+  resize: none; outline: none; line-height: 1.5; max-height: 120px;
+  transition: border-color 0.2s; color: var(--text);
+}
+.chat-input-area textarea:focus { border-color: var(--gold); }
+.chat-input-area textarea::placeholder { color: var(--gray-400); }
+.chat-send-btn {
+  background: var(--black); color: var(--white); border: none;
+  border-radius: 10px; width: 42px; height: 42px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.chat-send-btn:hover { background: var(--gold); }
+.chat-send-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
+.chat-send-btn svg { width: 18px; height: 18px; }
+
+.chat-attach-btn {
+  background: none; border: 1px solid var(--gray-300); border-radius: 10px;
+  width: 42px; height: 42px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; color: var(--gray-600);
+}
+.chat-attach-btn:hover { border-color: var(--gold); color: var(--gold); }
+.chat-attach-btn svg  { width: 18px; height: 18px; }
+
+.file-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--gray-100); border: 1px solid var(--gray-300);
+  border-radius: 20px; padding: 4px 10px 4px 8px;
+  font-size: 12px; color: var(--text); max-width: 200px;
+}
+.file-chip-icon { font-size: 14px; flex-shrink: 0; }
+.file-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-chip-status { font-size: 11px; color: var(--gray-400); flex-shrink: 0; }
+.file-chip-remove {
+  background: none; border: none; cursor: pointer; color: var(--gray-400);
+  padding: 0; font-size: 14px; line-height: 1; flex-shrink: 0; transition: color 0.2s;
+}
+.file-chip-remove:hover { color: var(--red); }
+.file-chip.uploading { opacity: 0.7; }
+.file-chip.done { border-color: var(--green); }
+.file-chip.error { border-color: var(--red); }
+
+/* modal de config */
+.chat-config-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  z-index: 200; display: flex; align-items: center; justify-content: center;
+}
+.chat-config-box {
+  background: var(--white); border-radius: 16px;
+  padding: 32px; width: 460px; max-width: calc(100vw - 40px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.chat-config-box h3 {
+  font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600;
+  color: var(--black); margin-bottom: 6px;
+}
+.chat-config-box p { font-size: 13px; color: var(--gray-600); margin-bottom: 24px; line-height: 1.5; }
+.chat-config-box label { display: block; font-size: 12px; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+.chat-config-box input {
+  width: 100%; border: 1px solid var(--gray-300); border-radius: 8px;
+  padding: 10px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+  outline: none; transition: border-color 0.2s; margin-bottom: 16px; color: var(--text);
+}
+.chat-config-box input:focus { border-color: var(--gold); }
+.chat-config-box input::placeholder { color: var(--gray-400); }
+.chat-config-note {
+  font-size: 12px; color: var(--gray-400); background: var(--gray-100);
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 20px; line-height: 1.5;
+}
+.chat-config-note a { color: var(--gold); text-decoration: none; }
+.chat-config-note a:hover { text-decoration: underline; }
+
+/* ─── TEMPLATE SELECTION SCREEN ─── */
+#screen-template {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.template-header {
+  text-align: center;
+  padding: 40px 0 32px;
+}
+.template-header h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 600; color: var(--black);
+  margin-bottom: 8px;
+}
+.template-header p {
+  font-size: 15px; color: var(--gray-600); line-height: 1.6;
+}
+
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding-bottom: 60px;
+}
+.template-card {
+  background: var(--white);
+  border: 2px solid var(--gray-200);
+  border-radius: 14px;
+  padding: 24px 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.template-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--gray-200);
+  transition: background 0.2s;
+}
+.template-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 4px 24px rgba(201,164,58,0.14);
+  transform: translateY(-2px);
+}
+.template-card:hover::before { background: var(--gold); }
+.template-card.selected {
+  border-color: var(--gold);
+  background: var(--gold-pale);
+}
+.template-card.selected::before { background: var(--gold); }
+
+.tpl-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  display: block;
+}
+.tpl-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px; font-weight: 600; color: var(--black);
+  margin-bottom: 6px;
+}
+.tpl-desc {
+  font-size: 12.5px; color: var(--gray-600); line-height: 1.6;
+  margin-bottom: 14px;
+}
+.tpl-tags {
+  display: flex; flex-wrap: wrap; gap: 5px;
+}
+.tpl-tag {
+  font-size: 11px; color: var(--gray-600);
+  background: var(--gray-100); border: 1px solid var(--gray-200);
+  padding: 2px 8px; border-radius: 20px;
+}
+.tpl-arrow {
+  display: flex; align-items: center; justify-content: flex-end;
+  margin-top: 16px;
+  font-size: 12px; font-weight: 600; color: var(--gold);
+  opacity: 0; transition: opacity 0.2s;
+}
+.template-card:hover .tpl-arrow { opacity: 1; }
+
+/* ─── FORM SCREEN ─── */
+#screen-form { display: none; }
+
+/* ─── TEMPLATE BADGE ─── */
+.template-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--gold-pale); border: 1px solid rgba(201,164,58,0.35);
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 13px; font-weight: 500; color: #7A5A10;
+  margin-bottom: 20px; cursor: pointer;
+  transition: all 0.2s;
+}
+.template-badge:hover { background: #F5EBCC; }
+.template-badge .tpl-badge-icon { font-size: 16px; }
+.template-badge .tpl-badge-change { font-size: 11px; color: var(--gold); margin-left: 6px; text-decoration: underline; }
+
+/* ─── STEP PROGRESS ─── */
+.step-progress {
+  display: flex; align-items: center; gap: 0;
+  margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px;
+}
+.step { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+.step-circle {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid var(--gray-200); display: flex; align-items: center;
+  justify-content: center; font-size: 12px; font-weight: 600;
+  color: var(--gray-400); background: var(--white); transition: all 0.2s; z-index: 1; position: relative;
+}
+.step.active .step-circle { border-color: var(--gold); background: var(--gold); color: var(--black); }
+.step.done .step-circle { border-color: var(--green); background: var(--green); color: var(--white); }
+.step-label { font-size: 11px; font-weight: 500; color: var(--gray-400); margin-left: 8px; white-space: nowrap; }
+.step.active .step-label { color: var(--dark); font-weight: 600; }
+.step.done .step-label { color: var(--green); }
+.step-line { width: 36px; height: 2px; background: var(--gray-200); margin: 0 4px; flex-shrink: 0; }
+.step-line.done { background: var(--green); }
+
+/* ─── CARDS ─── */
+.card { background: var(--white); border-radius: 12px; border: 1px solid var(--gray-200); overflow: hidden; margin-bottom: 20px; }
+.card-header {
+  padding: 18px 24px 14px; border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-header h2 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--black); }
+.card-header p { font-size: 12.5px; color: var(--gray-400); margin-top: 2px; }
+.card-body { padding: 24px; }
+
+/* ─── FORM ─── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full-width { grid-column: 1 / -1; }
+label { font-size: 12.5px; font-weight: 600; color: var(--dark); letter-spacing: 0.01em; }
+label .required { color: var(--gold); margin-left: 2px; }
+label .hint { font-weight: 400; color: var(--gray-400); font-size: 11px; margin-left: 4px; }
+
+input[type="text"], input[type="email"], input[type="url"],
+input[type="tel"], input[type="number"], select, textarea {
+  padding: 10px 14px; border: 1.5px solid var(--gray-200); border-radius: 8px;
+  font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--dark);
+  background: var(--white); transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none; width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,164,58,0.12);
+}
+textarea { resize: vertical; min-height: 90px; }
+select { appearance: none; cursor: pointer; }
+.select-wrapper { position: relative; }
+.select-wrapper::after { content: '▾'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--gray-400); pointer-events: none; font-size: 12px; }
+
+/* input com prefixo */
+.input-prefix-wrap { display: flex; align-items: center; border: 1.5px solid var(--gray-200); border-radius: 8px; overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
+.input-prefix-wrap:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,164,58,0.12); }
+.input-prefix { padding: 10px 12px; background: var(--gray-100); font-size: 13px; color: var(--gray-600); border-right: 1px solid var(--gray-200); white-space: nowrap; flex-shrink: 0; }
+.input-prefix-wrap input { border: none; border-radius: 0; box-shadow: none; flex: 1; }
+.input-prefix-wrap input:focus { box-shadow: none; }
+
+/* ─── UPLOAD ─── */
+.upload-zone {
+  border: 2px dashed var(--gray-200); border-radius: 10px;
+  padding: 32px 20px; text-align: center; cursor: pointer;
+  transition: all 0.2s; background: var(--gray-100);
+}
+.upload-zone:hover { border-color: var(--gold); background: var(--gold-pale); }
+.upload-icon { font-size: 28px; margin-bottom: 8px; }
+.upload-zone h4 { font-size: 14px; font-weight: 600; color: var(--dark); }
+.upload-zone p { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+.media-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 16px; }
+.media-thumb { aspect-ratio:1; border-radius:8px; background:var(--gray-200); display:flex; align-items:center; justify-content:center; font-size:22px; position:relative; overflow:hidden; }
+.media-thumb img { width:100%; height:100%; object-fit:cover; }
+.media-remove { position:absolute; top:4px; right:4px; width:20px; height:20px; background:rgba(0,0,0,0.7); color:white; border:none; border-radius:50%; font-size:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+/* ─── TAGS ─── */
+.tags-input-area { border:1.5px solid var(--gray-200); border-radius:8px; padding:8px 10px; display:flex; flex-wrap:wrap; gap:6px; min-height:46px; cursor:text; transition:border-color 0.2s; }
+.tags-input-area:focus-within { border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,164,58,0.12); }
+.tag { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:12.5px; font-weight:500; cursor:default; }
+.tag-gray { background:var(--gray-100); color:var(--gray-600); border:1px solid var(--gray-200); }
+.tag-remove { background:none; border:none; cursor:pointer; font-size:12px; color:inherit; opacity:0.6; padding:0; line-height:1; }
+.tag-remove:hover { opacity:1; }
+.tags-input { border:none; outline:none; font-size:13px; font-family:'DM Sans',sans-serif; flex:1; min-width:100px; background:transparent; padding:2px 0; }
+
+/* ─── SOCIAL ─── */
+.social-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.social-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border:1.5px solid var(--gray-200); border-radius:8px; transition:border-color 0.2s; }
+.social-row:focus-within { border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,164,58,0.12); }
+.social-icon { font-size:18px; flex-shrink:0; width:22px; text-align:center; }
+.social-row input { border:none; padding:0; font-size:13.5px; outline:none; flex:1; background:transparent; }
+
+/* ─── SEGMENT ─── */
+.segment-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:8px; }
+.segment-pill { padding:8px 12px; border-radius:8px; border:1.5px solid var(--gray-200); font-size:12.5px; font-weight:500; cursor:pointer; transition:all 0.15s; text-align:center; user-select:none; color:var(--gray-600); background:var(--white); }
+.segment-pill:hover { border-color:var(--gray-400); color:var(--dark); }
+.segment-pill.selected-green { border-color:#27AE60; background:#E8F8EE; color:#1A7A40; }
+.segment-pill.selected-red { border-color:#C0392B; background:#FBE8E8; color:#9B2727; }
+
+/* ─── VISIBILITY ─── */
+.visibility-options { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.visibility-card { border:2px solid var(--gray-200); border-radius:10px; padding:16px; cursor:pointer; transition:all 0.2s; position:relative; }
+.visibility-card:hover { border-color:var(--gray-400); }
+.visibility-card.selected { border-color:var(--gold); background:var(--gold-pale); }
+.visibility-card .vis-icon { font-size:22px; margin-bottom:8px; }
+.visibility-card h4 { font-size:13.5px; font-weight:600; color:var(--dark); margin-bottom:4px; }
+.visibility-card p { font-size:11.5px; color:var(--gray-400); line-height:1.5; }
+.vis-check { position:absolute; top:10px; right:10px; width:18px; height:18px; border:2px solid var(--gray-200); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; color:transparent; }
+.visibility-card.selected .vis-check { background:var(--gold); border-color:var(--gold); color:var(--black); }
+
+/* ─── COTAS ─── */
+.cotas-wrapper { display:flex; flex-direction:column; gap:16px; }
+.cota-card { border:1.5px solid var(--gray-200); border-radius:10px; overflow:hidden; }
+.cota-header { padding:12px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:var(--gray-100); transition:background 0.2s; }
+.cota-header:hover { background:var(--gray-200); }
+.cota-header h3 { font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+.cota-dot { width:10px; height:10px; border-radius:50%; }
+.cota-dot-bronze { background:#CD7F32; }
+.cota-dot-silver { background:#A8A9AD; }
+.cota-dot-gold { background:var(--gold); }
+.cota-body { padding:16px; display:none; }
+.cota-body.open { display:block; }
+
+/* ─── MISC ─── */
+.ativacoes-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+.ativacao-row { display:flex; align-items:center; gap:8px; }
+.ativacao-row input[type="text"] { flex:1; }
+.ativacao-row .select-wrapper { display:flex; flex-direction:column; }
+.ativacao-row .select-wrapper select { height:42px; }
+.btn-remove-row { width:30px; height:30px; border:1px solid var(--gray-200); border-radius:6px; background:none; color:var(--gray-400); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; transition:all 0.15s; }
+.btn-remove-row:hover { border-color:var(--red); color:var(--red); background:#FBE8E8; }
+.btn-add-row { display:inline-flex; align-items:center; gap:5px; font-size:12.5px; color:var(--gold); background:none; border:none; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500; padding:4px 0; margin-top:4px; transition:color 0.2s; }
+.btn-add-row:hover { color:var(--black); }
+
+.section-block { margin-bottom:24px; }
+.section-title { font-family:'Playfair Display',serif; font-size:15px; font-weight:600; color:var(--black); margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+.section-desc { font-size:12.5px; color:var(--gray-400); margin-bottom:14px; }
+
+.form-actions { display:flex; align-items:center; justify-content:space-between; padding-top:20px; border-top:1px solid var(--gray-200); margin-top:24px; }
+
+.alert { padding:12px 16px; border-radius:8px; font-size:13px; display:flex; align-items:flex-start; gap:10px; margin-bottom:20px; }
+.alert-gold { background:var(--gold-pale); color:#7A5A10; border:1px solid rgba(201,164,58,0.3); }
+.alert-info { background:#EEF4FF; color:#1A4A8A; border:1px solid #C5D8FF; }
+
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--gray-200); }
+.toggle-row:last-child { border-bottom:none; }
+.toggle-label { font-size:13.5px; font-weight:500; }
+.toggle-hint { font-size:12px; color:var(--gray-400); margin-top:2px; }
+.toggle { width:40px; height:22px; background:var(--gray-200); border-radius:11px; position:relative; cursor:pointer; transition:background 0.2s; flex-shrink:0; }
+.toggle.on { background:var(--gold); }
+.toggle::after { content:''; width:18px; height:18px; background:white; border-radius:50%; position:absolute; top:2px; left:2px; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+.toggle.on::after { transform:translateX(18px); }
+
+.char-counter { text-align:right; font-size:11px; color:var(--gray-400); margin-top:4px; }
+hr.divider { border:none; border-top:1px solid var(--gray-200); margin:20px 0; }
+
+/* ─── CAMPOS DINÂMICOS POR TIPO ─── */
+.dynamic-field { display: none; }
+.dynamic-field.visible { display: flex; flex-direction: column; gap: 6px; }
+.dynamic-field.visible.full-width { grid-column: 1 / -1; }
+
+/* ─── INLINE SECTION SEPARATOR ─── */
+.fields-separator {
+  grid-column: 1 / -1;
+  border: none; border-top: 1px solid var(--gray-200);
+  margin: 4px 0;
+}
+.fields-group-label {
+  grid-column: 1 / -1;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--gray-400);
+  padding-top: 4px;
+}
+
+.fade-in { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+/* ─── BACK BUTTON ─── */
+.back-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 32px; height: 44px;
+  background: var(--white); border-bottom: 1px solid var(--gray-200);
+}
+
+/* ─── MOBILE ─── */
+.sidebar-toggle { display: none; width: 40px; height: 40px; flex-shrink: 0; background: var(--black); border: none; border-radius: 8px; color: var(--white); font-size: 18px; cursor: pointer; align-items: center; justify-content: center; margin-right: 12px; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 99; }
+.sidebar-overlay.visible { display: block; }
+
+@media (max-width:900px) {
+  html, body { overflow-x: hidden; max-width: 100vw; }
+  .sidebar-toggle { display: flex; }
+  .sidebar-close { display: block; }
+  .sidebar { transform: translateX(-100%); z-index: 100; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; width: 100%; }
+  .topbar { padding: 0 16px; height: 56px; }
+  .topbar-left { flex: 1; min-width: 0; }
+  .topbar-left h1 { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .topbar-left .breadcrumb { display: none; }
+  .topbar-right .btn-outline { display: none; }
+  .content { padding: 16px 12px; width: 100%; box-sizing: border-box; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .visibility-options { grid-template-columns: 1fr; }
+  .social-grid { grid-template-columns: 1fr; }
+  .template-grid { grid-template-columns: 1fr 1fr; }
+  .step-progress { gap: 0; }
+  .step-label { display: none; }
+  .step.active .step-label { display: inline; font-size: 10px; }
+  .card, .card-body { width: 100%; box-sizing: border-box; }
+  .btn-lg { width: 100%; justify-content: center; }
+}
+@media (max-width: 560px) {
+  .template-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-title">
+      <span class="t-white">Dashboard de</span><br><span class="t-gold">Detentores de Direitos</span>
+    </div>
+    <button class="sidebar-close" onclick="closeSidebar()" aria-label="Fechar menu">✕</button>
+  </div>
+  <div class="sidebar-user">
+    <div class="avatar" id="sidebarAvatar">MR</div>
+    <div class="user-info">
+      <div class="user-name" id="sidebarName">Marcos Rodrigues</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Visão Geral</div>
+    <a class="nav-item" href="dashboard-detentor.html">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span> Dashboard
+    </a>
+    <div class="nav-section-label">Minha Conta</div>
+    <a class="nav-item" href="dashboard-detentor.html#perfil">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span> Perfil do Usuário
+    </a>
+    <a class="nav-item" href="dashboard-detentor.html#empresa">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V7l9-4 9 4v14"/><path d="M9 21v-6h6v6"/><path d="M9 9h.01M15 9h.01M9 13h.01M15 13h.01"/></svg></span> Minha Empresa
+    </a>
+    <div class="nav-section-label">Oportunidades</div>
+    <a class="nav-item active" href="#">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> Nova Oportunidade
+    </a>
+    <a class="nav-item" href="dashboard-detentor.html#minhas-oportunidades">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></span> Minhas Oportunidades
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="dashboard-detentor.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Voltar ao Dashboard
+    </a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+    <div class="topbar-left">
+      <h1 id="topbarTitle">Nova Oportunidade</h1>
+      <div class="breadcrumb" id="topbarBreadcrumb">Oportunidades → Escolher tipo</div>
+    </div>
+    <div class="topbar-right">
+      <a href="dashboard-detentor.html" class="btn btn-outline">← Cancelar</a>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════════════════════════════════
+         TELA 0: SELEÇÃO DE TEMPLATE
+    ══════════════════════════════════════ -->
+    <div id="screen-template">
+      <div class="template-header">
+        <h2>Qual tipo de oportunidade você quer criar?</h2>
+        <p>Escolha o modelo mais próximo da sua propriedade.<br>O formulário vai ser adaptado com os campos certos para você.</p>
+      </div>
+
+      <div class="template-grid">
+
+        <!-- Entidade Esportiva -->
+        <!-- OCULTO MVP — voltar em breve -->
+        <div class="template-card" onclick="selectTemplate('entidade')" style="display:none">
+          <span class="tpl-icon">🏆</span>
+          <div class="tpl-name">Entidade Esportiva</div>
+          <div class="tpl-desc">Organização esportiva — federação, confederação, associação ou time — que oferece visibilidade ao longo de uma temporada ou campeonato.</div>
+          <div class="tpl-tags">
+            <span class="tpl-tag">Temporada</span>
+            <span class="tpl-tag">TV & Streaming</span>
+            <span class="tpl-tag">Cotas de patrocínio</span>
+          </div>
+          <div class="tpl-arrow">Usar este modelo →</div>
+        </div>
+
+        <!-- Personalidade -->
+        <div class="template-card" onclick="selectTemplate('personalidade')">
+          <span class="tpl-icon">🌟</span>
+          <div class="tpl-name">Personalidade</div>
+          <div class="tpl-desc">Influenciador, celebridade, comunicador ou criador de conteúdo com audiência própria que oferece associação de marca à sua imagem.</div>
+          <div class="tpl-tags">
+            <span class="tpl-tag">Imagem & direitos</span>
+            <span class="tpl-tag">Redes sociais</span>
+            <span class="tpl-tag">Engajamento</span>
+          </div>
+          <div class="tpl-arrow">Usar este modelo →</div>
+        </div>
+
+        <!-- Evento -->
+        <div class="template-card" onclick="selectTemplate('evento')">
+          <span class="tpl-icon">🎪</span>
+          <div class="tpl-name">Evento</div>
+          <div class="tpl-desc">Acontecimento pontual ou festival com data definida, público presencial e oportunidades de ativação de marca antes, durante e após.</div>
+          <div class="tpl-tags">
+            <span class="tpl-tag">Data definida</span>
+            <span class="tpl-tag">Público presencial</span>
+            <span class="tpl-tag">Ativações no local</span>
+          </div>
+          <div class="tpl-arrow">Usar este modelo →</div>
+        </div>
+
+        <!-- OCULTO MVP — voltar em breve -->
+        <div class="template-card" onclick="selectTemplate('atleta')" style="display:none">
+          <span class="tpl-icon">⚡</span>
+          <div class="tpl-name">Atleta</div>
+          <div class="tpl-desc">Esportista profissional ou de alto rendimento que associa marcas à sua imagem, conquistas e calendário de competições.</div>
+          <div class="tpl-tags">
+            <span class="tpl-tag">Imagem & direitos</span>
+            <span class="tpl-tag">Competições</span>
+            <span class="tpl-tag">Redes sociais</span>
+          </div>
+          <div class="tpl-arrow">Usar este modelo →</div>
+        </div>
+
+        <!-- OCULTO MVP — voltar em breve -->
+        <div class="template-card" onclick="selectTemplate('espaco')" style="display:none">
+          <span class="tpl-icon">📍</span>
+          <div class="tpl-name">Espaço</div>
+          <div class="tpl-desc">Local físico com fluxo de público recorrente — arena, academia, shopping, camarote, coworking ou centro de eventos — que monetiza visibilidade e ativações.</div>
+          <div class="tpl-tags">
+            <span class="tpl-tag">Fluxo de público</span>
+            <span class="tpl-tag">Sinalização</span>
+            <span class="tpl-tag">Naming rights</span>
+          </div>
+          <div class="tpl-arrow">Usar este modelo →</div>
+        </div>
+
+        <!-- Artista Musical -->
+        <div class="template-card" onclick="selectTemplate('artista')">
+          <span class="tpl-icon">🎵</span>
+          <div class="tpl-name">Artista Musical</div>
+          <div class="tpl-desc">Músico solo, banda, DJ ou produtor com fanbase própria que oferece associação de marca a shows, lançamentos e presença digital.</div>
+          <div class="tpl-tags">
+            <span class="tpl-tag">Shows & turnês</span>
+            <span class="tpl-tag">Streaming musical</span>
+            <span class="tpl-tag">Licenciamento</span>
+          </div>
+          <div class="tpl-arrow">Usar este modelo →</div>
+        </div>
+
+        <!-- Mídia -->
+        <div class="template-card" onclick="selectTemplate('midia')">
+          <span class="tpl-icon">📡</span>
+          <div class="tpl-name">Mídia</div>
+          <div class="tpl-desc">Veículo de comunicação — portal, revista, rádio, podcast ou canal — com audiência qualificada e formatos de inserção comercial bem definidos.</div>
+          <div class="tpl-tags">
+            <span class="tpl-tag">Audiência mensal</span>
+            <span class="tpl-tag">Formatos comerciais</span>
+            <span class="tpl-tag">Editorial</span>
+          </div>
+          <div class="tpl-arrow">Usar este modelo →</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         MODAL: CONFIGURAÇÃO DA API
+    ══════════════════════════════════════ -->
+    <div id="chat-config-overlay" class="chat-config-overlay" style="display:none">
+      <div class="chat-config-box">
+        <h3>Conectar ao Agente</h3>
+        <p>Informe sua API Key da OpenAI para iniciar o chat. Ela fica apenas na memória desta sessão — não é salva em lugar nenhum.</p>
+
+        <label>API Key</label>
+        <input type="password" id="cfg-apikey" placeholder="sk-..." autocomplete="off" />
+
+        <div class="chat-config-note">
+          📌 Onde encontrar: <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a><br>
+          Crie uma nova chave e cole aqui. O agente já está configurado.
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="confirmarConfig()">
+          Iniciar conversa →
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TELA 2: CHAT COM AGENTE
+    ══════════════════════════════════════ -->
+    <div id="screen-chat">
+      <div class="chat-header">
+        <button class="chat-header-back" onclick="voltarParaTemplates()">← Trocar template</button>
+        <div class="chat-header-info">
+          <h2>Criar Oportunidade com IA</h2>
+          <p>Converse com o agente — ele vai montar sua oportunidade com você</p>
+        </div>
+        <div class="chat-header-badge">
+          <span id="chatBadgeIcon">🌟</span>
+          <span id="chatBadgeName">Template</span>
+        </div>
+      </div>
+
+      <div class="chat-window">
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <!-- Preview de arquivos anexados -->
+        <div id="chat-attachments" style="display:none; padding:8px 20px 0; gap:8px; flex-wrap:wrap; border-top:1px solid var(--gray-200);"></div>
+
+        <div class="chat-input-area">
+          <!-- Botão de upload -->
+          <button class="chat-attach-btn" id="chat-attach-btn" onclick="document.getElementById('chat-file-input').click()" title="Anexar arquivo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+          <input type="file" id="chat-file-input" style="display:none" multiple
+            accept=".pdf,.doc,.docx,.txt,.csv,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.webp"
+            onchange="anexarArquivos(this.files)" />
+
+          <textarea id="chat-input" rows="1" placeholder="Digite sua resposta..." onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+
+          <button class="chat-send-btn" id="chat-send-btn" onclick="enviarMensagem()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
+         TELA 1: FORMULÁRIO (5 PASSOS)
+    ══════════════════════════════════════ -->
+    <div id="screen-form">
+
+      <!-- Badge do template escolhido -->
+      <div class="template-badge" id="templateBadge" onclick="voltarParaTemplates()">
+        <span class="tpl-badge-icon" id="templateBadgeIcon">🏆</span>
+        <span id="templateBadgeName">Entidade Esportiva</span>
+        <span class="tpl-badge-change">trocar modelo</span>
+      </div>
+
+      <!-- Step progress -->
+      <div class="step-progress">
+        <div class="step active" id="step-dot-1"><div class="step-circle">1</div><span class="step-label">Informações Gerais</span></div>
+        <div class="step-line" id="step-line-1"></div>
+        <div class="step" id="step-dot-2"><div class="step-circle">2</div><span class="step-label">Mídia</span></div>
+        <div class="step-line" id="step-line-2"></div>
+        <div class="step" id="step-dot-3"><div class="step-circle">3</div><span class="step-label">Público & Canais</span></div>
+        <div class="step-line" id="step-line-3"></div>
+        <div class="step" id="step-dot-4"><div class="step-circle">4</div><span class="step-label">Cotas & Entregas</span></div>
+        <div class="step-line" id="step-line-4"></div>
+        <div class="step" id="step-dot-5"><div class="step-circle">5</div><span class="step-label">Visibilidade</span></div>
+      </div>
+
+      <!-- ─── STEP 1: INFORMAÇÕES GERAIS ─── -->
+      <div id="step-panel-1" class="fade-in">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2>Informações Gerais</h2>
+              <p id="step1-subtitle">Dados básicos da oportunidade de patrocínio</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="grid-2" id="step1-fields">
+
+              <!-- CAMPO COMUM: Nome -->
+              <div class="form-group full-width">
+                <label>Nome da oportunidade <span class="required">*</span></label>
+                <input type="text" id="opp-name" placeholder="Ex: Liga Nordeste de Futsal" oninput="updatePreview()">
+              </div>
+
+              <!-- CAMPO COMUM: Categoria (hidden para templates específicos) -->
+              <div class="form-group" id="field-categoria">
+                <label>Categoria <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select id="opp-cat">
+                    <option value="">Selecione...</option>
+                    <option>Entidade Esportiva</option>
+                    <option>Influenciador Digital</option>
+                    <option>Evento Esportivo</option>
+                    <option>Evento de Entretenimento</option>
+                    <option>Evento B2B</option>
+                    <option>Festival de Música</option>
+                    <option>Atleta</option>
+                    <option>Venue / Espaço</option>
+                    <option>Portal de Mídia</option>
+                    <option>Rádio & Podcast</option>
+                    <option>Revista & Publicação</option>
+                    <option>Canal de TV / Streaming</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- CAMPO COMUM: Cidade -->
+              <div class="form-group" id="field-cidade">
+                <label>Cidade <span class="required">*</span></label>
+                <input type="text" placeholder="Ex: São Paulo" id="opp-city">
+              </div>
+
+              <!-- CAMPO COMUM: Estado -->
+              <div class="form-group" id="field-estado">
+                <label>Estado</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">UF</option>
+                    <option>SP</option><option>RJ</option><option>MG</option>
+                    <option>RS</option><option>PR</option><option>SC</option>
+                    <option>BA</option><option>PE</option><option>CE</option>
+                    <option>GO</option><option>DF</option><option>AM</option>
+                    <option>PA</option><option>MA</option><option>PI</option>
+                    <option>RN</option><option>PB</option><option>AL</option>
+                    <option>SE</option><option>ES</option><option>MT</option>
+                    <option>MS</option><option>RO</option><option>AC</option>
+                    <option>AP</option><option>RR</option><option>TO</option>
+                    <option>Nacional</option>
+                  </select>
+                </div>
+              </div>
+
+
+              <!-- CAMPO COMUM: Descrição -->
+              <div class="form-group full-width" id="field-descricao">
+                <label>Descrição geral <span class="required">*</span></label>
+                <textarea id="opp-desc" rows="5" placeholder="Descreva a oportunidade: contexto, formato, experiência para o público e o que torna essa parceria especial..." oninput="updateChar(this,'gen-count',800)"></textarea>
+                <div class="char-counter"><span id="gen-count">0</span>/800</div>
+              </div>
+
+              <!-- ─── CAMPOS DINÂMICOS: ENTIDADE ESPORTIVA ─── -->
+              <div class="form-group dynamic-field" data-type="entidade" id="dyn-entidade-modalidade">
+                <label>Modalidade esportiva <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Futebol</option>
+                    <option>Futsal</option>
+                    <option>Vôlei</option>
+                    <option>Basquete</option>
+                    <option>Natação</option>
+                    <option>Atletismo</option>
+                    <option>Ciclismo</option>
+                    <option>Tênis</option>
+                    <option>Lutas / MMA</option>
+                    <option>Handebol</option>
+                    <option>Rugby</option>
+                    <option>Surfe</option>
+                    <option>Ginástica</option>
+                    <option>Esportes de inverno</option>
+                    <option>Esportes a motor</option>
+                    <option>eSports</option>
+                    <option>Multi-esporte</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="entidade" id="dyn-entidade-tipo">
+                <label>Tipo de entidade <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Liga</option>
+                    <option>Clube / Time</option>
+                    <option>Federação Estadual</option>
+                    <option>Confederação Nacional</option>
+                    <option>Associação</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field full-width" data-type="entidade" id="dyn-entidade-temporada">
+                <label>Período da temporada</label>
+                <div class="grid-3" style="margin-top:2px">
+                  <div class="select-wrapper">
+                    <select id="ent-ano">
+                      <option value="">Ano...</option>
+                      <option>2024</option>
+                      <option>2025</option>
+                      <option>2026</option>
+                      <option>2027</option>
+                    </select>
+                  </div>
+                  <div class="select-wrapper">
+                    <select id="ent-mes-inicio">
+                      <option value="">Mês início...</option>
+                      <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+                      <option>Abril</option><option>Maio</option><option>Junho</option>
+                      <option>Julho</option><option>Agosto</option><option>Setembro</option>
+                      <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+                    </select>
+                  </div>
+                  <div class="select-wrapper">
+                    <select id="ent-mes-fim">
+                      <option value="">Mês término...</option>
+                      <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+                      <option>Abril</option><option>Maio</option><option>Junho</option>
+                      <option>Julho</option><option>Agosto</option><option>Setembro</option>
+                      <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="entidade" id="dyn-entidade-jogos">
+                <label>Nº de jogos / rodadas</label>
+                <input type="number" placeholder="Ex: 48">
+              </div>
+              <div class="form-group dynamic-field" data-type="entidade" id="dyn-entidade-times">
+                <label>Nº de times / equipes</label>
+                <input type="number" placeholder="Ex: 12">
+              </div>
+              <div class="form-group dynamic-field full-width" data-type="entidade" id="dyn-entidade-tv">
+                <label>Transmissão de TV / Streaming</label>
+                <div class="ativacoes-list" id="list-transmissoes">
+                  <div class="ativacao-row">
+                    <div class="select-wrapper" style="flex:1">
+                      <select>
+                        <option value="">Canal / plataforma...</option>
+                        <option>SporTV</option>
+                        <option>Band Sports</option>
+                        <option>ESPN</option>
+                        <option>DAZN</option>
+                        <option>Cazé TV (YouTube)</option>
+                        <option>Prime Video</option>
+                        <option>YouTube (canal próprio)</option>
+                        <option>Instagram Live</option>
+                        <option>TikTok Live</option>
+                        <option>Outro streaming</option>
+                        <option>TV aberta regional</option>
+                        <option>Rádio / Podcast</option>
+                      </select>
+                    </div>
+                    <input type="text" placeholder="Audiência estimada (ex: 120k)" style="flex:1">
+                    <button class="btn-remove-row" onclick="removeRow(this)">✕</button>
+                  </div>
+                </div>
+                <button class="btn-add-row" onclick="addTransmissaoRow()">＋ Adicionar canal</button>
+              </div>
+              <div class="form-group dynamic-field full-width" data-type="entidade" id="dyn-entidade-historico">
+                <label>Patrocinadores históricos <span class="hint">(opcional)</span></label>
+                <div class="ativacoes-list" id="list-patrocinadores">
+                  <div class="ativacao-row">
+                    <input type="text" placeholder="Nome da marca (ex: Bradesco)" style="flex:1">
+                    <div class="select-wrapper" style="flex:0.7">
+                      <select>
+                        <option value="">Cota...</option>
+                        <option>Master</option>
+                        <option>Ouro</option>
+                        <option>Prata</option>
+                        <option>Bronze</option>
+                        <option>Apoiador</option>
+                        <option>Fornecedor</option>
+                      </select>
+                    </div>
+                    <button class="btn-remove-row" onclick="removeRow(this)">✕</button>
+                  </div>
+                </div>
+                <button class="btn-add-row" onclick="addPatrocinadorRow()">＋ Adicionar patrocinador</button>
+              </div>
+
+              <!-- ─── CAMPOS DINÂMICOS: PERSONALIDADE ─── -->
+              <div class="form-group dynamic-field" data-type="personalidade" id="dyn-per-tipo">
+                <label>Tipo de personalidade <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Influenciador Digital</option>
+                    <option>Celebridade (TV / Cinema)</option>
+                    <option>Apresentador / Comunicador</option>
+                    <option>Jornalista / Comentarista</option>
+                    <option>Palestrante / Especialista</option>
+                    <option>Ator / Atriz</option>
+                    <option>Humorista / Comediante</option>
+                    <option>Ex-atleta / Ícone esportivo</option>
+                    <option>Empresário / Empreendedor</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="personalidade" id="dyn-per-nicho">
+                <label>Área de atuação principal <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Fitness & Saúde</option>
+                    <option>Gastronomia & Culinária</option>
+                    <option>Finanças & Investimentos</option>
+                    <option>Moda & Beleza</option>
+                    <option>Esporte</option>
+                    <option>Entretenimento & Humor</option>
+                    <option>Tecnologia & Games</option>
+                    <option>Viagens & Lifestyle</option>
+                    <option>Educação & Carreira</option>
+                    <option>Família & Maternidade</option>
+                    <option>Sustentabilidade</option>
+                    <option>Negócios & Empreendedorismo</option>
+                    <option>Música & Arte</option>
+                    <option>Cultura & Comportamento</option>
+                    <option>Pets</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="personalidade" id="dyn-per-plataforma">
+                <label>Principal canal de atuação</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Instagram</option>
+                    <option>TikTok</option>
+                    <option>YouTube</option>
+                    <option>Twitter / X</option>
+                    <option>LinkedIn</option>
+                    <option>Twitch</option>
+                    <option>Podcast / Spotify</option>
+                    <option>TV aberta / fechada</option>
+                    <option>Rádio</option>
+                    <option>Multi-plataforma</option>
+                    <option>Principalmente offline</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="personalidade" id="dyn-per-seguidores">
+                <label>Alcance digital (principal canal)</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione a faixa...</option>
+                    <option>Até 10 mil</option>
+                    <option>10 mil – 50 mil</option>
+                    <option>50 mil – 100 mil</option>
+                    <option>100 mil – 500 mil</option>
+                    <option>500 mil – 1 milhão</option>
+                    <option>1 milhão – 5 milhões</option>
+                    <option>Acima de 5 milhões</option>
+                    <option>Não se aplica (atuação offline)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="personalidade" id="dyn-per-engajamento">
+                <label>Taxa de engajamento média <span class="hint">(se digital)</span></label>
+                <div class="input-prefix-wrap">
+                  <input type="number" placeholder="Ex: 5.2" step="0.1" min="0" max="100">
+                  <span class="input-prefix" style="border-left:1px solid var(--gray-200);border-right:none">%</span>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="personalidade" id="dyn-per-vagas">
+                <label>Vagas abertas por mês <span class="hint">(parcerias simultâneas)</span></label>
+                <input type="number" placeholder="Ex: 3">
+              </div>
+              <div class="form-group dynamic-field" data-type="personalidade" id="dyn-per-exclusividade">
+                <label>Oferece exclusividade por categoria?</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Sim, disponível</option>
+                    <option>Não, sem exclusividade</option>
+                    <option>A negociar caso a caso</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- ─── CAMPOS DINÂMICOS: EVENTO ─── -->
+              <div class="form-group dynamic-field" data-type="evento" id="dyn-ev-tipo">
+                <label>Tipo de evento <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Festival</option>
+                    <option>Competição Esportiva</option>
+                    <option>Congresso / Conferência</option>
+                    <option>Show / Sarau</option>
+                    <option>Corrida / Prova de rua</option>
+                    <option>Rodeio</option>
+                    <option>Feria & Exposição</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field full-width" data-type="evento" id="dyn-ev-data">
+                <label>Data do evento <span class="required">*</span></label>
+                <div class="grid-3" style="margin-top:2px">
+                  <div class="select-wrapper">
+                    <select>
+                      <option value="">Mês...</option>
+                      <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+                      <option>Abril</option><option>Maio</option><option>Junho</option>
+                      <option>Julho</option><option>Agosto</option><option>Setembro</option>
+                      <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+                    </select>
+                  </div>
+                  <div class="select-wrapper">
+                    <select>
+                      <option value="">Ano...</option>
+                      <option>2025</option>
+                      <option>2026</option>
+                      <option>2027</option>
+                    </select>
+                  </div>
+                  <input type="text" placeholder="Dias (ex: 12 a 14)">
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="evento" id="dyn-ev-local">
+                <label>Local / Venue</label>
+                <input type="text" placeholder="Ex: Centro de Eventos do Ceará, Fortaleza">
+              </div>
+              <div class="form-group dynamic-field" data-type="evento" id="dyn-ev-edicao">
+                <label>Edição</label>
+                <input type="text" placeholder="Ex: 7ª edição">
+              </div>
+              <div class="form-group dynamic-field" data-type="evento" id="dyn-ev-publico">
+                <label>Público esperado</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Até 1.000</option>
+                    <option>1.000 – 5.000</option>
+                    <option>5.000 – 20.000</option>
+                    <option>20.000 – 50.000</option>
+                    <option>50.000 – 200.000</option>
+                    <option>Acima de 200.000</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="evento" id="dyn-ev-duracao">
+                <label>Duração</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>1 dia</option>
+                    <option>2 dias</option>
+                    <option>3 dias</option>
+                    <option>4 a 7 dias</option>
+                    <option>Mais de 1 semana</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="evento" id="dyn-ev-midia">
+                <label>Cobertura de mídia esperada</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Apenas redes sociais próprias</option>
+                    <option>Portais regionais</option>
+                    <option>TV regional</option>
+                    <option>TV nacional</option>
+                    <option>Streaming / YouTube</option>
+                    <option>TV nacional + portais</option>
+                    <option>Cobertura internacional</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- ─── CAMPOS DINÂMICOS: ATLETA ─── -->
+              <div class="form-group dynamic-field" data-type="atleta" id="dyn-at-modalidade">
+                <label>Modalidade <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Futebol</option>
+                    <option>Futsal</option>
+                    <option>Natação</option>
+                    <option>Atletismo</option>
+                    <option>MMA / Lutas</option>
+                    <option>Basquete</option>
+                    <option>Vôlei</option>
+                    <option>Tênis</option>
+                    <option>Ciclismo</option>
+                    <option>Surfe</option>
+                    <option>Ginástica</option>
+                    <option>Hipismo</option>
+                    <option>Esportes a motor</option>
+                    <option>Esportes de combate</option>
+                    <option>eSports</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="atleta" id="dyn-at-nivel">
+                <label>Nível <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Profissional (1ª divisão)</option>
+                    <option>Profissional (divisões menores)</option>
+                    <option>Semi-profissional</option>
+                    <option>Olímpico / Seleção Nacional</option>
+                    <option>Paralímpico</option>
+                    <option>Alto rendimento amador</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="atleta" id="dyn-at-clube">
+                <label>Clube / Equipe atual</label>
+                <input type="text" placeholder="Ex: Flamengo, SPFC, Sesi Franca...">
+              </div>
+              <div class="form-group dynamic-field full-width" data-type="atleta" id="dyn-at-conquistas">
+                <label>Principais conquistas</label>
+                <div class="ativacoes-list" id="list-conquistas">
+                  <div class="ativacao-row">
+                    <input type="text" placeholder="Ex: Campeão Brasileiro" style="flex:2">
+                    <div class="select-wrapper" style="flex:0.8">
+                      <select>
+                        <option value="">Ano...</option>
+                        <option>2024</option><option>2023</option><option>2022</option>
+                        <option>2021</option><option>2020</option><option>2019</option>
+                        <option>2018</option><option>2017</option><option>Antes de 2017</option>
+                      </select>
+                    </div>
+                    <button class="btn-remove-row" onclick="removeRow(this)">✕</button>
+                  </div>
+                </div>
+                <button class="btn-add-row" onclick="addConquistaRow()">＋ Adicionar conquista</button>
+              </div>
+              <div class="form-group dynamic-field" data-type="atleta" id="dyn-at-seguidores">
+                <label>Seguidores totais (principal rede)</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione a faixa...</option>
+                    <option>Até 10 mil</option>
+                    <option>10 mil – 50 mil</option>
+                    <option>50 mil – 100 mil</option>
+                    <option>100 mil – 500 mil</option>
+                    <option>500 mil – 1 milhão</option>
+                    <option>1 milhão – 5 milhões</option>
+                    <option>Acima de 5 milhões</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field full-width" data-type="atleta" id="dyn-at-competicoes">
+                <label>Calendário de competições relevantes</label>
+                <div class="ativacoes-list" id="list-competicoes">
+                  <div class="ativacao-row">
+                    <input type="text" placeholder="Nome da competição (ex: Copa do Brasil)" style="flex:2">
+                    <div class="select-wrapper" style="flex:0.8">
+                      <select>
+                        <option value="">Mês...</option>
+                        <option>Jan</option><option>Fev</option><option>Mar</option>
+                        <option>Abr</option><option>Mai</option><option>Jun</option>
+                        <option>Jul</option><option>Ago</option><option>Set</option>
+                        <option>Out</option><option>Nov</option><option>Dez</option>
+                        <option>Ano todo</option>
+                      </select>
+                    </div>
+                    <button class="btn-remove-row" onclick="removeRow(this)">✕</button>
+                  </div>
+                </div>
+                <button class="btn-add-row" onclick="addCompeticaoRow()">＋ Adicionar competição</button>
+              </div>
+
+              <!-- ─── CAMPOS DINÂMICOS: VENUE ─── -->
+              <div class="form-group dynamic-field" data-type="espaco" id="dyn-esp-tipo">
+                <label>Tipo de espaço <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Estádio</option>
+                    <option>Arena / Ginásio</option>
+                    <option>Academia / Studio fitness</option>
+                    <option>Shopping / Centro comercial</option>
+                    <option>Camarote / Área VIP</option>
+                    <option>Coworking / Hub de inovação</option>
+                    <option>Centro de Convenções</option>
+                    <option>Teatro / Casa de Shows</option>
+                    <option>Autódromo / Kartódromo</option>
+                    <option>Clube / Centro Esportivo</option>
+                    <option>Parque / Espaço ao ar livre</option>
+                    <option>Restaurante / Bar / Lounge</option>
+                    <option>Hotel / Resort</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="espaco" id="dyn-esp-capacidade">
+                <label>Capacidade do espaço</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Até 500 pessoas</option>
+                    <option>500 – 2.000</option>
+                    <option>2.000 – 10.000</option>
+                    <option>10.000 – 30.000</option>
+                    <option>30.000 – 60.000</option>
+                    <option>Acima de 60.000</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="espaco" id="dyn-esp-fluxo">
+                <label>Fluxo médio de público / mês</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Até 5 mil</option>
+                    <option>5 mil – 20 mil</option>
+                    <option>20 mil – 50 mil</option>
+                    <option>50 mil – 150 mil</option>
+                    <option>150 mil – 500 mil</option>
+                    <option>Acima de 500 mil</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field full-width" data-type="espaco" id="dyn-esp-eventos">
+                <label>Tipos de eventos que hospeda <span class="hint">(selecione todos que se aplicam)</span></label>
+                <div class="segment-grid" style="margin-top:4px" id="esp-eventos-pills">
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">⚽ Futebol / Futsal</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🎵 Shows & Festivais</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🎪 Feiras & Exposições</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🏀 Outros Esportes</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🎓 Formatura & Eventos Corp.</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🏎 Eventos a Motor</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🎭 Teatro & Cultura</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🤝 Congressos & Convenções</div>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="espaco" id="dyn-esp-naming">
+                <label>Possui naming rights disponível?</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Sim, disponível</option>
+                    <option>Sim, mas já tem patrocinador</option>
+                    <option>Não</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="espaco" id="dyn-esp-localizacao">
+                <label>Ponto de referência / bairro</label>
+                <input type="text" placeholder="Ex: Zona Sul de SP, próximo ao Metrô Jabaquara">
+              </div>
+
+              <!-- ─── CAMPOS DINÂMICOS: MÍDIA ─── -->
+              <div class="form-group dynamic-field" data-type="midia" id="dyn-md-tipo">
+                <label>Tipo de veículo <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Portal / Site de notícias</option>
+                    <option>Revista impressa & digital</option>
+                    <option>Rádio</option>
+                    <option>Podcast</option>
+                    <option>Canal de TV</option>
+                    <option>Canal YouTube editorial</option>
+                    <option>Newsletter</option>
+                    <option>Multi-plataforma editorial</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="midia" id="dyn-md-editorial">
+                <label>Linha editorial / vertical</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Esporte</option>
+                    <option>Negócios & Economia</option>
+                    <option>Tecnologia</option>
+                    <option>Entretenimento</option>
+                    <option>Saúde & Bem-estar</option>
+                    <option>Lifestyle</option>
+                    <option>Política & Atualidades</option>
+                    <option>Cultura & Arte</option>
+                    <option>Gastronomia</option>
+                    <option>Moda & Beleza</option>
+                    <option>Multi-editorial</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="midia" id="dyn-md-alcance">
+                <label>Alcance mensal</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione a faixa...</option>
+                    <option>Até 100 mil</option>
+                    <option>100 mil – 500 mil</option>
+                    <option>500 mil – 1 milhão</option>
+                    <option>1 mi – 5 mi</option>
+                    <option>5 mi – 20 mi</option>
+                    <option>Acima de 20 mi</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="midia" id="dyn-md-abrangencia">
+                <label>Abrangência geográfica</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Local (cidade)</option>
+                    <option>Regional (estado)</option>
+                    <option>Nacional</option>
+                    <option>América Latina</option>
+                    <option>Internacional</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group dynamic-field full-width" data-type="midia" id="dyn-md-formatos">
+                <label>Formatos comerciais disponíveis <span class="hint">(selecione todos que se aplicam)</span></label>
+                <div class="segment-grid" style="margin-top:4px">
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🖼 Banner display</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">✍ Branded content</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🎙 Inserção de voz</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">📧 Newsletter patrocinada</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">📹 Pre-roll / Mid-roll</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">📰 Publieditorial</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🎧 Podcast patrocinado</div>
+                  <div class="segment-pill" onclick="toggleSegment(this,'green')">🏷 Naming de seção</div>
+                </div>
+              </div>
+              <div class="form-group dynamic-field" data-type="midia" id="dyn-md-frequencia">
+                <label>Frequência de publicação</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Contínuo / Diário</option>
+                    <option>Semanal</option>
+                    <option>Quinzenal</option>
+                    <option>Mensal</option>
+                    <option>Por temporada</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- ─── ARTISTA MUSICAL ─── -->
+              <div class="form-group dynamic-field" data-type="artista" id="dyn-art-tipo">
+                <label>Tipo de artista <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Cantor(a) Solo</option>
+                    <option>Banda</option>
+                    <option>DJ</option>
+                    <option>Dupla Sertaneja</option>
+                    <option>Produtor Musical</option>
+                    <option>Funkeiro / MC</option>
+                    <option>Rapper</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group dynamic-field" data-type="artista" id="dyn-art-genero">
+                <label>Gênero musical principal <span class="required">*</span></label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Sertanejo</option>
+                    <option>Funk</option>
+                    <option>Pop</option>
+                    <option>Forró</option>
+                    <option>Pagode / Samba</option>
+                    <option>Rock</option>
+                    <option>Rap / Hip-Hop</option>
+                    <option>Eletrônico / House</option>
+                    <option>Gospel</option>
+                    <option>MPB</option>
+                    <option>Axé / Baiano</option>
+                    <option>Regional / Raiz</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group dynamic-field" data-type="artista" id="dyn-art-shows">
+                <label>Shows por ano (estimativa)</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Menos de 20</option>
+                    <option>20 a 50</option>
+                    <option>50 a 100</option>
+                    <option>100 a 200</option>
+                    <option>Mais de 200</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group dynamic-field" data-type="artista" id="dyn-art-streaming">
+                <label>Ouvintes mensais (Spotify / streaming)</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Menos de 100 mil</option>
+                    <option>100 mil – 500 mil</option>
+                    <option>500 mil – 1 milhão</option>
+                    <option>1 milhão – 5 milhões</option>
+                    <option>5 milhões – 20 milhões</option>
+                    <option>Mais de 20 milhões</option>
+                    <option>Não está em plataformas de streaming</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group dynamic-field" data-type="artista" id="dyn-art-seguidores">
+                <label>Seguidores (principal rede social)</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Menos de 50 mil</option>
+                    <option>50 mil – 200 mil</option>
+                    <option>200 mil – 500 mil</option>
+                    <option>500 mil – 1 milhão</option>
+                    <option>1 milhão – 5 milhões</option>
+                    <option>Mais de 5 milhões</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group dynamic-field" data-type="artista" id="dyn-art-licenciamento">
+                <label>Licenciamento de música disponível</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Sim — disponível para campanhas publicitárias</option>
+                    <option>A negociar caso a caso</option>
+                    <option>Não</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group dynamic-field" data-type="artista" id="dyn-art-exclusividade">
+                <label>Exclusividade por categoria</label>
+                <div class="select-wrapper">
+                  <select>
+                    <option value="">Selecione...</option>
+                    <option>Sim, aceito exclusividade por categoria</option>
+                    <option>Não — trabalho com múltiplas marcas no mesmo segmento</option>
+                    <option>A negociar</option>
+                  </select>
+                </div>
+              </div>
+
+            </div><!-- /grid-2 -->
+
+            <div class="form-actions">
+              <button class="btn btn-outline" onclick="voltarParaTemplates()">← Trocar template</button>
+              <button class="btn btn-primary btn-lg" onclick="nextStep(2)">Próximo: Mídia →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── STEP 2: MÍDIA ─── -->
+      <div id="step-panel-2" style="display:none">
+        <div class="card fade-in">
+          <div class="card-header">
+            <div><h2>Fotos e Vídeos</h2><p>Imagens que aparecem na sua listagem no Radar</p></div>
+          </div>
+          <div class="card-body">
+            <div class="section-block">
+              <div class="section-title">📸 Foto Capa <span style="color:var(--red);font-size:13px">*</span></div>
+              <div class="section-desc">Imagem principal da oportunidade — aparece no card do marketplace (1200×800px recomendado)</div>
+              <div class="upload-zone" onclick="triggerUpload('cover')">
+                <div class="upload-icon">🖼</div>
+                <h4>Arraste ou clique para enviar</h4>
+                <p>JPG, PNG ou WEBP · Máx. 10MB</p>
+              </div>
+              <input type="file" id="upload-cover" accept="image/*" style="display:none" onchange="previewCover(this)">
+              <div id="cover-preview" style="margin-top:12px;display:none">
+                <img id="cover-img" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;border:1px solid var(--gray-200)">
+              </div>
+            </div>
+
+            <div class="section-block">
+              <div class="section-title">🗂 Galeria de fotos</div>
+              <div class="section-desc">Até 12 fotos adicionais — mostre o espaço, a atmosfera, edições anteriores</div>
+              <div class="upload-zone" onclick="triggerUpload('gallery')">
+                <div class="upload-icon">📂</div>
+                <h4>Adicionar fotos da galeria</h4>
+                <p>Selecione várias fotos de uma vez</p>
+              </div>
+              <input type="file" id="upload-gallery" accept="image/*" multiple style="display:none">
+              <div class="media-grid" id="gallery-grid"></div>
+            </div>
+
+            <div class="section-block">
+              <div class="section-title">🎬 Vídeos</div>
+              <div class="section-desc">Links do YouTube ou Vimeo — apresentação, highlights, teaser, bastidores</div>
+              <div id="video-links" style="display:flex;flex-direction:column;gap:8px">
+                <div class="ativacao-row">
+                  <span style="font-size:18px">▶</span>
+                  <input type="url" placeholder="https://youtube.com/watch?v=...">
+                  <button class="btn-remove-row" onclick="removeRow(this)">✕</button>
+                </div>
+              </div>
+              <button class="btn-add-row" onclick="addVideoRow()">＋ Adicionar vídeo</button>
+            </div>
+
+            <div class="section-block" id="section-midia-kit">
+              <div class="section-title">📄 Mídia Kit <span style="font-size:12px;font-weight:400;color:var(--gray-400)">(opcional)</span></div>
+              <div class="section-desc">PDF com informações detalhadas da oportunidade para marcas baixarem</div>
+              <div class="upload-zone" onclick="triggerUpload('mediakit')">
+                <div class="upload-icon">📎</div>
+                <h4>Enviar mídia kit em PDF</h4>
+                <p>PDF · Máx. 25MB</p>
+              </div>
+              <input type="file" id="upload-mediakit" accept=".pdf" style="display:none">
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-outline" onclick="nextStep(1)">← Voltar</button>
+              <button class="btn btn-primary btn-lg" onclick="nextStep(3)">Próximo: Público & Canais →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── STEP 3: PÚBLICO & CANAIS ─── -->
+      <div id="step-panel-3" style="display:none">
+        <div class="card fade-in" style="margin-bottom:20px">
+          <div class="card-header">
+            <div><h2>Descrição do Público</h2><p>Ajuda as marcas a entenderem se o fit é relevante</p></div>
+          </div>
+          <div class="card-body">
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Faixa etária predominante</label>
+                <div class="select-wrapper"><select>
+                  <option value="">Selecione...</option>
+                  <option>13 a 17 anos</option>
+                  <option>18 a 24 anos</option>
+                  <option>25 a 34 anos</option>
+                  <option>35 a 44 anos</option>
+                  <option>45 a 54 anos</option>
+                  <option>55+ anos</option>
+                  <option>Mista / Diversa</option>
+                </select></div>
+              </div>
+              <div class="form-group">
+                <label>Gênero predominante</label>
+                <div class="select-wrapper"><select>
+                  <option value="">Selecione...</option>
+                  <option>Masculino (70%+)</option>
+                  <option>Feminino (70%+)</option>
+                  <option>Levemente masculino</option>
+                  <option>Levemente feminino</option>
+                  <option>Equilibrado</option>
+                </select></div>
+              </div>
+              <div class="form-group">
+                <label>Classe social predominante</label>
+                <div class="select-wrapper"><select>
+                  <option value="">Selecione...</option>
+                  <option>A</option>
+                  <option>A/B</option>
+                  <option>B/C</option>
+                  <option>C</option>
+                  <option>C/D</option>
+                  <option>Mista</option>
+                </select></div>
+              </div>
+              <div class="form-group">
+                <label>Abrangência geográfica</label>
+                <div class="select-wrapper"><select>
+                  <option value="">Selecione...</option>
+                  <option>Local (cidade)</option>
+                  <option>Regional (estado)</option>
+                  <option>Multi-regional</option>
+                  <option>Nacional</option>
+                  <option>Internacional</option>
+                </select></div>
+              </div>
+              <div class="form-group">
+                <label>Volume total de público / audiência</label>
+                <input type="text" id="pub-volume" placeholder="Ex: 50.000 pessoas presenciais, 2.4M online">
+              </div>
+              <div class="form-group">
+                <label>Frequência de contato com o público</label>
+                <div class="select-wrapper"><select>
+                  <option value="">Selecione...</option>
+                  <option>Contínuo (diário)</option>
+                  <option>Semanal</option>
+                  <option>Mensal</option>
+                  <option>Por temporada</option>
+                  <option>Pontual (1 evento)</option>
+                </select></div>
+              </div>
+              <div class="form-group full-width">
+                <label>Descrição do perfil comportamental</label>
+                <textarea rows="4" placeholder="Descreva o estilo de vida, interesses, hábitos de consumo e o que motiva esse público..."></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label>Tags do público <span class="hint">(pressione Enter para adicionar)</span></label>
+                <div class="tags-input-area" onclick="this.querySelector('input').focus()">
+                  <span class="tag tag-gray">Esporte<button class="tag-remove" onclick="removeTag(this)">✕</button></span>
+                  <span class="tag tag-gray">Lifestyle<button class="tag-remove" onclick="removeTag(this)">✕</button></span>
+                  <input class="tags-input" placeholder="Ex: fitness, família, classe A..." onkeydown="addTag(event,this,'tag-gray')">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card fade-in">
+          <div class="card-header">
+            <div><h2>Canais & Redes Sociais</h2><p>Alcance da propriedade — seguidores, audiência, plataformas</p></div>
+          </div>
+          <div class="card-body">
+            <div class="social-grid">
+              <div class="social-row"><span class="social-icon">📸</span><input type="text" placeholder="Instagram — @usuario · ex: 320k seguidores"></div>
+              <div class="social-row"><span class="social-icon">▶</span><input type="text" placeholder="YouTube — canal · ex: 85k inscritos"></div>
+              <div class="social-row"><span class="social-icon">🎵</span><input type="text" placeholder="TikTok — @usuario · ex: 1.2M seguidores"></div>
+              <div class="social-row"><span class="social-icon">𝕏</span><input type="text" placeholder="X (Twitter) — @usuario · ex: 45k seguidores"></div>
+              <div class="social-row"><span class="social-icon">📘</span><input type="text" placeholder="Facebook — Página · ex: 180k curtidas"></div>
+              <div class="social-row"><span class="social-icon">🎙</span><input type="text" placeholder="Podcast / Spotify · ex: 30k ouvintes/episódio"></div>
+              <div class="social-row"><span class="social-icon">💼</span><input type="text" placeholder="LinkedIn · ex: 28k seguidores (B2B)"></div>
+              <div class="social-row"><span class="social-icon">📺</span><input type="text" placeholder="Twitch / Live · ex: 8k espectadores médios"></div>
+            </div>
+            <hr class="divider">
+            <div class="section-title" style="margin-bottom:4px">📡 Outros canais</div>
+            <div class="section-desc">Newsletter, aplicativo, SMS, mídia paga recorrente, etc.</div>
+            <div id="other-channels" style="display:flex;flex-direction:column;gap:8px">
+              <div class="ativacao-row">
+                <input type="text" placeholder="Canal (ex: Newsletter, App, WhatsApp)">
+                <input type="text" placeholder="Alcance / detalhe (ex: 12k inscritos)">
+                <button class="btn-remove-row" onclick="removeRow(this)">✕</button>
+              </div>
+            </div>
+            <button class="btn-add-row" onclick="addChannelRow()">＋ Adicionar canal</button>
+            <div class="form-actions">
+              <button class="btn btn-outline" onclick="nextStep(2)">← Voltar</button>
+              <button class="btn btn-primary btn-lg" onclick="nextStep(4)">Próximo: Cotas & Entregas →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── STEP 4: COTAS & ENTREGAS ─── -->
+      <div id="step-panel-4" style="display:none">
+        <div class="card fade-in">
+          <div class="card-header">
+            <div><h2>Cotas & Entregas</h2><p>Defina os pacotes de patrocínio disponíveis</p></div>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-gold">💡 Crie até 3 cotas com valores e entregas distintos. Cada cota pode ter ativações fixas, formatos comerciais e itens a negociar.</div>
+            <div class="cotas-wrapper">
+
+              <!-- BRONZE -->
+              <div class="cota-card">
+                <div class="cota-header" onclick="toggleCota(this)">
+                  <h3><span class="cota-dot cota-dot-bronze"></span> Cota Bronze</h3><span>▾</span>
+                </div>
+                <div class="cota-body open">
+                  <div class="grid-2" style="margin-bottom:16px">
+                    <div class="form-group"><label>Nome da cota</label><input type="text" value="Bronze" placeholder="Ex: Apoiador, Starter..."></div>
+                    <div class="form-group"><label>Valor (R$) <span class="required">*</span></label>
+                      <div class="input-prefix-wrap"><span class="input-prefix">R$</span><input type="number" placeholder="Ex: 35.000" min="0"></div>
+                    </div>
+                    <div class="form-group"><label>Vagas disponíveis</label><input type="number" placeholder="Ex: 3"></div>
+                    <div class="form-group"><label>Vagas já ocupadas</label><input type="number" placeholder="0"></div>
+                  </div>
+                  <div class="section-title" style="font-size:13px;margin-bottom:8px">Ativações Incluídas</div>
+                  <div class="section-desc" style="margin-top:-8px">O que o patrocinador recebe nesta cota</div>
+                  <div class="ativacoes-list" id="bronze-std">
+                    <div class="ativacao-row"><input type="text" placeholder="Ex: Logo no site oficial na seção apoiadores"><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('bronze-std')">＋ Adicionar ativação</button>
+                  <hr class="divider">
+                  <div class="section-title" style="font-size:13px;margin-bottom:8px">Formatos Comerciais</div>
+                  <div class="section-desc" style="margin-top:-8px">Inserções de mídia e comunicação incluídas</div>
+                  <div class="ativacoes-list" id="bronze-com">
+                    <div class="ativacao-row"><input type="text" placeholder="Ex: 2 menções em stories por mês"><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('bronze-com')">＋ Adicionar formato</button>
+                  <hr class="divider">
+                  <div class="section-title" style="font-size:13px;margin-bottom:8px">Ativações a Negociar <span style="font-size:11px;font-weight:400;color:var(--gray-400)">(negociáveis)</span></div>
+                  <div class="section-desc" style="margin-top:-8px">Itens que podem ser combinados caso a caso</div>
+                  <div class="ativacoes-list" id="bronze-custom">
+                    <div class="ativacao-row"><input type="text" placeholder="Ex: Ação de sampling no evento"><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('bronze-custom')">＋ Adicionar item negociável</button>
+                </div>
+              </div>
+
+              <!-- PRATA -->
+              <div class="cota-card">
+                <div class="cota-header" onclick="toggleCota(this)">
+                  <h3><span class="cota-dot cota-dot-silver"></span> Cota Prata</h3><span>▸</span>
+                </div>
+                <div class="cota-body">
+                  <div class="grid-2" style="margin-bottom:16px">
+                    <div class="form-group"><label>Nome da cota</label><input type="text" value="Prata" placeholder="Ex: Parceiro, Gold..."></div>
+                    <div class="form-group"><label>Valor (R$) <span class="required">*</span></label>
+                      <div class="input-prefix-wrap"><span class="input-prefix">R$</span><input type="number" placeholder="Ex: 80.000" min="0"></div>
+                    </div>
+                    <div class="form-group"><label>Vagas disponíveis</label><input type="number" placeholder="Ex: 2"></div>
+                    <div class="form-group"><label>Vagas já ocupadas</label><input type="number" placeholder="0"></div>
+                  </div>
+                  <div class="ativacoes-list" id="prata-std">
+                    <div class="ativacao-row"><input type="text" placeholder="Inclui tudo da cota Bronze, mais..."><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('prata-std')">＋ Adicionar ativação</button>
+                  <hr class="divider">
+                  <div class="ativacoes-list" id="prata-com">
+                    <div class="ativacao-row"><input type="text" placeholder="Ex: Post dedicado no Instagram (1x/mês)"><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('prata-com')">＋ Adicionar formato</button>
+                  <hr class="divider">
+                  <div class="ativacoes-list" id="prata-custom">
+                    <div class="ativacao-row"><input type="text" placeholder="Ex: Ativação de produto no evento"><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('prata-custom')">＋ Adicionar item negociável</button>
+                </div>
+              </div>
+
+              <!-- OURO -->
+              <div class="cota-card">
+                <div class="cota-header" onclick="toggleCota(this)">
+                  <h3><span class="cota-dot cota-dot-gold"></span> Cota Ouro</h3><span>▸</span>
+                </div>
+                <div class="cota-body">
+                  <div class="grid-2" style="margin-bottom:16px">
+                    <div class="form-group"><label>Nome da cota</label><input type="text" value="Ouro" placeholder="Ex: Master, Premium, Naming..."></div>
+                    <div class="form-group"><label>Valor (R$) <span class="required">*</span></label>
+                      <div class="input-prefix-wrap"><span class="input-prefix">R$</span><input type="number" placeholder="Ex: 200.000" min="0"></div>
+                    </div>
+                    <div class="form-group"><label>Vagas disponíveis</label><input type="number" placeholder="1"></div>
+                    <div class="form-group"><label>Vagas já ocupadas</label><input type="number" placeholder="0"></div>
+                  </div>
+                  <div class="ativacoes-list" id="ouro-std">
+                    <div class="ativacao-row"><input type="text" placeholder="Inclui tudo da cota Prata, mais..."><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('ouro-std')">＋ Adicionar ativação</button>
+                  <hr class="divider">
+                  <div class="ativacoes-list" id="ouro-com">
+                    <div class="ativacao-row"><input type="text" placeholder="Ex: Naming rights da competição principal"><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('ouro-com')">＋ Adicionar formato</button>
+                  <hr class="divider">
+                  <div class="ativacoes-list" id="ouro-custom">
+                    <div class="ativacao-row"><input type="text" placeholder="Ex: Área VIP exclusiva com a marca"><button class="btn-remove-row" onclick="removeRow(this)">✕</button></div>
+                  </div>
+                  <button class="btn-add-row" onclick="addAtivacao('ouro-custom')">＋ Adicionar item negociável</button>
+                </div>
+              </div>
+
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-outline" onclick="nextStep(3)">← Voltar</button>
+              <button class="btn btn-primary btn-lg" onclick="nextStep(5)">Próximo: Visibilidade →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── STEP 5: VISIBILIDADE ─── -->
+      <div id="step-panel-5" style="display:none">
+        <div class="card fade-in" style="margin-bottom:20px">
+          <div class="card-header">
+            <div><h2>Visibilidade da Oportunidade</h2><p>Controle quem pode ver essa oportunidade no Radar</p></div>
+          </div>
+          <div class="card-body">
+            <div class="visibility-options">
+              <div class="visibility-card selected" onclick="selectVisibility(this)">
+                <div class="vis-check">✓</div><div class="vis-icon">🌎</div>
+                <h4>Pública</h4><p>Visível para todas as marcas cadastradas no Radar Relevantia</p>
+              </div>
+              <div class="visibility-card" onclick="selectVisibility(this)">
+                <div class="vis-check">✓</div><div class="vis-icon">🔒</div>
+                <h4>Privada</h4><p>Apenas marcas convidadas diretamente pelo time da Relevantia</p>
+              </div>
+              <div class="visibility-card" onclick="selectVisibility(this)">
+                <div class="vis-check">✓</div><div class="vis-icon">🎯</div>
+                <h4>Segmentada</h4><p>Visível apenas para os segmentos de mercado que você selecionar abaixo</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card fade-in" style="margin-bottom:20px">
+          <div class="card-header"><div><h2>Segmentos relevantes ✅</h2><p>Para quais setores essa oportunidade faz sentido?</p></div></div>
+          <div class="card-body">
+            <div class="alert alert-gold">💡 A Relevantia usa esses dados para recomendar sua oportunidade às marcas certas — quanto mais preciso, melhor o match.</div>
+            <div class="segment-grid">
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🍺 Bebidas</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🍔 Alimentação</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">👟 Esporte & Fitness</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">👕 Moda & Vestuário</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">📱 Tecnologia</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🚗 Automotivo</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🏦 Financeiro & Bancos</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">💊 Saúde & Farma</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🎮 Games & eSports</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🏡 Casa & Decoração</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">✈ Viagens & Turismo</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">📚 Educação</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">💻 Software & SaaS</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🎭 Entretenimento</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">💄 Beleza & Cosméticos</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🐾 Pet</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🏗 Construção & Imóveis</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">♻ Sustentabilidade</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">🍷 Bebidas Premium</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'green')">⚡ Energia & Utilities</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card fade-in" style="margin-bottom:20px">
+          <div class="card-header"><div><h2>Segmentos que não combinam ❌</h2><p>Setores que você quer excluir ou que conflitam com sua propriedade</p></div></div>
+          <div class="card-body">
+            <div class="alert alert-info">ℹ️ Marcas desses segmentos não serão notificadas nem aparecerão como fit — independente da visibilidade escolhida.</div>
+            <div class="segment-grid">
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🍺 Bebidas Alcoólicas</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🚬 Tabaco</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🎰 Apostas & Cassinos</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">💊 Farmacêutico</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">⚖ Jurídico</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🏦 Financeiro & Bancos</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🔫 Armas & Defesa</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🐾 Pet</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🎮 Games & eSports</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">👕 Moda & Vestuário</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🎭 Entretenimento</div>
+              <div class="segment-pill" onclick="toggleSegment(this,'red')">🚗 Automotivo</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card fade-in">
+          <div class="card-header"><div><h2>Configurações de publicação</h2><p>Escolha como sua oportunidade será exibida e gerenciada</p></div></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:0">
+              <div class="toggle-row">
+                <div><div class="toggle-label">Aceitar interesse direto de marcas</div><div class="toggle-hint">Marcas poderão demonstrar interesse sem intermediação prévia</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-label">Exibir valores das cotas</div><div class="toggle-hint">Se desativado, os valores ficam ocultos — "Sob consulta"</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-label">Permitir download do mídia kit</div><div class="toggle-hint">Marcas poderão baixar o PDF da oportunidade</div></div>
+                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-label">Sinalizar como Exclusivo Relevantia</div><div class="toggle-hint">Destaque especial curado pelo time da Relevantia</div></div>
+                <div class="toggle" onclick="this.classList.toggle('on')"></div>
+              </div>
+              <div class="toggle-row">
+                <div><div class="toggle-label">Receber notificação por e-mail ao receber interesse</div><div class="toggle-hint">Um e-mail é enviado sempre que uma marca demonstra interesse</div></div>
+                <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-outline" onclick="nextStep(4)">← Voltar</button>
+              <div style="display:flex;gap:10px">
+                <button class="btn btn-outline btn-lg">Salvar rascunho</button>
+                <button class="btn btn-primary btn-lg" onclick="publishSuccess()">🚀 Publicar no Radar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /screen-form -->
+  </div><!-- /content -->
+</main>
+
+<script>
+// ─── CONFIG DE TEMPLATES ───
+const TEMPLATES = {
+  entidade: {
+    icon: '🏆',
+    name: 'Entidade Esportiva',
+    step1Subtitle: 'Liga, clube, federação ou confederação',
+    oppPlaceholder: 'Ex: Liga Nordeste de Futsal',
+    descPlaceholder: 'Descreva a entidade: modalidade, abrangência geográfica, número de equipes, histórico de transmissão, público-alvo e o que torna essa parceria estratégica...',
+    fields: ['dyn-entidade-modalidade','dyn-entidade-tipo','dyn-entidade-temporada','dyn-entidade-jogos','dyn-entidade-times','dyn-entidade-tv','dyn-entidade-historico'],
+    cotaPlaceholders: {
+      bronze: { ativ: 'Ex: Logo no site oficial e nas redes da liga', com: 'Ex: 3 menções nas redes sociais por mês', custom: 'Ex: Ação de sampling durante a abertura da temporada' },
+      prata:  { ativ: 'Ex: Logo na camisa de aquecimento dos times', com: 'Ex: Inserção de marca no placar digital (LED perimetral)', custom: 'Ex: Camarote para clientes em 2 jogos' },
+      ouro:   { ativ: 'Ex: Naming rights da competição principal', com: 'Ex: Vinheta de abertura em todas as transmissões', custom: 'Ex: Área VIP exclusiva durante toda a temporada' },
+    }
+  },
+  personalidade: {
+    icon: '🌟',
+    name: 'Personalidade',
+    step1Subtitle: 'Influenciador, celebridade, comunicador ou criador de conteúdo',
+    oppPlaceholder: 'Ex: Camila Rocha — Parcerias de Lifestyle & Bem-Estar',
+    descPlaceholder: 'Apresente a personalidade: área de atuação, estilo de comunicação, relação com a audiência, tipos de conteúdo que produz e o que diferencia suas parcerias...',
+    fields: ['dyn-per-tipo','dyn-per-nicho','dyn-per-plataforma','dyn-per-seguidores','dyn-per-engajamento','dyn-per-vagas','dyn-per-exclusividade'],
+    cotaPlaceholders: {
+      bronze: { ativ: 'Ex: 1 post no feed com menção da marca', com: 'Ex: Link de afiliado na bio por 30 dias', custom: 'Ex: Participação em evento da marca' },
+      prata:  { ativ: 'Ex: 1 Reel dedicado ao produto', com: 'Ex: Sequência de stories com swipe-up (3x)', custom: 'Ex: Live com o time da marca' },
+      ouro:   { ativ: 'Ex: Pacote mensal — 2 posts + 1 Reel + 8 stories', com: 'Ex: Exclusividade na área de atuação por 3 meses', custom: 'Ex: Embaixador(a) da marca em campanha nacional' },
+    }
+  },
+  evento: {
+    icon: '🎪',
+    name: 'Evento',
+    step1Subtitle: 'Evento pontual ou festival com data definida',
+    oppPlaceholder: 'Ex: Festival Moto Nordeste',
+    descPlaceholder: 'Descreva o evento: edição, atrações, número de visitantes esperados, cobertura de mídia confirmada, estrutura e o que faz deste um momento único para marcas patrocinadoras...',
+    fields: ['dyn-ev-tipo','dyn-ev-data','dyn-ev-local','dyn-ev-edicao','dyn-ev-publico','dyn-ev-duracao','dyn-ev-midia'],
+    cotaPlaceholders: {
+      bronze: { ativ: 'Ex: Logo no banner de entrada e no site do evento', com: 'Ex: 5 menções nas redes do evento (pré e durante)', custom: 'Ex: Estande 10m² no evento' },
+      prata:  { ativ: 'Ex: Logo no palco principal + pulseiras do evento', com: 'Ex: Inserção de 30s no vídeo de abertura', custom: 'Ex: Ativação de sampling para o público' },
+      ouro:   { ativ: 'Ex: Patrocínio Master — nome no título do evento', com: 'Ex: Área de ativação exclusiva 200m² + naming do palco', custom: 'Ex: VIP lounge para clientes durante os 3 dias' },
+    }
+  },
+  atleta: {
+    icon: '⚡',
+    name: 'Atleta',
+    step1Subtitle: 'Atleta profissional ou de alta performance',
+    oppPlaceholder: 'Ex: Gabriel Santos — Patrocínio de Imagem',
+    descPlaceholder: 'Apresente o atleta: modalidade, nível de competição, principais títulos, presença digital e o tipo de parceria que está buscando com marcas...',
+    fields: ['dyn-at-modalidade','dyn-at-nivel','dyn-at-clube','dyn-at-conquistas','dyn-at-seguidores','dyn-at-competicoes'],
+    cotaPlaceholders: {
+      bronze: { ativ: 'Ex: Logo no uniforme de treino', com: 'Ex: 2 menções nas redes do atleta por mês', custom: 'Ex: Aparição em evento da marca' },
+      prata:  { ativ: 'Ex: Logo no uniforme oficial de competição', com: 'Ex: Post dedicado + stories de bastidores (2x/mês)', custom: 'Ex: Sessão de fotos para campanha da marca' },
+      ouro:   { ativ: 'Ex: Patrocínio master — marca como naming do atleta', com: 'Ex: Pacote digital completo + uso de imagem em campanhas', custom: 'Ex: Embaixador exclusivo por temporada completa' },
+    }
+  },
+  espaco: {
+    icon: '📍',
+    name: 'Espaço',
+    step1Subtitle: 'Local físico com fluxo de público recorrente',
+    oppPlaceholder: 'Ex: Arena Multiuso Sul — Naming Rights',
+    descPlaceholder: 'Descreva o espaço: tipo, capacidade, localização, tipos de eventos que hospeda, fluxo de público médio e as oportunidades de visibilidade disponíveis...',
+    fields: ['dyn-esp-tipo','dyn-esp-capacidade','dyn-esp-fluxo','dyn-esp-eventos','dyn-esp-naming','dyn-esp-localizacao'],
+    cotaPlaceholders: {
+      bronze: { ativ: 'Ex: Painel fixo no hall de entrada (6m²)', com: 'Ex: Logo no site oficial na seção parceiros', custom: 'Ex: Estande durante os principais eventos do ano' },
+      prata:  { ativ: 'Ex: Sinalização perimetral no campo/pista', com: 'Ex: Inserção no telão durante os eventos', custom: 'Ex: Naming de um setor do espaço' },
+      ouro:   { ativ: 'Ex: Naming rights do espaço por 2 anos', com: 'Ex: Toda comunicação off e online com marca do patrocinador', custom: 'Ex: Direito de naming em nova área do complexo' },
+    }
+  },
+  midia: {
+    icon: '📡',
+    name: 'Mídia',
+    step1Subtitle: 'Portal, rádio, podcast, revista ou canal editorial',
+    oppPlaceholder: 'Ex: Rádio Esporte Brasil — Patrocínio de Programação',
+    descPlaceholder: 'Descreva o veículo: linha editorial, alcance mensal, plataformas em que está presente, formatos comerciais disponíveis e perfil da audiência...',
+    fields: ['dyn-md-tipo','dyn-md-editorial','dyn-md-alcance','dyn-md-abrangencia','dyn-md-formatos','dyn-md-frequencia'],
+    cotaPlaceholders: {
+      bronze: { ativ: 'Ex: Banner display no site (300×250px)', com: 'Ex: 3 inserções mensais no newsletter patrocinado', custom: 'Ex: Menção no podcast semanal' },
+      prata:  { ativ: 'Ex: Branded content — 1 artigo patrocinado/mês', com: 'Ex: Inserção de voz em 4 episódios do podcast', custom: 'Ex: Presença em evento da redação' },
+      ouro:   { ativ: 'Ex: Patrocínio exclusivo de seção editorial', com: 'Ex: Episódio especial branded content + série de posts', custom: 'Ex: Co-criação de conteúdo com editorial' },
+    }
+  },
+  artista: {
+    icon: '🎵',
+    name: 'Artista Musical',
+    step1Subtitle: 'Músico solo, banda, DJ ou produtor com fanbase própria',
+    oppPlaceholder: 'Ex: Banda Território Livre — Patrocínio de Turnê 2026',
+    descPlaceholder: 'Apresente o artista: gênero musical, trajetória, principais palcos, fanbase, presença digital e como as marcas podem se associar à sua imagem e aos seus shows...',
+    fields: ['dyn-art-tipo','dyn-art-genero','dyn-art-shows','dyn-art-streaming','dyn-art-seguidores','dyn-art-licenciamento','dyn-art-exclusividade'],
+    cotaPlaceholders: {
+      bronze: { ativ: 'Ex: Logo no banner e na arte de divulgação dos shows', com: 'Ex: 2 menções nas redes do artista por mês', custom: 'Ex: Sampling da marca no camarim / backstage' },
+      prata:  { ativ: 'Ex: Logo no palco + na indumentária de shows', com: 'Ex: Post dedicado à marca antes de cada show', custom: 'Ex: Ativação de marca no pré-show para o público' },
+      ouro:   { ativ: 'Ex: Naming rights da turnê / tour da temporada', com: 'Ex: Licenciamento de música para campanha publicitária', custom: 'Ex: Embaixador(a) exclusivo(a) da marca por 12 meses' },
+    }
+  },
+};
+
+let activeTemplate = null;
+
+// ─── SELEÇÃO DE TEMPLATE ───
+function selectTemplate(type) {
+  activeTemplate = type;
+  const tpl = TEMPLATES[type];
+
+  // Atualiza badge do chat
+  document.getElementById('chatBadgeIcon').textContent = tpl.icon;
+  document.getElementById('chatBadgeName').textContent = tpl.name;
+
+  // Atualiza topbar
+  document.getElementById('topbarTitle').textContent = 'Criar Oportunidade';
+  document.getElementById('topbarBreadcrumb').textContent = `Oportunidades → ${tpl.name}`;
+
+  // Abre modal de configuração se ainda não tiver credenciais
+  if (!chatConfig.apiKey) {
+    document.getElementById('chat-config-overlay').style.display = 'flex';
+  } else {
+    abrirChatScreen(type);
+  }
+}
+
+function confirmarConfig() {
+  const apiKey = document.getElementById('cfg-apikey').value.trim();
+
+  if (!apiKey.startsWith('sk-')) {
+    alert('API Key inválida. Deve começar com "sk-".');
+    return;
+  }
+
+  chatConfig.apiKey = apiKey;
+
+  document.getElementById('chat-config-overlay').style.display = 'none';
+  abrirChatScreen(activeTemplate);
+}
+
+function abrirChatScreen(type) {
+  document.getElementById('screen-template').style.display = 'none';
+  document.getElementById('screen-form').style.display     = 'none';
+  document.getElementById('screen-chat').style.display     = 'block';
+
+  // Limpa histórico e inicia nova conversa
+  document.getElementById('chat-messages').innerHTML = '';
+  chatState.previousResponseId = null;
+  chatState.running            = false;
+
+  iniciarThread(type);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function voltarParaTemplates() {
+  document.getElementById('screen-template').style.display = 'block';
+  document.getElementById('screen-form').style.display     = 'none';
+  document.getElementById('screen-chat').style.display     = 'none';
+  document.getElementById('topbarTitle').textContent       = 'Nova Oportunidade';
+  document.getElementById('topbarBreadcrumb').textContent  = 'Oportunidades → Escolher tipo';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─────────────────────────────────────────
+//  AGENTE — OPENAI RESPONSES API
+// ─────────────────────────────────────────
+
+const chatConfig  = { apiKey: null };
+const chatState   = { previousResponseId: null, running: false };
+const OAI         = 'https://api.openai.com/v1';
+const PROMPT_ID   = 'pmpt_69b1a68a211c81908947424af3571b0f0f0634ad02897752';
+
+// Histórico de mensagens da conversa atual
+let historicoMensagens = [];
+
+// Fila de arquivos prontos para enviar: [{ fileId, nome }]
+let arquivosPendentes = [];
+
+// ── helpers de fetch ──────────────────────────────────────────
+
+function oaiFetch(path, method, body) {
+  return fetch(`${OAI}${path}`, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${chatConfig.apiKey}`,
+      'Content-Type':  'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  }).then(r => r.json());
+}
+
+// Upload multipart para a Responses API (purpose: 'user_data')
+function oaiUpload(file) {
+  const form = new FormData();
+  form.append('file', file, file.name);
+  form.append('purpose', 'user_data');
+  return fetch(`${OAI}/files`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${chatConfig.apiKey}` },
+    body: form,
+  }).then(r => r.json());
+}
+
+// ── upload de arquivos ────────────────────────────────────────
+
+async function anexarArquivos(files) {
+  if (!files.length) return;
+
+  const bar = document.getElementById('chat-attachments');
+  bar.style.display = 'flex';
+
+  for (const file of files) {
+    // Cria chip imediatamente
+    const chip = criarChip(file.name, 'uploading');
+    bar.appendChild(chip);
+
+    try {
+      const res = await oaiUpload(file);
+      if (res.error) throw new Error(res.error.message);
+
+      arquivosPendentes.push({ fileId: res.id, nome: file.name, chipEl: chip });
+      chip.classList.remove('uploading');
+      chip.classList.add('done');
+      chip.querySelector('.file-chip-status').textContent = '✓';
+    } catch (err) {
+      chip.classList.remove('uploading');
+      chip.classList.add('error');
+      chip.querySelector('.file-chip-status').textContent = '✗';
+      chip.querySelector('.file-chip-name').title = err.message;
+    }
+  }
+
+  // Reseta o input para permitir re-selecionar o mesmo arquivo
+  document.getElementById('chat-file-input').value = '';
+}
+
+function criarChip(nome, estado) {
+  const ext = nome.split('.').pop().toLowerCase();
+  const icones = { pdf:'📄', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊',
+                   ppt:'📋', pptx:'📋', txt:'📃', csv:'📊',
+                   jpg:'🖼', jpeg:'🖼', png:'🖼', gif:'🖼', webp:'🖼' };
+  const icon = icones[ext] || '📎';
+
+  const chip = document.createElement('div');
+  chip.className = `file-chip ${estado}`;
+  chip.dataset.nome = nome;
+  chip.innerHTML = `
+    <span class="file-chip-icon">${icon}</span>
+    <span class="file-chip-name" title="${nome}">${nome}</span>
+    <span class="file-chip-status">${estado === 'uploading' ? '⏳' : ''}</span>
+    <button class="file-chip-remove" onclick="removerChip(this)" title="Remover">×</button>
+  `;
+  return chip;
+}
+
+function removerChip(btn) {
+  const chip = btn.closest('.file-chip');
+  const nome = chip.dataset.nome;
+  arquivosPendentes = arquivosPendentes.filter(a => a.nome !== nome);
+  chip.remove();
+  if (!document.getElementById('chat-attachments').children.length) {
+    document.getElementById('chat-attachments').style.display = 'none';
+  }
+}
+
+// ── fluxo principal do chat ───────────────────────────────────
+
+async function iniciarThread(type) {
+  const tpl = TEMPLATES[type];
+
+  // Reseta histórico e previous_response_id
+  historicoMensagens = [];
+  chatState.previousResponseId = null;
+
+  adicionarMensagemChat('assistant', null, true);
+
+  const msgInicial = `O usuário selecionou o template: "${tpl.name}" (${tpl.step1Subtitle}). Inicie a conversa para ajudá-lo a criar uma oportunidade de patrocínio desse tipo.`;
+
+  try {
+    await chamarResponses(msgInicial, []);
+  } catch (err) {
+    removerTyping();
+    adicionarMensagemChat('assistant', `❌ Erro ao conectar: ${err.message}`);
+  }
+}
+
+async function enviarMensagem() {
+  const input = document.getElementById('chat-input');
+  const texto = input.value.trim();
+  const temArquivos = arquivosPendentes.filter(a => a.fileId).length > 0;
+
+  if ((!texto && !temArquivos) || chatState.running) return;
+
+  // Coleta arquivos prontos e limpa a fila
+  const arquivosEnvio = [...arquivosPendentes.filter(a => a.fileId)];
+  arquivosPendentes = [];
+  document.getElementById('chat-attachments').innerHTML = '';
+  document.getElementById('chat-attachments').style.display = 'none';
+
+  input.value = '';
+  autoResize(input);
+
+  // Exibe mensagem do usuário
+  const labelArquivos = arquivosEnvio.map(a => `📎 ${a.nome}`).join(' · ');
+  const exibicao = [texto, labelArquivos].filter(Boolean).join('\n');
+  adicionarMensagemChat('user', exibicao);
+  adicionarMensagemChat('assistant', null, true);
+  document.getElementById('chat-send-btn').disabled = true;
+  chatState.running = true;
+
+  try {
+    await chamarResponses(texto || 'Arquivo(s) enviado(s).', arquivosEnvio);
+  } catch (err) {
+    removerTyping();
+    adicionarMensagemChat('assistant', `❌ Erro: ${err.message}`);
+  } finally {
+    document.getElementById('chat-send-btn').disabled = false;
+    chatState.running = false;
+  }
+}
+
+async function chamarResponses(textoUsuario, arquivos) {
+  // Monta o conteúdo da mensagem do usuário
+  const inputContent = [];
+
+  // Adiciona texto (se houver)
+  if (textoUsuario) {
+    inputContent.push({ type: 'input_text', text: textoUsuario });
+  }
+
+  // Adiciona arquivos no formato correto da Responses API
+  for (const arq of arquivos) {
+    const ext = arq.nome.split('.').pop().toLowerCase();
+    const isImagem = ['jpg','jpeg','png','gif','webp'].includes(ext);
+    if (isImagem) {
+      inputContent.push({ type: 'input_image', image: { file_id: arq.fileId } });
+    } else {
+      inputContent.push({ type: 'input_file', file: { file_id: arq.fileId } });
+    }
+  }
+
+  // Corpo da requisição para a Responses API
+  // Input deve ser array de mensagens com role quando há arquivos
+  const hasArquivos = arquivos && arquivos.length > 0;
+  const body = {
+    model: 'o4-mini',
+    prompt: { id: PROMPT_ID },
+    input: hasArquivos
+      ? [{ role: 'user', content: inputContent }]   // array com role quando há arquivos
+      : textoUsuario,                                 // string simples quando só texto
+    store: true,
+  };
+
+  // Encadeamento de conversa via previous_response_id
+  if (chatState.previousResponseId) {
+    body.previous_response_id = chatState.previousResponseId;
+  }
+
+  const res = await oaiFetch('/responses', 'POST', body);
+
+  removerTyping();
+
+  if (res.error) {
+    adicionarMensagemChat('assistant', `❌ ${res.error.message}`);
+    return;
+  }
+
+  // Guarda o ID para encadeamento da próxima mensagem
+  chatState.previousResponseId = res.id;
+
+  // Extrai o texto da resposta
+  const textoResposta = (res.output || [])
+    .filter(o => o.type === 'message')
+    .flatMap(o => o.content || [])
+    .filter(c => c.type === 'output_text')
+    .map(c => c.text)
+    .join('\n\n');
+
+  adicionarMensagemChat('assistant', textoResposta || '(sem resposta)');
+}
+
+// ── UI helpers ────────────────────────────────────────────────
+
+function adicionarMensagemChat(role, texto, isTyping = false) {
+  const container = document.getElementById('chat-messages');
+
+  const msg = document.createElement('div');
+  msg.className = `chat-msg ${role}`;
+  if (isTyping) msg.id = 'typing-indicator';
+
+  const avatar = document.createElement('div');
+  avatar.className = 'chat-avatar';
+  avatar.textContent = role === 'assistant' ? '✦' : 'V';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble';
+
+  if (isTyping) {
+    bubble.innerHTML = `<div class="chat-typing">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>`;
+  } else {
+    bubble.innerHTML = markdownParaHtml(texto || '');
+  }
+
+  msg.appendChild(avatar);
+  msg.appendChild(bubble);
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removerTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+function markdownParaHtml(texto) {
+  return texto
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^### (.+)$/gm, '<strong>$1</strong>')
+    .replace(/^## (.+)$/gm, '<strong>$1</strong>')
+    .replace(/^# (.+)$/gm, '<strong>$1</strong>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+    .replace(/\n{2,}/g, '</p><p>')
+    .replace(/\n/g, '<br>')
+    .replace(/^(.+)$/, '<p>$1</p>');
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    enviarMensagem();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// sleep não é mais necessário — Responses API é síncrona (sem polling)
+
+function resetSteps() {
+  currentStep = 1;
+  for (let i = 1; i <= totalSteps; i++) {
+    const panel = document.getElementById(`step-panel-${i}`);
+    if (panel) panel.style.display = i === 1 ? 'block' : 'none';
+    const dot = document.getElementById(`step-dot-${i}`);
+    if (dot) {
+      dot.classList.remove('active','done');
+      dot.querySelector('.step-circle').textContent = i;
+      if (i === 1) dot.classList.add('active');
+    }
+  }
+  for (let i = 1; i < totalSteps; i++) {
+    const line = document.getElementById(`step-line-${i}`);
+    if (line) line.classList.remove('done');
+  }
+}
+
+// ─── SIDEBAR MOBILE ───
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('visible');
+});
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('visible');
+}
+
+// ─── STEPS ───
+let currentStep = 1;
+const totalSteps = 5;
+
+function nextStep(n) {
+  const prevPanel = document.getElementById(`step-panel-${currentStep}`);
+  const nextPanel = document.getElementById(`step-panel-${n}`);
+  if (!nextPanel) return;
+  if (prevPanel) prevPanel.style.display = 'none';
+  nextPanel.style.display = 'block';
+  nextPanel.classList.remove('fade-in');
+  void nextPanel.offsetWidth;
+  nextPanel.classList.add('fade-in');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const prevDot = document.getElementById(`step-dot-${currentStep}`);
+  if (prevDot && n > currentStep) {
+    prevDot.classList.remove('active'); prevDot.classList.add('done');
+    prevDot.querySelector('.step-circle').textContent = '✓';
+  }
+  if (prevDot && n < currentStep) {
+    prevDot.classList.remove('active','done');
+    prevDot.querySelector('.step-circle').textContent = currentStep;
+  }
+  const nextDot = document.getElementById(`step-dot-${n}`);
+  if (nextDot) { nextDot.classList.remove('done'); nextDot.classList.add('active'); nextDot.querySelector('.step-circle').textContent = n; }
+  for (let i = 1; i < totalSteps; i++) {
+    const line = document.getElementById(`step-line-${i}`);
+    if (line) line.classList.toggle('done', i < n);
+  }
+  currentStep = n;
+}
+
+// ─── COTAS ───
+function toggleCota(header) {
+  const body = header.nextElementSibling;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  header.querySelector('span:last-child').textContent = isOpen ? '▸' : '▾';
+}
+
+// ─── ATIVACOES ───
+function addAtivacao(listId) {
+  const list = document.getElementById(listId);
+  const row = document.createElement('div');
+  row.className = 'ativacao-row';
+  row.innerHTML = `<input type="text" placeholder="Descreva a ativação..."><button class="btn-remove-row" onclick="removeRow(this)">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+}
+function addVideoRow() {
+  const list = document.getElementById('video-links');
+  const row = document.createElement('div');
+  row.className = 'ativacao-row';
+  row.innerHTML = `<span style="font-size:18px">▶</span><input type="url" placeholder="https://youtube.com/watch?v=..."><button class="btn-remove-row" onclick="removeRow(this)">✕</button>`;
+  list.appendChild(row);
+}
+function addChannelRow() {
+  const list = document.getElementById('other-channels');
+  const row = document.createElement('div');
+  row.className = 'ativacao-row';
+  row.innerHTML = `<input type="text" placeholder="Canal (ex: Newsletter, App)"><input type="text" placeholder="Alcance / detalhe"><button class="btn-remove-row" onclick="removeRow(this)">✕</button>`;
+  list.appendChild(row);
+}
+function removeRow(btn) { btn.closest('.ativacao-row')?.remove(); }
+
+// ─── LINHAS DINÂMICAS ESPECÍFICAS ───
+function addTransmissaoRow() {
+  const list = document.getElementById('list-transmissoes');
+  const row = document.createElement('div');
+  row.className = 'ativacao-row';
+  row.innerHTML = `
+    <div class="select-wrapper" style="flex:1">
+      <select>
+        <option value="">Canal / plataforma...</option>
+        <option>SporTV</option>
+        <option>Band Sports</option>
+        <option>ESPN</option>
+        <option>DAZN</option>
+        <option>Cazé TV (YouTube)</option>
+        <option>Prime Video</option>
+        <option>YouTube (canal próprio)</option>
+        <option>Instagram Live</option>
+        <option>TikTok Live</option>
+        <option>Outro streaming</option>
+        <option>TV aberta regional</option>
+        <option>Rádio / Podcast</option>
+      </select>
+    </div>
+    <input type="text" placeholder="Audiência estimada (ex: 120k)" style="flex:1">
+    <button class="btn-remove-row" onclick="removeRow(this)">✕</button>`;
+  list.appendChild(row);
+}
+
+function addPatrocinadorRow() {
+  const list = document.getElementById('list-patrocinadores');
+  const row = document.createElement('div');
+  row.className = 'ativacao-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Nome da marca (ex: Bradesco)" style="flex:1">
+    <div class="select-wrapper" style="flex:0.7">
+      <select>
+        <option value="">Cota...</option>
+        <option>Master</option><option>Ouro</option><option>Prata</option>
+        <option>Bronze</option><option>Apoiador</option><option>Fornecedor</option>
+      </select>
+    </div>
+    <button class="btn-remove-row" onclick="removeRow(this)">✕</button>`;
+  list.appendChild(row);
+}
+
+function addConquistaRow() {
+  const list = document.getElementById('list-conquistas');
+  const row = document.createElement('div');
+  row.className = 'ativacao-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Ex: Campeão Brasileiro" style="flex:2">
+    <div class="select-wrapper" style="flex:0.8">
+      <select>
+        <option value="">Ano...</option>
+        <option>2024</option><option>2023</option><option>2022</option>
+        <option>2021</option><option>2020</option><option>2019</option>
+        <option>2018</option><option>2017</option><option>Antes de 2017</option>
+      </select>
+    </div>
+    <button class="btn-remove-row" onclick="removeRow(this)">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+function addCompeticaoRow() {
+  const list = document.getElementById('list-competicoes');
+  const row = document.createElement('div');
+  row.className = 'ativacao-row';
+  row.innerHTML = `
+    <input type="text" placeholder="Nome da competição (ex: Copa do Brasil)" style="flex:2">
+    <div class="select-wrapper" style="flex:0.8">
+      <select>
+        <option value="">Mês...</option>
+        <option>Jan</option><option>Fev</option><option>Mar</option>
+        <option>Abr</option><option>Mai</option><option>Jun</option>
+        <option>Jul</option><option>Ago</option><option>Set</option>
+        <option>Out</option><option>Nov</option><option>Dez</option>
+        <option>Ano todo</option>
+      </select>
+    </div>
+    <button class="btn-remove-row" onclick="removeRow(this)">✕</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+// ─── TAGS ───
+function addTag(e, input, cls) {
+  if (e.key === 'Enter' && input.value.trim()) {
+    e.preventDefault();
+    const tag = document.createElement('span');
+    tag.className = `tag ${cls}`;
+    tag.innerHTML = `${input.value.trim()}<button class="tag-remove" onclick="removeTag(this)">✕</button>`;
+    input.parentNode.insertBefore(tag, input);
+    input.value = '';
+  }
+}
+function removeTag(btn) { btn.closest('.tag').remove(); }
+
+// ─── VISIBILITY ───
+function selectVisibility(card) {
+  document.querySelectorAll('.visibility-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+
+// ─── SEGMENTS ───
+function toggleSegment(pill, type) {
+  pill.classList.toggle(type === 'green' ? 'selected-green' : 'selected-red');
+}
+
+// ─── UPLOAD ───
+function triggerUpload(type) { document.getElementById(`upload-${type}`).click(); }
+function previewCover(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('cover-img').src = e.target.result;
+    document.getElementById('cover-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── CHAR COUNTER ───
+function updateChar(el, id, max) {
+  const count = el.value.length;
+  const counter = document.getElementById(id);
+  if (counter) { counter.textContent = count; counter.style.color = count > max * 0.9 ? '#E65100' : ''; }
+}
+
+// ─── PREVIEW SYNC ───
+function updatePreview() {}
+
+// ─── PUBLISH SUCCESS ───
+function publishSuccess() {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:flex;align-items:center;justify-content:center;`;
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:40px;text-align:center;max-width:420px;width:90%;animation:fadeIn 0.3s ease">
+      <div style="font-size:56px;margin-bottom:16px">🚀</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:22px;margin-bottom:8px">Oportunidade publicada!</h2>
+      <p style="font-size:14px;color:#9A9A9A;margin-bottom:24px;line-height:1.6">Sua oportunidade já está visível no Radar Relevantia. O time vai curar e recomendar para as marcas com melhor fit.</p>
+      <button onclick="window.location.href='dashboard-detentor.html'" style="padding:12px 28px;background:#0E0E0E;color:white;border:none;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;width:100%;margin-bottom:10px">Ver meu dashboard</button>
+      <button onclick="this.closest('[style]').remove()" style="padding:10px 28px;background:transparent;color:#9A9A9A;border:1.5px solid #EBEBEB;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%">Criar outra oportunidade</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+</script>
+</body>
+</html>
