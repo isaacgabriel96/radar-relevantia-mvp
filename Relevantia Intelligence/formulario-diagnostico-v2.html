@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico — The Edge · Relevantia Intelligence</title>
+<script>
+  // ── Dual-Role Auth Guard (admin OU client) ─────────────────────
+  (function() {
+    try {
+      const adminRaw  = localStorage.getItem('ri_admin_session');
+      const clientRaw = localStorage.getItem('ri_client_session');
+      const raw = adminRaw || clientRaw;
+      if (!raw) { window.location.href = 'index.html'; return; }
+      const s = JSON.parse(raw);
+      if (s.expires_at && Date.now()/1000 > s.expires_at) {
+        localStorage.removeItem(adminRaw ? 'ri_admin_session' : 'ri_client_session');
+        window.location.href = 'index.html';
+      }
+    } catch { window.location.href = 'index.html'; }
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Intelligence Tokens ────────────────────────────────────── */
+  :root {
+    --gold:        #C9A43A;
+    --gold-light:  #E8C96A;
+    --gold-pale:   #FBF5E6;
+    --gold-gradient: linear-gradient(135deg, #C9A43A 0%, #E8C96A 100%);
+    --black:       #0E0E0E;
+    --black-2:     #1A1A1A;
+    --gray-1:      #F7F7F7;
+    --gray-2:      #EDEDED;
+    --gray-3:      #D6D6D6;
+    --gray-4:      #9A9A9A;
+    --gray-5:      #5C5C5C;
+    --white:       #FFFFFF;
+    --danger:      #EF4444;
+    --success:     #10B981;
+    --info:        #3B82F6;
+    --warn:        #F59E0B;
+
+    --font-heading: 'Playfair Display', serif;
+    --font-body:    'DM Sans', sans-serif;
+
+    --radius-sm: 8px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+
+    --sidebar-w: 240px;
+
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    --shadow-gold: 0 8px 32px rgba(201,164,58,0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: var(--font-body);
+    color: var(--black);
+    background: var(--gray-1);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ─────────────────────────────────────────────────── */
+  .app { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ────────────────────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--black);
+    color: var(--white);
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    flex-shrink: 0;
+  }
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 20px;
+  }
+  .logo-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--gold-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: var(--black);
+    font-size: 16px;
+  }
+  .logo-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .logo-name { font-family: var(--font-heading); font-size: 14px; font-weight: 600; }
+  .logo-sub  { font-size: 11px; color: var(--gray-4); letter-spacing: 0.04em; text-transform: uppercase; }
+
+  .nav-section {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gray-4);
+    margin: 8px 0 8px 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--gray-3);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background .15s, color .15s;
+    cursor: pointer;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+  .nav-item.active {
+    background: var(--gold-gradient);
+    color: var(--black);
+    font-weight: 600;
+  }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .user-card {
+    margin-top: auto;
+    padding: 12px;
+    background: rgba(255,255,255,0.04);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .user-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--gold-gradient);
+    color: var(--black);
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; color: var(--gray-4); }
+  .logout-btn {
+    background: none; border: none; color: var(--gray-4); cursor: pointer;
+    padding: 6px; border-radius: 6px; display: flex; align-items: center;
+  }
+  .logout-btn:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+  .logout-btn svg { width: 16px; height: 16px; }
+
+  /* ── Main ───────────────────────────────────────────────────── */
+  .main {
+    flex: 1;
+    padding: 32px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* ── Header ─────────────────────────────────────────────────── */
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .page-title-wrap { flex: 1; min-width: 260px; }
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--gray-5);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .breadcrumb a { color: var(--gray-5); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--black); }
+  .page-title {
+    font-family: var(--font-heading);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--black);
+    margin-bottom: 4px;
+  }
+  .page-subtitle { color: var(--gray-5); font-size: 14px; }
+  .client-name-em {
+    font-family: var(--font-heading);
+    font-style: italic;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .status-chip::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+  }
+  .status-rascunho    { background: var(--gray-2); color: var(--gray-5); }
+  .status-rascunho::before    { background: var(--gray-4); }
+  .status-revisao     { background: #FFF7ED; color: #C2410C; }
+  .status-revisao::before     { background: var(--warn); }
+  .status-finalizado  { background: #ECFDF5; color: #047857; }
+  .status-finalizado::before  { background: var(--success); }
+
+  /* ── Buttons ────────────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s, transform .1s, box-shadow .15s, opacity .15s;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--gold-gradient);
+    color: var(--black);
+    box-shadow: var(--shadow-gold);
+  }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.04); }
+  .btn-secondary {
+    background: var(--white);
+    color: var(--black);
+    border: 1px solid var(--gray-3);
+  }
+  .btn-secondary:hover:not(:disabled) { background: var(--gray-1); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--gray-5);
+    border: 1px solid transparent;
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--gray-2); color: var(--black); }
+
+  /* ── Tabs ───────────────────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-2);
+    margin-bottom: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    border: none;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: background .15s, color .15s;
+  }
+  .tab:hover { background: var(--gray-1); color: var(--black); }
+  .tab.active {
+    background: var(--black);
+    color: var(--white);
+  }
+  .tab-emoji { font-size: 14px; }
+  .tab-num {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--gray-2);
+    color: var(--gray-5);
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tab.active .tab-num { background: var(--gold); color: var(--black); }
+  .tab.filled .tab-num { background: var(--success); color: var(--white); }
+
+  /* ── Progress ───────────────────────────────────────────────── */
+  .progress-wrap {
+    background: var(--white);
+    border: 1px solid var(--gray-2);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--gray-5);
+  }
+  .progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--gray-2);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold-gradient);
+    border-radius: 100px;
+    width: 0;
+    transition: width .3s ease;
+  }
+  .progress-count { font-weight: 600; color: var(--black); font-variant-numeric: tabular-nums; }
+
+  /* ── Bloco Header ───────────────────────────────────────────── */
+  .bloco-header {
+    background: var(--white);
+    border: 1px solid var(--gray-2);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-card);
+  }
+  .bloco-emoji { font-size: 30px; line-height: 1; }
+  .bloco-title-wrap { flex: 1; }
+  .bloco-name {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .bloco-count { font-size: 13px; color: var(--gray-5); }
+
+  /* ── Question Card ──────────────────────────────────────────── */
+  .q-card {
+    background: var(--white);
+    border: 1px solid var(--gray-2);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow-card);
+    scroll-margin-top: 80px;
+  }
+  .q-head {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .q-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--gold-pale);
+    color: var(--gold);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .q-card.answered .q-num {
+    background: var(--gold-gradient);
+    color: var(--black);
+  }
+  .q-text-wrap { flex: 1; }
+  .q-label {
+    font-family: var(--font-heading);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--black);
+    line-height: 1.35;
+  }
+  .q-required { color: var(--gold); margin-left: 4px; }
+  .q-helper { font-size: 13px; color: var(--gray-5); margin-top: 4px; }
+
+  .q-body { padding-left: 46px; }
+  .q-notes-wrap { padding-left: 46px; margin-top: 10px; }
+  .q-notes-toggle {
+    background: none;
+    border: none;
+    color: var(--gray-5);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 4px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .q-notes-toggle:hover { color: var(--black); }
+  .q-notes { display: none; margin-top: 8px; }
+  .q-notes.open { display: block; }
+
+  /* ── Fields ─────────────────────────────────────────────────── */
+  .field-textarea, .field-text, .field-select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--gray-3);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--black);
+    background: var(--white);
+    transition: border-color .15s, box-shadow .15s;
+    resize: vertical;
+  }
+  .field-textarea { min-height: 96px; }
+  .field-textarea:focus, .field-text:focus, .field-select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,164,58,0.15);
+  }
+  .field-notes {
+    min-height: 60px;
+    border-style: dashed;
+    background: var(--gray-1);
+    font-size: 13px;
+  }
+
+  /* tags (3 palavras) */
+  .tags-input {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .tags-input input {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-3);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .tags-input input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,164,58,0.15);
+  }
+
+  /* select único */
+  .field-radio-group { display: flex; flex-direction: column; gap: 8px; }
+  .field-radio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--gray-3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .field-radio:hover { background: var(--gray-1); }
+  .field-radio input { accent-color: var(--gold); }
+  .field-radio.checked {
+    border-color: var(--gold);
+    background: var(--gold-pale);
+  }
+
+  /* distribuição percentual */
+  .dist-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 30px;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .dist-row input[type="text"] {
+    padding: 9px 12px;
+    border: 1px solid var(--gray-3);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .dist-row input[type="number"] {
+    padding: 9px 12px;
+    border: 1px solid var(--gray-3);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 14px;
+    text-align: right;
+  }
+  .dist-row input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,164,58,0.15);
+  }
+  .dist-pct { color: var(--gray-5); font-size: 13px; font-weight: 600; }
+  .dist-remove {
+    background: none; border: none; color: var(--gray-4);
+    cursor: pointer; padding: 4px; font-size: 18px; line-height: 1;
+  }
+  .dist-remove:hover { color: var(--danger); }
+  .dist-add {
+    background: transparent;
+    border: 1px dashed var(--gray-3);
+    color: var(--gray-5);
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .dist-add:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-pale); }
+  .dist-total {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--gray-1);
+    font-size: 13px;
+    color: var(--gray-5);
+    display: flex;
+    justify-content: space-between;
+  }
+  .dist-total.valid { background: #ECFDF5; color: #047857; }
+  .dist-total.invalid { background: #FEF2F2; color: #B91C1C; }
+  .dist-total .tot-val { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  /* time estruturado */
+  .time-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .time-grid .field-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .time-grid label {
+    font-size: 12px;
+    color: var(--gray-5);
+    font-weight: 500;
+  }
+  @media (max-width: 640px) {
+    .time-grid { grid-template-columns: 1fr; }
+  }
+
+  /* checklist métricas */
+  .checklist {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-3);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    font-size: 14px;
+  }
+  .check-item:hover { background: var(--gray-1); }
+  .check-item input { accent-color: var(--gold); }
+  .check-item.checked {
+    border-color: var(--gold);
+    background: var(--gold-pale);
+  }
+  .check-other {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+  }
+  .check-other input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--gray-3);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 14px;
+  }
+  .check-other input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,164,58,0.15);
+  }
+
+  /* ── Save indicator ─────────────────────────────────────────── */
+  .save-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--gray-5);
+    padding: 6px 10px;
+  }
+  .save-indicator.saving { color: var(--info); }
+  .save-indicator.saved  { color: var(--success); }
+  .save-indicator.error  { color: var(--danger); }
+  .save-indicator svg { width: 14px; height: 14px; }
+
+  /* ── Footer nav ─────────────────────────────────────────────── */
+  .footer-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--gray-2);
+  }
+
+  /* ── Toast ──────────────────────────────────────────────────── */
+  .ri-toast { font-family: var(--font-body); }
+
+  /* ── Modal ──────────────────────────────────────────────────── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-title {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .modal-body {
+    color: var(--gray-5);
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.55;
+  }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────── */
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .main { padding: 20px; }
+    .page-title { font-size: 22px; }
+    .q-card { padding: 18px; }
+    .q-body, .q-notes-wrap { padding-left: 0; }
+    .q-head { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── Sidebar ───────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">R</div>
+      <div class="logo-text">
+        <span class="logo-name">Relevantia</span>
+        <span class="logo-sub">Intelligence</span>
+      </div>
+    </div>
+
+    <div class="nav-section">Admin</div>
+    <a class="nav-item" href="admin-dashboard.html">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      Dashboard
+    </a>
+    <a class="nav-item" href="admin-clientes.html">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Clientes
+    </a>
+    <a class="nav-item active">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Diagnóstico
+    </a>
+
+    <div class="user-card">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Consultor</div>
+        <div class="user-role">Admin</div>
+      </div>
+      <button class="logout-btn" id="logoutBtn" title="Sair">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ──────────────────────────────────────────────── -->
+  <main class="main">
+    <div class="page-header">
+      <div class="page-title-wrap">
+        <div class="breadcrumb">
+          <a href="admin-clientes.html">Clientes</a> · <span id="bcClient">—</span> · Diagnóstico
+        </div>
+        <h1 class="page-title">Diagnóstico — The Edge</h1>
+        <p class="page-subtitle">Entrevista com <span class="client-name-em" id="clienteNome">—</span></p>
+      </div>
+      <div class="header-actions">
+        <span class="status-chip status-rascunho" id="statusChip">
+          <span id="statusLabel">Rascunho</span>
+        </span>
+        <span class="save-indicator" id="saveIndicator" title="Autosave">
+          <span id="saveText">—</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs" id="tabs" role="tablist"></nav>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <span>Progresso total</span>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-count"><span id="progCount">0</span> / 31</span>
+    </div>
+
+    <!-- Current bloco header -->
+    <div class="bloco-header">
+      <div class="bloco-emoji" id="blocoEmoji">🧠</div>
+      <div class="bloco-title-wrap">
+        <div class="bloco-name" id="blocoName">Contexto & Identidade</div>
+        <div class="bloco-count"><span id="blocoCount">0</span> de <span id="blocoTotal">5</span> preenchidas</div>
+      </div>
+    </div>
+
+    <!-- Questions -->
+    <div id="questionsWrap"></div>
+
+    <!-- Footer navigation -->
+    <div class="footer-nav">
+      <button class="btn btn-ghost" id="prevBtn">← Bloco anterior</button>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-secondary" id="markRevisaoBtn">Marcar em revisão</button>
+        <button class="btn btn-primary" id="finalizarBtn">Finalizar diagnóstico</button>
+      </div>
+      <button class="btn btn-ghost" id="nextBtn">Próximo bloco →</button>
+    </div>
+  </main>
+</div>
+
+<!-- Finalizar modal -->
+<div class="modal-overlay" id="finalizarModal">
+  <div class="modal">
+    <div class="modal-title">Finalizar diagnóstico?</div>
+    <div class="modal-body">
+      Ao finalizar, o diagnóstico será liberado para visualização do cliente no painel dele.
+      Você poderá editar posteriormente, mas o cliente já terá acesso à versão atual.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="cancelFinalizar">Cancelar</button>
+      <button class="btn btn-primary" id="confirmFinalizar">Sim, finalizar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/core.js"></script>
+<script>
+  // ══════════════════════════════════════════════════════════════
+  //  Question catalog — 7 blocos, 31 perguntas
+  // ══════════════════════════════════════════════════════════════
+  const BLOCOS = [
+    {
+      num: 1, emoji: '🧠', nome: 'Contexto & Identidade',
+      perguntas: [
+        { n: 1,  code: 'proposta_valor',      tipo: 'texto_longo', req: true,
+          label: 'Qual a proposta de valor principal da sua marca/empresa hoje?',
+          helper: 'O que vocês entregam de mais importante para o cliente.' },
+        { n: 2,  code: 'quem_sentiria_falta', tipo: 'texto_longo', req: true,
+          label: 'Se a marca sumisse amanhã, quem sentiria falta e por quê?' },
+        { n: 3,  code: 'diferencial_unico',   tipo: 'texto_longo', req: true,
+          label: 'Qual o diferencial único que só vocês conseguem entregar?' },
+        { n: 4,  code: 'estagio_maturidade',  tipo: 'texto_longo', req: true,
+          label: 'Em que estágio de maturidade a marca está hoje?',
+          helper: 'Início, consolidação, expansão, reposicionamento, etc.' },
+        { n: 5,  code: 'tres_palavras',       tipo: 'tags_3',      req: true,
+          label: 'Descreva a personalidade da marca em 3 palavras.',
+          helper: 'Uma palavra por campo.' }
+      ]
+    },
+    {
+      num: 2, emoji: '📊', nome: 'Modelo de Negócio & Receita',
+      perguntas: [
+        { n: 6,  code: 'faturamento_anual',   tipo: 'select_unico', req: true,
+          label: 'Qual a faixa de faturamento anual atual?',
+          opcoes: ['Até R$1 milhão', 'R$1 mi – R$10 mi', 'R$10 mi – R$50 mi', 'R$50 mi – R$100 mi', 'R$100 mi – R$500 mi', 'Mais de R$500 mi'] },
+        { n: 7,  code: 'regime_tributario',   tipo: 'select_unico', req: false,
+          label: 'Regime tributário atual',
+          opcoes: ['Simples Nacional', 'Lucro Presumido', 'Lucro Real'] },
+        { n: 8,  code: 'fontes_receita',      tipo: 'distribuicao_percentual', req: true,
+          label: 'Quais são as fontes de receita hoje? Distribua em 100%.',
+          helper: 'Some as principais fontes até totalizar 100%.' },
+        { n: 9,  code: 'dependencia_excessiva', tipo: 'texto_longo', req: true,
+          label: 'Existe alguma dependência excessiva? (de clientes, canais, produtos, etc.)' },
+        { n: 10, code: 'novas_linhas',        tipo: 'texto_longo', req: true,
+          label: 'Quais novas linhas de receita estão sendo testadas ou consideradas?' },
+        { n: 11, code: 'recorrentes_vs_novos', tipo: 'texto_longo', req: true,
+          label: 'Qual o equilíbrio entre clientes recorrentes e novos? Como isso se manifesta?' }
+      ]
+    },
+    {
+      num: 3, emoji: '🚀', nome: 'Aquisição, Marketing & Vendas',
+      perguntas: [
+        { n: 12, code: 'canais_aquisicao',    tipo: 'distribuicao_percentual', req: true,
+          label: 'Quais canais de aquisição usa hoje? Distribua em %.',
+          helper: 'Ex.: Indicação, Tráfego pago, SEO, Eventos, Outbound, etc.' },
+        { n: 13, code: 'canal_maior_roi',     tipo: 'texto_curto', req: true,
+          label: 'Qual canal traz o maior ROI hoje?' },
+        { n: 14, code: 'canais_subaproveitados', tipo: 'texto_longo', req: true,
+          label: 'Quais canais estão subaproveitados ou nem foram testados?' },
+        { n: 15, code: 'time_marketing',      tipo: 'time_estruturado', req: true,
+          label: 'Estrutura do time de marketing',
+          helper: 'Tamanho, funções principais e modelo (interno/terceirizado).' },
+        { n: 16, code: 'time_vendas',         tipo: 'time_estruturado', req: true,
+          label: 'Estrutura do time de vendas' },
+        { n: 17, code: 'parcerias',           tipo: 'texto_longo', req: true,
+          label: 'Existem parcerias estratégicas ativas? Quais?' },
+        { n: 18, code: 'metricas',            tipo: 'checklist_metricas', req: true,
+          label: 'Quais métricas vocês acompanham hoje?',
+          helper: 'Marque todas que se aplicam.',
+          opcoes: ['CAC', 'LTV', 'Churn', 'MQL → SQL', 'ROI', 'Taxa de conversão'] },
+        { n: 19, code: 'suporte_externo',     tipo: 'texto_longo', req: true,
+          label: 'Que tipo de suporte externo vocês usam hoje (agências, consultorias, freelas)?' }
+      ]
+    },
+    {
+      num: 4, emoji: '⚙️', nome: 'Operações & Recursos',
+      perguntas: [
+        { n: 20, code: 'maiores_custos',      tipo: 'texto_longo', req: true,
+          label: 'Quais são os maiores custos operacionais atualmente?' },
+        { n: 21, code: 'custos_otimizaveis',  tipo: 'texto_longo', req: true,
+          label: 'Quais custos você acredita que poderiam ser otimizados ou reduzidos?' },
+        { n: 22, code: 'gargalos_tecnicos',   tipo: 'texto_longo', req: true,
+          label: 'Quais são os principais gargalos técnicos ou operacionais hoje?' }
+      ]
+    },
+    {
+      num: 5, emoji: '🔍', nome: 'Desafios & Oportunidades',
+      perguntas: [
+        { n: 23, code: 'marca_mal_compreendida', tipo: 'texto_longo', req: true,
+          label: 'Em que aspecto a marca é mal compreendida pelo mercado?' },
+        { n: 24, code: 'oportunidades',       tipo: 'texto_longo', req: true,
+          label: 'Quais oportunidades você enxerga claramente mas ainda não foram exploradas?' },
+        { n: 25, code: 'mercados_inexplorados', tipo: 'texto_longo', req: true,
+          label: 'Há mercados, segmentos ou nichos ainda inexplorados com potencial?' }
+      ]
+    },
+    {
+      num: 6, emoji: '🎯', nome: 'Objetivos & Visão de Futuro',
+      perguntas: [
+        { n: 26, code: 'ganho_sprint',        tipo: 'texto_longo', req: true,
+          label: 'Qual o grande ganho que você espera do Sprint The Edge?' },
+        { n: 27, code: 'horizonte_12m',       tipo: 'texto_longo', req: true,
+          label: 'Onde você quer que a marca esteja em 12 meses?' },
+        { n: 28, code: 'marca_relevante',     tipo: 'texto_longo', req: true,
+          label: 'O que significa, para vocês, ser uma marca relevante?' },
+        { n: 29, code: 'marcas_inspiracao',   tipo: 'texto_longo', req: true,
+          label: 'Quais marcas inspiram vocês (dentro ou fora do setor) e por quê?' },
+        { n: 30, code: 'publico_prioritario', tipo: 'texto_longo', req: true,
+          label: 'Qual público vocês consideram prioritário neste momento?' }
+      ]
+    },
+    {
+      num: 7, emoji: '💬', nome: 'Informações Adicionais',
+      perguntas: [
+        { n: 31, code: 'info_adicional',      tipo: 'texto_longo', req: false,
+          label: 'Alguma informação adicional relevante que ainda não foi abordada?',
+          helper: 'Opcional.' }
+      ]
+    }
+  ];
+
+  const TOTAL_PERGUNTAS = BLOCOS.reduce((a, b) => a + b.perguntas.length, 0); // 31
+
+  // ══════════════════════════════════════════════════════════════
+  //  State
+  // ══════════════════════════════════════════════════════════════
+  const urlParams = new URLSearchParams(window.location.search);
+  const CLIENTE_ID = urlParams.get('cliente_id');
+  const session = requireAuth('admin', 'index.html');
+  if (!session) throw new Error('unauthorized');
+
+  let currentBloco = 1;
+  let clienteNome = '—';
+  let status = 'rascunho'; // rascunho | em_revisao | finalizado
+  // respostas: { [pergunta_codigo]: { texto: '', json: {...}, notas: '' } }
+  const respostas = {};
+  const saveTimers = {};
+  const DEBOUNCE_MS = 800;
+
+  // ══════════════════════════════════════════════════════════════
+  //  User header
+  // ══════════════════════════════════════════════════════════════
+  (function renderUser() {
+    const user = session.user || {};
+    const email = user.email || 'admin';
+    const name = (user.user_metadata && user.user_metadata.name) || email.split('@')[0];
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userAvatar').textContent = (name[0] || 'A').toUpperCase();
+  })();
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    clearSession('admin');
+    window.location.href = 'index.html';
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  //  Fetch cliente
+  // ══════════════════════════════════════════════════════════════
+  async function fetchCliente() {
+    if (!CLIENTE_ID) {
+      clienteNome = 'Cliente não informado';
+      document.getElementById('clienteNome').textContent = clienteNome;
+      document.getElementById('bcClient').textContent = clienteNome;
+      return;
+    }
+    try {
+      const res = await sbFetch(
+        `/rest/v1/clientes?id=eq.${CLIENTE_ID}&select=id,nome,marca`,
+        session.access_token
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data[0]) {
+          clienteNome = data[0].marca || data[0].nome || '—';
+          document.getElementById('clienteNome').textContent = clienteNome;
+          document.getElementById('bcClient').textContent = clienteNome;
+          document.title = `Diagnóstico · ${clienteNome} — Relevantia Intelligence`;
+        }
+      }
+    } catch (e) {
+      console.warn('Cliente fetch failed:', e);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  Load existing respostas
+  // ══════════════════════════════════════════════════════════════
+  async function loadRespostas() {
+    if (!CLIENTE_ID) return;
+    try {
+      const res = await sbFetch(
+        `/rest/v1/edge_diagnostico_respostas?cliente_id=eq.${CLIENTE_ID}&select=*`,
+        session.access_token
+      );
+      if (!res.ok) return;
+      const rows = await res.json();
+      for (const r of rows) {
+        respostas[r.pergunta_codigo] = {
+          id: r.id,
+          texto: r.resposta_texto || '',
+          json: r.resposta_json || null,
+          notas: r.notas_consultor || ''
+        };
+      }
+      // status do diagnóstico (armazenado na linha especial 'diagnostico_status')
+      if (respostas['__status__']) {
+        status = respostas['__status__'].texto || 'rascunho';
+      }
+    } catch (e) {
+      console.warn('Respostas fetch failed:', e);
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  Upsert resposta (Supabase)
+  // ══════════════════════════════════════════════════════════════
+  async function upsertResposta(pergunta) {
+    const r = respostas[pergunta.code];
+    if (!r) return;
+    const body = {
+      cliente_id: CLIENTE_ID,
+      bloco: pergunta.bloco,
+      pergunta_numero: pergunta.n,
+      pergunta_codigo: pergunta.code,
+      tipo: pergunta.tipo,
+      resposta_texto: r.texto || null,
+      resposta_json: r.json || null,
+      notas_consultor: r.notas || null,
+      updated_at: new Date().toISOString()
+    };
+    setSaveState('saving');
+    try {
+      // upsert via on_conflict = (cliente_id, pergunta_codigo)
+      const res = await sbFetch(
+        `/rest/v1/edge_diagnostico_respostas?on_conflict=cliente_id,pergunta_codigo`,
+        session.access_token,
+        {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(body)
+        }
+      );
+      if (!res.ok) throw new Error('save failed: ' + res.status);
+      setSaveState('saved');
+    } catch (e) {
+      console.error(e);
+      setSaveState('error');
+    }
+  }
+
+  function scheduleSave(pergunta) {
+    clearTimeout(saveTimers[pergunta.code]);
+    saveTimers[pergunta.code] = setTimeout(() => upsertResposta(pergunta), DEBOUNCE_MS);
+  }
+
+  function setSaveState(state) {
+    const ind = document.getElementById('saveIndicator');
+    const txt = document.getElementById('saveText');
+    ind.classList.remove('saving', 'saved', 'error');
+    if (state === 'saving') { ind.classList.add('saving'); txt.textContent = 'Salvando…'; }
+    else if (state === 'saved') { ind.classList.add('saved'); txt.textContent = 'Salvo ' + new Date().toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }); }
+    else if (state === 'error') { ind.classList.add('error'); txt.textContent = 'Erro ao salvar'; }
+    else { txt.textContent = '—'; }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  Answered-ness
+  // ══════════════════════════════════════════════════════════════
+  function isAnswered(p) {
+    const r = respostas[p.code];
+    if (!r) return false;
+    switch (p.tipo) {
+      case 'texto_longo':
+      case 'texto_curto':
+        return !!(r.texto && r.texto.trim());
+      case 'tags_3': {
+        const arr = (r.json && r.json.tags) || [];
+        return arr.filter(t => t && t.trim()).length >= 1;
+      }
+      case 'select_unico':
+        return !!(r.texto && r.texto.trim());
+      case 'distribuicao_percentual': {
+        const items = (r.json && r.json.items) || [];
+        return items.some(i => i.nome && i.nome.trim() && Number(i.pct) > 0);
+      }
+      case 'time_estruturado':
+        return !!(r.json && (r.json.tamanho || r.json.funcoes || r.json.modelo || r.json.observacoes));
+      case 'checklist_metricas': {
+        const m = (r.json && r.json.metricas) || [];
+        const o = (r.json && r.json.outros) || '';
+        return m.length > 0 || !!o.trim();
+      }
+    }
+    return false;
+  }
+
+  function countAnswered() {
+    let total = 0;
+    const perBloco = {};
+    for (const b of BLOCOS) {
+      let c = 0;
+      for (const p of b.perguntas) if (isAnswered(p)) c++;
+      perBloco[b.num] = c;
+      total += c;
+    }
+    return { total, perBloco };
+  }
+
+  function updateProgress() {
+    const { total, perBloco } = countAnswered();
+    document.getElementById('progCount').textContent = total;
+    const pct = (total / TOTAL_PERGUNTAS) * 100;
+    document.getElementById('progressFill').style.width = pct + '%';
+    const b = BLOCOS.find(x => x.num === currentBloco);
+    document.getElementById('blocoCount').textContent = perBloco[currentBloco] || 0;
+    document.getElementById('blocoTotal').textContent = b.perguntas.length;
+    // update tab dots
+    document.querySelectorAll('.tab').forEach(el => {
+      const bnum = Number(el.dataset.bloco);
+      const bdef = BLOCOS.find(x => x.num === bnum);
+      if (perBloco[bnum] === bdef.perguntas.length) el.classList.add('filled');
+      else el.classList.remove('filled');
+      el.querySelector('.tab-num').textContent = perBloco[bnum] || 0;
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  Render tabs
+  // ══════════════════════════════════════════════════════════════
+  function renderTabs() {
+    const tabsEl = document.getElementById('tabs');
+    tabsEl.innerHTML = '';
+    for (const b of BLOCOS) {
+      const btn = document.createElement('button');
+      btn.className = 'tab' + (b.num === currentBloco ? ' active' : '');
+      btn.dataset.bloco = b.num;
+      btn.innerHTML = `
+        <span class="tab-emoji">${b.emoji}</span>
+        <span>Bloco ${b.num}</span>
+        <span class="tab-num">0</span>
+      `;
+      btn.addEventListener('click', () => goToBloco(b.num));
+      tabsEl.appendChild(btn);
+    }
+  }
+
+  function goToBloco(n) {
+    currentBloco = n;
+    renderTabs();
+    renderBloco();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  Render questions
+  // ══════════════════════════════════════════════════════════════
+  function renderBloco() {
+    const b = BLOCOS.find(x => x.num === currentBloco);
+    document.getElementById('blocoEmoji').textContent = b.emoji;
+    document.getElementById('blocoName').textContent = b.nome;
+
+    const wrap = document.getElementById('questionsWrap');
+    wrap.innerHTML = '';
+    for (const p of b.perguntas) {
+      p.bloco = b.num;
+      wrap.appendChild(renderQuestion(p));
+    }
+
+    document.getElementById('prevBtn').disabled = currentBloco === 1;
+    document.getElementById('nextBtn').disabled = currentBloco === BLOCOS.length;
+
+    updateProgress();
+  }
+
+  function renderQuestion(p) {
+    const card = document.createElement('div');
+    card.className = 'q-card' + (isAnswered(p) ? ' answered' : '');
+    card.dataset.code = p.code;
+
+    card.innerHTML = `
+      <div class="q-head">
+        <div class="q-num">${p.n}</div>
+        <div class="q-text-wrap">
+          <div class="q-label">${p.label}${p.req ? '<span class="q-required">*</span>' : ''}</div>
+          ${p.helper ? `<div class="q-helper">${p.helper}</div>` : ''}
+        </div>
+      </div>
+      <div class="q-body" data-body></div>
+      <div class="q-notes-wrap">
+        <button type="button" class="q-notes-toggle" data-notes-toggle>
+          + Anotações do consultor
+        </button>
+        <div class="q-notes" data-notes>
+          <textarea class="field-textarea field-notes" placeholder="Observações internas (não aparecem para o cliente)…"></textarea>
+        </div>
+      </div>
+    `;
+
+    const body = card.querySelector('[data-body]');
+    mountField(body, p, card);
+
+    // notas
+    const notesToggle = card.querySelector('[data-notes-toggle]');
+    const notesBox = card.querySelector('[data-notes]');
+    const notesField = notesBox.querySelector('textarea');
+    const existingNotes = (respostas[p.code] && respostas[p.code].notas) || '';
+    notesField.value = existingNotes;
+    if (existingNotes) notesBox.classList.add('open');
+    notesToggle.addEventListener('click', () => {
+      notesBox.classList.toggle('open');
+      if (notesBox.classList.contains('open')) notesField.focus();
+    });
+    notesField.addEventListener('input', () => {
+      ensureResposta(p);
+      respostas[p.code].notas = notesField.value;
+      scheduleSave(p);
+    });
+
+    return card;
+  }
+
+  function ensureResposta(p) {
+    if (!respostas[p.code]) {
+      respostas[p.code] = { texto: '', json: null, notas: '' };
+    }
+  }
+
+  function markCardAnswered(p) {
+    const card = document.querySelector(`.q-card[data-code="${p.code}"]`);
+    if (!card) return;
+    if (isAnswered(p)) card.classList.add('answered');
+    else card.classList.remove('answered');
+    updateProgress();
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  Field renderers
+  // ══════════════════════════════════════════════════════════════
+  function mountField(host, p, card) {
+    ensureResposta(p);
+    const r = respostas[p.code];
+
+    switch (p.tipo) {
+      case 'texto_longo': {
+        const ta = document.createElement('textarea');
+        ta.className = 'field-textarea';
+        ta.placeholder = 'Digite a resposta do cliente…';
+        ta.value = r.texto || '';
+        ta.addEventListener('input', () => {
+          r.texto = ta.value;
+          markCardAnswered(p);
+          scheduleSave(p);
+        });
+        host.appendChild(ta);
+        break;
+      }
+      case 'texto_curto': {
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'field-text';
+        inp.placeholder = 'Digite a resposta…';
+        inp.value = r.texto || '';
+        inp.addEventListener('input', () => {
+          r.texto = inp.value;
+          markCardAnswered(p);
+          scheduleSave(p);
+        });
+        host.appendChild(inp);
+        break;
+      }
+      case 'tags_3': {
+        const wrap = document.createElement('div');
+        wrap.className = 'tags-input';
+        const tags = (r.json && r.json.tags) || ['', '', ''];
+        for (let i = 0; i < 3; i++) {
+          const inp = document.createElement('input');
+          inp.type = 'text';
+          inp.placeholder = `Palavra ${i+1}`;
+          inp.value = tags[i] || '';
+          inp.addEventListener('input', () => {
+            const arr = Array.from(wrap.querySelectorAll('input')).map(x => x.value.trim());
+            r.json = { tags: arr };
+            markCardAnswered(p);
+            scheduleSave(p);
+          });
+          wrap.appendChild(inp);
+        }
+        host.appendChild(wrap);
+        break;
+      }
+      case 'select_unico': {
+        const group = document.createElement('div');
+        group.className = 'field-radio-group';
+        for (const op of p.opcoes) {
+          const lab = document.createElement('label');
+          lab.className = 'field-radio' + (r.texto === op ? ' checked' : '');
+          lab.innerHTML = `<input type="radio" name="${p.code}" value="${op}" ${r.texto === op ? 'checked' : ''}><span>${op}</span>`;
+          const radio = lab.querySelector('input');
+          radio.addEventListener('change', () => {
+            r.texto = op;
+            group.querySelectorAll('.field-radio').forEach(x => x.classList.remove('checked'));
+            lab.classList.add('checked');
+            markCardAnswered(p);
+            scheduleSave(p);
+          });
+          group.appendChild(lab);
+        }
+        host.appendChild(group);
+        break;
+      }
+      case 'distribuicao_percentual': {
+        const items = (r.json && r.json.items && r.json.items.length) ? r.json.items.slice() : [{ nome: '', pct: 0 }, { nome: '', pct: 0 }];
+        const container = document.createElement('div');
+        const rowsWrap = document.createElement('div');
+        container.appendChild(rowsWrap);
+
+        const addBtn = document.createElement('button');
+        addBtn.type = 'button';
+        addBtn.className = 'dist-add';
+        addBtn.textContent = '+ Adicionar linha';
+        container.appendChild(addBtn);
+
+        const totalEl = document.createElement('div');
+        totalEl.className = 'dist-total';
+        totalEl.innerHTML = `<span>Total</span><span class="tot-val">0%</span>`;
+        container.appendChild(totalEl);
+
+        function syncState() {
+          const curItems = [];
+          rowsWrap.querySelectorAll('.dist-row').forEach(row => {
+            const nome = row.querySelector('.d-nome').value.trim();
+            const pct = Number(row.querySelector('.d-pct').value) || 0;
+            curItems.push({ nome, pct });
+          });
+          r.json = { items: curItems };
+          const total = curItems.reduce((a, b) => a + (Number(b.pct) || 0), 0);
+          totalEl.querySelector('.tot-val').textContent = total + '%';
+          totalEl.classList.remove('valid', 'invalid');
+          if (total === 100) totalEl.classList.add('valid');
+          else if (total > 0) totalEl.classList.add('invalid');
+          markCardAnswered(p);
+          scheduleSave(p);
+        }
+
+        function addRow(item = { nome: '', pct: '' }) {
+          const row = document.createElement('div');
+          row.className = 'dist-row';
+          row.innerHTML = `
+            <input class="d-nome" type="text" placeholder="Fonte / canal" value="${item.nome || ''}">
+            <input class="d-pct"  type="number" min="0" max="100" step="1" placeholder="0" value="${item.pct !== undefined && item.pct !== '' ? item.pct : ''}">
+            <button class="dist-remove" type="button" title="Remover">×</button>
+          `;
+          row.querySelector('.d-nome').addEventListener('input', syncState);
+          row.querySelector('.d-pct').addEventListener('input', syncState);
+          row.querySelector('.dist-remove').addEventListener('click', () => {
+            row.remove();
+            syncState();
+          });
+          rowsWrap.appendChild(row);
+        }
+
+        items.forEach(addRow);
+        addBtn.addEventListener('click', () => { addRow(); syncState(); });
+        syncState();
+
+        host.appendChild(container);
+        break;
+      }
+      case 'time_estruturado': {
+        const existing = r.json || {};
+        const grid = document.createElement('div');
+        grid.className = 'time-grid';
+        grid.innerHTML = `
+          <div class="field-wrap">
+            <label>Tamanho do time</label>
+            <input type="text" class="field-text t-tamanho" placeholder="ex.: 4 pessoas" value="${existing.tamanho || ''}">
+          </div>
+          <div class="field-wrap">
+            <label>Modelo</label>
+            <input type="text" class="field-text t-modelo" placeholder="Interno / Terceirizado / Híbrido" value="${existing.modelo || ''}">
+          </div>
+          <div class="field-wrap" style="grid-column: 1/-1;">
+            <label>Funções principais</label>
+            <textarea class="field-textarea t-funcoes" placeholder="ex.: 1 head, 2 analistas, 1 designer…">${existing.funcoes || ''}</textarea>
+          </div>
+          <div class="field-wrap" style="grid-column: 1/-1;">
+            <label>Observações</label>
+            <textarea class="field-textarea t-obs" placeholder="Comentários adicionais (opcional)">${existing.observacoes || ''}</textarea>
+          </div>
+        `;
+        function sync() {
+          r.json = {
+            tamanho: grid.querySelector('.t-tamanho').value,
+            modelo: grid.querySelector('.t-modelo').value,
+            funcoes: grid.querySelector('.t-funcoes').value,
+            observacoes: grid.querySelector('.t-obs').value
+          };
+          markCardAnswered(p);
+          scheduleSave(p);
+        }
+        grid.querySelectorAll('input, textarea').forEach(el => el.addEventListener('input', sync));
+        host.appendChild(grid);
+        break;
+      }
+      case 'checklist_metricas': {
+        const existing = r.json || { metricas: [], outros: '' };
+        const container = document.createElement('div');
+        container.className = 'checklist';
+        for (const op of p.opcoes) {
+          const checked = existing.metricas.includes(op);
+          const lab = document.createElement('label');
+          lab.className = 'check-item' + (checked ? ' checked' : '');
+          lab.innerHTML = `<input type="checkbox" value="${op}" ${checked ? 'checked' : ''}><span>${op}</span>`;
+          const cb = lab.querySelector('input');
+          cb.addEventListener('change', () => {
+            lab.classList.toggle('checked', cb.checked);
+            sync();
+          });
+          container.appendChild(lab);
+        }
+        const otherWrap = document.createElement('div');
+        otherWrap.className = 'check-other';
+        otherWrap.innerHTML = `<input type="text" placeholder="Outras métricas (separe por vírgula)…" value="${existing.outros || ''}">`;
+        const otherInp = otherWrap.querySelector('input');
+        otherInp.addEventListener('input', sync);
+        container.appendChild(otherWrap);
+
+        function sync() {
+          const metricas = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(x => x.value);
+          r.json = { metricas, outros: otherInp.value };
+          markCardAnswered(p);
+          scheduleSave(p);
+        }
+
+        host.appendChild(container);
+        break;
+      }
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  Status
+  // ══════════════════════════════════════════════════════════════
+  function renderStatus() {
+    const chip = document.getElementById('statusChip');
+    const label = document.getElementById('statusLabel');
+    chip.classList.remove('status-rascunho', 'status-revisao', 'status-finalizado');
+    if (status === 'em_revisao') { chip.classList.add('status-revisao'); label.textContent = 'Em revisão'; }
+    else if (status === 'finalizado') { chip.classList.add('status-finalizado'); label.textContent = 'Finalizado'; }
+    else { chip.classList.add('status-rascunho'); label.textContent = 'Rascunho'; }
+  }
+
+  async function saveStatus(newStatus) {
+    status = newStatus;
+    renderStatus();
+    if (!CLIENTE_ID) { showToast('Status salvo localmente (sem cliente_id)'); return; }
+    try {
+      const body = {
+        cliente_id: CLIENTE_ID,
+        bloco: 0,
+        pergunta_numero: 0,
+        pergunta_codigo: '__status__',
+        tipo: 'status',
+        resposta_texto: newStatus,
+        updated_at: new Date().toISOString()
+      };
+      const res = await sbFetch(
+        `/rest/v1/edge_diagnostico_respostas?on_conflict=cliente_id,pergunta_codigo`,
+        session.access_token,
+        {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(body)
+        }
+      );
+      if (!res.ok) throw new Error('status save failed');
+      showToast('Status atualizado: ' + statusPrettyLabel(newStatus), 'success');
+    } catch (e) {
+      console.error(e);
+      showToast('Falha ao salvar status', 'error');
+    }
+  }
+
+  function statusPrettyLabel(s) {
+    return s === 'em_revisao' ? 'Em revisão' : s === 'finalizado' ? 'Finalizado' : 'Rascunho';
+  }
+
+  document.getElementById('markRevisaoBtn').addEventListener('click', () => saveStatus('em_revisao'));
+
+  // Finalizar modal flow
+  const modal = document.getElementById('finalizarModal');
+  document.getElementById('finalizarBtn').addEventListener('click', () => modal.classList.add('open'));
+  document.getElementById('cancelFinalizar').addEventListener('click', () => modal.classList.remove('open'));
+  document.getElementById('confirmFinalizar').addEventListener('click', async () => {
+    modal.classList.remove('open');
+    await saveStatus('finalizado');
+  });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+
+  // ══════════════════════════════════════════════════════════════
+  //  Footer nav
+  // ══════════════════════════════════════════════════════════════
+  document.getElementById('prevBtn').addEventListener('click', () => {
+    if (currentBloco > 1) goToBloco(currentBloco - 1);
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    if (currentBloco < BLOCOS.length) goToBloco(currentBloco + 1);
+  });
+
+  // ══════════════════════════════════════════════════════════════
+  //  Init
+  // ══════════════════════════════════════════════════════════════
+  (async function init() {
+    renderTabs();
+    renderStatus();
+    await fetchCliente();
+    await loadRespostas();
+    renderBloco();
+  })();
+</script>
+</body>
+</html>

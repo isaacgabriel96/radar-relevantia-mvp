@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diagnóstico — The Edge · Relevantia Intelligence</title>
+
+<script>
+  // ── Auth Guard ─────────────────────────────────
+  (function() {
+    try {
+      const raw = localStorage.getItem('ri_client_session');
+      if (!raw) { window.location.href = 'index.html'; return; }
+      const s = JSON.parse(raw);
+      if (s.expires_at && Date.now()/1000 > s.expires_at) {
+        localStorage.removeItem('ri_client_session');
+        window.location.href = 'index.html';
+      }
+    } catch { window.location.href = 'index.html'; }
+  })();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --black:        #0E0E0E;
+    --black-2:      #1A1A1A;
+    --white:        #FFFFFF;
+    --gray-1:       #F7F7F7;
+    --gray-2:       #EBEBEB;
+    --gray-3:       #DDDDDD;
+    --gray-4:       #A8A8A8;
+    --gray-5:       #717171;
+    --gold:         #C9A43A;
+    --gold-light:   #E8C96A;
+    --gold-pale:    #FBF5E6;
+    --text:         #1A1A1A;
+    --sidebar-w:    240px;
+    --gold-gradient: linear-gradient(135deg, #C9A43A 0%, #E8C96A 100%);
+    --shadow-gold:  0 8px 32px rgba(201,164,58,0.2);
+    --shadow-card:  0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--gray-1);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body { display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ──────────────────────────────────── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--black);
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-header {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-mark {
+    width: 30px; height: 30px;
+    background: var(--gold-gradient);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-text { display: flex; flex-direction: column; }
+
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  .logo-sub {
+    font-size: 9.5px;
+    font-weight: 500;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-top: 3px;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 20px 12px;
+    overflow-y: auto;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0 12px;
+    margin: 14px 0 6px;
+  }
+
+  .nav-section-label:first-child { margin-top: 0; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: rgba(255,255,255,0.45);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 400;
+    margin-bottom: 2px;
+    position: relative;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .nav-item:hover {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .nav-item.active {
+    color: var(--white);
+    background: rgba(201,164,58,0.1);
+    font-weight: 500;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 3px;
+    background: var(--gold-gradient);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .nav-icon {
+    width: 16px; height: 16px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-footer {
+    padding: 16px 14px 18px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .user-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+
+  .user-avatar {
+    width: 34px; height: 34px;
+    background: var(--gold-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--black);
+    font-weight: 600;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .user-info { overflow: hidden; }
+
+  .user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-size: 11px;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .btn-logout {
+    width: 100%;
+    padding: 9px 12px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-logout:hover {
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* ── Main ─────────────────────────────────────── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .main-header {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-2);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .page-breadcrumb {
+    font-size: 13px;
+    color: var(--gray-5);
+  }
+
+  .page-breadcrumb strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .header-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(201,164,58,0.07);
+    border: 1px solid rgba(201,164,58,0.18);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gold);
+  }
+
+  .header-badge-dot {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse-dot 2.5s ease infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.7; transform: scale(0.9); }
+  }
+
+  /* ── Content ──────────────────────────────────── */
+  .content {
+    padding: 40px;
+    max-width: 880px;
+    width: 100%;
+  }
+
+  /* ── Progress ─────────────────────────────────── */
+  .progress-wrap {
+    margin-bottom: 32px;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .progress-percent {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gold);
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--gray-2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 14.3%;
+    background: var(--gold-gradient);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── Page heading ─────────────────────────────── */
+  .page-heading {
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--black);
+    letter-spacing: -0.015em;
+    margin-bottom: 8px;
+    line-height: 1.15;
+  }
+
+  .page-subtitle {
+    font-size: 15px;
+    color: var(--gray-5);
+    font-weight: 300;
+    max-width: 640px;
+  }
+
+  /* ── Objective card ───────────────────────────── */
+  .objective-card {
+    background: var(--gold-pale);
+    border: 1px solid rgba(201,164,58,0.2);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .objective-icon {
+    width: 28px; height: 28px;
+    background: rgba(201,164,58,0.15);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .objective-body { flex: 1; }
+
+  .objective-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .objective-text {
+    font-size: 14px;
+    color: var(--black);
+    line-height: 1.5;
+  }
+
+  /* ── Question card ────────────────────────────── */
+  .question-card {
+    background: var(--white);
+    border: 1px solid var(--gray-2);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 16px;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .question-card:focus-within {
+    border-color: rgba(201,164,58,0.35);
+    box-shadow: var(--shadow-gold);
+  }
+
+  .question-head {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+
+  .question-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--gold);
+    line-height: 1;
+    padding-top: 2px;
+    min-width: 28px;
+  }
+
+  .question-body { flex: 1; }
+
+  .question-title {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--black);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .question-hint {
+    font-size: 13px;
+    color: var(--gray-5);
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  /* ── Textarea ─────────────────────────────────── */
+  .field-textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 14px 16px;
+    background: var(--gray-1);
+    border: 1px solid var(--gray-2);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.55;
+    resize: vertical;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .field-textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: var(--white);
+  }
+
+  .field-textarea::placeholder {
+    color: var(--gray-4);
+  }
+
+  .field-meta {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: var(--gray-4);
+    font-weight: 500;
+  }
+
+  /* ── Tags (3) ─────────────────────────────────── */
+  .tags-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .tag-input-wrap {
+    position: relative;
+  }
+
+  .tag-input {
+    width: 100%;
+    padding: 14px 16px 14px 40px;
+    background: var(--gray-1);
+    border: 1px solid var(--gray-2);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .tag-input:focus {
+    outline: none;
+    border-color: var(--gold);
+    background: var(--white);
+  }
+
+  .tag-input::placeholder { color: var(--gray-4); }
+
+  .tag-badge {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px; height: 22px;
+    background: var(--gold-pale);
+    color: var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* ── Footer actions ───────────────────────────── */
+  .form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 0 8px;
+    margin-top: 16px;
+    border-top: 1px solid var(--gray-2);
+    padding-top: 24px;
+  }
+
+  .btn {
+    padding: 11px 22px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    border: 1px solid transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--gray-5);
+    border-color: var(--gray-2);
+  }
+
+  .btn-ghost:hover {
+    color: var(--black);
+    background: var(--white);
+    border-color: var(--gray-3);
+  }
+
+  .btn-primary {
+    background: var(--gold-gradient);
+    color: var(--black);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(201,164,58,0.25);
+  }
+
+  .btn-primary:hover {
+    box-shadow: var(--shadow-gold);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ── Toast (inline fallback, core.js style) ─── */
+  .ri-toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    padding: 12px 20px;
+    background: var(--black-2);
+    color: var(--white);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  }
+
+  /* ── Responsive ───────────────────────────────── */
+  @media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); }
+    .main { margin-left: 0; }
+    .main-header { padding: 0 20px; }
+    .content { padding: 24px 20px; }
+    .tags-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <a href="dashboard.html" class="sidebar-logo">
+      <div class="logo-mark">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+          <path d="M10 2L17 6V14L10 18L3 14V6L10 2Z" stroke="#0E0E0E" stroke-width="1.4" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="2.5" fill="#0E0E0E"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">Relevantia</span>
+        <span class="logo-sub">Intelligence</span>
+      </div>
+    </a>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Menu</div>
+    <a href="dashboard.html" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="formulario-diagnostico.html" class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Diagnóstico
+    </a>
+    <a href="entregaveis.html" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Entregáveis
+    </a>
+    <a href="agenda.html" class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Agenda
+    </a>
+
+    <div class="nav-section-label">Pilares</div>
+    <a href="#" class="nav-item" data-pillar="acompanhamento">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Acompanhamento
+    </a>
+    <a href="#" class="nav-item" data-pillar="direcionamento">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      Direcionamento
+    </a>
+    <a href="#" class="nav-item" data-pillar="estrategia">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Estratégia
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar" id="userAvatar">—</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Carregando…</div>
+        <div class="user-role">The Edge</div>
+      </div>
+    </div>
+    <button class="btn-logout" id="logoutBtn">Sair da conta</button>
+  </div>
+</aside>
+
+<!-- ── Main ────────────────────────────────────── -->
+<main class="main">
+  <header class="main-header">
+    <div class="page-breadcrumb">
+      <strong>Diagnóstico</strong>
+      <span style="color:var(--gray-3);"> — </span>
+      Bloco 1 de 7 · Contexto & Identidade
+    </div>
+    <div class="header-badge">
+      <div class="header-badge-dot"></div>
+      The Edge — Ativo
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span class="progress-label">Progresso do diagnóstico</span>
+        <span class="progress-percent">Bloco 1 de 7 · 14%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- Page heading -->
+    <div class="page-heading">
+      <h1 class="page-title">Contexto & Identidade</h1>
+      <p class="page-subtitle">
+        Antes de direção ou estratégia, precisamos entender o que move o seu negócio — o propósito, o cliente, o que te torna insubstituível.
+      </p>
+    </div>
+
+    <!-- Objective -->
+    <div class="objective-card">
+      <div class="objective-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      </div>
+      <div class="objective-body">
+        <div class="objective-label">Objetivo deste bloco</div>
+        <div class="objective-text">
+          Mapear propósito, público-alvo e diferencial — a base sobre a qual vamos construir direcionamento e estratégia ao longo do programa.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Q1 ──────────────────────────────────── -->
+    <div class="question-card">
+      <div class="question-head">
+        <div class="question-number">01</div>
+        <div class="question-body">
+          <div class="question-title">Em uma frase, qual é o propósito maior do seu negócio?</div>
+          <div class="question-hint">Vá além do "o que você faz". O que, no fundo, justifica a existência dele?</div>
+        </div>
+      </div>
+      <textarea
+        class="field-textarea"
+        id="q1"
+        data-code="proposito_maior"
+        data-tipo="texto_longo"
+        placeholder="Ex.: Ajudar profissionais a construírem marcas que traduzem quem eles realmente são…"
+        maxlength="600"></textarea>
+      <div class="field-meta"><span class="char-count" data-target="q1">0</span> / 600</div>
+    </div>
+
+    <!-- ── Q2 ──────────────────────────────────── -->
+    <div class="question-card">
+      <div class="question-head">
+        <div class="question-number">02</div>
+        <div class="question-body">
+          <div class="question-title">Quem é o cliente ideal que você quer atrair?</div>
+          <div class="question-hint">Descreva a pessoa — contexto, dores, aspirações. Seja específico.</div>
+        </div>
+      </div>
+      <textarea
+        class="field-textarea"
+        id="q2"
+        data-code="cliente_ideal"
+        data-tipo="texto_longo"
+        placeholder="Pense num cliente real: o que ele busca? O que o tira do sono?"
+        maxlength="800"></textarea>
+      <div class="field-meta"><span class="char-count" data-target="q2">0</span> / 800</div>
+    </div>
+
+    <!-- ── Q3 ──────────────────────────────────── -->
+    <div class="question-card">
+      <div class="question-head">
+        <div class="question-number">03</div>
+        <div class="question-body">
+          <div class="question-title">O que torna o seu trabalho insubstituível?</div>
+          <div class="question-hint">O que só você entrega — ou entrega de um jeito que ninguém mais entrega.</div>
+        </div>
+      </div>
+      <textarea
+        class="field-textarea"
+        id="q3"
+        data-code="insubstituivel"
+        data-tipo="texto_longo"
+        placeholder="Não é o serviço. É o ângulo, o método, a lente — o que fica depois."
+        maxlength="600"></textarea>
+      <div class="field-meta"><span class="char-count" data-target="q3">0</span> / 600</div>
+    </div>
+
+    <!-- ── Q4 ──────────────────────────────────── -->
+    <div class="question-card">
+      <div class="question-head">
+        <div class="question-number">04</div>
+        <div class="question-body">
+          <div class="question-title">Qual é a transformação que seu cliente vive ao comprar de você?</div>
+          <div class="question-hint">De onde ele sai, para onde ele chega. O antes e o depois.</div>
+        </div>
+      </div>
+      <textarea
+        class="field-textarea"
+        id="q4"
+        data-code="transformacao"
+        data-tipo="texto_longo"
+        placeholder="Antes de mim, meu cliente… Depois de mim, meu cliente…"
+        maxlength="600"></textarea>
+      <div class="field-meta"><span class="char-count" data-target="q4">0</span> / 600</div>
+    </div>
+
+    <!-- ── Q5 ──────────────────────────────────── -->
+    <div class="question-card">
+      <div class="question-head">
+        <div class="question-number">05</div>
+        <div class="question-body">
+          <div class="question-title">Se um cliente descrevesse sua marca em 3 palavras, quais seriam?</div>
+          <div class="question-hint">Três palavras — separadas. Cada uma deve carregar algo essencial.</div>
+        </div>
+      </div>
+      <div class="tags-row">
+        <div class="tag-input-wrap">
+          <span class="tag-badge">1</span>
+          <input type="text" class="tag-input" id="q5_1" data-code="tres_palavras" data-tipo="tags_3" placeholder="Ex.: sofisticada" maxlength="40" />
+        </div>
+        <div class="tag-input-wrap">
+          <span class="tag-badge">2</span>
+          <input type="text" class="tag-input" id="q5_2" placeholder="Ex.: precisa" maxlength="40" />
+        </div>
+        <div class="tag-input-wrap">
+          <span class="tag-badge">3</span>
+          <input type="text" class="tag-input" id="q5_3" placeholder="Ex.: provocativa" maxlength="40" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="form-footer">
+      <button class="btn btn-ghost" id="btnDraft" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar rascunho
+      </button>
+      <button class="btn btn-primary" id="btnNext" type="button">
+        Próximo bloco
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  // ── Utilities (sem dep de core.js por ora; toast inline) ─
+  function toast(msg, type='') {
+    const existing = document.querySelector('.ri-toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.className = 'ri-toast';
+    t.textContent = msg;
+    const colors = { success: '#10B981', error: '#EF4444', '': '#1A1A1A' };
+    t.style.background = colors[type] || colors[''];
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+  }
+
+  // ── User card ────────────────────────────────────
+  try {
+    const raw = localStorage.getItem('ri_client_session');
+    if (raw) {
+      const s = JSON.parse(raw);
+      const email = s.user?.email || s.email || '';
+      const name  = s.user?.user_metadata?.name || s.name || email.split('@')[0] || 'Cliente';
+      const initial = (name || 'C').charAt(0).toUpperCase();
+      document.getElementById('userAvatar').textContent = initial;
+      document.getElementById('userName').textContent = name;
+    }
+  } catch {}
+
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    localStorage.removeItem('ri_client_session');
+    window.location.href = 'index.html';
+  });
+
+  // ── Char counters ────────────────────────────────
+  document.querySelectorAll('.field-textarea').forEach(ta => {
+    const counter = document.querySelector(`.char-count[data-target="${ta.id}"]`);
+    const update = () => { if (counter) counter.textContent = ta.value.length; };
+    ta.addEventListener('input', update);
+    update();
+  });
+
+  // ── Local state (draft) ──────────────────────────
+  const DRAFT_KEY = 'ri_diagnostico_bloco1_draft';
+
+  function collect() {
+    const data = {
+      bloco: 1,
+      atualizado_em: new Date().toISOString(),
+      respostas: {
+        proposito_maior: document.getElementById('q1').value.trim(),
+        cliente_ideal:   document.getElementById('q2').value.trim(),
+        insubstituivel:  document.getElementById('q3').value.trim(),
+        transformacao:   document.getElementById('q4').value.trim(),
+        tres_palavras: [
+          document.getElementById('q5_1').value.trim(),
+          document.getElementById('q5_2').value.trim(),
+          document.getElementById('q5_3').value.trim()
+        ].filter(Boolean)
+      }
+    };
+    return data;
+  }
+
+  function loadDraft() {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      const r = d.respostas || {};
+      if (r.proposito_maior) document.getElementById('q1').value = r.proposito_maior;
+      if (r.cliente_ideal)   document.getElementById('q2').value = r.cliente_ideal;
+      if (r.insubstituivel)  document.getElementById('q3').value = r.insubstituivel;
+      if (r.transformacao)   document.getElementById('q4').value = r.transformacao;
+      if (Array.isArray(r.tres_palavras)) {
+        document.getElementById('q5_1').value = r.tres_palavras[0] || '';
+        document.getElementById('q5_2').value = r.tres_palavras[1] || '';
+        document.getElementById('q5_3').value = r.tres_palavras[2] || '';
+      }
+      document.querySelectorAll('.field-textarea').forEach(ta => ta.dispatchEvent(new Event('input')));
+    } catch {}
+  }
+
+  function saveDraft(silent=false) {
+    const data = collect();
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    if (!silent) toast('Rascunho salvo', 'success');
+  }
+
+  // Autosave (debounced)
+  let autosaveTimer = null;
+  document.querySelectorAll('.field-textarea, .tag-input').forEach(el => {
+    el.addEventListener('input', () => {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => saveDraft(true), 800);
+    });
+  });
+
+  // Buttons
+  document.getElementById('btnDraft').addEventListener('click', () => saveDraft(false));
+
+  document.getElementById('btnNext').addEventListener('click', () => {
+    const data = collect();
+    const r = data.respostas;
+    const missing = [];
+    if (!r.proposito_maior) missing.push('Q1');
+    if (!r.cliente_ideal)   missing.push('Q2');
+    if (!r.insubstituivel)  missing.push('Q3');
+    if (!r.transformacao)   missing.push('Q4');
+    if (r.tres_palavras.length < 3) missing.push('Q5 (3 palavras)');
+
+    if (missing.length) {
+      toast('Complete: ' + missing.join(', '), 'error');
+      return;
+    }
+
+    saveDraft(true);
+    toast('Bloco 1 concluído · Bloco 2 em breve', 'success');
+    // window.location.href = 'formulario-diagnostico-bloco2.html';
+  });
+
+  // Init
+  loadDraft();
+</script>
+
+</body>
+</html>
