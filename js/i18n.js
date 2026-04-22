@@ -50,7 +50,16 @@ window.t = function(key, replacements) {
  * Falls back to pt-BR if the requested language file is unavailable.
  * @param {string} lang — e.g. 'en', 'pt-BR'
  */
+// Fallback inline — usado quando fetch falha (ex: file:// protocol)
+const _PT_BR_FALLBACK = {};
+
 async function loadTranslations(lang) {
+  // Em file:// o fetch de arquivos locais é bloqueado por CORS — vai direto ao fallback
+  if (window.location.protocol === 'file:') {
+    window.RR_STRINGS = _PT_BR_FALLBACK;
+    window.RR_LANG = 'pt-BR';
+    return;
+  }
   try {
     const res = await fetch(`/i18n/${lang}.json`);
     if (!res.ok) throw new Error(`i18n: ${lang}.json not found`);
@@ -58,15 +67,16 @@ async function loadTranslations(lang) {
     window.RR_LANG = lang;
   } catch (err) {
     if (lang !== 'pt-BR') {
-      console.warn(`i18n: falling back to pt-BR (${err.message})`);
       try {
         const fallback = await fetch('/i18n/pt-BR.json');
         window.RR_STRINGS = await fallback.json();
         window.RR_LANG = 'pt-BR';
-      } catch {
-        console.error('i18n: could not load pt-BR fallback.');
-      }
+        return;
+      } catch { /* fall through to inline fallback */ }
     }
+    // Fallback inline silencioso
+    window.RR_STRINGS = _PT_BR_FALLBACK;
+    window.RR_LANG = 'pt-BR';
   }
 }
 

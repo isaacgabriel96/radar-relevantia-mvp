@@ -2395,41 +2395,30 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .agent-header p { font-size: 13px; color: var(--gray-3); line-height: 1.5; }
 
-/* Input card */
-.ag-input-card {
-  background: var(--white); border: 1px solid #E0D8CC;
-  border-radius: 16px; overflow: hidden;
-  box-shadow: 0 1px 4px rgba(30,22,0,0.06);
-  margin-bottom: 12px;
+/* Attach buttons in chat bar */
+.ag-attach-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #F5F0E8; border: 1.5px solid #E0D8CC;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; color: #5C4C38;
+  transition: all 0.15s;
 }
-.ag-card-head { padding: 14px 18px 0; }
-.ag-card-title { font-family: var(--font-heading); font-size: 14px; font-weight: 600; color: var(--black); margin-bottom: 2px; }
-.ag-card-desc { font-size: 12px; color: #A89880; margin-bottom: 12px; }
-.ag-input-section { padding: 0 18px 18px; }
+.ag-attach-btn:hover { border-color: #B8860B; color: #B8860B; background: rgba(184,134,11,0.07); }
 
-/* Drop zone */
-.ag-drop-zone {
-  border: 2px dashed #E0D8CC;
-  border-radius: 10px; padding: 18px;
-  text-align: center; cursor: pointer;
-  transition: all 0.18s; background: #F5F0E8;
-  margin-bottom: 10px;
+/* Inline link input row */
+.ag-link-inline {
+  display: flex; gap: 6px; padding: 0 18px 10px;
+  border-top: 1px solid #F5F0E8;
 }
-.ag-drop-zone:hover, .ag-drop-zone.drag-over { border-color: #B8860B; background: rgba(184,134,11,0.06); }
-.ag-drop-zone-icon { font-size: 24px; margin-bottom: 4px; }
-.ag-drop-zone-text { font-size: 13px; color: #5C4C38; font-weight: 500; }
-.ag-drop-zone-sub  { font-size: 11px; color: #A89880; margin-top: 2px; }
-.ag-drop-zone input { display: none; }
-
-.ag-link-row { display: flex; gap: 6px; margin-bottom: 10px; }
-.ag-link-row input {
-  flex: 1; padding: 8px 10px;
+.ag-link-inline input {
+  flex: 1; padding: 8px 12px;
   border: 1.5px solid #E0D8CC; border-radius: 10px;
   font-size: 13px; font-family: var(--font-body, 'DM Sans', sans-serif); color: var(--black);
   background: #F5F0E8;
 }
-.ag-link-row input:focus { outline: none; border-color: #B8860B; background: var(--white); }
-.ag-link-row input::placeholder { color: #A89880; }
+.ag-link-inline input:focus { outline: none; border-color: #B8860B; background: var(--white); }
+.ag-link-inline input::placeholder { color: #A89880; }
+
 .ag-btn-sm {
   padding: 8px 14px; border-radius: 100px;
   font-size: 12px; font-weight: 600; font-family: var(--font-body, 'DM Sans', sans-serif);
@@ -2438,8 +2427,10 @@ input[type=number] { -moz-appearance: textfield; }
   white-space: nowrap;
 }
 .ag-btn-sm:hover { border-color: #B8860B; color: #B8860B; }
+.ag-btn-cancel { border-color: transparent; color: #A89880; }
+.ag-btn-cancel:hover { border-color: rgba(239,68,68,0.3); color: #DC2626; }
 
-.ag-attachments-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.ag-attachments-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; padding: 8px 18px 0; }
 .ag-attachment-chip {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 10px; border-radius: 100px;
@@ -2454,34 +2445,6 @@ input[type=number] { -moz-appearance: textfield; }
   font-size: 10px; line-height: 1; color: inherit;
 }
 .ag-attachment-chip .ag-rm:hover { background: rgba(0,0,0,0.18); }
-
-textarea.ag-desc-input {
-  width: 100%; min-height: 80px; padding: 10px 12px;
-  border: 1.5px solid #E0D8CC; border-radius: 10px;
-  font-size: 13px; font-family: var(--font-body, 'DM Sans', sans-serif); color: var(--black);
-  background: #F5F0E8; resize: vertical; line-height: 1.6;
-  transition: border-color 0.18s; box-sizing: border-box;
-}
-textarea.ag-desc-input:focus {
-  outline: none; border-color: #B8860B;
-  box-shadow: 0 0 0 3px rgba(184,134,11,0.10); background: var(--white);
-}
-textarea.ag-desc-input::placeholder { color: #A89880; }
-
-/* Botão analisar */
-.ag-btn-analisar {
-  width: 100%; padding: 12px;
-  background: var(--black, #1A1200); color: var(--white, #FFF);
-  border: none; border-radius: 100px;
-  font-size: 14px; font-weight: 600; font-family: var(--font-heading, 'Poppins', sans-serif);
-  cursor: pointer; margin-top: 10px; transition: all 0.18s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.ag-btn-analisar:hover:not(:disabled) {
-  background: #2C1E00; transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(30,22,0,0.22);
-}
-.ag-btn-analisar:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 /* Error */
 .ag-error-msg {
@@ -2499,6 +2462,9 @@ textarea.ag-desc-input::placeholder { color: #A89880; }
   display: none;
 }
 .ag-chat-card.visible { display: block; }
+/* Full-chat mode: always visible, taller thread */
+.ag-chat-card.ag-chat-full { display: block; }
+.ag-chat-card.ag-chat-full .ag-chat-thread { max-height: 440px; }
 
 .ag-chat-thread {
   padding: 16px 18px 12px;
@@ -2881,57 +2847,44 @@ textarea.ag-desc-input::placeholder { color: #A89880; }
 
       <div class="agent-header">
         <h2>✦ Assistente de Cadastro</h2>
-        <p>Descreva a oportunidade em texto livre, cole links de redes sociais ou envie um PDF. O agente vai extrair e organizar tudo automaticamente.</p>
+        <p>Descreva a oportunidade, cole links ou envie um PDF — o agente vai extrair tudo e te dar uma visão completa antes de preencher.</p>
       </div>
 
-      <!-- Input card -->
-      <div class="ag-input-card">
-        <div class="ag-card-head">
-          <div class="ag-card-title">Informações da oportunidade</div>
-          <div class="ag-card-desc">Cole o texto, link ou envie um PDF — pode ser qualquer formato</div>
-        </div>
-        <div class="ag-input-section">
+      <!-- Chat card (tela cheia desde o início) -->
+      <div class="ag-chat-card ag-chat-full" id="agChatCard">
+        <div class="ag-chat-thread" id="agChatThread"></div>
 
-          <!-- Drop zone PDF -->
-          <div class="ag-drop-zone" id="agDropZone"
-            ondragover="event.preventDefault();this.classList.add('drag-over')"
-            ondragleave="this.classList.remove('drag-over')"
-            ondrop="agHandleDrop(event)">
-            <div class="ag-drop-zone-icon">📄</div>
-            <div class="ag-drop-zone-text">Arraste um PDF aqui</div>
-            <div class="ag-drop-zone-sub">ou clique para selecionar</div>
-            <input type="file" accept="application/pdf" id="agPdfInput" onchange="agHandlePdfUpload(this)">
-          </div>
+        <!-- Chips de attachments (PDF/link) acima do input -->
+        <div class="ag-attachments-row" id="agAttachmentsRow" style="display:none"></div>
 
-          <!-- Link -->
-          <div class="ag-link-row">
-            <input type="url" id="agLinkInput" placeholder="https://instagram.com/... ou site da oportunidade" onkeydown="if(event.key==='Enter')agAddLink()">
-            <button class="ag-btn-sm" onclick="agAddLink()">+ Link</button>
-          </div>
+        <div class="ag-error-msg" id="agErrorMsg" style="margin:0 12px 8px"></div>
 
-          <!-- Chips de attachments -->
-          <div class="ag-attachments-row" id="agAttachmentsRow"></div>
+        <div class="ag-chat-input-row">
+          <!-- Botão PDF -->
+          <button class="ag-attach-btn" title="Anexar PDF" onclick="document.getElementById('agPdfInput').click()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </button>
+          <input type="file" accept="application/pdf" id="agPdfInput" style="display:none" onchange="agHandlePdfUpload(this)">
 
-          <!-- Texto livre -->
-          <textarea class="ag-desc-input" id="agDescInput" rows="4"
-            placeholder="Descreva a oportunidade: nome, tipo, canais, seguidores, cotas, incentivo fiscal, etc."
-            oninput="agCheckReady()"></textarea>
+          <!-- Botão Link -->
+          <button class="ag-attach-btn" title="Adicionar link" onclick="agToggleLinkInput()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </button>
 
-          <div class="ag-error-msg" id="agErrorMsg"></div>
-
-          <button class="ag-btn-analisar" id="agBtnAnalisar" disabled onclick="agIniciarAnalise()">
-            ✦ Analisar e extrair dados
+          <input class="ag-chat-input" id="agChatInput"
+            placeholder="Descreva a oportunidade, cole um link ou envie um PDF…"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agEnviarResposta()}">
+          <button class="ag-btn-send" id="agBtnSend" onclick="agEnviarResposta()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </div>
-      </div>
 
-      <!-- Chat thread card -->
-      <div class="ag-chat-card" id="agChatCard">
-        <div class="ag-chat-thread" id="agChatThread"></div>
-        <div class="ag-chat-input-row">
-          <input class="ag-chat-input" id="agChatInput" placeholder="Responda a pergunta ou adicione mais informações…"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agEnviarResposta()}">
-          <button class="ag-btn-send" id="agBtnSend" disabled onclick="agEnviarResposta()">Enviar</button>
+        <!-- Input de link inline (oculto por padrão) -->
+        <div class="ag-link-inline" id="agLinkInline" style="display:none">
+          <input type="url" id="agLinkInput" placeholder="https://instagram.com/... ou site da oportunidade"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();agAddLink()}">
+          <button class="ag-btn-sm" onclick="agAddLink()">Adicionar</button>
+          <button class="ag-btn-sm ag-btn-cancel" onclick="agToggleLinkInput()">✕</button>
         </div>
       </div>
 
@@ -9340,7 +9293,7 @@ window._agState = {
 // ── System Prompt ───────────────────────────────────────────────
 const AG_SYSTEM_PROMPT = `Você é o agente de cadastro do Radar Relevantia, plataforma de patrocínio esportivo e cultural.
 
-Sua missão: extrair dados de oportunidades de patrocínio a partir de textos, PDFs e links fornecidos pelo usuário.
+Sua missão: conduzir o cadastro completo de oportunidades de patrocínio via conversa — extraindo dados, pesquisando na web e refinando com perguntas.
 
 ## PESQUISA NA WEB — OBRIGATÓRIA
 Você tem acesso à ferramenta google_search e DEVE usá-la SEMPRE na primeira mensagem, independentemente do usuário fornecer links ou não.
@@ -9355,10 +9308,13 @@ NUNCA invente seguidores ou dados de audiência — use apenas o que encontrar n
 
 1. Na primeira mensagem o usuário envia descrição/PDF/links
 2. SEMPRE pesquise na web: redes sociais, links fornecidos e contexto da oportunidade
-3. Você mostra o que entendeu (resumo + campos extraídos) E lista as dúvidas mais importantes
-4. O usuário responde as dúvidas em linguagem natural
-5. Você refina e atualiza os campos
-6. Repita até confiança alta em todos os campos críticos
+3. Na sua primeira resposta, ANTES de listar campos ou fazer perguntas:
+   - Escreva um parágrafo curto (2-4 frases) com a sua VISÃO sobre a oportunidade: o que ela é, seu potencial como ativo de patrocínio, o perfil de público/audiência que atrai, e o tipo de marca que se beneficiaria
+   - Use o campo "resumo" do JSON para isso — seja perspicaz, não apenas descritivo
+4. Você então mostra os campos extraídos E lista a dúvida mais importante
+5. O usuário responde as dúvidas em linguagem natural
+6. Você refina e atualiza os campos
+7. Repita até confiança alta em todos os campos críticos
 
 ## CAMPOS A EXTRAIR
 
@@ -9462,22 +9418,19 @@ function agShowError(msg) {
 
 function agSetLoading(on) {
   window._agState.loading = on;
-  const btnA = document.getElementById('agBtnAnalisar');
   const btnS = document.getElementById('agBtnSend');
   const inp  = document.getElementById('agChatInput');
-  if (btnA) btnA.disabled = on || !agIsReady();
   if (btnS) btnS.disabled = on;
   if (inp)  inp.disabled = on;
 }
 
 function agIsReady() {
-  const desc = (document.getElementById('agDescInput') || {}).value || '';
-  return desc.trim().length >= 10 || window._agState.attachments.length > 0;
+  const chat = (document.getElementById('agChatInput') || {}).value || '';
+  return chat.trim().length > 0 || window._agState.attachments.length > 0;
 }
 
 window.agCheckReady = function() {
-  const btn = document.getElementById('agBtnAnalisar');
-  if (btn) btn.disabled = !agIsReady() || window._agState.loading;
+  // No separate "analisar" button anymore — chat bar handles readiness
 };
 
 // ── Navegação ───────────────────────────────────────────────────
@@ -9486,14 +9439,20 @@ window.abrirPainelAgente = function() {
   document.getElementById('panel-agent').style.display = 'block';
   const inner = document.getElementById('panel-agent-inner');
   if (inner) inner.style.display = 'block';
-  // Pré-popula dica do tipo selecionado no prompt
-  const tipoSelecionado = formState && formState.selectedTemplate;
-  if (tipoSelecionado) {
-    const dica = document.getElementById('agDescInput');
-    if (dica && !dica.value) {
-      const tipoLabel = { personalidade: 'personalidade', evento: 'evento', artista: 'artista', midia: 'mídia' };
-      dica.placeholder = `Tipo detectado: ${tipoLabel[tipoSelecionado] || tipoSelecionado}. Descreva a oportunidade: nome, canais, seguidores, cotas…`;
-    }
+
+  // Boas-vindas automáticas (só na primeira vez que o painel abre)
+  const thread = document.getElementById('agChatThread');
+  if (thread && thread.children.length === 0) {
+    const tipoSelecionado = formState && formState.selectedTemplate;
+    const tipoLabel = { personalidade: 'personalidade', evento: 'evento', artista: 'artista', midia: 'mídia' };
+    const tipoStr = tipoSelecionado ? ` de ${tipoLabel[tipoSelecionado] || tipoSelecionado}` : '';
+    agAddMsg('agent',
+      `Olá! Vou te ajudar a cadastrar a oportunidade${tipoStr}. ` +
+      `Me conta sobre ela — pode descrever aqui, colar o link do perfil ou do site, ou enviar um PDF com o mídia kit. ` +
+      `Vou pesquisar na web, entender o potencial do ativo e extrair tudo automaticamente. 🔍`
+    );
+    const inp = document.getElementById('agChatInput');
+    if (inp) inp.focus();
   }
 };
 
@@ -9508,24 +9467,10 @@ window.agPular = function() {
 };
 
 // ── PDF handling ─────────────────────────────────────────────────
-window.agHandleDrop = function(e) {
-  e.preventDefault();
-  document.getElementById('agDropZone').classList.remove('drag-over');
-  const files = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
-  files.forEach(agProcessPdf);
-};
-
 window.agHandlePdfUpload = function(input) {
   Array.from(input.files).forEach(agProcessPdf);
   input.value = '';
 };
-
-const _agDropZone = document.getElementById('agDropZone');
-if (_agDropZone) {
-  _agDropZone.addEventListener('click', function() {
-    document.getElementById('agPdfInput').click();
-  });
-}
 
 async function agProcessPdf(file) {
   if (file.type !== 'application/pdf') return;
@@ -9601,9 +9546,21 @@ function agRenderChips() {
       <span class="ag-rm" onclick="agRemoveChip('${agEsc(a.label)}')">✕</span>
     </div>
   `).join('');
+  row.style.display = window._agState.attachments.length > 0 ? 'flex' : 'none';
 }
 
 // ── Link ─────────────────────────────────────────────────────────
+window.agToggleLinkInput = function() {
+  const row = document.getElementById('agLinkInline');
+  if (!row) return;
+  const isHidden = row.style.display === 'none' || !row.style.display;
+  row.style.display = isHidden ? 'flex' : 'none';
+  if (isHidden) {
+    const inp = document.getElementById('agLinkInput');
+    if (inp) { inp.value = ''; inp.focus(); }
+  }
+};
+
 window.agAddLink = function() {
   const input = document.getElementById('agLinkInput');
   const url = input.value.trim();
@@ -9613,6 +9570,7 @@ window.agAddLink = function() {
   agAddChip('link', url, url, false);
   window._agState.attachments[window._agState.attachments.length - 1].ready = true;
   input.value = '';
+  agToggleLinkInput(); // fecha o input inline após adicionar
   agCheckReady();
 };
 
@@ -9634,7 +9592,7 @@ function agBuildFirstMessage() {
     parts.push(`[Links fornecidos — pesquise cada um]\n${links.map(l => l.label).join('\n')}`);
   }
 
-  const desc = (document.getElementById('agDescInput') || {}).value || '';
+  const desc = window._agState._firstUserText || '';
   if (desc.trim()) parts.push(`[Descrição do usuário]\n${desc.trim()}`);
 
   return parts.join('\n\n---\n\n');
@@ -9709,66 +9667,24 @@ function agParseResponse(raw) {
   }
 }
 
-// ── Iniciar análise ──────────────────────────────────────────────
-window.agIniciarAnalise = async function() {
-  if (!agIsReady() || window._agState.loading) return;
-  agShowError('');
-
-  const firstMsg = agBuildFirstMessage();
-  if (!firstMsg.trim()) { agShowError('Adicione uma descrição, PDF ou link.'); return; }
-
-  // Mostra chat card
-  const chatCard = document.getElementById('agChatCard');
-  if (chatCard) chatCard.classList.add('visible');
-
-  // Resumo da mensagem inicial no chat
-  const pdfs  = window._agState.attachments.filter(a => a.type === 'pdf');
-  const links = window._agState.attachments.filter(a => a.type === 'link');
-  const desc  = (document.getElementById('agDescInput') || {}).value || '';
-  const parts = [];
-  if (pdfs.length)  parts.push(`${pdfs.length} PDF(s)`);
-  if (links.length) parts.push(`${links.length} link(s)`);
-  if (desc.trim())  parts.push('descrição em texto');
-  agAddMsg('user', agMsgHtml(`Enviei: ${parts.join(', ')}.`));
-
-  window._agState.history = [{ role: 'user', content: firstMsg }];
-
-  agSetLoading(true);
-  agAddMsg('agent', '', true);
-
-  try {
-    // Sempre ativa google_search — o agente pesquisa redes sociais e contexto da oportunidade
-    const raw = await agCallGemini(window._agState.history, { useSearch: true });
-    window._agState.history.push({ role: 'assistant', content: raw });
-
-    agRemoveTyping();
-    const parsed = agParseResponse(raw);
-    window._agState.lastResult = parsed;
-
-    agAddAgentMsgFromResult(parsed);
-  } catch (err) {
-    agRemoveTyping();
-    agShowError(`Erro: ${err.message}`);
-    agAddMsg('agent', `<span style="color:#DC2626">❌ Erro ao processar: ${agEsc(err.message)}</span>`);
-  } finally {
-    agSetLoading(false);
-  }
-};
-
 // ── Processar resposta do agente ─────────────────────────────────
 function agAddAgentMsgFromResult(parsed) {
-  let html = `<strong>Entendido:</strong> ${agEsc(parsed.resumo || '—')}<br><br>`;
+  // Visão/resumo do agente sobre a oportunidade
+  let html = '';
+  if (parsed.resumo) {
+    html += `${agMsgHtml(parsed.resumo)}<br><br>`;
+  }
 
   if (parsed.duvidas?.length) {
-    html += `<strong>Preciso saber mais:</strong><ul>`;
-    parsed.duvidas.forEach(d => { html += `<li>${agEsc(d)}</li>`; });
-    html += `</ul>`;
+    html += `<strong>Para completar o cadastro:</strong><br>${agEsc(parsed.duvidas[0])}`;
   } else {
     html += agBuildConfirmationSummary(parsed);
   }
 
   const conf = parsed.confianca_geral || 0;
-  html += `<br><br><span style="font-size:11px;color:#A89880">Confiança geral: ${conf}%</span>`;
+  if (conf > 0) {
+    html += `<br><br><span style="font-size:11px;color:#A89880">Confiança geral: ${conf}%</span>`;
+  }
 
   agAddMsg('agent', html);
 }
@@ -9818,36 +9734,91 @@ function agBuildConfirmationSummary(parsed) {
   return html;
 }
 
-// ── Enviar resposta no chat ──────────────────────────────────────
+// ── Enviar mensagem no chat (primeira ou continuação) ────────────
 window.agEnviarResposta = async function() {
   const input = document.getElementById('agChatInput');
   const text  = (input || {}).value || '';
-  if (!text.trim() || window._agState.loading) return;
+  if (window._agState.loading) return;
 
-  input.value = '';
-  agAddMsg('user', agMsgHtml(text.trim()));
-  window._agState.history.push({ role: 'user', content: text.trim() });
+  const isFirstMessage = window._agState.history.length === 0;
 
-  agSetLoading(true);
-  agAddMsg('agent', '', true);
+  // Na primeira mensagem, exige texto OU anexos
+  if (isFirstMessage) {
+    const hasAttachments = window._agState.attachments.some(a => a.ready !== false);
+    if (!text.trim() && !hasAttachments) {
+      agShowError('Descreva a oportunidade, adicione um link ou envie um PDF.');
+      return;
+    }
+  } else {
+    // Nas respostas seguintes, exige texto
+    if (!text.trim()) return;
+  }
 
-  try {
-    const hasLinks = window._agState.attachments.some(a => a.type === 'link');
-    const raw = await agCallGemini(window._agState.history, { useSearch: hasLinks });
-    window._agState.history.push({ role: 'assistant', content: raw });
+  agShowError('');
+  if (input) input.value = '';
 
-    agRemoveTyping();
-    const parsed = agParseResponse(raw);
-    window._agState.lastResult = parsed;
+  if (isFirstMessage) {
+    // ── PRIMEIRA MENSAGEM: monta contexto completo ───────────────
+    // Salva o texto para agBuildFirstMessage()
+    window._agState._firstUserText = text.trim();
 
-    agAddAgentMsgFromResult(parsed);
-  } catch (err) {
-    agRemoveTyping();
-    agAddMsg('agent', `<span style="color:#DC2626">❌ ${agEsc(err.message)}</span>`);
-  } finally {
-    agSetLoading(false);
-    const thread = document.getElementById('agChatThread');
-    if (thread) thread.scrollTop = 999999;
+    // Mensagem resumida visível no chat
+    const pdfs  = window._agState.attachments.filter(a => a.type === 'pdf');
+    const links = window._agState.attachments.filter(a => a.type === 'link');
+    const parts = [];
+    if (text.trim())  parts.push(text.trim().length > 80 ? text.trim().slice(0,80)+'…' : text.trim());
+    if (pdfs.length)  parts.push(`${pdfs.length} PDF${pdfs.length > 1 ? 's' : ''}`);
+    if (links.length) parts.push(`${links.length} link${links.length > 1 ? 's' : ''}`);
+    agAddMsg('user', agMsgHtml(parts.join(' · ')));
+
+    // Monta payload completo para o Gemini
+    const firstMsg = agBuildFirstMessage();
+    if (!firstMsg.trim()) { agShowError('Adicione uma descrição, PDF ou link.'); return; }
+
+    window._agState.history = [{ role: 'user', content: firstMsg }];
+    agSetLoading(true);
+    agAddMsg('agent', '', true);
+
+    try {
+      // Sempre usa google_search na primeira mensagem — pesquisa redes sociais e contexto
+      const raw = await agCallGemini(window._agState.history, { useSearch: true });
+      window._agState.history.push({ role: 'assistant', content: raw });
+      agRemoveTyping();
+      const parsed = agParseResponse(raw);
+      window._agState.lastResult = parsed;
+      agAddAgentMsgFromResult(parsed);
+    } catch (err) {
+      agRemoveTyping();
+      agShowError(`Erro: ${err.message}`);
+      agAddMsg('agent', `<span style="color:#DC2626">❌ Erro ao processar: ${agEsc(err.message)}</span>`);
+    } finally {
+      agSetLoading(false);
+    }
+
+  } else {
+    // ── MENSAGENS SEGUINTES: refinamento do cadastro ─────────────
+    agAddMsg('user', agMsgHtml(text.trim()));
+    window._agState.history.push({ role: 'user', content: text.trim() });
+
+    agSetLoading(true);
+    agAddMsg('agent', '', true);
+
+    try {
+      const hasLinks = window._agState.attachments.some(a => a.type === 'link');
+      const raw = await agCallGemini(window._agState.history, { useSearch: hasLinks });
+      window._agState.history.push({ role: 'assistant', content: raw });
+      agRemoveTyping();
+      const parsed = agParseResponse(raw);
+      window._agState.lastResult = parsed;
+      agAddAgentMsgFromResult(parsed);
+    } catch (err) {
+      agRemoveTyping();
+      agAddMsg('agent', `<span style="color:#DC2626">❌ ${agEsc(err.message)}</span>`);
+    } finally {
+      agSetLoading(false);
+      const thread = document.getElementById('agChatThread');
+      if (thread) thread.scrollTop = 999999;
+    }
   }
 };
 
