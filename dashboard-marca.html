@@ -2164,7 +2164,7 @@ function renderOpportunities(opps) {
     var cardTag = isApproval ? 'div' : 'a';
     var cardHref = isApproval ? '' : `href="oportunidade-detalhe.html?@${opp.slug || opp.id}"`;
     var cardClick = isApproval ? `onclick="abrirModalAprovacaoById(this)"` : '';
-    var cardData = isApproval ? `data-opp-title="${(opp.title||'').replace(/"/g,'&quot;')}" data-opp-org="${(opp.org||'').replace(/"/g,'&quot;')}"` : '';
+    var cardData = isApproval ? `data-opp-title="${(opp.title||'').replace(/"/g,'&quot;')}" data-opp-org="${(opp.org||'').replace(/"/g,'&quot;')}" data-opp-empresa="${(opp.detentorEmpresa||'').replace(/"/g,'&quot;')}"` : '';
     return `
     <${cardTag} class="opp-card" ${cardHref} ${cardClick} ${cardData} data-id="${opp.id}" data-category="${opp.category}" data-city="${opp.city}" style="${isApproval ? 'cursor:pointer' : ''}">
       <div class="olc-hero" data-idx="0" style="position:relative">
@@ -4244,7 +4244,7 @@ function abrirModalAprovacaoById(el) {
   var opp = {
     id: parseInt(card.dataset.id),
     title: card.dataset.oppTitle || '',
-    org: card.dataset.oppOrg || ''
+    org: card.dataset.oppEmpresa || card.dataset.oppOrg || ''
   };
   abrirModalAprovacao(opp);
 }
