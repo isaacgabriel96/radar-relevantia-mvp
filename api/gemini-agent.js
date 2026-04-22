@@ -85,8 +85,18 @@ export default async function handler(req, res) {
     const text  = parts.filter(p => p.text).map(p => p.text).join('');
 
     if (!text.trim()) {
-      console.error('Gemini resposta vazia — finishReason:', candidate?.finishReason, '— parts:', JSON.stringify(parts));
-      return res.status(502).json({ error: 'A IA retornou uma resposta vazia. Tente novamente.' });
+      const debugInfo = {
+        finishReason: candidate?.finishReason,
+        partsCount: parts.length,
+        partTypes: parts.map(p => Object.keys(p).join(',')),
+        candidateExists: !!candidate,
+        candidatesCount: data.candidates?.length,
+      };
+      console.error('Gemini resposta vazia:', JSON.stringify(debugInfo));
+      return res.status(502).json({
+        error: 'A IA retornou uma resposta vazia. Tente novamente.',
+        debug: debugInfo,
+      });
     }
 
     return res.status(200).json({ text });
