@@ -9737,7 +9737,7 @@ window.agIniciarAnalise = async function() {
   agAddMsg('agent', '', true);
 
   try {
-    // Sempre ativa google_search — o agente sempre pesquisa redes sociais da oportunidade
+    // Sempre ativa google_search — o agente pesquisa redes sociais e contexto da oportunidade
     const raw = await agCallGemini(window._agState.history, { useSearch: true });
     window._agState.history.push({ role: 'assistant', content: raw });
 

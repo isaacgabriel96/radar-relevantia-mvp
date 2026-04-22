@@ -9,6 +9,9 @@
  *   GEMINI_API_KEY = AIza...
  */
 
+// Aumenta o timeout para 60s — Gemini com google_search pode levar 15-30s
+export const maxDuration = 60;
+
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
@@ -82,6 +85,7 @@ export default async function handler(req, res) {
     const text  = parts.filter(p => p.text).map(p => p.text).join('');
 
     if (!text.trim()) {
+      console.error('Gemini resposta vazia — finishReason:', candidate?.finishReason, '— parts:', JSON.stringify(parts));
       return res.status(502).json({ error: 'A IA retornou uma resposta vazia. Tente novamente.' });
     }
 
