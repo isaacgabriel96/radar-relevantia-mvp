@@ -1441,49 +1441,106 @@ input[type=number] { -moz-appearance: textfield; }
   border-color: var(--gold); background: var(--gold-gradient);
 }
 
-/* ── Opportunity Preview Card (matches oportunidade-detalhe.html) ── */
-.opp-preview-card { border: 1.5px solid var(--gray-2); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; background: var(--white); }
-
-/* Gallery 1+4 grid */
-.opp-preview-gallery {
-  display: grid; grid-template-columns: 1fr 90px 90px;
-  grid-template-rows: 1fr 1fr; gap: 3px; height: 200px;
-  background: var(--gray-1); position: relative;
+/* ── Preview Card Wrapper ── */
+.preview-card-wrap { margin-bottom: 24px; }
+.preview-card-wrap .opp-card {
+  display: flex; flex-direction: column;
+  background: var(--white);
+  border-radius: 16px;
+  border: 1px solid rgba(0,0,0,0.06);
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(30,22,0,0.06);
+  pointer-events: none;
 }
-.opp-preview-gallery-main {
-  grid-row: 1 / -1; overflow: hidden; background-size: cover;
-  background-position: center top; background-repeat: no-repeat;
-  background-color: var(--gray-1); position: relative;
-}
-.opp-preview-gallery-main.no-image {
+.preview-card-wrap .card-image {
+  position: relative;
+  height: 200px;
   display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  background-color: var(--gray-1);
 }
-.opp-preview-gallery-thumb {
-  overflow: hidden; background-size: cover;
-  background-position: center top; background-repeat: no-repeat;
-  background-color: var(--gray-2);
+.preview-card-wrap .card-image.no-image-state {
+  background: var(--gray-1);
 }
-.opp-preview-gallery-badge {
-  position: absolute; bottom: 8px; left: 8px;
-  background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
-  color: var(--white); border-radius: var(--radius-pill);
-  padding: 3px 9px; font-size: 10px; font-weight: 500; letter-spacing: .2px;
+.preview-card-wrap .card-image-no-cover {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--gray-3);
 }
-.opp-preview-cover-placeholder { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--gray-3); }
-.opp-preview-cover-placeholder span { font-size: 11px; }
+.preview-card-wrap .card-image-no-cover span { font-size: 11px; }
+.preview-card-wrap .card-badge {
+  position: absolute; top: 12px; left: 12px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  z-index: 2;
+}
+.preview-card-wrap .badge-personalidade { background: rgba(184,134,11,0.85); }
+.preview-card-wrap .badge-evento       { background: rgba(245,158,11,0.85); }
+.preview-card-wrap .badge-espaco       { background: rgba(59,130,246,0.85); }
+.preview-card-wrap .badge-midia        { background: rgba(6,182,212,0.85); }
+.preview-card-wrap .badge-esporte      { background: rgba(34,197,94,0.85); }
+.preview-card-wrap .badge-musica       { background: rgba(147,51,234,0.85); }
+.preview-card-wrap .badge-tecnologia   { background: rgba(59,130,246,0.85); }
+.preview-card-wrap .badge-cultura      { background: rgba(245,158,11,0.85); }
+/* Photo dots */
+.preview-card-wrap .card-photo-dots {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 5px; z-index: 2;
+}
+.preview-card-wrap .card-photo-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.7);
+}
+.preview-card-wrap .card-photo-dot.active {
+  background: var(--white);
+  width: 16px; border-radius: 3px;
+}
+/* Body */
+.preview-card-wrap .card-body {
+  padding: 20px;
+  display: flex; flex-direction: column;
+  flex: 1;
+}
+.preview-card-wrap .card-org {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.preview-card-wrap .card-org-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--gold-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 700; color: var(--black);
+  flex-shrink: 0;
+}
+.preview-card-wrap .card-org-name { font-size: 12px; color: var(--gray-4); font-weight: 500; }
+.preview-card-wrap .card-title {
+  font-size: 16px; font-weight: 600; color: var(--text);
+  line-height: 1.35; margin-bottom: 8px;
+}
+.preview-card-wrap .card-desc {
+  font-size: 13px; color: var(--gray-3); line-height: 1.55;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; margin-bottom: 14px;
+}
+.preview-card-wrap .card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--gray-2);
+}
+.preview-card-wrap .card-price {
+  font-size: 14px; font-weight: 700; color: var(--gold);
+}
+.preview-card-wrap .card-price small { font-size: 11px; font-weight: 500; color: var(--gray-3); }
+.preview-card-wrap .card-link {
+  font-size: 13px; font-weight: 600; color: var(--gold);
+  display: flex; align-items: center; gap: 4px;
+}
 
-/* Header info */
-.opp-preview-body { padding: 16px 18px; }
-.opp-preview-category-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-.opp-preview-category {
-  font-size: 10px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .06em; color: var(--gold);
-}
-.opp-preview-status {
-  font-size: 9px; font-weight: 600; color: #16a34a;
-  background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
-  border-radius: var(--radius-pill); padding: 2px 7px;
-}
+/* kept for backwards compat if referenced elsewhere */
+.opp-preview-card { display: none; }
 .opp-preview-name {
   font-family: var(--font-heading); font-size: 18px; font-weight: 700;
   color: var(--text); margin-bottom: 10px; line-height: 1.2;
@@ -5516,100 +5573,78 @@ function renderReviewSummary() {
 
   const tplKey = formState.selectedTemplate;
   const tpl = TEMPLATES[tplKey];
+  const tplLabel = tpl?.label || tplKey || '';
+  const badgeClass = 'badge-' + (tplKey || 'cultura').toLowerCase().replace(/\s+/g, '-');
+
   const nomeVal = document.getElementById('opp-nome')?.value || '';
-  const nome = nomeVal || '—';
-  const desc = document.getElementById('opp-desc')?.value || '—';
-  const estadoEl = document.getElementById('opp-estado');
-  const cidadeEl = document.getElementById('opp-cidade');
-  const estadoVal = estadoEl?.options[estadoEl.selectedIndex]?.text || '—';
-  const cidadeVal = cidadeEl?.value || '—';
-  const localVal = (cidadeVal && cidadeVal !== '—') ? `${cidadeVal} — ${estadoVal}` : estadoVal;
-  const abrangenciaEl = document.getElementById('opp-abrangencia');
-  const abrangencia = abrangenciaEl?.options[abrangenciaEl.selectedIndex]?.text || '—';
-
-  // Segmentos selecionados
-  const segmentos = Array.from(document.querySelectorAll('#segmentPillGrid .segment-pill.selected')).map(p => p.textContent.trim());
-
-  // Materiais info
-  const videoUrlVal = document.getElementById('videoUrl')?.value || '';
-  const linkExterno = document.getElementById('opp-link-externo')?.value || '';
+  const descVal = document.getElementById('opp-desc')?.value || '';
 
   // Fotos — usar lpUploadedPhotos (sistema LP)
   const coverPhoto = lpUploadedPhotos.find(p => p.isCover) || lpUploadedPhotos[0] || null;
-  const otherPhotos = lpUploadedPhotos.filter(p => p !== coverPhoto);
-  const tplLabel = tpl?.label || tplKey || '';
+  const totalPhotos = lpUploadedPhotos.length;
 
-  // ── Preview visual 1+4 (espelha oportunidade-detalhe.html) ──
-  const fallbackColors = ['#e0d8cc', '#d0c8b8', '#c8c0b0', '#bfb8a8'];
-
-  let preview = `<div class="opp-preview-card">`;
-
-  // Gallery grid 1+4
-  preview += `<div class="opp-preview-gallery">`;
-  // Main (capa)
-  if (coverPhoto) {
-    const fp0 = coverPhoto.focalPoint || { x: 50, y: 20 };
-    preview += `<div class="opp-preview-gallery-main" style="background:url(${coverPhoto.url}) ${fp0.x}% ${fp0.y}% / cover no-repeat">`;
-    if (tplLabel) preview += `<div class="opp-preview-gallery-badge">${tplLabel}</div>`;
-    preview += `</div>`;
-  } else {
-    preview += `<div class="opp-preview-gallery-main no-image"><div class="opp-preview-cover-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Sem capa</span></div></div>`;
-  }
-
-  // 4 thumbs (mesma ordem de grid: [0,2,1,3] para preencher col2-row1, col3-row1, col2-row2, col3-row2)
-  const thumbOrder = [0, 2, 1, 3];
-  for (let i = 0; i < 4; i++) {
-    const ot = otherPhotos[thumbOrder[i]];
-    if (ot) {
-      const fp = ot.focalPoint || { x: 50, y: 20 };
-      preview += `<div class="opp-preview-gallery-thumb" style="background:url(${ot.url}) ${fp.x}% ${fp.y}% / cover no-repeat"></div>`;
-    } else {
-      preview += `<div class="opp-preview-gallery-thumb" style="background:${fallbackColors[i]}"></div>`;
-    }
-  }
-  preview += `</div>`;
-
-  // Body com infos reais
-  const estadoEl2 = document.getElementById('opp-estado');
-  const cidadeEl2 = document.getElementById('opp-cidade');
-  const estadoText = estadoEl2?.options[estadoEl2.selectedIndex]?.text || '';
-  const cidadeText = cidadeEl2?.value || '';
-  const locationText = [cidadeText, (estadoText !== 'Selecione o estado' ? estadoText : '')].filter(Boolean).join(' — ');
-
-  // Date from event-dates
-  let dateText = '';
-  if (tpl) {
-    tpl.fields.forEach(f => {
-      if (f.type === 'event-dates') {
-        const entries = document.querySelectorAll('#event-entries-list .event-entry');
-        entries.forEach(entry => {
-          const d = entry.querySelectorAll('input')[0]?.value || '';
-          if (d && !dateText) dateText = d;
-        });
-      }
-    });
-  }
+  // Org name from #lpOrgName (already populated by initSession)
+  const orgName = document.getElementById('lpOrgName')?.textContent || 'Sua organização';
+  const orgInitials = orgName.split(' ').filter(w => w.length > 0).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
 
   // Price from cotas
-  let priceText = 'Valor a definir';
+  let priceHtml = '<span class="card-price" style="color:var(--gray-3);font-size:13px;font-weight:500">Valor a definir</span>';
   const cotasOn = document.getElementById('cotas-toggle-switch')?.classList.contains('active');
   if (cotasOn) {
     const vals = Array.from(document.querySelectorAll('#cotas-list .cota-card .cota-valor'))
       .map(el => Number(el.value)).filter(v => v > 0);
     if (vals.length > 0) {
       const minV = Math.min(...vals);
-      priceText = `A partir de R$ ${minV.toLocaleString('pt-BR')}`;
+      priceHtml = `<span class="card-price"><small>A partir de </small>R$ ${minV.toLocaleString('pt-BR')}</span>`;
     }
   }
 
-  preview += `<div class="opp-preview-body">`;
-  preview += `<div class="opp-preview-category-row">`;
-  if (tplLabel) preview += `<span class="opp-preview-category">${tplLabel}</span>`;
-  preview += `<span class="opp-preview-status">Aberto</span></div>`;
-  preview += `<div class="opp-preview-name">${nomeVal || 'Nome da oportunidade'}</div>`;
-  preview += `</div></div>`;
+  // Arrow SVG
+  const arrowSvg = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
 
-  let html = preview;
+  // ── Image section ──
+  let imageHtml;
+  if (coverPhoto) {
+    const fp = coverPhoto.focalPoint || { x: 50, y: 20 };
+    const bgStyle = `background:url(${coverPhoto.url}) ${fp.x}% ${fp.y}% / cover no-repeat`;
+    // Dots (shown when ≥2 photos)
+    let dotsHtml = '';
+    if (totalPhotos >= 2) {
+      dotsHtml = '<div class="card-photo-dots">';
+      for (let i = 0; i < Math.min(totalPhotos, 5); i++) {
+        dotsHtml += `<span class="card-photo-dot${i === 0 ? ' active' : ''}"></span>`;
+      }
+      dotsHtml += '</div>';
+    }
+    imageHtml = `<div class="card-image" style="${bgStyle}">` +
+      `<span class="card-badge ${badgeClass}">${tplLabel}</span>` +
+      dotsHtml +
+      `</div>`;
+  } else {
+    imageHtml = `<div class="card-image no-image-state">` +
+      `<div class="card-image-no-cover"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Sem capa</span></div>` +
+      `<span class="card-badge ${badgeClass}">${tplLabel}</span>` +
+      `</div>`;
+  }
+
+  const html =
+    `<div class="preview-card-wrap">` +
+      `<div class="opp-card">` +
+        imageHtml +
+        `<div class="card-body">` +
+          `<div class="card-org">` +
+            `<span class="card-org-avatar">${orgInitials}</span>` +
+            `<span class="card-org-name">${orgName}</span>` +
+          `</div>` +
+          `<div class="card-title">${nomeVal || 'Nome da oportunidade'}</div>` +
+          `<div class="card-desc">${descVal || 'Descrição curta aparecerá aqui'}</div>` +
+          `<div class="card-footer">` +
+            priceHtml +
+            `<span class="card-link">Ver detalhes ${arrowSvg}</span>` +
+          `</div>` +
+        `</div>` +
+      `</div>` +
+    `</div>`;
 
   container.innerHTML = html;
 }
