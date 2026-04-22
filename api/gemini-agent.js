@@ -55,52 +55,64 @@ export default async function handler(req, res) {
 
   if (useSearch) body.tools = [{ google_search: {} }];
 
-  try {
+  /**
+   * Chama o Gemini e extrai o texto da resposta.
+   * Retorna { text } em sucesso, lança erro em falha HTTP.
+   */
+  async function callGemini(requestBody) {
     const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      console.error('Erro Gemini:', err);
-      return res.status(502).json({
-        error: 'Erro ao processar com a IA.',
-        detail: err.error?.message || `HTTP ${response.status}`,
-      });
+      throw Object.assign(new Error(err.error?.message || `HTTP ${response.status}`), { httpStatus: response.status, detail: err });
     }
 
     const data = await response.json();
     const candidate = data.candidates?.[0];
+    const finishReason = candidate?.finishReason;
 
-    if (candidate?.finishReason === 'MAX_TOKENS') {
-      return res.status(422).json({ error: 'A resposta foi cortada (limite de tokens). Tente uma entrada mais curta.' });
+    if (finishReason === 'MAX_TOKENS') {
+      throw Object.assign(new Error('MAX_TOKENS'), { userMessage: 'A resposta foi cortada (limite de tokens). Tente uma entrada mais curta.', status: 422 });
     }
-    if (candidate?.finishReason === 'SAFETY') {
-      return res.status(422).json({ error: 'O conteúdo foi bloqueado pelos filtros de segurança.' });
+    if (finishReason === 'SAFETY') {
+      throw Object.assign(new Error('SAFETY'), { userMessage: 'O conteúdo foi bloqueado pelos filtros de segurança.', status: 422 });
     }
 
     const parts = candidate?.content?.parts || [];
     const text  = parts.filter(p => p.text).map(p => p.text).join('');
+    return { text, finishReason, parts };
+  }
 
-    if (!text.trim()) {
-      const debugInfo = {
-        finishReason: candidate?.finishReason,
-        partsCount: parts.length,
-        partTypes: parts.map(p => Object.keys(p).join(',')),
-        candidateExists: !!candidate,
-        candidatesCount: data.candidates?.length,
-      };
-      console.error('Gemini resposta vazia:', JSON.stringify(debugInfo));
-      return res.status(502).json({
-        error: 'A IA retornou uma resposta vazia. Tente novamente.',
-        debug: debugInfo,
-      });
+  try {
+    let result = await callGemini(body);
+
+    // Gemini 2.5 Flash com google_search às vezes retorna partes sem texto
+    // (finishReason OTHER ou STOP com 0 text parts). Retry sem search como fallback.
+    if (!result.text.trim() && useSearch) {
+      console.warn('Gemini: resposta vazia com google_search, tentando sem search. finishReason:', result.finishReason);
+      const bodyNoSearch = { ...body };
+      delete bodyNoSearch.tools;
+      result = await callGemini(bodyNoSearch);
     }
 
-    return res.status(200).json({ text });
+    if (!result.text.trim()) {
+      console.error('Gemini: resposta vazia mesmo sem search. finishReason:', result.finishReason);
+      return res.status(502).json({ error: 'A IA retornou uma resposta vazia. Tente novamente.' });
+    }
+
+    return res.status(200).json({ text: result.text });
   } catch (err) {
+    if (err.status) {
+      return res.status(err.status).json({ error: err.userMessage });
+    }
+    if (err.httpStatus) {
+      console.error('Erro Gemini HTTP:', err.detail);
+      return res.status(502).json({ error: 'Erro ao processar com a IA.', detail: err.message });
+    }
     console.error('Erro interno:', err);
     return res.status(500).json({ error: 'Erro interno do servidor.' });
   }
