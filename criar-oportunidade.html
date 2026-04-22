@@ -5591,7 +5591,8 @@ function renderReviewSummary() {
   // ── Hero image section ──
   let heroHtml;
   if (coverPhoto) {
-    const fp = coverPhoto.focalPoint || { x: 50, y: 20 };
+    const fp = coverPhoto.focalPoint;
+    const objPos = fp ? `${fp.x}% ${fp.y}%` : 'center top';
     // Photo counter (always shown when ≥1 photo)
     const countHtml = `<div class="olc-hero-count">${cameraSvg}<span>1/${totalPhotos}</span></div>`;
     // Dots (shown when ≥2 photos)
@@ -5604,7 +5605,7 @@ function renderReviewSummary() {
       dotsHtml += '</div>';
     }
     heroHtml = `<div class="olc-hero">` +
-      `<img class="olc-hero-img" src="${coverPhoto.url}" alt="" style="object-position:${fp.x}% ${fp.y}%">` +
+      `<img class="olc-hero-img" src="${coverPhoto.url}" alt="" style="object-position:${objPos}">` +
       countHtml +
       `<div class="olc-hero-tag">${tplLabel}</div>` +
       dotsHtml +
