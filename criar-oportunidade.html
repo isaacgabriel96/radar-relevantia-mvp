@@ -2519,14 +2519,19 @@ input[type=number] { -moz-appearance: textfield; }
 
 /* Chat input row */
 .ag-chat-input-row {
-  display: flex; gap: 8px; padding: 12px 18px;
-  border-top: 1px solid #F5F0E8;
+  display: flex; gap: 8px; padding: 14px 18px;
+  border-top: 2px solid #F0EBE1;
+  margin-top: 4px;
+  align-items: flex-end;
 }
 .ag-chat-input {
   flex: 1; padding: 9px 12px;
-  border: 1.5px solid #E0D8CC; border-radius: 100px;
+  border: 1.5px solid #E0D8CC; border-radius: 12px;
   font-size: 13px; font-family: var(--font-body, 'DM Sans', sans-serif); color: var(--black);
   background: #F5F0E8; transition: all 0.18s;
+  resize: none; line-height: 1.5;
+  min-height: 38px; max-height: 140px; overflow-y: auto;
+  display: block;
 }
 .ag-chat-input:focus {
   outline: none; border-color: #B8860B; background: var(--white);
@@ -2866,9 +2871,9 @@ input[type=number] { -moz-appearance: textfield; }
           </button>
           <input type="file" accept="application/pdf" id="agPdfInput" style="display:none" onchange="agHandlePdfUpload(this)">
 
-          <input class="ag-chat-input" id="agChatInput"
+          <textarea class="ag-chat-input" id="agChatInput" rows="1"
             placeholder="Descreva a oportunidade, cole um link ou envie um PDF…"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agEnviarResposta()}">
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agEnviarResposta()}"></textarea>
           <button class="ag-btn-send" id="agBtnSend" onclick="agEnviarResposta()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
