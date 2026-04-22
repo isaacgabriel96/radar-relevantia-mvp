@@ -1995,26 +1995,37 @@ function populateDetenorFields(p) {
   }
 
   if (img && fallback) {
-    const domainLogo = p.empresa_domain ? `https://logo.clearbit.com/${p.empresa_domain}` : null;
-    const storedLogo = p.logo_url || null;
-    const primarySrc = domainLogo || storedLogo;
-    if (primarySrc) {
-      img.src = primarySrc;
-      img.style.display = 'block';
-      fallback.style.display = 'none';
-      img.onerror = function() {
-        if (storedLogo && img.src !== storedLogo) {
-          img.src = storedLogo;
-          return;
-        }
-        img.style.display = 'none';
-        fallback.style.display = '';
-        fallback.textContent = nomeEmpresa ? nomeEmpresa.charAt(0).toUpperCase() : '?';
-      };
-    } else {
+    const setLogoFallback = () => {
       img.style.display = 'none';
       fallback.style.display = '';
       fallback.textContent = nomeEmpresa ? nomeEmpresa.charAt(0).toUpperCase() : '?';
+    };
+    const applyLogoSrc = (src) => {
+      img.src = src;
+      img.style.display = 'block';
+      fallback.style.display = 'none';
+      img.onerror = setLogoFallback;
+    };
+    if (p.empresa_domain) {
+      // Busca URL fresca via Brandfetch search API
+      fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(p.empresa_domain)}?c=${DASH_BF_CLIENT_ID}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          const icon = Array.isArray(data) && data.length > 0 ? data[0].icon : null;
+          if (icon) { applyLogoSrc(icon); }
+          else if (p.logo_url) { applyLogoSrc(p.logo_url); }
+          else { setLogoFallback(); }
+        })
+        .catch(() => {
+          if (p.logo_url) { applyLogoSrc(p.logo_url); }
+          else { setLogoFallback(); }
+        });
+      // Enquanto carrega, mostra fallback temporariamente
+      setLogoFallback();
+    } else if (p.logo_url) {
+      applyLogoSrc(p.logo_url);
+    } else {
+      setLogoFallback();
     }
   }
 }
