@@ -2380,36 +2380,7 @@ async function loadMudancasMarca() {
 async function aprovarMudancaMarca(perfilId) {
   if (!confirm('Aprovar essa mudança de empresa?')) return;
   try {
-    // Fetch the pending data first
-    const res = await sbFetch(`/rest/v1/perfis?id=eq.${perfilId}&select=empresa_change_pending`);
-    if (!res.ok) throw new Error(await res.text());
-    const [row] = await res.json();
-    if (!row) throw new Error('Perfil não encontrado');
-
-    let pending = {};
-    try { pending = JSON.parse(row.empresa_change_pending || '{}'); } catch(e) {}
-
-    // Apply the new empresa data and clear pending
-    const patch = {
-      empresa:                pending.name        || null,
-      empresa_domain:         pending.domain      || null,
-      logo_url:               pending.icon        || null,
-      website:                pending.website     || null,
-      descricao:              pending.description || null,
-      empresa_change_pending: null
-    };
-    const resP = await sbFetch(`/rest/v1/perfis?id=eq.${perfilId}`, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body:    JSON.stringify(patch)
-    });
-    if (!resP.ok) throw new Error(await resP.text());
-
-    // Remove row from table
-    const row$ = document.getElementById(`mudanca-row-${perfilId}`);
-    if (row$) row$.remove();
-
-    // Update count
+    await adminAction('approve-marca-change', { perfil_id: perfilId });
     await loadMudancasMarca();
     alert('Mudança aprovada! Empresa do detentor atualizada.');
   } catch (err) {
@@ -2421,13 +2392,7 @@ async function aprovarMudancaMarca(perfilId) {
 async function rejeitarMudancaMarca(perfilId) {
   if (!confirm('Rejeitar essa solicitação de mudança?')) return;
   try {
-    const resP = await sbFetch(`/rest/v1/perfis?id=eq.${perfilId}`, {
-      method:  'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body:    JSON.stringify({ empresa_change_pending: null })
-    });
-    if (!resP.ok) throw new Error(await resP.text());
-
+    await adminAction('reject-marca-change', { perfil_id: perfilId });
     await loadMudancasMarca();
     alert('Solicitação rejeitada.');
   } catch (err) {
