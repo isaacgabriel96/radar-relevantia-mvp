@@ -3650,16 +3650,6 @@ input[type=number] { -moz-appearance: textfield; }
             <div class="vis-title">Somente convidadas</div>
             <div class="vis-desc">Apenas marcas que você convidar poderão visualizar esta oportunidade</div>
             <div class="visibility-radio"></div>
-            <div id="share-link-panel" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid var(--gray-1)">
-              <div style="font-size:12px;color:var(--gray-3);margin-bottom:6px;font-weight:600">Link de convite</div>
-              <div style="display:flex;gap:6px;align-items:center">
-                <input type="text" id="share-link-input" class="form-control" readonly
-                  style="font-size:12px;padding:7px 10px;background:var(--gray-1)"
-                  value="">
-                <button type="button" id="share-link-copy-btn" class="btn btn-ghost" style="padding:7px 14px;font-size:12px;flex-shrink:0"
-                  onclick="copyShareLink(event)">Copiar</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -3684,7 +3674,17 @@ input[type=number] { -moz-appearance: textfield; }
   <div class="modal-box">
     <div class="modal-icon" style="display:flex;justify-content:center"><svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="26" cy="26" r="24" stroke="#B8860B" stroke-width="1.5" fill="rgba(184,134,11,0.06)"/><path d="M16 26l8 8 12-14" stroke="#B8860B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div class="modal-title">Oportunidade publicada!</div>
-    <div class="modal-desc">Sua oportunidade está agora visível no Radar Relevantia. As marcas já podem encontrá-la e demonstrar interesse.</div>
+    <div id="success-modal-desc" class="modal-desc">Sua oportunidade está agora visível no Radar Relevantia. As marcas já podem encontrá-la e demonstrar interesse.</div>
+    <!-- Link de convite — exibido apenas para visibilidade "convidadas" -->
+    <div id="success-share-link-wrap" style="display:none;margin-bottom:16px;padding:14px;background:var(--gray-1);border-radius:var(--radius-md)">
+      <div style="font-size:12px;color:var(--gray-4);font-weight:600;margin-bottom:8px">Link de convite</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="success-share-link-input" class="form-control" readonly
+          style="font-size:12px;padding:7px 10px;background:var(--white)">
+        <button type="button" class="btn btn-ghost" style="padding:7px 14px;font-size:12px;flex-shrink:0"
+          onclick="copySuccessShareLink(event)">Copiar</button>
+      </div>
+    </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="window.location.href='dashboard-detentor.html#oportunidades'">
       Ver minhas oportunidades
     </button>
@@ -6961,36 +6961,47 @@ function selectVisibility(type) {
   ['publica','aprovacao','convidadas'].forEach(t => {
     document.getElementById('vis-' + t)?.classList.toggle('selected', t === type);
   });
-  const panel = document.getElementById('share-link-panel');
-  if (panel) {
-    panel.style.display = type === 'convidadas' ? 'block' : 'none';
-    if (type === 'convidadas') {
-      _updateShareLink();
-    }
-  }
 }
 
-/** Atualiza o input do link de convite com a URL real da oportunidade */
-function _updateShareLink() {
-  const input = document.getElementById('share-link-input');
-  const btn   = document.getElementById('share-link-copy-btn');
-  if (!input) return;
-  const oppSlug = formState.editSlug || null;
-  const oppId   = formState.editId   || null;
-  const base    = 'https://radar-relevantia.com.br/oportunidade-detalhe.html';
-  let link = '';
-  if (oppSlug) {
-    link = base + '?slug=' + encodeURIComponent(oppSlug);
-  } else if (oppId) {
-    link = base + '?id=' + encodeURIComponent(oppId);
+/** Monta a URL de convite da oportunidade */
+function _buildShareLink() {
+  const base = 'https://radar-relevantia.com.br/oportunidade-detalhe.html';
+  if (formState.editSlug) return base + '?slug=' + encodeURIComponent(formState.editSlug);
+  if (formState.editId)   return base + '?id='   + encodeURIComponent(formState.editId);
+  return '';
+}
+
+/** Abre o modal de sucesso populando o link de convite se necessário */
+function _openSuccessModal() {
+  const isConvidadas = formState.selectedVisibility === 'convidadas';
+  const wrap  = document.getElementById('success-share-link-wrap');
+  const input = document.getElementById('success-share-link-input');
+  const desc  = document.getElementById('success-modal-desc');
+  if (isConvidadas && wrap && input) {
+    const link = _buildShareLink();
+    input.value = link;
+    wrap.style.display = 'block';
+    if (desc) desc.textContent = 'Sua oportunidade foi publicada. Compartilhe o link abaixo com as marcas que você deseja convidar.';
   } else {
-    input.value = '';
-    input.placeholder = 'Disponível após publicar a oportunidade';
-    if (btn) { btn.disabled = true; btn.style.opacity = '0.45'; btn.style.cursor = 'default'; }
-    return;
+    if (wrap) wrap.style.display = 'none';
+    if (desc) desc.textContent = 'Sua oportunidade está agora visível no Radar Relevantia. As marcas já podem encontrá-la e demonstrar interesse.';
   }
-  input.value = link;
-  if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
+  document.getElementById('successModal').classList.add('open');
+}
+
+function copySuccessShareLink(e) {
+  e.stopPropagation();
+  const input = document.getElementById('success-share-link-input');
+  if (!input || !input.value) return;
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(input.value).then(() => {
+      showToast('Link copiado!', 'success');
+    }).catch(() => { input.select(); document.execCommand('copy'); showToast('Link copiado!', 'success'); });
+  } else {
+    input.select();
+    document.execCommand('copy');
+    showToast('Link copiado!', 'success');
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -7279,24 +7290,6 @@ function addDataExtra() {
   list.appendChild(div);
 }
 
-function copyShareLink(e) {
-  e.stopPropagation();
-  const input = document.getElementById('share-link-input');
-  if (!input || !input.value) return;
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(input.value).then(() => {
-      showToast('Link copiado!', 'success');
-    }).catch(() => {
-      input.select();
-      document.execCommand('copy');
-      showToast('Link copiado!', 'success');
-    });
-  } else {
-    input.select();
-    document.execCommand('copy');
-    showToast('Link copiado!', 'success');
-  }
-}
 
 /* ══════════════════════════════════════════════
    COTAS DE PATROCÍNIO
@@ -8637,11 +8630,10 @@ async function publishOpportunity() {
       if (!res.ok) { const err = await res.text(); console.error('[Publish]', err); throw new Error(err); }
       const rows = await res.json();
       oppId = rows[0]?.id;
-      // Atualiza formState para que o share link fique disponível após publicar
+      // Atualiza formState para que o link de convite fique disponível no modal
       if (oppId) {
         formState.editId = oppId;
         if (rows[0]?.slug) formState.editSlug = rows[0].slug;
-        _updateShareLink();
       }
       console.log('[Publish] Opportunity created:', oppId);
     }
@@ -8703,7 +8695,7 @@ async function publishOpportunity() {
       }
     }
 
-    document.getElementById('successModal').classList.add('open');
+    _openSuccessModal();
   } catch (err) {
     console.error('[Publish] Failed:', err);
     showToast('Erro ao publicar. Tente novamente.', 'error');
@@ -8714,7 +8706,7 @@ async function publishOpportunity() {
 }
 
 function publishSuccess() {
-  document.getElementById('successModal').classList.add('open');
+  _openSuccessModal();
 }
 
 /* ══════════════════════════════════════════════
