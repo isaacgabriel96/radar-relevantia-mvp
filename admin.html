@@ -158,27 +158,34 @@ body { font-family: var(--font-body); background: var(--gray-1); color: var(--te
 /* Sidebar */
 .sidebar {
   width: var(--sidebar-w); flex-shrink: 0;
-  background: var(--white); border-right: 1px solid var(--gray-2);
-  padding: 24px 0; position: sticky; top: var(--nav-h); height: calc(100vh - var(--nav-h));
-  overflow-y: auto; box-shadow: var(--shadow-sm);
+  background: var(--black); border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 16px 12px; position: sticky; top: var(--nav-h); height: calc(100vh - var(--nav-h));
+  overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
 }
-.sidebar-section { margin-bottom: 4px; }
+.sidebar-section { margin-bottom: 2px; }
 .sidebar-label {
-  font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--gray-5); padding: 8px 20px 4px; margin-top: 8px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); padding: 16px 12px 6px; margin-top: 0;
 }
 .sidebar-item {
   display: flex; align-items: center; gap: 10px;
-  padding: 10px 20px; cursor: pointer; border-radius: 0;
-  font-size: 13px; font-weight: 500; color: var(--gray-5);
-  transition: background 0.15s, color 0.15s; border-left: 2.5px solid transparent;
+  padding: 10px 12px; cursor: pointer; border-radius: var(--radius-base);
+  font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.4);
+  transition: background var(--ease-default), color var(--ease-default);
+  border-left: none; position: relative;
   text-decoration: none; user-select: none;
 }
-.sidebar-item:hover { background: var(--gray-1); color: var(--text); }
-.sidebar-item.active { background: var(--gold-pale); color: var(--black-2); border-left-color: var(--gold); font-weight: 600; }
+.sidebar-item:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.7); }
+.sidebar-item.active {
+  background: rgba(184,134,11,0.12); color: var(--white); font-weight: 600;
+}
+.sidebar-item.active::before {
+  content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
+  border-radius: 0 3px 3px 0; background: var(--gold);
+}
 .sidebar-item-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
 .sidebar-badge {
-  margin-left: auto; background: var(--gold-gradient); color: var(--black);
+  margin-left: auto; background: rgba(184,134,11,0.2); color: var(--gold);
   font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill); min-width: 20px; text-align: center;
 }
 .sidebar-badge.red { background: var(--red); color: var(--white); border-radius: var(--radius-pill); }
