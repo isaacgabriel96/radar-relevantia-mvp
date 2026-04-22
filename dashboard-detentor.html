@@ -453,7 +453,7 @@ tbody tr:last-child td { border-bottom: none; }
 .pub-opp-card:hover { box-shadow: 0 8px 32px rgba(30,22,0,0.1); transform: translateY(-2px); }
 .pub-card-image { position: relative; height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .pub-card-image svg { width: 40px; height: 40px; color: rgba(255,255,255,0.2); }
-.pub-card-status-badge { position: absolute; top: 10px; left: 10px; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; }
+.pub-card-status-badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
 .pub-card-status-badge.publicada  { background: rgba(5,150,105,0.85);  color: #fff; }
 .pub-card-status-badge.rascunho   { background: rgba(217,119,6,0.85);  color: #fff; }
 .pub-card-status-badge.finalizada { background: rgba(100,100,100,0.80); color: #fff; }
@@ -636,6 +636,40 @@ tbody tr:last-child td { border-bottom: none; }
 .neg-pill:hover { border-color: var(--gold); color: var(--gold); }
 .neg-pill.active { background: var(--black); border-color: var(--black); color: var(--white); }
 .neg-pills-count { font-size: 12px; color: var(--gray-400); margin-left: auto; }
+
+/* ─── VISIBILIDADE BADGE + DROPDOWN ─── */
+.vis-badge-wrap { position: relative; display: inline-flex; }
+.vis-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px 3px 7px; border-radius: 100px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.03em; cursor: pointer;
+  border: 1.5px solid transparent; transition: all 0.15s; user-select: none;
+  backdrop-filter: blur(4px);
+}
+.vis-badge.publica    { background: rgba(37,99,235,0.15); border-color: rgba(37,99,235,0.4); color: #fff; }
+.vis-badge.aprovacao  { background: rgba(217,119,6,0.18); border-color: rgba(217,119,6,0.5);  color: #fff; }
+.vis-badge.convidadas { background: rgba(124,58,237,0.18); border-color: rgba(124,58,237,0.5); color: #fff; }
+.vis-badge svg { width: 9px; height: 9px; flex-shrink: 0; }
+.vis-badge-chevron { width: 9px; height: 9px; opacity: 0.7; transition: transform 0.15s; }
+.vis-badge-wrap.open .vis-badge-chevron { transform: rotate(180deg); }
+.vis-dropdown {
+  display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 200;
+  background: var(--white); border: 1px solid var(--gray-2);
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(26,18,0,0.13);
+  min-width: 170px; overflow: hidden;
+}
+.vis-badge-wrap.open .vis-dropdown { display: block; }
+.vis-dropdown-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; font-size: 12px; font-weight: 500; color: var(--black);
+  cursor: pointer; transition: background 0.12s; font-family: var(--font-body);
+}
+.vis-dropdown-item:hover { background: var(--gray-1); }
+.vis-dropdown-item.active { background: var(--gray-1); font-weight: 700; }
+.vis-dropdown-item .vis-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.vis-dropdown-item .vis-desc { font-size: 10px; color: var(--gray-3); margin-top: 1px; }
 
 /* ─── BTN ENCERRAR / EXCLUIR ─── */
 .btn-encerrar { background: transparent; border: 1.5px solid #E5E0D8; color: #B45309; padding: 5px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; }
@@ -2896,11 +2930,19 @@ function renderPublicadas() {
     return;
   }
 
+  const visConfig = {
+    publica:    { label: 'Pública',       dot: '#2563EB', desc: 'Visível para todos' },
+    aprovacao:  { label: 'Por aprovação', dot: '#D97706', desc: 'Detentor aprova cada interesse' },
+    convidadas: { label: 'Convidadas',    dot: '#7C3AED', desc: 'Apenas por convite' }
+  };
+
   container.innerHTML = filtered.map(o => {
     const cfg = OPP_CAT[o.categoria] || OPP_CAT['Cultura'];
     const isPublicada  = o.status === 'publicada';
     const isFinalizada = o.status === 'finalizada';
     const isRascunho   = o.status === 'rascunho';
+    const vis = o.visibilidade || 'publica';
+    const vCfg = visConfig[vis] || visConfig.publica;
     let leftBtn = '';
     let rightBtns = '';
     if (isPublicada) {
@@ -2914,11 +2956,33 @@ function renderPublicadas() {
       rightBtns = `<button class="btn btn-ghost btn-sm" onclick="editarOportunidade(${o.id})">Editar</button>
                    <button class="btn btn-gold btn-sm" onclick="publishOportunidade(${o.id})">Publicar</button>`;
     }
+
+    const visBadgeHtml = isPublicada ? `
+      <div class="vis-badge-wrap" id="viswrap-${o.id}">
+        <div class="vis-badge ${vis}" onclick="toggleVisBadge(${o.id}, event)">
+          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="6" cy="6" r="2.5"/><path d="M1 6c1.5-3 8.5-3 10 0M1 6c1.5 3 8.5 3 10 0" stroke-linecap="round"/>
+          </svg>
+          ${vCfg.label}
+          <svg class="vis-badge-chevron" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2.5 4.5l3.5 3 3.5-3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="vis-dropdown">
+          ${Object.entries(visConfig).map(([k, v]) => `
+            <div class="vis-dropdown-item ${k === vis ? 'active' : ''}" onclick="setVisibilidade(${o.id}, '${k}', event)">
+              <span class="vis-dot" style="background:${v.dot}"></span>
+              <div><div>${v.label}</div><div class="vis-desc">${v.desc}</div></div>
+            </div>`).join('')}
+        </div>
+      </div>` : '';
+
     const cardStyle = isFinalizada ? 'opacity:0.65;' : '';
     return `<div class="pub-opp-card" style="${cardStyle}">
       <div class="pub-card-image" style="background:${o.imagem_capa ? (function(){ var fp = (o.imagens_focal || {})[o.imagem_capa] || {x:50,y:20}; return 'url(' + o.imagem_capa + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat'; })() : (o.bg_gradient || cfg.gradient)}${isFinalizada ? ';filter:grayscale(0.5)' : ''}">
         ${o.imagem_capa ? '' : cfg.icon}
-        <span class="pub-card-status-badge ${o.status}">${statusLabel[o.status] || o.status}</span>
+        <div style="position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start">
+          <span class="pub-card-status-badge ${o.status}" style="position:static">${statusLabel[o.status] || o.status}</span>
+          ${visBadgeHtml}
+        </div>
       </div>
       <div class="pub-card-body">
         <div class="pub-card-category">${escapeHtml(o.categoria)}</div>
@@ -2935,6 +2999,48 @@ function renderPublicadas() {
       </div>
     </div>`;
   }).join('');
+}
+
+// ─── VISIBILIDADE DROPDOWN ───
+function toggleVisBadge(oppId, e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('viswrap-' + oppId);
+  if (!wrap) return;
+  const isOpen = wrap.classList.contains('open');
+  // Fecha todos os outros
+  document.querySelectorAll('.vis-badge-wrap.open').forEach(w => w.classList.remove('open'));
+  if (!isOpen) wrap.classList.add('open');
+}
+
+// Fecha dropdown ao clicar fora
+document.addEventListener('click', () => {
+  document.querySelectorAll('.vis-badge-wrap.open').forEach(w => w.classList.remove('open'));
+});
+
+async function setVisibilidade(oppId, novaVis, e) {
+  e.stopPropagation();
+  const wrap = document.getElementById('viswrap-' + oppId);
+  if (wrap) wrap.classList.remove('open');
+
+  const opp = MINHAS_OPPS.find(o => o.id === oppId);
+  if (!opp || opp.visibilidade === novaVis) return;
+
+  opp.visibilidade = novaVis;
+  renderPublicadas();
+
+  if (!isDemoMode()) {
+    const token = await _getWriteToken();
+    if (token) {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ visibilidade: novaVis })
+      });
+      if (!res.ok) { showToast('Erro ao salvar visibilidade', 'error'); return; }
+    }
+  }
+  const labels = { publica: 'Pública', aprovacao: 'Por aprovação', convidadas: 'Convidadas' };
+  showToast('Visibilidade alterada para <strong>' + (labels[novaVis] || novaVis) + '</strong>', 'success');
 }
 
 function switchSubTab(tab) {
