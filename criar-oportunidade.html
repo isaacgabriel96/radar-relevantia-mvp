@@ -2462,13 +2462,17 @@ input[type=number] { -moz-appearance: textfield; }
   display: none;
 }
 .ag-chat-card.visible { display: block; }
-/* Full-chat mode: always visible, taller thread */
-.ag-chat-card.ag-chat-full { display: block; }
-.ag-chat-card.ag-chat-full .ag-chat-thread { max-height: 560px; }
+/* Full-chat mode: altura fixa, layout flex para thread ocupar espaço restante */
+.ag-chat-card.ag-chat-full {
+  display: flex; flex-direction: column;
+  height: 480px;
+}
+.ag-chat-card.ag-chat-full .ag-chat-thread {
+  flex: 1; max-height: none;
+}
 
 .ag-chat-thread {
   padding: 16px 18px 12px;
-  max-height: 380px;
   overflow-y: auto;
   display: flex; flex-direction: column; gap: 10px;
 }
