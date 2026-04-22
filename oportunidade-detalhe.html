@@ -3479,11 +3479,16 @@ function updateFavBtnState(isFav) {
       oppSlug = parts[0]; // legacy single slug fallback
     }
   } else {
-    var rawId = params.get('id');
-    // Suporta tanto IDs inteiros quanto UUIDs — não usar parseInt pois corrompe UUIDs
-    if (rawId) {
-      var parsed = parseInt(rawId);
-      id = !isNaN(parsed) ? parsed : rawId; // número se for inteiro, string se for UUID
+    var rawSlug = params.get('slug');
+    if (rawSlug) {
+      oppSlug = rawSlug;
+    } else {
+      var rawId = params.get('id');
+      // Suporta tanto IDs inteiros quanto UUIDs — não usar parseInt pois corrompe UUIDs
+      if (rawId) {
+        var parsed = parseInt(rawId);
+        id = !isNaN(parsed) ? parsed : rawId; // número se for inteiro, string se for UUID
+      }
     }
   }
 
