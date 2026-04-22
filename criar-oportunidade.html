@@ -2516,6 +2516,11 @@ input[type=number] { -moz-appearance: textfield; }
   0%,60%,100% { transform: translateY(0); }
   30% { transform: translateY(-5px); }
 }
+@keyframes agMsgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ag-msg { animation: agMsgIn 0.28s ease forwards; }
 
 /* Chat input row */
 .ag-chat-input-row {
@@ -9439,13 +9444,15 @@ window.abrirPainelAgente = function() {
     const tipoSelecionado = formState && formState.selectedTemplate;
     const tipoLabel = { personalidade: 'personalidade', evento: 'evento', artista: 'artista', midia: 'mídia' };
     const tipoStr = tipoSelecionado ? ` de ${tipoLabel[tipoSelecionado] || tipoSelecionado}` : '';
-    agAddMsg('agent',
-      `Olá! Vou te ajudar a cadastrar a oportunidade${tipoStr}. ` +
+    const boas = `Olá! Vou te ajudar a cadastrar a oportunidade${tipoStr}. ` +
       `Me conta sobre ela — pode descrever aqui, colar o link do perfil ou do site, ou enviar um PDF com o mídia kit. ` +
-      `Vou pesquisar na web, entender o potencial do ativo e extrair tudo automaticamente. 🔍`
-    );
-    const inp = document.getElementById('agChatInput');
-    if (inp) inp.focus();
+      `Vou pesquisar na web, entender o potencial do ativo e extrair tudo automaticamente. 🔍`;
+    // Delay para animar a entrada — aparece ~400ms após o painel abrir
+    setTimeout(() => {
+      agAddMsg('agent', boas);
+      const inp = document.getElementById('agChatInput');
+      if (inp) inp.focus();
+    }, 420);
   }
 };
 
