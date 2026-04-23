@@ -7,13 +7,30 @@
  *
  * Variável de ambiente necessária no painel da Vercel:
  *   GEMINI_API_KEY = AIza...
+ *
+ * O comportamento do agente é configurado em: prompts/agent-prompt.txt
+ * Edite esse arquivo para ajustar como o agente conversa e o que ele extrai.
  */
+
+import fs from 'fs';
+import path from 'path';
 
 // Aumenta o timeout para 60s — Gemini com google_search pode levar 15-30s
 export const maxDuration = 60;
 
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_URL   = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+// Lê o system prompt do arquivo dedicado (editável sem tocar no código)
+function loadSystemPrompt() {
+  try {
+    const promptPath = path.join(process.cwd(), 'prompts', 'agent-prompt.txt');
+    return fs.readFileSync(promptPath, 'utf8').trim();
+  } catch (err) {
+    console.error('Erro ao carregar prompts/agent-prompt.txt:', err.message);
+    return null;
+  }
+}
 
 export default async function handler(req, res) {
   // CORS
@@ -38,15 +55,20 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Configuração do servidor incompleta.' });
   }
 
-  const { messages, useSearch = false, systemPrompt } = req.body || {};
+  const { messages, useSearch = false } = req.body || {};
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages é obrigatório.' });
   }
 
+  const systemPrompt = loadSystemPrompt();
+  if (!systemPrompt) {
+    return res.status(500).json({ error: 'Arquivo de configuração do agente não encontrado.' });
+  }
+
   const body = {
-    system_instruction: systemPrompt ? { parts: [{ text: systemPrompt }] } : undefined,
-    generationConfig: { max_output_tokens: 8192 },
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    generationConfig: { max_output_tokens: 16384 },
     contents: messages.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: m.content }],
@@ -83,7 +105,8 @@ export default async function handler(req, res) {
     }
 
     const parts = candidate?.content?.parts || [];
-    const text  = parts.filter(p => p.text).map(p => p.text).join('');
+    // Exclui "thought" parts (raciocínio interno do Gemini 2.5) — só texto final
+    const text  = parts.filter(p => p.text && !p.thought).map(p => p.text).join('');
     return { text, finishReason, parts };
   }
 
