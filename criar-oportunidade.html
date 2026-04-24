@@ -7459,11 +7459,25 @@ function addEventEntry() {
   div.innerHTML = `
     <div style="flex:1">
       <input type="text" class="form-control" placeholder="Data (ex: 14 a 16 de junho de 2025)" style="margin-bottom:8px">
-      <input type="text" class="form-control" placeholder="Local (ex: Parque Ibirapuera, SP)">
+      <input type="text" class="form-control event-local-input" placeholder="Local (ex: Parque Ibirapuera, SP)">
     </div>
     <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:18px;padding:8px;flex-shrink:0;line-height:1;margin-top:2px">✕</button>
   `;
   list.appendChild(div);
+  // Attach Maps autocomplete ao campo Local desta entrada
+  const localInput = div.querySelector('.event-local-input');
+  if (localInput) _loadMapsScript(() => _attachEventLocalAutocomplete(localInput));
+}
+
+function _attachEventLocalAutocomplete(input) {
+  if (!input || !window.google || input._acAttached) return;
+  input._acAttached = true;
+  new google.maps.places.Autocomplete(input, {
+    fields: ['name', 'formatted_address']
+  }).addListener('place_changed', function() {
+    const p = this.getPlace();
+    if (p.name) input.value = p.name + (p.formatted_address ? ', ' + p.formatted_address.split(',').slice(-2).join(',').trim() : '');
+  });
 }
 
 function toggleRecorrencia(checked) {
