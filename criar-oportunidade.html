@@ -1016,6 +1016,12 @@ input[type=number] { -moz-appearance: textfield; }
 .presencial-section-heading { font-family: var(--font-heading); font-size: 14px; font-weight: 700; color: var(--gray-4); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 20px; }
 .presencial-section-heading-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
 .presencial-section-heading-line { flex: 1; height: 1px; background: var(--gray-2); }
+.genero-pair-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.genero-pair-item { display: flex; align-items: center; gap: 6px; }
+.genero-pair-lbl { font-size: 12px; font-weight: 600; color: var(--gray-3); white-space: nowrap; }
+.genero-pair-input-wrap { display: flex; align-items: center; gap: 2px; }
+.genero-pair-sep { font-size: 14px; font-weight: 600; color: var(--gray-3); }
+.genero-sum-wrap { display: flex; align-items: center; gap: 6px; margin-left: 4px; }
 .presencial-section-wrapper #publico-presencial-section { margin-top: 0 !important; margin-bottom: 16px !important; }
 .presencial-section-wrapper #publico-presencial-section > div { padding-top: 0; }
 .presencial-section-wrapper .grid-2 { margin-bottom: 0; }
@@ -4547,12 +4553,7 @@ const TEMPLATES = {
         id: 'presencial-est-toggle', label: '', type: 'presential-audience-toggle', fullWidth: true
       },
       {
-        id: 'presencial-genero-f', label: 'Feminino (%)', type: 'text',
-        placeholder: 'Ex: 55'
-      },
-      {
-        id: 'presencial-genero-m', label: 'Masculino (%)', type: 'text',
-        placeholder: 'Ex: 45'
+        id: 'presencial-genero', type: 'genero-pair', fullWidth: true
       },
       {
         id: 'presencial-faixas-etarias', label: 'Faixa etária do público', type: 'presential-age-ranges', fullWidth: true
@@ -5427,7 +5428,7 @@ function renderTemplateFields(key) {
       while (hi < hFields.length) {
         const hf = hFields[hi];
         const hn = hFields[hi + 1];
-        const alwaysFull = ['event-dates','section-heading','presential-audience-toggle','presential-age-ranges','hidden','container-start','container-end','publico-group','transmissao-section'];
+        const alwaysFull = ['event-dates','section-heading','presential-audience-toggle','presential-age-ranges','hidden','container-start','container-end','publico-group','transmissao-section','genero-pair'];
         if (alwaysFull.includes(hf.type) || hf.fullWidth || hf.type === 'multiselect-pills' || !hn || alwaysFull.includes(hn?.type || '')) {
           hHtml += buildFieldHtml(hf, true);
           hi++;
@@ -5459,7 +5460,7 @@ function renderTemplateFields(key) {
     const nextF = fields[i + 1];
 
     // Tipos que são sempre full-width e renderizam seus próprios containers
-    const alwaysFullWidth = ['event-dates','section-heading','presential-audience-toggle','presential-age-ranges','hidden','container-start','container-end','publico-group','transmissao-section'];
+    const alwaysFullWidth = ['event-dates','section-heading','presential-audience-toggle','presential-age-ranges','hidden','container-start','container-end','publico-group','transmissao-section','genero-pair'];
     if (alwaysFullWidth.includes(f.type)) {
       html += buildFieldHtml(f, true);
       i++;
@@ -5733,18 +5734,57 @@ function buildFieldHtml(f, fullWidth) {
         </div>
       </div>
     </div>`;
-  } else if (f.type === 'presential-age-ranges') {
-    // Barras de faixa etária para público presencial (mesmo padrão do social)
+  } else if (f.type === 'genero-pair') {
     return `<div class="form-group full-width"${f.id ? ` id="${f.id}"` : ''}>
-      <label style="font-size:13px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:8px">Faixa etária do público</label>
-      <div class="age-ranges-grid">
-        <div class="age-range-row"><span class="age-range-label">13–17</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-1317" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-1317" style="width:0%"></div></div></div>
-        <div class="age-range-row"><span class="age-range-label">18–24</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-1824" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-1824" style="width:0%"></div></div></div>
-        <div class="age-range-row"><span class="age-range-label">25–34</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-2534" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-2534" style="width:0%"></div></div></div>
-        <div class="age-range-row"><span class="age-range-label">35–44</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-3544" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-3544" style="width:0%"></div></div></div>
-        <div class="age-range-row"><span class="age-range-label">45+</span><div class="age-range-input-wrap"><input type="number" class="form-control" id="aud-presencial-age-45p" min="0" max="100" placeholder="0" oninput="updateAgeBars('presencial')"><span class="age-range-pct-suffix">%</span></div><div class="age-bar-preview"><div class="age-bar-preview-fill" id="agebar-presencial-45p" style="width:0%"></div></div></div>
+      <label style="font-size:13px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:10px">Distribuição de gênero</label>
+      <div class="genero-pair-row">
+        <div class="genero-pair-item">
+          <span class="genero-pair-lbl">Feminino</span>
+          <div class="genero-pair-input-wrap">
+            <input type="number" class="age-input" id="presencial-genero-f" min="0" max="100" placeholder="0"
+              oninput="onGeneroPairInput('f',this)">
+            <span class="age-pct-label">%</span>
+          </div>
+        </div>
+        <span class="genero-pair-sep">+</span>
+        <div class="genero-pair-item">
+          <span class="genero-pair-lbl">Masculino</span>
+          <div class="genero-pair-input-wrap">
+            <input type="number" class="age-input" id="presencial-genero-m" min="0" max="100" placeholder="0"
+              oninput="onGeneroPairInput('m',this)">
+            <span class="age-pct-label">%</span>
+          </div>
+        </div>
+        <div class="genero-sum-wrap">
+          <span class="genero-pair-sep">=</span>
+          <span class="age-sum-indicator under" id="genero-sum-indicator">0%</span>
+        </div>
       </div>
-      <div class="age-sum-indicator under" id="aud-presencial-age-sum" style="margin-top:6px">Total: 0%</div>
+    </div>`;
+  } else if (f.type === 'presential-age-ranges') {
+    const ranges = [
+      {id:'1317',label:'13–17'},{id:'1824',label:'18–24'},{id:'2534',label:'25–34'},
+      {id:'3544',label:'35–44'},{id:'45p',label:'45+'}
+    ];
+    const rows = ranges.map(r => `
+      <div class="age-row">
+        <span class="age-label">${r.label}</span>
+        <div class="age-controls" style="flex:1">
+          <input type="range" min="0" max="100" value="0" class="age-slider"
+            id="slider-presencial-${r.id}"
+            oninput="syncSlider('presencial','${r.id}',this.value)">
+          <div class="age-input-wrap">
+            <input type="number" min="0" max="100" value="" placeholder="0" class="age-input"
+              id="aud-presencial-age-${r.id}"
+              oninput="syncInputToSlider('presencial','${r.id}',this.value);updateAgeBars('presencial')">
+            <span class="age-pct-label">%</span>
+          </div>
+        </div>
+      </div>`).join('');
+    return `<div class="form-group full-width"${f.id ? ` id="${f.id}"` : ''}>
+      <label style="font-size:13px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:10px">${f.label || 'Faixa etária do público'}</label>
+      ${rows}
+      <div class="age-sum-indicator under" id="aud-presencial-age-sum" style="margin-top:6px;text-align:right">Total: 0%</div>
     </div>`;
   }
 
@@ -8042,6 +8082,24 @@ function onTipoRecorrenciaChange(sel) {
 function _getPresencialContainers() {
   const wrapper = document.getElementById('presencial-section-wrapper');
   return wrapper ? [wrapper] : [];
+}
+
+function onGeneroPairInput(changed, input) {
+  let v = parseInt(input.value.replace(/\D/g, ''), 10);
+  if (isNaN(v) || v < 0) v = 0;
+  if (v > 100) { v = 100; input.value = 100; }
+  else input.value = v === 0 && input.value === '' ? '' : v;
+
+  const otherId = changed === 'f' ? 'presencial-genero-m' : 'presencial-genero-f';
+  const other = document.getElementById(otherId);
+  if (other) other.value = 100 - v;
+
+  const sum = v + (100 - v);
+  const ind = document.getElementById('genero-sum-indicator');
+  if (ind) {
+    ind.textContent = sum + '%';
+    ind.className = 'age-sum-indicator ' + (sum === 100 ? 'ok' : 'under');
+  }
 }
 
 function setPublicoPeriodo(btn) {
