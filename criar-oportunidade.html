@@ -1003,6 +1003,22 @@ input[type=number] { -moz-appearance: textfield; }
 .btn-entry-edit { font-size: 11px; font-family: var(--font-body); font-weight: 500; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--gray-2); background: #fff; color: var(--gray-3); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all .15s; }
 .btn-entry-edit:hover { border-color: var(--gray-3); color: var(--gray-4); }
 .entry-fields-card { position: relative; background: var(--gray-1); border: 1px solid var(--gray-2); border-radius: var(--radius-md); padding: 14px 16px 14px; display: flex; flex-direction: column; gap: 12px; }
+.entry-field-tbc { display: flex; flex-direction: column; gap: 4px; }
+.entry-field-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; }
+.entry-field-header .entry-lbl { margin-bottom: 0; }
+.btn-tbc { font-size: 11px; font-family: var(--font-body); font-weight: 500; padding: 2px 9px; border-radius: 20px; border: 1px solid var(--gray-2); background: transparent; color: var(--gray-3); cursor: pointer; transition: all .15s; }
+.btn-tbc.active { background: var(--gray-3); color: #fff; border-color: var(--gray-3); }
+.entry-tbc-badge { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--white); border: 1.5px dashed var(--gray-2); border-radius: var(--radius-base); font-size: 13px; color: var(--gray-3); font-style: italic; }
+.btn-tbc-undo { font-size: 11px; font-family: var(--font-body); color: var(--gray-3); background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; margin-left: auto; font-style: normal; }
+.mdp-mode-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.mdp-mode-tab { flex: 1; font-size: 11px; font-family: var(--font-body); font-weight: 600; padding: 5px 8px; border-radius: var(--radius-base); border: 1.5px solid var(--gray-2); background: transparent; color: var(--gray-3); cursor: pointer; transition: all .15s; text-align: center; }
+.mdp-mode-tab.active { background: var(--gray-4); color: #fff; border-color: var(--gray-4); }
+.mdp-month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.mdp-month-year-lbl { font-size: 13px; font-weight: 600; color: var(--gray-4); }
+.mdp-month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.mdp-month-btn { padding: 8px 4px; border-radius: var(--radius-base); border: 1.5px solid var(--gray-1); background: transparent; font-size: 12px; font-family: var(--font-body); color: var(--gray-4); cursor: pointer; transition: all .15s; text-align: center; }
+.mdp-month-btn:hover { background: var(--gray-2); border-color: var(--gray-2); }
+.mdp-month-btn.active { background: var(--gold-gradient); color: #fff; border-color: transparent; font-weight: 700; }
 .entry-remove-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; color: var(--gray-3); font-size: 17px; padding: 4px 6px; line-height: 1; transition: color .15s; }
 .entry-remove-btn:hover { color: var(--gray-4); }
 .btn-entry-save { margin-top: 10px; display: block; margin-left: auto; font-size: 12px; font-family: var(--font-body); font-weight: 600; padding: 7px 18px; border-radius: var(--radius-pill); border: 1.5px solid var(--gray-3); background: transparent; color: var(--gray-4); cursor: pointer; transition: all .15s; }
@@ -5644,33 +5660,35 @@ function buildFieldHtml(f, fullWidth) {
       ${f.options.map(o => `<div class="pill-opt" onclick="togglePillOpt(this)">${o}</div>`).join('')}
     </div>${hint}`;
   } else if (f.type === 'event-dates') {
-    inner = `<div id="event-dates-container">
-      <div id="event-entries-list"></div>
-      <button type="button" class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="addEventEntry()">
-        + Nova data
-      </button>
-    </div>
-    <div style="margin-top:16px">
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--gray-4);cursor:pointer">
-        <input type="checkbox" id="has-recorrencia" onchange="toggleRecorrencia(this.checked)">
-        Este evento tem recorrência
-      </label>
-      <div id="recorrencia-panel" style="display:none;margin-top:12px">
-        <select class="form-control" id="tipo-recorrencia" onchange="onTipoRecorrenciaChange(this)">
-          <option value="">Selecione a frequência</option>
-          <option value="semanal">Semanal</option>
-          <option value="quinzenal">Quinzenal</option>
-          <option value="mensal">Mensal</option>
-          <option value="trimestral">Trimestral (a cada 3 meses)</option>
-          <option value="semestral">Semestral (2 vezes ao ano)</option>
-          <option value="anual">Anual</option>
-          <option value="bienal">Bienal (a cada 2 anos)</option>
-          <option value="trienal">Trienal (a cada 3 anos)</option>
-          <option value="quadrienal">Quadrienal (a cada 4 anos)</option>
-        </select>
-        <div id="datas-personalizadas" style="display:none;margin-top:10px">
-          <p style="font-size:12px;color:var(--gray-3);margin:0 0 8px">Selecione as datas das próximas edições:</p>
-          <div id="recorrencia-mdp-slot"></div>
+    return `<div class="form-group full-width">
+      <div id="event-dates-container">
+        <div id="event-entries-list"></div>
+        <button type="button" class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="addEventEntry()">
+          + Nova data
+        </button>
+      </div>
+      <div style="margin-top:16px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--gray-4);cursor:pointer">
+          <input type="checkbox" id="has-recorrencia" onchange="toggleRecorrencia(this.checked)">
+          Este evento tem recorrência
+        </label>
+        <div id="recorrencia-panel" style="display:none;margin-top:12px">
+          <select class="form-control" id="tipo-recorrencia" onchange="onTipoRecorrenciaChange(this)">
+            <option value="">Selecione a frequência</option>
+            <option value="semanal">Semanal</option>
+            <option value="quinzenal">Quinzenal</option>
+            <option value="mensal">Mensal</option>
+            <option value="trimestral">Trimestral (a cada 3 meses)</option>
+            <option value="semestral">Semestral (2 vezes ao ano)</option>
+            <option value="anual">Anual</option>
+            <option value="bienal">Bienal (a cada 2 anos)</option>
+            <option value="trienal">Trienal (a cada 3 anos)</option>
+            <option value="quadrienal">Quadrienal (a cada 4 anos)</option>
+          </select>
+          <div id="datas-personalizadas" style="display:none;margin-top:10px">
+            <p style="font-size:12px;color:var(--gray-3);margin:0 0 8px">Selecione as datas das próximas edições:</p>
+            <div id="recorrencia-mdp-slot"></div>
+          </div>
         </div>
       </div>
     </div>`;
@@ -7781,7 +7799,7 @@ const _MN = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agos
 function _mdpNew(slot, savedDates) {
   const id = ++_mdpC;
   const now = new Date();
-  _mdpS[id] = { y: now.getFullYear(), m: now.getMonth(), d: new Set(Array.isArray(savedDates) ? savedDates : []), open: false };
+  _mdpS[id] = { y: now.getFullYear(), m: now.getMonth(), d: new Set(Array.isArray(savedDates) ? savedDates : []), open: false, mode: 'dates', mesRef: null, mesRefY: now.getFullYear() };
   const wrap = document.createElement('div');
   wrap.className = 'mdp';
   wrap.dataset.mid = id;
@@ -7791,13 +7809,27 @@ function _mdpNew(slot, savedDates) {
       <span class="mdp-trigger-arr">&#8250;</span>
     </button>
     <div class="mdp-panel" style="display:none">
-      <div class="mdp-hd">
-        <button type="button" class="mdp-nav" onclick="mdpGo(this,-1)">&#8249;</button>
-        <span class="mdp-lbl"></span>
-        <button type="button" class="mdp-nav" onclick="mdpGo(this,1)">&#8250;</button>
+      <div class="mdp-mode-tabs">
+        <button type="button" class="mdp-mode-tab active" onclick="mdpSetMode(this,'dates')">Datas específicas</button>
+        <button type="button" class="mdp-mode-tab" onclick="mdpSetMode(this,'month')">Mês de referência</button>
       </div>
-      <div class="mdp-grid"></div>
-      <div class="mdp-chips"></div>
+      <div class="mdp-dates-view">
+        <div class="mdp-hd">
+          <button type="button" class="mdp-nav" onclick="mdpGo(this,-1)">&#8249;</button>
+          <span class="mdp-lbl"></span>
+          <button type="button" class="mdp-nav" onclick="mdpGo(this,1)">&#8250;</button>
+        </div>
+        <div class="mdp-grid"></div>
+        <div class="mdp-chips"></div>
+      </div>
+      <div class="mdp-month-view" style="display:none">
+        <div class="mdp-month-nav">
+          <button type="button" class="mdp-nav" onclick="mdpMonthNavYear(this,-1)">&#8249;</button>
+          <span class="mdp-month-year-lbl"></span>
+          <button type="button" class="mdp-nav" onclick="mdpMonthNavYear(this,1)">&#8250;</button>
+        </div>
+        <div class="mdp-month-grid"></div>
+      </div>
     </div>
     <input type="hidden" class="event-datas-hidden">
   `;
@@ -7810,9 +7842,47 @@ function _mdpGet(el) { return el.closest('[data-mid]'); }
 function _mdpDraw(mdp) {
   const s = _mdpS[mdp.dataset.mid];
   if (!s) return;
-  // Update trigger label — mostra datas ou convite
-  const sorted0 = [...s.d].sort();
   const triggerLbl = mdp.querySelector('.mdp-trigger-lbl');
+
+  if (s.mode === 'month') {
+    // Month-reference mode
+    const datesView = mdp.querySelector('.mdp-dates-view');
+    const monthView = mdp.querySelector('.mdp-month-view');
+    if (datesView) datesView.style.display = 'none';
+    if (monthView) monthView.style.display = '';
+    // Year nav label
+    const yearLbl = mdp.querySelector('.mdp-month-year-lbl');
+    if (yearLbl) yearLbl.textContent = s.mesRefY;
+    // Month grid
+    const grid = mdp.querySelector('.mdp-month-grid');
+    if (grid) {
+      grid.innerHTML = _MN.map((mn, idx) => {
+        const val = `${s.mesRefY}-${String(idx+1).padStart(2,'0')}`;
+        const isActive = s.mesRef === val;
+        return `<button type="button" class="mdp-month-btn${isActive?' active':''}" onclick="mdpPickMonth(this,'${val}')">${mn.slice(0,3)}</button>`;
+      }).join('');
+    }
+    // Trigger label
+    if (triggerLbl) {
+      if (s.mesRef) {
+        const [my, mm] = s.mesRef.split('-');
+        triggerLbl.textContent = `${_MN[parseInt(mm)-1]} ${my}`;
+      } else {
+        triggerLbl.textContent = 'Selecionar mês';
+      }
+    }
+    const hi = mdp.querySelector('.event-datas-hidden');
+    if (hi) hi.value = s.mesRef ? JSON.stringify([`mesref:${s.mesRef}`]) : '[]';
+    return;
+  }
+
+  // Dates mode
+  const datesView = mdp.querySelector('.mdp-dates-view');
+  const monthView = mdp.querySelector('.mdp-month-view');
+  if (datesView) datesView.style.display = '';
+  if (monthView) monthView.style.display = 'none';
+
+  const sorted0 = [...s.d].sort();
   if (triggerLbl) {
     if (sorted0.length === 0) {
       triggerLbl.textContent = 'Selecionar datas';
@@ -7822,7 +7892,6 @@ function _mdpDraw(mdp) {
       triggerLbl.textContent = sorted0.length > 5 ? `${visible} +${sorted0.length - 5}` : visible;
     }
   }
-  // Render calendar
   mdp.querySelector('.mdp-lbl').textContent = `${_MN[s.m]} ${s.y}`;
   const fd = new Date(s.y, s.m, 1).getDay();
   const dim = new Date(s.y, s.m + 1, 0).getDate();
@@ -7840,6 +7909,40 @@ function _mdpDraw(mdp) {
     : '<span class="mdp-hint">Clique nas datas acima para selecionar</span>';
   const hi = mdp.querySelector('.event-datas-hidden');
   if (hi) hi.value = JSON.stringify(sorted);
+}
+
+function mdpSetMode(btn, mode) {
+  const mdp = _mdpGet(btn);
+  if (!mdp) return;
+  const s = _mdpS[mdp.dataset.mid];
+  if (!s) return;
+  s.mode = mode;
+  mdp.querySelectorAll('.mdp-mode-tab').forEach(t => t.classList.toggle('active', t === btn));
+  _mdpDraw(mdp);
+}
+
+function mdpPickMonth(btn, val) {
+  const mdp = _mdpGet(btn);
+  if (!mdp) return;
+  const s = _mdpS[mdp.dataset.mid];
+  if (!s) return;
+  s.mesRef = s.mesRef === val ? null : val;
+  _mdpDraw(mdp);
+  // Auto-close after selection
+  s.open = false;
+  const panel = mdp.querySelector('.mdp-panel');
+  const arr = mdp.querySelector('.mdp-trigger-arr');
+  if (panel) panel.style.display = 'none';
+  if (arr) arr.style.transform = '';
+}
+
+function mdpMonthNavYear(btn, dir) {
+  const mdp = _mdpGet(btn);
+  if (!mdp) return;
+  const s = _mdpS[mdp.dataset.mid];
+  if (!s) return;
+  s.mesRefY = (s.mesRefY || new Date().getFullYear()) + dir;
+  _mdpDraw(mdp);
 }
 
 function mdpOpen(btn) {
@@ -7895,6 +7998,17 @@ function mdpRm(btn, ds) {
   _mdpDraw(mdp);
 }
 
+// ── TBC toggle ────────────────────────────────────
+function toggleEntryTBC(btn) {
+  const wrap = btn.closest('.entry-field-tbc');
+  if (!wrap) return;
+  const isActive = btn.classList.toggle('active');
+  const acWrap = wrap.querySelector('.entry-ac-wrap');
+  const badge = wrap.querySelector('.entry-tbc-badge');
+  if (acWrap) acWrap.style.display = isActive ? 'none' : '';
+  if (badge) badge.style.display = isActive ? '' : 'none';
+}
+
 // ── Maps autocomplete por entrada ──────────────────
 function _attachEntryCidade(entry) {
   const input = entry.querySelector('.event-cidade-input');
@@ -7934,15 +8048,20 @@ function _collapseEntry(entry) {
   const summary = entry.querySelector('.entry-summary');
   if (!form || !summary) return;
 
-  // Validation — all 4 fields required
   const paisIso = _getEntryPaisIso(entry);
+
+  // Check TBC state for cidade and venue
+  const cidadeTBC = entry.querySelector('[data-field="cidade"] .btn-tbc')?.classList.contains('active');
+  const venueTBC = entry.querySelector('[data-field="venue"] .btn-tbc')?.classList.contains('active');
+
   const cidadeInput = entry.querySelector('.event-cidade-input');
   const venueInput = entry.querySelector('.event-venue-input');
   const _readAc = inp => inp?._acChip?.style.display !== 'none'
     ? (inp._acChip?.querySelector('.ac-chip-label')?.textContent?.trim() || inp?.value?.trim() || '')
     : (inp?.value?.trim() || '');
-  const cidadeVal = _readAc(cidadeInput);
-  const venueVal = _readAc(venueInput);
+  const cidadeVal = cidadeTBC ? 'A confirmar' : _readAc(cidadeInput);
+  const venueVal = venueTBC ? 'A confirmar' : _readAc(venueInput);
+
   let datas = [];
   try { datas = JSON.parse(entry.querySelector('.event-datas-hidden')?.value || '[]'); } catch {}
 
@@ -7965,10 +8084,20 @@ function _collapseEntry(entry) {
   errEl?.remove();
 
   const pais = _getEntryPaisLabel(entry);
-  const cidade = cidadeVal;
-  const venue = venueVal;
-  const datasText = datas.map(d => { const p = d.split('-'); return `${p[2]}/${p[1]}`; }).join(', ');
-  const locParts = [pais, cidade, venue].filter(Boolean);
+
+  // Format dates — handles mesref: prefix
+  const datasText = datas.map(d => {
+    if (d.startsWith('mesref:')) {
+      const [, my, mm] = d.split(/[:-]/);
+      return `${_MN[parseInt(mm)-1]} ${my}`;
+    }
+    const p = d.split('-');
+    return `${p[2]}/${p[1]}`;
+  }).join(', ');
+
+  const cidadeDisplay = cidadeTBC ? '📍 A confirmar' : cidadeVal;
+  const venueDisplay = venueTBC ? '📍 A confirmar' : venueVal;
+  const locParts = [pais, cidadeDisplay, venueDisplay].filter(Boolean);
   const locText = locParts.length ? locParts.join(' · ') : 'Localização não informada';
 
   summary.innerHTML = `
@@ -8041,13 +8170,21 @@ function addEventEntry(opts) {
       <div class="entry-fields-card">
         <button type="button" class="entry-remove-btn" onclick="this.closest('.event-entry').remove()" title="Remover">&#215;</button>
         ${paisHtml}
-        <div>
-          <label class="entry-lbl">Cidade</label>
+        <div class="entry-field-tbc" data-field="cidade">
+          <div class="entry-field-header">
+            <label class="entry-lbl">Cidade</label>
+            <button type="button" class="btn-tbc" onclick="toggleEntryTBC(this)">A confirmar</button>
+          </div>
           <div class="entry-ac-wrap"><input type="text" class="form-control event-cidade-input" placeholder="Buscar cidade..."></div>
+          <div class="entry-tbc-badge" style="display:none">📍 A confirmar <button type="button" class="btn-tbc-undo" onclick="toggleEntryTBC(this.closest('.entry-field-tbc').querySelector('.btn-tbc'))">Desfazer</button></div>
         </div>
-        <div>
-          <label class="entry-lbl">Local / Venue</label>
+        <div class="entry-field-tbc" data-field="venue">
+          <div class="entry-field-header">
+            <label class="entry-lbl">Local / Venue</label>
+            <button type="button" class="btn-tbc" onclick="toggleEntryTBC(this)">A confirmar</button>
+          </div>
           <div class="entry-ac-wrap"><input type="text" class="form-control event-venue-input" placeholder="Nome do local ou venue..."></div>
+          <div class="entry-tbc-badge" style="display:none">📍 A confirmar <button type="button" class="btn-tbc-undo" onclick="toggleEntryTBC(this.closest('.entry-field-tbc').querySelector('.btn-tbc'))">Desfazer</button></div>
         </div>
         <div>
           <label class="entry-lbl">Datas</label>
