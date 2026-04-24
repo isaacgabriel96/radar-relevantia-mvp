@@ -7374,25 +7374,22 @@ function _loadMapsScript(cb) {
   if (window._mapsPlacesReady) { cb(); return; }
   window._gmapsCbs = window._gmapsCbs || [];
   window._gmapsCbs.push(cb);
-  if (document.getElementById('gmaps-script')) return;
-  const s = document.createElement('script');
-  s.id = 'gmaps-script';
-  s.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyAGS3ubOJYGLpwrG30J8tRWToG-vR4vWpM&loading=async';
-  s.async = true; s.defer = true;
-  s.onload = async () => {
-    await google.maps.importLibrary('places');
+  if (window._gmapsBootstrapped) return;
+  window._gmapsBootstrapped = true;
+  (function(g){var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=function(){return h||(h=new Promise(function(f,n){a=m.createElement("script");e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,function(t){return"_"+t[0].toLowerCase()}),g[k]);e.set("callback",c+".maps."+q);a.src="https://maps."+c+"apis.com/maps/api/js?"+e;d[q]=f;a.onerror=function(){h=n(Error(p+" could not load."))};a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}))};d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=function(f){return r.add(f)&&u().then(function(){return d[l](f)})}})({key:"AIzaSyAGS3ubOJYGLpwrG30J8tRWToG-vR4vWpM",v:"weekly"});
+  google.maps.importLibrary('places').then(function(lib) {
+    window._mapsPlacesLib = lib;
     window._mapsPlacesReady = true;
-    (window._gmapsCbs || []).forEach(fn => fn());
+    (window._gmapsCbs || []).forEach(function(fn) { fn(); });
     window._gmapsCbs = [];
-  };
-  document.head.appendChild(s);
+  });
 }
 
 // Autocomplete customizado usando a nova Places API (New)
 function _buildPlaceAutocomplete(input, opts) {
   if (!input || input._acAttached) return;
   input._acAttached = true;
-  const { AutocompleteSessionToken, AutocompleteSuggestion } = google.maps.places;
+  const { AutocompleteSessionToken, AutocompleteSuggestion } = window._mapsPlacesLib;
   const wrap = input.parentElement;
   wrap.style.position = 'relative';
   const ul = document.createElement('ul');
