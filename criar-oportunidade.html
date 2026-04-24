@@ -4392,11 +4392,10 @@ const TEMPLATES = {
         id: 'nicho', label: 'Nicho principal', type: 'multiselect-pills', required: true, max: 3,
         options: [
           'Esporte','Moda','Beleza','Gastronomia','Tecnologia','Finanças',
-          'Humor & Entretenimento','Lifestyle','Fitness & Saúde','Música',
+          'Humor','Cinema & Séries','Lifestyle','Fitness & Saúde','Música',
           'Games & eSports','Educação','Viagens','Automotivo','Pets',
           'Família','Sustentabilidade','Negócios & Empreendedorismo',
-          'Casa & Decoração','Saúde Mental & Bem-estar','Luxo',
-          'Sertanejo','Funk','Pop','Rock'
+          'Casa & Decoração','Saúde Mental & Bem-estar','Luxo'
         ]
       },
       {
@@ -7461,7 +7460,7 @@ function toggleOppLocBrasil() {
   if (!isBrasil) _loadMapsScript(_attachOppCidadeIntlAutocomplete);
 }
 
-const _PAIS_ISO = {'Estados Unidos':'us','Portugal':'pt','Argentina':'ar','Espanha':'es','Reino Unido':'gb','França':'fr','Alemanha':'de','Itália':'it','México':'mx','Colômbia':'co','Chile':'cl','Uruguai':'uy','Paraguai':'py','Peru':'pe','Equador':'ec','Bolívia':'bo','Venezuela':'ve','Japão':'jp','China':'cn','Austrália':'au','Canadá':'ca','África do Sul':'za','Dubai/EAU':'ae'};
+const _PAIS_ISO = {'Brasil':'br','Estados Unidos':'us','Portugal':'pt','Argentina':'ar','Espanha':'es','Reino Unido':'gb','França':'fr','Alemanha':'de','Itália':'it','México':'mx','Colômbia':'co','Chile':'cl','Uruguai':'uy','Paraguai':'py','Peru':'pe','Equador':'ec','Bolívia':'bo','Venezuela':'ve','Japão':'jp','China':'cn','Austrália':'au','Canadá':'ca','África do Sul':'za','Emirados Árabes':'ae'};
 function _attachOppCidadeIntlAutocomplete() {
   const input = document.getElementById('opp-cidade-intl');
   if (!input) return;
