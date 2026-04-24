@@ -4915,12 +4915,9 @@ function nextStep(n) {
     if (s5Actions) s5Actions.innerHTML =
       '<button class="btn btn-ghost" onclick="nextStep(1)">← Voltar</button>' +
       '<button class="btn btn-primary" onclick="nextStep(3)">Próximo →</button>';
-    // Hook: renderTemplateFields se template selecionado
+    // Hook: renderTemplateFields — sempre re-renderiza para refletir o template selecionado
     if (formState.selectedTemplate) {
-      var tplContainer = document.getElementById('template-specific-fields');
-      if (tplContainer && tplContainer.children.length === 0) {
-        renderTemplateFields(formState.selectedTemplate);
-      }
+      renderTemplateFields(formState.selectedTemplate);
     }
     _updateProgressDots(2);
     currentStep = 2;
@@ -5289,10 +5286,7 @@ function nextStep(n) {
   // Hooks por passo
   if (n === 4) s3Enter();
   if (n === 2 && formState.selectedTemplate) {
-    var tplContainer = document.getElementById('template-specific-fields');
-    if (tplContainer && tplContainer.children.length === 0) {
-      renderTemplateFields(formState.selectedTemplate);
-    }
+    renderTemplateFields(formState.selectedTemplate);
   }
   if (n === 8) { renderReviewSummary(); autoFillSlug(); }
 
