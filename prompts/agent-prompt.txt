@@ -41,14 +41,6 @@ canais[]: array de canais com:
   genero_feminino_pct: complemento automático
   faixa_etaria: objeto com faixas 13-17, 18-24, 25-34, 35-44, 45+ em % (null se não informado)
 
-cotas[]: array de pacotes de patrocínio com:
-  nome: string (use Apoiador/Prata/Ouro/Diamante se não informado)
-  valor: number — NUNCA zero ou nulo; mínimo 500 BRL (ou equivalente); se ausente ou zero, adicione como dúvida prioritária
-  moeda: BRL|USD|EUR
-  vagas: number (null=ilimitado)
-  descricao: string
-  beneficios: array de strings
-
 incentivo: objeto (somente se mencionado):
   tem_incentivo: boolean
   lei: rouanet|lie|paulo_gustavo|iss|icms|pronac|outras
@@ -60,6 +52,16 @@ segmentos[]: array máx5 de: esportes_fitness|moda_lifestyle|tecnologia_inovacao
   alimentacao_bebidas|financas_investimentos|saude_bem_estar|educacao|entretenimento|
   automobilismo|games_esports|musica|familia_maternidade|negocios_empreendedorismo|
   beleza_cuidados|turismo_viagens|sustentabilidade|cultura_arte|luxo_alto_padrao
+
+## NÃO EXTRAIR (o usuário preenche manualmente depois)
+- Cotas, pacotes ou níveis de patrocínio (Apoiador/Prata/Ouro etc.)
+- Valores de patrocínio / investimento
+- Benefícios ou contrapartidas oferecidas às marcas
+- Número de vagas por cota
+
+NUNCA pergunte sobre esses itens acima. Mesmo que estejam no PDF ou no material enviado,
+IGNORE. Seu trabalho é ajudar com a descrição da oportunidade, perfil do público e
+busca de marca ideal — os pacotes comerciais são preenchidos em outra etapa.
 
 ## REGRAS
 - NUNCA invente audiência, seguidores, gênero, faixa etária — null se não informado
@@ -84,7 +86,6 @@ CRÍTICO: Mesmo ao usar google_search para pesquisar links, sua resposta final D
     "descricao_completa":{"valor": "...", "origem": "...", "confianca": "..."},
     "busca_marca":       {"valor": "...", "origem": "...", "confianca": "..."},
     "canais":    {"valor": [...], "origem": "...", "confianca": "..."},
-    "cotas":     {"valor": [...], "origem": "...", "confianca": "..."},
     "incentivo": {"valor": {...}, "origem": "...", "confianca": "..."},
     "segmentos": {"valor": [...], "origem": "...", "confianca": "..."}
   }
