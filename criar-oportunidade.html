@@ -995,7 +995,11 @@ input[type=number] { -moz-appearance: textfield; }
 .btn-trocar-pais:hover { border-color: var(--gray-3); color: var(--gray-4); }
 .entry-lbl { font-size: 12px; font-weight: 600; color: var(--gray-3); display: block; margin-bottom: 4px; }
 .entry-ac-wrap { position: relative; }
-.mdp { border: 1px solid var(--gray-1); border-radius: var(--radius-base); padding: 12px; }
+.mdp { border: 1px solid var(--gray-1); border-radius: var(--radius-base); overflow: hidden; }
+.mdp-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: transparent; border: none; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--gray-4); text-align: left; transition: background .15s; }
+.mdp-trigger:hover { background: var(--gray-1); }
+.mdp-trigger-arr { font-size: 16px; color: var(--gray-3); transition: transform .2s; flex-shrink: 0; }
+.mdp-panel { padding: 12px; border-top: 1px solid var(--gray-1); }
 .mdp-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .mdp-nav { background: none; border: none; cursor: pointer; font-size: 18px; width: 28px; height: 28px; border-radius: 6px; color: var(--gray-4); display: flex; align-items: center; justify-content: center; transition: background .1s; }
 .mdp-nav:hover { background: var(--gray-1); }
@@ -7657,18 +7661,24 @@ const _MN = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agos
 function _mdpNew(slot, savedDates) {
   const id = ++_mdpC;
   const now = new Date();
-  _mdpS[id] = { y: now.getFullYear(), m: now.getMonth(), d: new Set(Array.isArray(savedDates) ? savedDates : []) };
+  _mdpS[id] = { y: now.getFullYear(), m: now.getMonth(), d: new Set(Array.isArray(savedDates) ? savedDates : []), open: false };
   const wrap = document.createElement('div');
   wrap.className = 'mdp';
   wrap.dataset.mid = id;
   wrap.innerHTML = `
-    <div class="mdp-hd">
-      <button type="button" class="mdp-nav" onclick="mdpGo(this,-1)">&#8249;</button>
-      <span class="mdp-lbl"></span>
-      <button type="button" class="mdp-nav" onclick="mdpGo(this,1)">&#8250;</button>
+    <button type="button" class="mdp-trigger" onclick="mdpOpen(this)">
+      <span class="mdp-trigger-lbl">Selecionar datas</span>
+      <span class="mdp-trigger-arr">&#8250;</span>
+    </button>
+    <div class="mdp-panel" style="display:none">
+      <div class="mdp-hd">
+        <button type="button" class="mdp-nav" onclick="mdpGo(this,-1)">&#8249;</button>
+        <span class="mdp-lbl"></span>
+        <button type="button" class="mdp-nav" onclick="mdpGo(this,1)">&#8250;</button>
+      </div>
+      <div class="mdp-grid"></div>
+      <div class="mdp-chips"></div>
     </div>
-    <div class="mdp-grid"></div>
-    <div class="mdp-chips"></div>
     <input type="hidden" class="event-datas-hidden">
   `;
   slot.appendChild(wrap);
@@ -7680,6 +7690,11 @@ function _mdpGet(el) { return el.closest('[data-mid]'); }
 function _mdpDraw(mdp) {
   const s = _mdpS[mdp.dataset.mid];
   if (!s) return;
+  // Update trigger label
+  const cnt = s.d.size;
+  const triggerLbl = mdp.querySelector('.mdp-trigger-lbl');
+  if (triggerLbl) triggerLbl.textContent = cnt > 0 ? `${cnt} data${cnt !== 1 ? 's' : ''} selecionada${cnt !== 1 ? 's' : ''}` : 'Selecionar datas';
+  // Render calendar
   mdp.querySelector('.mdp-lbl').textContent = `${_MN[s.m]} ${s.y}`;
   const fd = new Date(s.y, s.m, 1).getDay();
   const dim = new Date(s.y, s.m + 1, 0).getDate();
@@ -7697,6 +7712,18 @@ function _mdpDraw(mdp) {
     : '<span class="mdp-hint">Clique nas datas acima para selecionar</span>';
   const hi = mdp.querySelector('.event-datas-hidden');
   if (hi) hi.value = JSON.stringify(sorted);
+}
+
+function mdpOpen(btn) {
+  const mdp = _mdpGet(btn);
+  if (!mdp) return;
+  const s = _mdpS[mdp.dataset.mid];
+  if (!s) return;
+  s.open = !s.open;
+  const panel = mdp.querySelector('.mdp-panel');
+  const arr = mdp.querySelector('.mdp-trigger-arr');
+  if (panel) panel.style.display = s.open ? '' : 'none';
+  if (arr) arr.style.transform = s.open ? 'rotate(90deg)' : '';
 }
 
 function mdpGo(btn, dir) {
