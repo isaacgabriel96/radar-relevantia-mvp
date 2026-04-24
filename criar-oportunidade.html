@@ -7403,6 +7403,7 @@ function _buildPlaceAutocomplete(input, opts) {
   wrap.appendChild(ul);
   let token = new AutocompleteSessionToken(), timer;
   input.addEventListener('input', () => {
+    if (input.dataset.acConfirmed) { delete input.dataset.acConfirmed; input.style.borderColor = ''; input.style.boxShadow = ''; }
     clearTimeout(timer);
     timer = setTimeout(async () => {
       const q = input.value.trim();
@@ -7439,6 +7440,9 @@ function _buildPlaceAutocomplete(input, opts) {
               );
               input.value = city ? city.longText : (place.displayName || '');
             }
+            input.dataset.acConfirmed = '1';
+            input.style.borderColor = '#B8860B';
+            input.style.boxShadow = '0 0 0 3px rgba(184,134,11,0.18)';
             ul.style.display = 'none';
             token = new AutocompleteSessionToken();
           });
