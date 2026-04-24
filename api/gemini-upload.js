@@ -1,55 +1,76 @@
 /**
- * Vercel Function — Inicia upload resumível para a Gemini Files API
+ * Vercel Edge Function — Proxy de upload para a Gemini Files API
  * Radar Relevantia · /api/gemini-upload
  *
- * Fluxo (evita limite de 4.5MB do Vercel):
- *   1. Frontend POST aqui com { fileName, mimeType, fileSize }
- *   2. Este endpoint inicia o upload resumível na Gemini → devolve { uploadUrl, fileUri? }
- *   3. Frontend faz PUT direto para uploadUrl com o binário do arquivo
- *   4. Frontend aguarda estado ACTIVE e obtém fileUri
+ * Fluxo (Edge Function — sem limite de body, streaming):
+ *   1. Frontend POST aqui com o binário do PDF (Content-Type: application/pdf)
+ *      Headers: X-File-Name, X-File-Size, X-Mime-Type
+ *   2. Esta Edge Function inicia upload resumível no Google e faz proxy do binário
+ *   3. Retorna { fileUri, mimeType } quando o upload conclui
  *
- * Alternativa para arquivos ≤ 4MB: POST aqui com body binário (Content-Type: application/pdf)
- * e headers X-File-Name, X-Mime-Type → upload multipart feito aqui mesmo.
+ * Por que Edge Function?
+ *   - Serverless functions têm limite de 4.5MB no body (não configurável)
+ *   - Edge Functions usam Streams API e não têm esse limite
+ *   - O upload binário vai direto daqui para o Google (server-to-server, sem CORS)
  *
  * Variável de ambiente necessária no painel da Vercel:
  *   GEMINI_API_KEY = AIza...
  */
 
-// Aumenta o timeout — apenas para a inicialização do upload resumível
-export const maxDuration = 30;
+export const config = { runtime: 'edge' };
 
 const UPLOAD_URL = 'https://generativelanguage.googleapis.com/upload/v1beta/files';
 
-export default async function handler(req, res) {
-  // CORS
-  const origin = req.headers.origin || '';
+export default async function handler(req) {
+  const origin = req.headers.get('origin') || '';
   const allowedOrigins = [
     'https://radar.relevantia.com.br',
     'https://www.radar.relevantia.com.br',
   ];
-  if (process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-File-Name, X-File-Size, X-Mime-Type');
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
+  const corsHeaders = {
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, X-File-Name, X-File-Size, X-Mime-Type',
+  };
+
+  // Em dev ou origins permitidas, reflete o origin
+  const isDev = !req.headers.get('x-vercel-deployment-url'); // heurística simples
+  if (isDev || allowedOrigins.includes(origin)) {
+    corsHeaders['Access-Control-Allow-Origin'] = origin || '*';
+  }
+
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 200, headers: corsHeaders });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Método não permitido' }), {
+      status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Configuração do servidor incompleta.' });
+    return new Response(JSON.stringify({ error: 'Configuração do servidor incompleta.' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   try {
-    const { fileName, mimeType = 'application/pdf', fileSize } = req.body || {};
+    const fileName = req.headers.get('x-file-name') || 'upload.pdf';
+    const mimeType = req.headers.get('x-mime-type') || 'application/pdf';
+    const fileSize = req.headers.get('x-file-size');
 
-    if (!fileName || !fileSize) {
-      return res.status(400).json({ error: 'fileName e fileSize são obrigatórios.' });
+    if (!fileSize) {
+      return new Response(JSON.stringify({ error: 'Header X-File-Size é obrigatório.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Inicia upload resumível — o Google retorna uma uploadUrl temporária
-    // O frontend usará essa URL para fazer o PUT direto com o binário do arquivo
+    // Etapa 1: inicia upload resumível — Google retorna uploadUrl no header
     const initRes = await fetch(`${UPLOAD_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: {
@@ -65,18 +86,63 @@ export default async function handler(req, res) {
     if (!initRes.ok) {
       const err = await initRes.json().catch(() => ({}));
       console.error('Gemini init upload error:', err);
-      return res.status(502).json({ error: 'Erro ao iniciar upload.', detail: err?.error?.message });
+      return new Response(
+        JSON.stringify({ error: 'Erro ao iniciar upload.', detail: err?.error?.message }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
 
-    // A uploadUrl está no header X-Goog-Upload-URL
     const uploadUrl = initRes.headers.get('x-goog-upload-url');
     if (!uploadUrl) {
-      return res.status(502).json({ error: 'Gemini não retornou upload URL.' });
+      return new Response(JSON.stringify({ error: 'Gemini não retornou upload URL.' }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    return res.status(200).json({ uploadUrl });
+    // Etapa 2: faz proxy do body binário direto para o Google (server-to-server)
+    // O req.body já é um ReadableStream — passamos direto sem bufferizar
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': mimeType,
+        'Content-Length': String(fileSize),
+        'X-Goog-Upload-Command': 'upload, finalize',
+        'X-Goog-Upload-Offset': '0',
+      },
+      body: req.body,        // stream direto — sem bufferizar em memória
+      duplex: 'half',        // necessário para streaming request body no fetch
+    });
+
+    if (!uploadRes.ok) {
+      const errText = await uploadRes.text().catch(() => '');
+      console.error('Gemini upload PUT error:', uploadRes.status, errText.slice(0, 300));
+      return new Response(
+        JSON.stringify({ error: `Upload falhou (HTTP ${uploadRes.status})`, detail: errText.slice(0, 200) }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const data = await uploadRes.json().catch(() => ({}));
+    const fileUri = data.file?.uri;
+
+    if (!fileUri) {
+      console.error('Gemini upload: fileUri ausente na resposta', JSON.stringify(data).slice(0, 300));
+      return new Response(JSON.stringify({ error: 'Google não retornou fileUri após upload.' }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(
+      JSON.stringify({ fileUri, mimeType: data.file?.mimeType || mimeType }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    );
   } catch (err) {
     console.error('Erro interno gemini-upload:', err);
-    return res.status(500).json({ error: 'Erro interno do servidor.' });
+    return new Response(JSON.stringify({ error: 'Erro interno do servidor.' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 }

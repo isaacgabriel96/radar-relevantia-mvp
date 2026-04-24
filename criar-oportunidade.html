@@ -9538,43 +9538,28 @@ async function agProcessPdf(file) {
   agAddChip('pdf', label, null, true);
 
   try {
-    // Etapa 1: pede ao backend uma uploadUrl temporária (body pequeno, sem limite 413)
-    const initRes = await fetch('/api/gemini-upload', {
+    // Edge Function proxy: recebe o binário via POST e faz upload server-to-server para o Google
+    // Sem limite de body (Edge Function), sem CORS (upload server-to-server)
+    const uploadRes = await fetch('/api/gemini-upload', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileName: label, mimeType: 'application/pdf', fileSize: file.size }),
-    });
-    const initData = await initRes.json().catch(() => ({}));
-    if (!initRes.ok || !initData.uploadUrl) {
-      throw new Error(initData.error || `Falha ao iniciar upload (HTTP ${initRes.status})`);
-    }
-
-    // Etapa 2: envia o binário diretamente ao Google (sem passar pelo Vercel)
-    const uploadRes = await fetch(initData.uploadUrl, {
-      method: 'PUT',
       headers: {
         'Content-Type': 'application/pdf',
-        'X-Goog-Upload-Command': 'upload, finalize',
-        'X-Goog-Upload-Offset': '0',
+        'X-File-Name': label,
+        'X-File-Size': String(file.size),
+        'X-Mime-Type': 'application/pdf',
       },
       body: file,
     });
 
-    if (!uploadRes.ok) {
-      const errText = await uploadRes.text().catch(() => '');
-      throw new Error(`Upload falhou (HTTP ${uploadRes.status}): ${errText.slice(0, 200)}`);
-    }
-
     const uploadData = await uploadRes.json().catch(() => ({}));
-    const fileUri = uploadData.file?.uri;
-    if (!fileUri) {
-      throw new Error('Google não retornou fileUri após upload.');
+    if (!uploadRes.ok || !uploadData.fileUri) {
+      throw new Error(uploadData.error || `Upload falhou (HTTP ${uploadRes.status})`);
     }
 
     const idx = window._agState.attachments.findIndex(a => a.label === label && a.type === 'pdf');
     if (idx >= 0) {
-      window._agState.attachments[idx].fileUri  = fileUri;
-      window._agState.attachments[idx].mimeType = uploadData.file?.mimeType || 'application/pdf';
+      window._agState.attachments[idx].fileUri  = uploadData.fileUri;
+      window._agState.attachments[idx].mimeType = uploadData.mimeType || 'application/pdf';
       window._agState.attachments[idx].ready    = true;
     }
     agRenderChips();
