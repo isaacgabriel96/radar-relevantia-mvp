@@ -2608,6 +2608,21 @@ input[type=number] { -moz-appearance: textfield; }
   background: var(--black, #1A1200); color: #FFF;
   border-top-right-radius: 4px;
 }
+
+/* Chip de arquivo dentro da bolha do usuário (tema escuro) */
+.ag-msg-file {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 100px;
+  font-size: 11.5px; font-weight: 500; line-height: 1.4;
+  margin-top: 2px;
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ag-msg-file + .ag-msg-file { margin-left: 4px; }
+.ag-msg-file-size { opacity: 0.65; font-weight: 400; }
+
 .ag-msg-bubble ul { padding-left: 16px; margin-top: 4px; }
 .ag-msg-bubble li { margin-bottom: 3px; }
 .ag-msg-bubble strong { font-weight: 600; }
@@ -9880,12 +9895,22 @@ window.agEnviarResposta = async function() {
     // Salva o texto para agBuildFirstMessage()
     window._agState._firstUserText = text.trim();
 
-    // Mensagem resumida visível no chat
-    const pdfs  = window._agState.attachments.filter(a => a.type === 'pdf');
-    const parts = [];
-    if (text.trim())  parts.push(text.trim().length > 80 ? text.trim().slice(0,80)+'…' : text.trim());
-    if (pdfs.length)  parts.push(`${pdfs.length} PDF${pdfs.length > 1 ? 's' : ''}`);
-    agAddMsg('user', agMsgHtml(parts.join(' · ')));
+    // Mensagem resumida visível no chat: texto (se houver) + chips com nome e tamanho
+    const pdfs = window._agState.attachments.filter(a => a.type === 'pdf');
+    const htmlParts = [];
+    if (text.trim()) {
+      const short = text.trim().length > 120 ? text.trim().slice(0,120)+'…' : text.trim();
+      htmlParts.push(agMsgHtml(short));
+    }
+    if (pdfs.length) {
+      const chips = pdfs.map(p => {
+        const name = agEsc(p.label.length > 44 ? p.label.slice(0,44)+'…' : p.label);
+        const sz   = p.size ? ` <span class="ag-msg-file-size">· ${agFormatBytes(p.size)}</span>` : '';
+        return `<span class="ag-msg-file">📄 ${name}${sz}</span>`;
+      }).join(' ');
+      htmlParts.push(chips);
+    }
+    agAddMsg('user', htmlParts.join('<br>'));
 
     // Monta payload completo para o Gemini (usa attachments)
     const firstMsg = agBuildFirstMessage();
