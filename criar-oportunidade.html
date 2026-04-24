@@ -9995,15 +9995,11 @@ window.agEnviarResposta = async function() {
       agAddAgentMsgFromResult(parsed);
     } catch (err) {
       agRemoveTyping();
-      // Mensagem específica quando há PDF anexado — 99% das falhas aqui são
-      // por PDF muito grande/complexo combinado com google_search + timeout
-      const hadPdfs = pdfs.length > 0;
-      const baseMsg = err.message || 'Erro desconhecido';
-      const hint = hadPdfs
-        ? 'O PDF pode estar muito pesado ou complexo para o agente processar junto com a pesquisa na web. Tente uma versão mais enxuta (menos de 15MB) ou envie sem o PDF e cole os dados importantes no chat.'
-        : 'Tente novamente em alguns segundos. Se persistir, reformule sua descrição.';
-      agShowError(`${baseMsg} — ${hint}`);
-      agAddMsg('agent', `<span style="color:#DC2626">❌ ${agEsc(baseMsg)}</span><br><span style="opacity:0.8;font-size:12px">${agEsc(hint)}</span>`);
+      // Servidor já devolve uma mensagem específica e honesta — não inventamos
+      // hints sobre PDF quando o problema pode ser rate limit / instabilidade.
+      const msg = err.message || 'Erro desconhecido ao processar.';
+      agShowError(msg);
+      agAddMsg('agent', `<span style="color:#DC2626">❌ ${agEsc(msg)}</span>`);
     } finally {
       agSetLoading(false);
     }

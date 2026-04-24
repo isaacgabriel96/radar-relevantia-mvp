@@ -147,15 +147,21 @@ export default async function handler(req, res) {
     typeof m.content === 'object' && Array.isArray(m.content.files) && m.content.files.length > 0
   );
 
-  // Tenta primeiro com a configuração pedida; se falhar com erro HTTP ou
-  // retornar resposta vazia E estivermos usando search + PDF, reexecuta sem
-  // search (google_search + PDF grande é o que mais quebra por timeout/limites).
+  // Decide se vale a pena reexecutar SEM google_search com base no erro HTTP
+  // do Gemini. Só retentar nos casos em que tirar a tool de fato ajuda:
+  //   - 413 (payload too large)  → tool + conteúdo grande estourou
+  //   - 504 (timeout)            → tirar tool reduz o tempo de execução
+  // Erros como 429 (rate limit) e 5xx genéricos não resolvem com retry imediato.
+  function shouldRetryWithoutSearch(httpStatus) {
+    return httpStatus === 413 || httpStatus === 504;
+  }
+
   async function callGeminiWithFallback(requestBody, allowRetry) {
     try {
       const r = await callGemini(requestBody);
       if (r.text.trim()) return r;
 
-      // Resposta vazia → fallback sem search se aplicável
+      // Resposta vazia → retry sem search se aplicável (bug conhecido do 2.5 Flash)
       if (allowRetry && requestBody.tools) {
         console.warn('Gemini: resposta vazia com google_search, tentando sem search. finishReason:', r.finishReason);
         const noSearch = { ...requestBody };
@@ -164,10 +170,8 @@ export default async function handler(req, res) {
       }
       return r;
     } catch (err) {
-      // Erro HTTP do Gemini + search ativo + PDFs → retry sem search
-      // (ex: 413 payload too large, 504 timeout, 500 server error)
-      if (allowRetry && requestBody.tools && err.httpStatus && hasPdfs) {
-        console.warn(`Gemini HTTP ${err.httpStatus} com google_search+PDF, tentando sem search:`, err.message);
+      if (allowRetry && requestBody.tools && shouldRetryWithoutSearch(err.httpStatus)) {
+        console.warn(`Gemini HTTP ${err.httpStatus} com google_search, tentando sem search:`, err.message);
         const noSearch = { ...requestBody };
         delete noSearch.tools;
         return await callGemini(noSearch);
@@ -176,15 +180,34 @@ export default async function handler(req, res) {
     }
   }
 
+  // Converte erro do Gemini em mensagem clara pro usuário (sem mentir).
+  // Evita culpar o PDF quando o problema é rate limit ou instabilidade do Google.
+  function mapGeminiErrorToMessage(httpStatus, originalMessage) {
+    if (httpStatus === 429) {
+      return 'Muitas requisições seguidas. Espere alguns segundos e tente de novo.';
+    }
+    if (httpStatus === 403) {
+      return 'Limite de uso da IA atingido. Tente novamente mais tarde.';
+    }
+    if (httpStatus === 413) {
+      return 'O conteúdo é grande demais para processar em uma única chamada. Tente simplificar a descrição ou enviar um PDF menor.';
+    }
+    if (httpStatus === 400) {
+      return 'A IA não entendeu o conteúdo enviado. Reformule a descrição ou tente um PDF diferente.';
+    }
+    if (httpStatus >= 500 && httpStatus < 600) {
+      return 'A IA do Google está instável no momento. Aguarde alguns segundos e tente novamente.';
+    }
+    return `Erro ao processar com a IA (HTTP ${httpStatus}).`;
+  }
+
   try {
     const result = await callGeminiWithFallback(body, /* allowRetry */ true);
 
     if (!result.text.trim()) {
       console.error('Gemini: resposta vazia mesmo após fallback. finishReason:', result.finishReason);
       return res.status(502).json({
-        error: hasPdfs
-          ? 'A IA não conseguiu processar o PDF. Tente uma versão mais enxuta ou cole os dados importantes no chat.'
-          : 'A IA retornou uma resposta vazia. Tente novamente.',
+        error: 'A IA retornou uma resposta vazia. Tente novamente — se persistir, reformule a descrição ou remova o PDF.',
       });
     }
 
@@ -194,13 +217,11 @@ export default async function handler(req, res) {
       return res.status(err.status).json({ error: err.userMessage });
     }
     if (err.httpStatus) {
-      console.error('Erro Gemini HTTP:', err.detail);
-      const msg = hasPdfs
-        ? 'A IA não conseguiu processar o PDF (arquivo muito pesado ou complexo). Tente uma versão mais enxuta ou envie sem o PDF.'
-        : 'Erro ao processar com a IA.';
-      return res.status(502).json({ error: msg, detail: err.message });
+      console.error(`Erro Gemini HTTP ${err.httpStatus}:`, err.message, '— detail:', JSON.stringify(err.detail)?.slice(0, 500));
+      const msg = mapGeminiErrorToMessage(err.httpStatus, err.message);
+      return res.status(502).json({ error: msg, detail: err.message, geminiStatus: err.httpStatus });
     }
-    console.error('Erro interno:', err);
+    console.error('Erro interno gemini-agent:', err);
     return res.status(500).json({ error: 'Erro interno do servidor.' });
   }
 }
