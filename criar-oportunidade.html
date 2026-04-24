@@ -5727,10 +5727,16 @@ function buildFieldHtml(f, fullWidth) {
     </div>`;
   } else if (f.type === 'number-formatted') {
     const wrapClass = fullWidth ? 'form-group full-width' : 'form-group';
+    const periodId = f.id + '-contagem';
     return `<div class="${wrapClass}">
       <label>${f.label}${f.required ? ' <span class="required">*</span>' : ''}</label>
       <input type="text" class="form-control" id="${f.id}" placeholder="${f.placeholder || ''}"
         inputmode="numeric" autocomplete="off" oninput="maskNumberFormatted(this)">
+      <div class="pub-period-toggle" style="margin-top:8px">
+        <button type="button" class="pub-period-btn active" data-val="por-dia" onclick="setPublicoPeriodo(this)">Por dia</button>
+        <button type="button" class="pub-period-btn" data-val="total" onclick="setPublicoPeriodo(this)">Total do evento</button>
+      </div>
+      <input type="hidden" id="${periodId}" value="por-dia">
     </div>`;
   } else if (f.type === 'presential-audience-toggle') {
     // Toggle Estimativa / Dado real para público presencial
