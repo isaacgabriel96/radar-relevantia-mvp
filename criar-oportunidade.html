@@ -9450,31 +9450,55 @@ async function agProcessPdf(file) {
   agAddChip('pdf', label, null, true);
 
   try {
-    // Edge Function proxy: recebe o binário via POST e faz upload server-to-server para o Google
-    // Sem limite de body (Edge Function), sem CORS (upload server-to-server)
+    // Fluxo em 2 etapas para bypasasr limite de body do Vercel (~4.5MB):
+    // Etapa 1 — POST JSON com metadados → recebe uploadUrl do Google
+    // Etapa 2 — PUT binário direto ao Google (bypassa Vercel completamente)
     const session = (await getSessionAsync('rightsholder')) || (await getSessionAsync('brand'));
     const token = session?.access_token;
-    const uploadRes = await fetch('/api/gemini-upload', {
+
+    // Etapa 1: obtém uploadUrl autenticado
+    const metaRes = await fetch('/api/gemini-upload', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/pdf',
-        'X-File-Name': encodeURIComponent(label.normalize('NFC')),
-        'X-File-Size': String(file.size),
-        'X-Mime-Type': 'application/pdf',
+        'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        fileName: encodeURIComponent(label.normalize('NFC')),
+        fileSize: String(file.size),
+        mimeType: 'application/pdf',
+      }),
+    });
+    const metaData = await metaRes.json().catch(() => ({}));
+    if (!metaRes.ok || !metaData.uploadUrl) {
+      throw new Error(metaData.error || `Falha ao iniciar upload (HTTP ${metaRes.status})`);
+    }
+
+    // Etapa 2: envia binário direto ao Google (sem passar pelo Vercel)
+    const googleRes = await fetch(metaData.uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/pdf',
+        'X-Goog-Upload-Command': 'upload, finalize',
+        'X-Goog-Upload-Offset': '0',
       },
       body: file,
     });
-
-    const uploadData = await uploadRes.json().catch(() => ({}));
-    if (!uploadRes.ok || !uploadData.fileUri) {
-      throw new Error(uploadData.error || `Upload falhou (HTTP ${uploadRes.status})`);
+    if (!googleRes.ok) {
+      const errText = await googleRes.text().catch(() => '');
+      throw new Error(`Upload para Google falhou (HTTP ${googleRes.status})`);
+    }
+    const googleData = await googleRes.json().catch(() => ({}));
+    const fileUri  = googleData.file?.uri;
+    const fileMime = googleData.file?.mimeType || 'application/pdf';
+    if (!fileUri) {
+      throw new Error('Google não retornou fileUri após upload.');
     }
 
     const idx = window._agState.attachments.findIndex(a => a.label === label && a.type === 'pdf');
     if (idx >= 0) {
-      window._agState.attachments[idx].fileUri  = uploadData.fileUri;
-      window._agState.attachments[idx].mimeType = uploadData.mimeType || 'application/pdf';
+      window._agState.attachments[idx].fileUri  = fileUri;
+      window._agState.attachments[idx].mimeType = fileMime;
       window._agState.attachments[idx].ready    = true;
     }
     agRenderChips();

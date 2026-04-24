@@ -1,17 +1,19 @@
 /**
- * Vercel Edge Function — Proxy de upload para a Gemini Files API
+ * Vercel Edge Function — Inicia upload resumível para a Gemini Files API
  * Radar Relevantia · /api/gemini-upload
  *
- * Fluxo (Edge Function — sem limite de body, streaming):
- *   1. Frontend POST aqui com o binário do PDF (Content-Type: application/pdf)
- *      Headers: X-File-Name, X-File-Size, X-Mime-Type
- *   2. Esta Edge Function inicia upload resumível no Google e faz proxy do binário
- *   3. Retorna { fileUri, mimeType } quando o upload conclui
+ * Fluxo em 2 etapas (bypass do limite de body do Vercel):
+ *   1. Frontend POST aqui com JSON { fileName, fileSize, mimeType }
+ *      → Esta função inicia upload na Gemini e retorna { uploadUrl }
+ *   2. Frontend PUT direto ao uploadUrl com o binário do arquivo
+ *      (bypassa o Vercel completamente — vai direto para o Google)
+ *      → Google retorna { file: { uri, mimeType } }
  *
- * Por que Edge Function?
- *   - Serverless functions têm limite de 4.5MB no body (não configurável)
- *   - Edge Functions usam Streams API e não têm esse limite
- *   - O upload binário vai direto daqui para o Google (server-to-server, sem CORS)
+ * Por que 2 etapas?
+ *   - Serverless/Edge Functions têm limite de ~4.5MB no request body
+ *   - A etapa 1 só recebe JSON pequeno (metadados)
+ *   - O binário vai diretamente do browser para o Google (sem passar pelo Vercel)
+ *   - A autenticação ainda é nossa: sem token válido, o uploadUrl não é emitido
  *
  * Variável de ambiente necessária no painel da Vercel:
  *   GEMINI_API_KEY = AIza...
@@ -30,11 +32,11 @@ export default async function handler(req) {
 
   const corsHeaders = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-File-Name, X-File-Size, X-Mime-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 
   // Em dev ou origins permitidas, reflete o origin
-  const isDev = !req.headers.get('x-vercel-deployment-url'); // heurística simples
+  const isDev = !req.headers.get('x-vercel-deployment-url');
   if (isDev || allowedOrigins.includes(origin)) {
     corsHeaders['Access-Control-Allow-Origin'] = origin || '*';
   }
@@ -69,12 +71,14 @@ export default async function handler(req) {
   }
 
   try {
-    const fileName = decodeURIComponent(req.headers.get('x-file-name') || 'upload.pdf');
-    const mimeType = req.headers.get('x-mime-type') || 'application/pdf';
-    const fileSize = req.headers.get('x-file-size');
+    // Lê metadados do body JSON (sem binário — evita limite de body do Vercel)
+    const body = await req.json().catch(() => ({}));
+    const fileName = decodeURIComponent(body.fileName || 'upload.pdf');
+    const mimeType = body.mimeType || 'application/pdf';
+    const fileSize = String(body.fileSize || '0');
 
-    if (!fileSize) {
-      return new Response(JSON.stringify({ error: 'Header X-File-Size é obrigatório.' }), {
+    if (!body.fileName) {
+      return new Response(JSON.stringify({ error: 'fileName é obrigatório.' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -88,14 +92,14 @@ export default async function handler(req) {
       });
     }
 
-    // Etapa 1: inicia upload resumível — Google retorna uploadUrl no header
+    // Inicia upload resumível — Google retorna uploadUrl no header x-goog-upload-url
     const initRes = await fetch(`${UPLOAD_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Upload-Protocol': 'resumable',
         'X-Goog-Upload-Command': 'start',
-        'X-Goog-Upload-Header-Content-Length': String(fileSize),
+        'X-Goog-Upload-Header-Content-Length': fileSize,
         'X-Goog-Upload-Header-Content-Type': mimeType,
       },
       body: JSON.stringify({ file: { display_name: fileName } }),
@@ -118,42 +122,9 @@ export default async function handler(req) {
       });
     }
 
-    // Etapa 2: faz proxy do body binário direto para o Google (server-to-server)
-    // O req.body já é um ReadableStream — passamos direto sem bufferizar
-    const uploadRes = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': mimeType,
-        'Content-Length': String(fileSize),
-        'X-Goog-Upload-Command': 'upload, finalize',
-        'X-Goog-Upload-Offset': '0',
-      },
-      body: req.body,        // stream direto — sem bufferizar em memória
-      duplex: 'half',        // necessário para streaming request body no fetch
-    });
-
-    if (!uploadRes.ok) {
-      const errText = await uploadRes.text().catch(() => '');
-      console.error('Gemini upload PUT error:', uploadRes.status, errText.slice(0, 300));
-      return new Response(
-        JSON.stringify({ error: `Upload falhou (HTTP ${uploadRes.status})`, detail: errText.slice(0, 200) }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
-    }
-
-    const data = await uploadRes.json().catch(() => ({}));
-    const fileUri = data.file?.uri;
-
-    if (!fileUri) {
-      console.error('Gemini upload: fileUri ausente na resposta', JSON.stringify(data).slice(0, 300));
-      return new Response(JSON.stringify({ error: 'Google não retornou fileUri após upload.' }), {
-        status: 502,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
+    // Retorna o uploadUrl para o frontend — ele fará o PUT direto ao Google
     return new Response(
-      JSON.stringify({ fileUri, mimeType: data.file?.mimeType || mimeType }),
+      JSON.stringify({ uploadUrl }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (err) {
