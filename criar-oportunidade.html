@@ -1018,10 +1018,11 @@ input[type=number] { -moz-appearance: textfield; }
 .presencial-section-heading { font-family: var(--font-heading); font-size: 14px; font-weight: 700; color: var(--gray-4); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 20px; }
 .presencial-section-heading-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
 .presencial-section-heading-line { flex: 1; height: 1px; background: var(--gray-2); }
-.genero-pair-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.genero-pair-item { display: flex; align-items: center; gap: 6px; }
-.genero-pair-lbl { font-size: 12px; font-weight: 600; color: var(--gray-3); white-space: nowrap; }
-.genero-pair-input-wrap { display: flex; align-items: center; gap: 2px; }
+.genero-pair-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.genero-pair-item { display: flex; align-items: center; gap: 8px; }
+.genero-pair-lbl { font-size: 13px; font-weight: 600; color: var(--gray-4); white-space: nowrap; }
+.genero-pair-input-wrap { display: flex; align-items: center; gap: 4px; }
+.genero-pair-input-wrap .age-input { width: 68px; font-size: 15px; padding: 7px 8px; }
 .genero-pair-sep { font-size: 14px; font-weight: 600; color: var(--gray-3); }
 .genero-sum-wrap { display: flex; align-items: center; gap: 6px; margin-left: 4px; }
 .presencial-section-wrapper #publico-presencial-section { margin-top: 0 !important; margin-bottom: 16px !important; }
@@ -4567,7 +4568,6 @@ const TEMPLATES = {
         id: 'presencial-periodo', label: 'Período de referência', type: 'select', fullWidth: false,
         options: [
           {v:'ultima-edicao', l:'Última edição'},
-          {v:'media-3', l:'Média das 3 últimas edições'},
           {v:'estimativa', l:'Estimativa'}
         ]
       },
