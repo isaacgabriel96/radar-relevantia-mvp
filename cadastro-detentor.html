@@ -525,42 +525,10 @@ select:disabled { background: var(--gray-1); color: var(--gray-5); cursor: not-a
           </div>
         </div>
       </div>
-      <div class="form-row" id="f-estado-wrap">
-        <div class="form-group">
-          <label>Estado <span class="req">*</span></label>
-          <div class="select-wrap">
-            <select id="f-estado" onchange="updateCidades(this.value)">
-              <option value="" disabled selected>Selecione o estado</option>
-              <option value="AC">Acre</option><option value="AL">Alagoas</option>
-              <option value="AP">Amapá</option><option value="AM">Amazonas</option>
-              <option value="BA">Bahia</option><option value="CE">Ceará</option>
-              <option value="DF">Distrito Federal</option><option value="ES">Espírito Santo</option>
-              <option value="GO">Goiás</option><option value="MA">Maranhão</option>
-              <option value="MT">Mato Grosso</option><option value="MS">Mato Grosso do Sul</option>
-              <option value="MG">Minas Gerais</option><option value="PA">Pará</option>
-              <option value="PB">Paraíba</option><option value="PR">Paraná</option>
-              <option value="PE">Pernambuco</option><option value="PI">Piauí</option>
-              <option value="RJ">Rio de Janeiro</option><option value="RN">Rio Grande do Norte</option>
-              <option value="RS">Rio Grande do Sul</option><option value="RO">Rondônia</option>
-              <option value="RR">Roraima</option><option value="SC">Santa Catarina</option>
-              <option value="SP">São Paulo</option><option value="SE">Sergipe</option>
-              <option value="TO">Tocantins</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Cidade <span class="req">*</span></label>
-          <div class="select-wrap">
-            <select id="f-cidade" disabled>
-              <option value="" disabled selected>Selecione o estado primeiro</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="form-row" id="f-cidade-intl-wrap" style="display:none">
+      <div class="form-row" id="f-cidade-intl-wrap">
         <div class="form-group" style="flex:1 1 100%">
           <label>Cidade <span class="req">*</span></label>
-          <input type="text" id="f-cidade-intl" placeholder="Ex: Miami, Florida" autocomplete="off">
+          <input type="text" id="f-cidade-intl" placeholder="Ex: São Paulo" autocomplete="off">
         </div>
       </div>
 
@@ -851,7 +819,7 @@ function _buildPlaceAutocomplete(input, opts) {
   const chipClear = document.createElement('button'); chipClear.type = 'button'; chipClear.textContent = '×';
   Object.assign(chipClear.style, { background:'none', border:'none', cursor:'pointer', color:'#A89880', fontSize:'20px', padding:'0', lineHeight:'1', flexShrink:'0' });
   chipClear.addEventListener('click', () => { chip.style.display = 'none'; input.style.display = ''; input.value = ''; input.focus(); });
-  chip.appendChild(chipText); chip.appendChild(chipClear); wrap.appendChild(chip);
+  chip.appendChild(chipText); chip.appendChild(chipClear); wrap.appendChild(chip); input._acChip = chip;
   let token = new AutocompleteSessionToken(), timer;
   input.addEventListener('input', () => {
     clearTimeout(timer);
@@ -896,7 +864,7 @@ function _buildPlaceAutocomplete(input, opts) {
   document.addEventListener('click', e => { if (!wrap.contains(e.target)) ul.style.display = 'none'; });
 }
 
-const _PAIS_ISO = {'Estados Unidos':'us','Portugal':'pt','Argentina':'ar','Espanha':'es','Reino Unido':'gb','França':'fr','Alemanha':'de','Itália':'it','México':'mx','Colômbia':'co','Chile':'cl','Uruguai':'uy','Paraguai':'py','Peru':'pe','Equador':'ec','Bolívia':'bo','Venezuela':'ve','Japão':'jp','China':'cn','Austrália':'au','Canadá':'ca','África do Sul':'za','Dubai/EAU':'ae'};
+const _PAIS_ISO = {'Brasil':'br','Estados Unidos':'us','Portugal':'pt','Argentina':'ar','Espanha':'es','Reino Unido':'gb','França':'fr','Alemanha':'de','Itália':'it','México':'mx','Colômbia':'co','Chile':'cl','Uruguai':'uy','Paraguai':'py','Peru':'pe','Equador':'ec','Bolívia':'bo','Venezuela':'ve','Japão':'jp','China':'cn','Austrália':'au','Canadá':'ca','África do Sul':'za','Emirados Árabes':'ae'};
 function _attachDetentorCidadeAutocomplete() {
   const input = document.getElementById('f-cidade-intl');
   if (!input) return;
@@ -907,12 +875,13 @@ function _attachDetentorCidadeAutocomplete() {
 
 function toggleLocBrasil() {
   const pais = document.getElementById('f-pais').value;
-  const isBrasil = pais === 'Brasil';
-  const estadoWrap = document.getElementById('f-estado-wrap');
-  const intlWrap   = document.getElementById('f-cidade-intl-wrap');
-  if (estadoWrap) estadoWrap.style.display = isBrasil ? '' : 'none';
-  if (intlWrap)   intlWrap.style.display   = isBrasil ? 'none' : '';
-  if (!isBrasil) _loadMapsScript(_attachDetentorCidadeAutocomplete);
+  const input = document.getElementById('f-cidade-intl');
+  if (input) {
+    input._acCountryCodes = _PAIS_ISO[pais] ? [_PAIS_ISO[pais]] : null;
+    input.value = '';
+    if (input._acChip) { input._acChip.style.display = 'none'; input.style.display = ''; }
+  }
+  _loadMapsScript(_attachDetentorCidadeAutocomplete);
 }
 
 function updateCidades(uf) {
@@ -1006,6 +975,7 @@ async function checkCodigo(input) {
   else        { badge.textContent = 'Inválido ✗'; badge.className = 'code-badge invalid'; }
 }
 const checkCodigoThrottled = throttle(checkCodigo, 800);
+document.addEventListener('DOMContentLoaded', () => _loadMapsScript(_attachDetentorCidadeAutocomplete));
 
 async function submitCadastro() {
   const nome    = urlNome  || document.getElementById('f-nome')?.value.trim()  || '';
@@ -1019,19 +989,16 @@ async function submitCadastro() {
   const tel      = telNum ? dialCode + ' ' + telNum : '';
   let   website  = document.getElementById('f-website').value.trim();
   if (website && !/^https?:\/\//i.test(website)) website = 'https://' + website;
-  const pais     = document.getElementById('f-pais').value;
-  const isBrasil = pais === 'Brasil';
-  const estado   = isBrasil ? document.getElementById('f-estado').value : '';
-  const cidade   = isBrasil
-    ? document.getElementById('f-cidade').value
-    : document.getElementById('f-cidade-intl').value.trim();
+  const pais   = document.getElementById('f-pais').value;
+  const estado = '';
+  const cidade = document.getElementById('f-cidade-intl').value.trim();
   const cargo    = document.getElementById('f-cargo').value;
   const termos   = document.getElementById('f-termos').checked;
   const indicacao = document.getElementById('f-indicacao').value.trim();
   const codigo    = document.getElementById('f-codigo').value.trim().toUpperCase();
   const btn       = document.getElementById('btnSubmit');
 
-  const locationOk = isBrasil ? (estado && cidade) : cidade;
+  const locationOk = !!cidade;
   if (!nome || !email || !empresa || !segmento || !telNum || !locationOk || !cargo) {
     btn.style.animation = 'none'; btn.offsetHeight;
     btn.style.animation = 'shake 0.35s ease';
