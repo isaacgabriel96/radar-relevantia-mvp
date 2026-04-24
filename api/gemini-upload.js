@@ -24,8 +24,8 @@ const UPLOAD_URL = 'https://generativelanguage.googleapis.com/upload/v1beta/file
 export default async function handler(req) {
   const origin = req.headers.get('origin') || '';
   const allowedOrigins = [
-    'https://radar.relevantia.com.br',
-    'https://www.radar.relevantia.com.br',
+    'https://radar-relevantia.com.br',
+    'https://www.radar-relevantia.com.br',
   ];
 
   const corsHeaders = {
@@ -69,7 +69,7 @@ export default async function handler(req) {
   }
 
   try {
-    const fileName = req.headers.get('x-file-name') || 'upload.pdf';
+    const fileName = decodeURIComponent(req.headers.get('x-file-name') || 'upload.pdf');
     const mimeType = req.headers.get('x-mime-type') || 'application/pdf';
     const fileSize = req.headers.get('x-file-size');
 

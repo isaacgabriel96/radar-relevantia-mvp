@@ -9458,7 +9458,7 @@ async function agProcessPdf(file) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/pdf',
-        'X-File-Name': label,
+        'X-File-Name': encodeURIComponent(label.normalize('NFC')),
         'X-File-Size': String(file.size),
         'X-Mime-Type': 'application/pdf',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),

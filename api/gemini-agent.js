@@ -36,8 +36,8 @@ export default async function handler(req, res) {
   // CORS
   const origin = req.headers.origin || '';
   const allowedOrigins = [
-    'https://radar.relevantia.com.br',
-    'https://www.radar.relevantia.com.br',
+    'https://radar-relevantia.com.br',
+    'https://www.radar-relevantia.com.br',
   ];
 
   if (process.env.NODE_ENV !== 'production' || allowedOrigins.includes(origin)) {
