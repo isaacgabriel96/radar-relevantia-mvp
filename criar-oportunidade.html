@@ -994,6 +994,13 @@ input[type=number] { -moz-appearance: textfield; }
 .btn-trocar-pais { font-size: 11px; font-family: var(--font-body); font-weight: 500; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--gray-2); background: transparent; color: var(--gray-3); cursor: pointer; white-space: nowrap; transition: all .15s; }
 .btn-trocar-pais:hover { border-color: var(--gray-3); color: var(--gray-4); }
 .entry-lbl { font-size: 12px; font-weight: 600; color: var(--gray-3); display: block; margin-bottom: 4px; }
+.entry-summary-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--gray-1); border-radius: var(--radius-base); cursor: pointer; }
+.entry-summary-card:hover { background: var(--gray-2); }
+.entry-summary-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.entry-summary-loc { font-size: 13px; font-weight: 600; color: var(--gray-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.entry-summary-dates { font-size: 12px; color: var(--gray-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.btn-entry-edit { font-size: 11px; font-family: var(--font-body); font-weight: 500; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--gray-2); background: #fff; color: var(--gray-3); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all .15s; }
+.btn-entry-edit:hover { border-color: var(--gray-3); color: var(--gray-4); }
 .entry-ac-wrap { position: relative; }
 .mdp { border: 1px solid var(--gray-1); border-radius: var(--radius-base); overflow: hidden; }
 .mdp-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: transparent; border: none; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--gray-4); text-align: left; transition: background .15s; }
@@ -4498,7 +4505,7 @@ const TEMPLATES = {
       },
       {
         id: 'transmissao-evento', label: 'Plataformas de transmissão', type: 'multiselect-pills',
-        options: ['YouTube','Twitch','Instagram Live','TikTok Live','TV Aberta','TV Fechada','Streaming próprio (app/site)','Pay-per-view']
+        options: ['YouTube','Twitch','TV Aberta','TV Fechada','Pay-per-view']
       },
       {
         id: 'publico-presencial-section', label: '', type: 'section-heading',
@@ -5645,7 +5652,7 @@ function buildFieldHtml(f, fullWidth) {
     return `<input type="hidden" id="${f.id}">`;
   } else if (f.type === 'section-heading') {
     // Separador visual entre seções no formulário do template
-    return `<div class="form-group full-width" style="margin-top:8px;margin-bottom:-4px">
+    return `<div class="form-group full-width"${f.id ? ` id="${f.id}"` : ''} style="margin-top:8px;margin-bottom:-4px">
       <div style="display:flex;align-items:center;gap:10px;padding:10px 0 6px">
         <span style="font-family:var(--font-heading);font-size:13px;font-weight:700;color:var(--gray-4);text-transform:uppercase;letter-spacing:.06em">${f.heading}</span>
         <div style="flex:1;height:1px;background:var(--gray-2)"></div>
@@ -7781,13 +7788,74 @@ function _attachEntryVenue(entry) {
   _buildPlaceAutocomplete(input, { fullAddress: true });
 }
 
+function _getEntryPaisLabel(entry) {
+  const firstSel = entry.querySelector('.event-pais-select');
+  if (firstSel) return firstSel.options[firstSel.selectedIndex]?.text || '';
+  const overrideWrap = entry.querySelector('.event-pais-override');
+  if (overrideWrap && overrideWrap.style.display !== 'none') {
+    const overrideSel = entry.querySelector('.event-pais-override-select');
+    return overrideSel ? (overrideSel.options[overrideSel.selectedIndex]?.text || '') : '';
+  }
+  return _getFirstEntryPaisLabel() || '';
+}
+
+function _collapseEntry(entry) {
+  const form = entry.querySelector('.entry-form');
+  const summary = entry.querySelector('.entry-summary');
+  if (!form || !summary) return;
+
+  const pais = _getEntryPaisLabel(entry);
+  const cidadeInput = entry.querySelector('.event-cidade-input');
+  const venueInput = entry.querySelector('.event-venue-input');
+  const cidade = cidadeInput?._acChip?.style.display !== 'none'
+    ? (cidadeInput._acChip?.querySelector('.ac-chip-label')?.textContent || cidadeInput.value || '')
+    : (cidadeInput.value || '');
+  const venue = venueInput?._acChip?.style.display !== 'none'
+    ? (venueInput._acChip?.querySelector('.ac-chip-label')?.textContent || venueInput.value || '')
+    : (venueInput.value || '');
+
+  let datas = [];
+  try { datas = JSON.parse(entry.querySelector('.event-datas-hidden')?.value || '[]'); } catch {}
+  const datasText = datas.length
+    ? datas.map(d => { const p = d.split('-'); return `${p[2]}/${p[1]}`; }).join(', ')
+    : 'Sem datas';
+
+  const locParts = [pais, cidade, venue].filter(Boolean);
+  const locText = locParts.length ? locParts.join(' · ') : 'Localização não informada';
+
+  summary.innerHTML = `
+    <div class="entry-summary-card" onclick="_expandEntry(this.closest('.event-entry'))">
+      <div class="entry-summary-info">
+        <div class="entry-summary-loc">${locText}</div>
+        <div class="entry-summary-dates">${datasText}</div>
+      </div>
+      <button type="button" class="btn-entry-edit" onclick="event.stopPropagation();_expandEntry(this.closest('.event-entry'))">Editar</button>
+    </div>`;
+  summary.style.display = '';
+  form.style.display = 'none';
+}
+
+function _expandEntry(entry) {
+  const form = entry.querySelector('.entry-form');
+  const summary = entry.querySelector('.entry-summary');
+  if (!form || !summary) return;
+  summary.style.display = 'none';
+  form.style.display = '';
+}
+
 function addEventEntry(opts) {
   const list = document.getElementById('event-entries-list');
   if (!list) return;
   const isFirst = list.children.length === 0;
+
+  // Collapse all existing entries before adding a new one
+  if (!isFirst) {
+    list.querySelectorAll('.event-entry').forEach(e => _collapseEntry(e));
+  }
+
   const div = document.createElement('div');
   div.className = 'event-entry';
-  div.style.cssText = 'margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--gray-1)';
+  div.style.cssText = 'margin-bottom:12px';
 
   let paisHtml = '';
   if (isFirst) {
@@ -7818,23 +7886,26 @@ function addEventEntry(opts) {
   }
 
   div.innerHTML = `
-    <div style="display:flex;gap:10px;align-items:flex-start">
-      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
-        ${paisHtml}
-        <div>
-          <label class="entry-lbl">Cidade</label>
-          <div class="entry-ac-wrap"><input type="text" class="form-control event-cidade-input" placeholder="Buscar cidade..."></div>
+    <div class="entry-summary" style="display:none"></div>
+    <div class="entry-form" style="padding-bottom:12px;border-bottom:1px solid var(--gray-1)">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+          ${paisHtml}
+          <div>
+            <label class="entry-lbl">Cidade</label>
+            <div class="entry-ac-wrap"><input type="text" class="form-control event-cidade-input" placeholder="Buscar cidade..."></div>
+          </div>
+          <div>
+            <label class="entry-lbl">Local / Venue</label>
+            <div class="entry-ac-wrap"><input type="text" class="form-control event-venue-input" placeholder="Nome do local ou venue..."></div>
+          </div>
+          <div>
+            <label class="entry-lbl">Datas</label>
+            <div class="mdp-slot"></div>
+          </div>
         </div>
-        <div>
-          <label class="entry-lbl">Local / Venue</label>
-          <div class="entry-ac-wrap"><input type="text" class="form-control event-venue-input" placeholder="Nome do local ou venue..."></div>
-        </div>
-        <div>
-          <label class="entry-lbl">Datas</label>
-          <div class="mdp-slot"></div>
-        </div>
+        <button type="button" onclick="this.closest('.event-entry').remove()" style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:18px;padding:8px;flex-shrink:0;line-height:1">&#215;</button>
       </div>
-      <button type="button" onclick="this.closest('.event-entry').remove()" style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:18px;padding:8px;flex-shrink:0;line-height:1">&#215;</button>
     </div>
   `;
   list.appendChild(div);
@@ -7876,25 +7947,33 @@ function onTipoRecorrenciaChange(sel) {
   }
 }
 
+function _getPresencialContainers() {
+  const ids = ['publico-presencial-section','historico-publico','perfil-socioeconomico',
+                'presencial-est-toggle','presencial-genero-f','presencial-genero-m',
+                'presencial-faixas-etarias','presencial-periodo'];
+  const seen = new Set();
+  const result = [];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const fg = el.closest('.form-group');
+    if (!fg) return;
+    const container = fg.parentElement?.classList.contains('grid-2') ? fg.parentElement : fg;
+    if (!seen.has(container)) { seen.add(container); result.push(container); }
+  });
+  return result;
+}
+
 function _initEventoFormatoToggle() {
   const sel = document.getElementById('formato-evento');
   if (!sel) return;
   const _apply = () => {
-    const showTransmissao = sel.value === 'online' || sel.value === 'hibrido';
-    const wrap = document.getElementById('transmissao-evento')?.closest('.form-group');
-    if (wrap) {
-      wrap.style.display = showTransmissao ? '' : 'none';
-      if (showTransmissao) {
-        wrap.style.marginTop = '8px';
-        if (!wrap._bannerAdded) {
-          wrap._bannerAdded = true;
-          const banner = document.createElement('p');
-          banner.className = 'transmissao-hint';
-          banner.textContent = 'Selecione as plataformas onde haverá transmissão ao vivo ou gravada:';
-          wrap.insertBefore(banner, wrap.firstChild);
-        }
-      }
-    }
+    const v = sel.value;
+    const showTransmissao = v === 'online' || v === 'hibrido';
+    const showPresencial = v !== 'online';
+    const txWrap = document.getElementById('transmissao-evento')?.closest('.form-group');
+    if (txWrap) txWrap.style.display = showTransmissao ? '' : 'none';
+    _getPresencialContainers().forEach(c => { c.style.display = showPresencial ? '' : 'none'; });
   };
   if (!sel._formatoToggleAttached) {
     sel._formatoToggleAttached = true;
