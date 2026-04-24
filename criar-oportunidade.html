@@ -1008,7 +1008,7 @@ input[type=number] { -moz-appearance: textfield; }
 .entry-field-header .entry-lbl { margin-bottom: 0; }
 .btn-tbc { font-size: 11px; font-family: var(--font-body); font-weight: 500; padding: 2px 9px; border-radius: 20px; border: 1px solid var(--gray-2); background: transparent; color: var(--gray-3); cursor: pointer; transition: all .15s; }
 .btn-tbc.active { background: var(--gray-3); color: #fff; border-color: var(--gray-3); }
-.entry-tbc-badge { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--white); border: 1.5px dashed var(--gray-2); border-radius: var(--radius-base); font-size: 13px; color: var(--gray-3); font-style: italic; }
+.entry-tbc-badge { display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: var(--white); border: 1.5px dashed var(--gray-2); border-radius: var(--radius-base); font-size: 13px; color: var(--gray-3); }
 .btn-tbc-undo { font-size: 11px; font-family: var(--font-body); color: var(--gray-3); background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; margin-left: auto; font-style: normal; }
 .mdp-mode-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
 .mdp-mode-tab { flex: 1; font-size: 11px; font-family: var(--font-body); font-weight: 600; padding: 5px 8px; border-radius: var(--radius-base); border: 1.5px solid var(--gray-2); background: transparent; color: var(--gray-3); cursor: pointer; transition: all .15s; text-align: center; }
@@ -4547,6 +4547,14 @@ const TEMPLATES = {
         options: [
           {v:'presencial', l:'Presencial'},
           {v:'online',     l:'Online'}
+        ]
+      },
+      {
+        id: 'abrangencia-evento', label: 'Abrangência', type: 'select',
+        options: [
+          {v:'regional',       l:'Regional'},
+          {v:'nacional',       l:'Nacional'},
+          {v:'internacional',  l:'Internacional'}
         ]
       },
       {
