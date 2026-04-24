@@ -100,7 +100,14 @@ export default async function handler(req, res) {
 
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
-    generationConfig: { max_output_tokens: 16384 },
+    generationConfig: {
+      max_output_tokens: 16384,
+      // Desabilita o "thinking mode" do Gemini 2.5 Flash. Com thinking ativo
+      // + PDF + google_search, o modelo às vezes gasta todo o orçamento
+      // raciocinando (thought parts) e devolve a resposta final VAZIA.
+      // Para esta tarefa (extrair JSON estruturado) thinking não agrega valor.
+      thinkingConfig: { thinkingBudget: 0 },
+    },
     contents: messages.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
       parts: buildParts(m.content),
@@ -139,6 +146,24 @@ export default async function handler(req, res) {
     const parts = candidate?.content?.parts || [];
     // Exclui "thought" parts (raciocínio interno do Gemini 2.5) — só texto final
     const text  = parts.filter(p => p.text && !p.thought).map(p => p.text).join('');
+
+    // Log detalhado quando a resposta final vem vazia — ajuda a diagnosticar
+    // casos de thinking consumindo todo o orçamento, safety filters etc.
+    if (!text.trim()) {
+      const thoughtCount = parts.filter(p => p.thought).length;
+      const textPartCount = parts.filter(p => p.text && !p.thought).length;
+      const usage = data.usageMetadata || {};
+      console.warn('[gemini-agent] resposta vazia:', {
+        finishReason,
+        totalParts: parts.length,
+        thoughtParts: thoughtCount,
+        textParts: textPartCount,
+        tokensPrompt: usage.promptTokenCount,
+        tokensThought: usage.thoughtsTokenCount,
+        tokensOutput: usage.candidatesTokenCount,
+      });
+    }
+
     return { text, finishReason, parts };
   }
 
