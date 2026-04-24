@@ -2486,20 +2486,69 @@ input[type=number] { -moz-appearance: textfield; }
 .ag-btn-cancel:hover { border-color: rgba(239,68,68,0.3); color: #DC2626; }
 
 .ag-attachments-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; padding: 8px 18px 0; }
+
+/* Base chip — neutro */
 .ag-attachment-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 10px; border-radius: 100px;
-  font-size: 11px; font-weight: 500;
-  border: 1px solid #E0D8CC; background: #F5F0E8; color: #5C4C38;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 8px 5px 10px; border-radius: 100px;
+  font-size: 11.5px; font-weight: 500; line-height: 1.4;
+  border: 1px solid #E0D8CC; background: #FFFFFF; color: #5C4C38;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
 }
-.ag-attachment-chip.pdf  { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); color: #DC2626; }
-.ag-attachment-chip.link { border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.07); color: #2563EB; }
+
+/* Estado: enviando (neutro + spinner) */
+.ag-attachment-chip.loading {
+  border-color: #E0D8CC; background: #F5F0E8; color: #7A6B55;
+}
+.ag-chip-spinner {
+  display: inline-block; width: 10px; height: 10px;
+  border: 1.5px solid rgba(122,107,85,0.25);
+  border-top-color: #7A6B55;
+  border-radius: 50%;
+  animation: ag-chip-spin 0.7s linear infinite;
+}
+@keyframes ag-chip-spin { to { transform: rotate(360deg); } }
+
+/* Estado: pronto (accent gold sutil) */
+.ag-attachment-chip.ready {
+  border-color: rgba(184,134,11,0.32);
+  background: rgba(184,134,11,0.06);
+  color: #7A5C1E;
+}
+.ag-chip-check { color: #B8860B; font-size: 10.5px; font-weight: 700; }
+
+/* Estado: link (mantido em azul sutil) */
+.ag-attachment-chip.link {
+  border-color: rgba(59,130,246,0.3);
+  background: rgba(59,130,246,0.07);
+  color: #2563EB;
+}
+
+/* Estado: erro (vermelho) */
+.ag-attachment-chip.error {
+  border-color: rgba(239,68,68,0.35);
+  background: rgba(239,68,68,0.08);
+  color: #DC2626;
+}
+
+/* Meta info (tamanho, status) */
+.ag-chip-size { opacity: 0.7; font-weight: 400; }
+.ag-chip-retry {
+  cursor: pointer; font-weight: 500;
+  text-decoration: underline; text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+.ag-chip-retry:hover { opacity: 0.8; }
+
 .ag-attachment-chip .ag-rm {
-  width: 14px; height: 14px; border-radius: 50%; background: rgba(0,0,0,0.08);
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(0,0,0,0.06);
   cursor: pointer; display: flex; align-items: center; justify-content: center;
   font-size: 10px; line-height: 1; color: inherit;
+  margin-left: 2px;
+  transition: background 120ms ease;
 }
-.ag-attachment-chip .ag-rm:hover { background: rgba(0,0,0,0.18); }
+.ag-attachment-chip .ag-rm:hover { background: rgba(0,0,0,0.14); }
 
 /* Error */
 .ag-error-msg {
@@ -9447,7 +9496,7 @@ async function agProcessPdf(file) {
     return;
   }
 
-  agAddChip('pdf', label, null, true);
+  agAddChip('pdf', label, null, true, file.size);
 
   try {
     // Fluxo em 3 etapas — resolve o bloqueio de CORS do Google no browser:
@@ -9529,8 +9578,22 @@ async function agProcessPdf(file) {
   }
 }
 
-function agAddChip(type, label, content, loading) {
-  window._agState.attachments.push({ type, label, content: content || null, ready: !loading });
+// Formata bytes em KB/MB legível
+function agFormatBytes(bytes) {
+  if (!bytes || bytes < 0) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
+  const mb = bytes / (1024 * 1024);
+  return (mb >= 10 ? Math.round(mb) : mb.toFixed(1)) + ' MB';
+}
+
+function agAddChip(type, label, content, loading, size) {
+  window._agState.attachments.push({
+    type, label,
+    content: content || null,
+    ready: !loading,
+    size: size || 0,
+  });
   agRenderChips();
 }
 
@@ -9546,12 +9609,30 @@ function agRenderChips() {
   row.innerHTML = window._agState.attachments.map(a => {
     const shortLabel = agEsc(a.label.length > 32 ? a.label.slice(0,32)+'…' : a.label);
     const icon = a.type === 'pdf' ? '📄' : '🔗';
-    const statusIndicator = a.error
-      ? ` <span style="color:#DC2626;font-size:11px;cursor:pointer" title="Clique para tentar novamente" onclick="agRetryPdfUpload('${agEsc(a.label)}')">⚠ retry</span>`
-      : (!a.ready ? ' <span style="opacity:0.6;font-size:11px">enviando…</span>' : '');
-    return `<div class="ag-attachment-chip ${a.type}${a.error ? ' error' : ''}">
-      ${icon} ${shortLabel}${statusIndicator}
-      <span class="ag-rm" onclick="agRemoveChip('${agEsc(a.label)}')">✕</span>
+    const sizeHtml = a.size ? ` <span class="ag-chip-size">· ${agFormatBytes(a.size)}</span>` : '';
+
+    // Determina o estado visual do chip
+    let stateClass = a.type; // 'pdf' ou 'link'
+    let statusHtml = '';
+    let title = '';
+
+    if (a.error) {
+      stateClass += ' error';
+      statusHtml = ` · <span class="ag-chip-retry" onclick="agRetryPdfUpload('${agEsc(a.label)}')">tentar de novo</span>`;
+      title = 'Falha no envio — clique para tentar novamente';
+    } else if (!a.ready) {
+      stateClass += ' loading';
+      statusHtml = ' <span class="ag-chip-spinner" aria-label="enviando"></span>';
+      title = 'Enviando arquivo…';
+    } else {
+      stateClass += ' ready';
+      statusHtml = ' <span class="ag-chip-check" aria-label="pronto">✓</span>';
+      title = 'Arquivo pronto';
+    }
+
+    return `<div class="ag-attachment-chip ${stateClass}" title="${agEsc(title)}">
+      ${icon} ${shortLabel}${sizeHtml}${statusHtml}
+      <span class="ag-rm" onclick="agRemoveChip('${agEsc(a.label)}')" title="Remover">✕</span>
     </div>`;
   }).join('');
   row.style.display = window._agState.attachments.length > 0 ? 'flex' : 'none';
@@ -9806,10 +9887,15 @@ window.agEnviarResposta = async function() {
     if (pdfs.length)  parts.push(`${pdfs.length} PDF${pdfs.length > 1 ? 's' : ''}`);
     agAddMsg('user', agMsgHtml(parts.join(' · ')));
 
-    // Monta payload completo para o Gemini
+    // Monta payload completo para o Gemini (usa attachments)
     const firstMsg = agBuildFirstMessage();
     const firstMsgEmpty = !firstMsg || (typeof firstMsg === 'string' ? !firstMsg.trim() : !firstMsg.text && !firstMsg.files?.length);
     if (firstMsgEmpty) { agShowError('Adicione uma descrição, PDF ou link.'); return; }
+
+    // Limpa os chips do rodapé — PDFs já estão embutidos na mensagem enviada
+    // e aparecem como badge "N PDF" na bolha do usuário
+    window._agState.attachments = [];
+    agRenderChips();
 
     window._agState.history = [{ role: 'user', content: firstMsg }];
     agSetLoading(true);
