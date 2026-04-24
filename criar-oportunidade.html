@@ -991,6 +991,9 @@ input[type=number] { -moz-appearance: textfield; }
 /* Multiselect pills (fields) */
 .pills-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
 .pills-max-hint { font-size: 11px; color: var(--gray-3); margin-top: 6px; transition: color .2s, font-weight .2s; }
+.btn-event-intl { font-size: 11px; font-family: var(--font-body); font-weight: 500; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--gray-2); background: transparent; color: var(--gray-3); cursor: pointer; white-space: nowrap; transition: all .15s; flex-shrink: 0; }
+.btn-event-intl:hover { border-color: var(--gray-3); color: var(--gray-4); }
+.btn-event-intl.active { background: var(--gold-gradient); border-color: transparent; color: #fff; font-weight: 600; }
 .pills-group .pill-opt {
   padding: 6px 14px; border-radius: var(--radius-pill);
   border: 1.5px solid var(--gray-2); background: var(--white);
@@ -3566,7 +3569,11 @@ input[type=number] { -moz-appearance: textfield; }
           <div class="card-desc">Informações que ajudam as marcas a entender o alcance e o perfil da sua oportunidade.</div>
         </div>
 
+        <!-- Campos de topo do template (tipo, edição, etc.) -->
+        <div id="template-header-fields"></div>
+
         <!-- Localização -->
+        <div id="opp-loc-wrap">
         <div class="form-group">
           <label>País</label>
           <select class="form-control" id="opp-pais" onchange="toggleOppLocBrasil()">
@@ -3640,8 +3647,9 @@ input[type=number] { -moz-appearance: textfield; }
           <label>Cidade</label>
           <input type="text" class="form-control" id="opp-cidade-intl" placeholder="Digite a cidade" autocomplete="off">
         </div>
+        </div><!-- /opp-loc-wrap -->
 
-        <hr class="section-divider">
+        <hr class="section-divider" id="opp-loc-divider">
 
         <div id="template-specific-fields">
           <!-- Campos injetados por renderTemplateFields() -->
@@ -4419,7 +4427,7 @@ const TEMPLATES = {
   },
   'evento': {
     label: 'Evento',
-    fields: [
+    headerFields: [
       {
         id: 'tipo-evento', label: 'Tipo de evento', type: 'select', required: true,
         options: [
@@ -4444,6 +4452,8 @@ const TEMPLATES = {
         id: 'edicao-evento', label: 'Edição ou Ano', type: 'year-input',
         placeholder: 'Ex: 2025 ou 5'
       },
+    ],
+    fields: [
       {
         id: 'datas-evento', label: 'Datas do evento', type: 'event-dates', fullWidth: true
       },
@@ -5357,8 +5367,42 @@ function selectTemplate(card) {
 ══════════════════════════════════════════════ */
 function renderTemplateFields(key) {
   const container = document.getElementById('template-specific-fields');
+  const headerContainer = document.getElementById('template-header-fields');
   const tpl = TEMPLATES[key];
   if (!container || !tpl) return;
+
+  // Renderiza campos de topo (tipo, edição) — só para templates que os têm
+  if (headerContainer) {
+    if (tpl.headerFields && tpl.headerFields.length > 0) {
+      let hHtml = '';
+      const hFields = tpl.headerFields;
+      let hi = 0;
+      while (hi < hFields.length) {
+        const hf = hFields[hi];
+        const hn = hFields[hi + 1];
+        const alwaysFull = ['event-dates','section-heading','presential-audience-toggle','presential-age-ranges','hidden'];
+        if (alwaysFull.includes(hf.type) || hf.fullWidth || hf.type === 'multiselect-pills' || !hn || alwaysFull.includes(hn?.type || '')) {
+          hHtml += buildFieldHtml(hf, true);
+          hi++;
+        } else {
+          hHtml += '<div class="grid-2">';
+          hHtml += buildFieldHtml(hf, false);
+          hHtml += buildFieldHtml(hn, false);
+          hHtml += '</div>';
+          hi += 2;
+        }
+      }
+      headerContainer.innerHTML = hHtml;
+    } else {
+      headerContainer.innerHTML = '';
+    }
+  }
+
+  // Para evento: esconde bloco de localização (cidade/país ficam por data)
+  const locWrap = document.getElementById('opp-loc-wrap');
+  const locDivider = document.getElementById('opp-loc-divider');
+  if (locWrap) locWrap.style.display = key === 'evento' ? 'none' : '';
+  if (locDivider) locDivider.style.display = key === 'evento' ? 'none' : '';
 
   let html = '';
   const fields = tpl.fields;
@@ -5424,8 +5468,9 @@ function _applyPendingDetalhes(tplKey) {
 
   if (detalhes && Object.keys(detalhes).length > 0) {
     const tpl = TEMPLATES[tplKey];
-    if (tpl && tpl.fields) {
-      tpl.fields.forEach(f => {
+    if (tpl) {
+      const allFields = [...(tpl.headerFields || []), ...(tpl.fields || [])];
+      allFields.forEach(f => {
         const val = detalhes[f.label];
         if (!val) return;
         if (f.type === 'select') {
@@ -5452,17 +5497,28 @@ function _applyPendingDetalhes(tplKey) {
           const valArr = Array.isArray(val) ? val : [];
           const list = document.getElementById('event-entries-list');
           if (list && valArr.length > 0) {
-            // Remove entradas default geradas pelo addEventEntry()
             list.innerHTML = '';
             valArr.forEach(entry => {
               addEventEntry();
               const entries = list.querySelectorAll('.event-entry');
               const last = entries[entries.length - 1];
               if (last) {
-                const inputs = last.querySelectorAll('input');
-                if (inputs[0] && entry.data) inputs[0].value = entry.data;
-                if (inputs[1] && entry.cidade) inputs[1].value = entry.cidade;
-                if (inputs[2] && entry.venue) inputs[2].value = entry.venue;
+                const dataInput = last.querySelector('.event-data-input');
+                const cidadeInput = last.querySelector('.event-cidade-input');
+                const venueInput = last.querySelector('.event-venue-input');
+                if (dataInput && entry.data) dataInput.value = entry.data;
+                if (cidadeInput && entry.cidade) cidadeInput.value = entry.cidade;
+                if (venueInput && entry.venue) venueInput.value = entry.venue;
+                if (entry.internacional) {
+                  const btn = last.querySelector('.btn-event-intl');
+                  const paisWrap = last.querySelector('.event-intl-pais');
+                  if (btn) btn.classList.add('active');
+                  if (paisWrap) paisWrap.style.display = 'block';
+                  if (entry.pais) {
+                    const sel = last.querySelector('.event-intl-pais select');
+                    if (sel) sel.value = entry.pais;
+                  }
+                }
               }
             });
           }
@@ -5778,7 +5834,7 @@ function collectFormData() {
   // Template-specific fields
   data.templateFields = [];
   if (tpl) {
-    tpl.fields.forEach(f => {
+    [...(tpl.headerFields || []), ...(tpl.fields || [])].forEach(f => {
       let val = '';
       if (f.type === 'select') {
         const el = document.getElementById(f.id);
@@ -7436,6 +7492,7 @@ function _buildPlaceAutocomplete(input, opts) {
 }
 
 function toggleOppLocBrasil() {
+  if (formState.selectedTemplate === 'evento') return;
   const pais = document.getElementById('opp-pais')?.value;
   const input = document.getElementById('opp-cidade-intl');
   if (input) {
@@ -7487,18 +7544,43 @@ function updateOppCidades(uf) {
 /* ══════════════════════════════════════════════
    EVENT DATES — componente de datas de evento
 ══════════════════════════════════════════════ */
+const _PAISES_INTL = [
+  {v:'af',l:'🇦🇫 Afeganistão'},{v:'za',l:'🇿🇦 África do Sul'},{v:'de',l:'🇩🇪 Alemanha'},{v:'sa',l:'🇸🇦 Arábia Saudita'},
+  {v:'ar',l:'🇦🇷 Argentina'},{v:'au',l:'🇦🇺 Austrália'},{v:'at',l:'🇦🇹 Áustria'},{v:'be',l:'🇧🇪 Bélgica'},
+  {v:'bo',l:'🇧🇴 Bolívia'},{v:'br',l:'🇧🇷 Brasil'},{v:'ca',l:'🇨🇦 Canadá'},{v:'cl',l:'🇨🇱 Chile'},
+  {v:'cn',l:'🇨🇳 China'},{v:'co',l:'🇨🇴 Colômbia'},{v:'kr',l:'🇰🇷 Coreia do Sul'},{v:'cr',l:'🇨🇷 Costa Rica'},
+  {v:'hr',l:'🇭🇷 Croácia'},{v:'dk',l:'🇩🇰 Dinamarca'},{v:'ae',l:'🇦🇪 Emirados Árabes'},{v:'ec',l:'🇪🇨 Equador'},
+  {v:'sk',l:'🇸🇰 Eslováquia'},{v:'si',l:'🇸🇮 Eslovênia'},{v:'es',l:'🇪🇸 Espanha'},{v:'us',l:'🇺🇸 Estados Unidos'},
+  {v:'fi',l:'🇫🇮 Finlândia'},{v:'fr',l:'🇫🇷 França'},{v:'gr',l:'🇬🇷 Grécia'},{v:'gt',l:'🇬🇹 Guatemala'},
+  {v:'nl',l:'🇳🇱 Holanda'},{v:'hn',l:'🇭🇳 Honduras'},{v:'hu',l:'🇭🇺 Hungria'},{v:'in',l:'🇮🇳 Índia'},
+  {v:'id',l:'🇮🇩 Indonésia'},{v:'ie',l:'🇮🇪 Irlanda'},{v:'il',l:'🇮🇱 Israel'},{v:'it',l:'🇮🇹 Itália'},
+  {v:'jp',l:'🇯🇵 Japão'},{v:'mx',l:'🇲🇽 México'},{v:'no',l:'🇳🇴 Noruega'},{v:'nz',l:'🇳🇿 Nova Zelândia'},
+  {v:'pa',l:'🇵🇦 Panamá'},{v:'py',l:'🇵🇾 Paraguai'},{v:'pe',l:'🇵🇪 Peru'},{v:'pl',l:'🇵🇱 Polônia'},
+  {v:'pt',l:'🇵🇹 Portugal'},{v:'gb',l:'🇬🇧 Reino Unido'},{v:'cz',l:'🇨🇿 República Tcheca'},{v:'ro',l:'🇷🇴 Romênia'},
+  {v:'ru',l:'🇷🇺 Rússia'},{v:'sv',l:'🇸🇻 El Salvador'},{v:'se',l:'🇸🇪 Suécia'},{v:'ch',l:'🇨🇭 Suíça'},
+  {v:'th',l:'🇹🇭 Tailândia'},{v:'tw',l:'🇹🇼 Taiwan'},{v:'tr',l:'🇹🇷 Turquia'},{v:'ua',l:'🇺🇦 Ucrânia'},
+  {v:'uy',l:'🇺🇾 Uruguai'},{v:'ve',l:'🇻🇪 Venezuela'}
+];
+
 function addEventEntry() {
   const list = document.getElementById('event-entries-list');
   if (!list) return;
   const div = document.createElement('div');
   div.className = 'event-entry';
   div.style.cssText = 'margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-1)';
+  const paisOpts = _PAISES_INTL.map(p => `<option value="${p.v}">${p.l}</option>`).join('');
   div.innerHTML = `
     <div style="display:flex;gap:10px;align-items:flex-start">
       <div style="flex:1;display:flex;flex-direction:column;gap:8px">
-        <input type="date" class="form-control" required>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="date" class="form-control event-data-input" style="flex:1" required>
+          <button type="button" class="btn-event-intl" onclick="toggleEventIntl(this)" title="Data internacional">Internacional</button>
+        </div>
+        <div class="event-intl-pais" style="display:none">
+          <select class="form-control">${paisOpts}</select>
+        </div>
         <input type="text" class="form-control event-cidade-input" placeholder="Cidade (ex: São Paulo)" required>
-        <input type="text" class="form-control event-venue-input" placeholder="Venue (ex: Estádio do Morumbi)" required>
+        <input type="text" class="form-control event-venue-input" placeholder="Venue (ex: Estádio do Morumbi)">
       </div>
       <button type="button" onclick="this.closest('.event-entry').remove()" style="background:none;border:none;cursor:pointer;color:var(--gray-3);font-size:18px;padding:8px;flex-shrink:0;line-height:1;margin-top:2px">✕</button>
     </div>
@@ -7506,6 +7588,13 @@ function addEventEntry() {
   list.appendChild(div);
   const venueInput = div.querySelector('.event-venue-input');
   if (venueInput) _loadMapsScript(() => _attachEventLocalAutocomplete(venueInput));
+}
+
+function toggleEventIntl(btn) {
+  const entry = btn.closest('.event-entry');
+  const paisWrap = entry.querySelector('.event-intl-pais');
+  const active = btn.classList.toggle('active');
+  if (paisWrap) paisWrap.style.display = active ? 'block' : 'none';
 }
 
 function _attachEventLocalAutocomplete(input) {
@@ -8454,8 +8543,9 @@ function collectOppData() {
   // Detalhes específicos do template
   const SKIP_TYPES = new Set(['section-heading','presential-audience-toggle','presential-age-ranges','hidden']);
   const detalhes = {};
-  if (tpl && tpl.fields) {
-    tpl.fields.forEach(f => {
+  if (tpl) {
+    const allTplFields = [...(tpl.headerFields || []), ...(tpl.fields || [])];
+    allTplFields.forEach(f => {
       // Pula campos de layout e campos de público presencial (coletados separadamente)
       if (SKIP_TYPES.has(f.type)) return;
       if (['historico-publico','perfil-socioeconomico','presencial-genero-f','presencial-genero-m',
@@ -8473,11 +8563,13 @@ function collectOppData() {
         const entries = document.querySelectorAll('#event-entries-list .event-entry');
         val = [];
         entries.forEach(entry => {
-          const inputs = entry.querySelectorAll('input');
-          const d = inputs[0]?.value || '';
-          const cidade = inputs[1]?.value || '';
-          const venue = inputs[2]?.value || '';
-          if (d || cidade || venue) val.push({ data: d, cidade, venue });
+          const d = entry.querySelector('.event-data-input')?.value || '';
+          const cidade = entry.querySelector('.event-cidade-input')?.value || '';
+          const venue = entry.querySelector('.event-venue-input')?.value || '';
+          const intlBtn = entry.querySelector('.btn-event-intl');
+          const internacional = intlBtn?.classList.contains('active') || false;
+          const pais = internacional ? (entry.querySelector('.event-intl-pais select')?.value || '') : '';
+          if (d || cidade || venue) val.push({ data: d, cidade, venue, internacional, pais });
         });
       }
       if (val && (typeof val === 'string' ? val.length > 0 : true)) detalhes[f.label] = val;
@@ -8487,11 +8579,13 @@ function collectOppData() {
   // Datas do evento
   const datasEvento = [];
   document.querySelectorAll('#event-entries-list .event-entry').forEach(entry => {
-    const inputs = entry.querySelectorAll('input');
-    const d = inputs[0]?.value || '';
-    const cidade = inputs[1]?.value || '';
-    const venue = inputs[2]?.value || '';
-    if (d || cidade || venue) datasEvento.push({ data: d, cidade, venue });
+    const d = entry.querySelector('.event-data-input')?.value || '';
+    const cidade = entry.querySelector('.event-cidade-input')?.value || '';
+    const venue = entry.querySelector('.event-venue-input')?.value || '';
+    const intlBtn = entry.querySelector('.btn-event-intl');
+    const internacional = intlBtn?.classList.contains('active') || false;
+    const pais = internacional ? (entry.querySelector('.event-intl-pais select')?.value || '') : '';
+    if (d || cidade || venue) datasEvento.push({ data: d, cidade, venue, internacional, pais });
   });
 
   // Recorrência do evento (apenas template 'evento')
@@ -8815,8 +8909,9 @@ async function publishOpportunity() {
   // ── Validação: campos obrigatórios do template ──
   const tplKey = formState.selectedTemplate;
   const tpl = TEMPLATES[tplKey];
-  if (tpl && tpl.fields) {
-    for (const f of tpl.fields) {
+  if (tpl) {
+    const allValidFields = [...(tpl.headerFields || []), ...(tpl.fields || [])];
+    for (const f of allValidFields) {
       if (!f.required) continue;
       const el = document.getElementById(f.id);
       if (!el) continue;
