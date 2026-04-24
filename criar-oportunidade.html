@@ -9505,9 +9505,13 @@ async function agProcessPdf(file) {
   if (file.type !== 'application/pdf') return;
   const label = file.name;
 
-  const MAX_MB = 100;
+  const MAX_MB = 20;
   if (file.size > MAX_MB * 1024 * 1024) {
-    agShowError(`PDF muito grande (máx ${MAX_MB}MB).`);
+    const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+    agShowError(
+      `PDF muito grande (${sizeMb} MB). O limite é ${MAX_MB} MB — acima disso a análise não é confiável. ` +
+      `Se o seu media kit está acima, tente exportar em menor resolução ou comprimir (muitas imagens sem compressão).`
+    );
     return;
   }
 
@@ -9795,8 +9799,32 @@ function agParseResponse(raw) {
   }
 }
 
+// Verifica se a resposta do agente tem conteúdo útil o bastante pra mostrar
+// como resumo — evita exibir cards vazios quando a IA devolve JSON truncado
+// ou sem preenchimento real dos campos.
+function agResultTemConteudo(parsed) {
+  if (!parsed) return false;
+  if (parsed.resumo?.trim()) return true;
+  if (parsed.duvidas?.length) return true;
+  const c = parsed.campos || {};
+  const v = (k) => c[k]?.valor;
+  return !!(v('nome_oportunidade') || v('descricao_curta') || v('descricao_completa') || v('busca_marca'));
+}
+
 // ── Processar resposta do agente ─────────────────────────────────
 function agAddAgentMsgFromResult(parsed) {
+  // Guarda: se a IA retornou um JSON sem conteúdo útil, trata como erro
+  // em vez de mostrar um card vazio/confuso pro usuário
+  if (!agResultTemConteudo(parsed)) {
+    console.warn('[agente] resposta sem conteúdo útil:', parsed);
+    agAddMsg('agent',
+      `<span style="color:#DC2626">❌ Não consegui extrair informações suficientes.</span><br>` +
+      `<span style="opacity:0.85;font-size:12px">Isso costuma acontecer quando o PDF tem muitas páginas ou imagens sem texto. ` +
+      `Tente enviar uma descrição em texto ou um PDF mais enxuto (idealmente menos de 10MB).</span>`
+    );
+    return;
+  }
+
   // Visão/resumo do agente sobre a oportunidade
   let html = '';
   if (parsed.resumo) {
