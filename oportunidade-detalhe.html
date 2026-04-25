@@ -340,7 +340,8 @@ a { text-decoration: none; color: inherit; }
 .video-link-fallback svg { flex-shrink: 0; color: var(--gold); }
 .detail-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .fact-item { display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius); }
-.fact-icon { width: 36px; height: 36px; background: var(--gray-100); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.fact-icon { width: 36px; height: 36px; background: var(--gray-100); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #7A6A58; }
+.fact-icon svg { display: block; }
 .fact-label { font-size: 11px; color: var(--gray-400); font-weight: 500; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
 .fact-value { font-size: 14px; font-weight: 600; color: var(--text); word-break: break-word; }
 .tags-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
@@ -1555,30 +1556,69 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
 
     // Abrangência geográfica — coluna dedicada (Local / Regional / Nacional / Internacional)
     if (r.alcance && r.alcance.trim()) {
-      generalFacts.push({ icon: '🗺️', label: 'Abrangência', value: r.alcance.trim() });
+      generalFacts.push({ icon: '<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="8"/><path d="M10 2c-2.5 3-4 5.5-4 8s1.5 5 4 8M10 2c2.5 3 4 5.5 4 8s-1.5 5-4 8"/><path d="M2 10h16"/></svg>', label: 'Abrangência', value: r.alcance.trim() });
     }
 
     // Complementar generalFacts com dados do campo detalhes (JSONB)
     // Sempre incluído — cobre campos de template como Formato, Transmissão, etc.
+    // SVG helper — 18×18 rendered, 20×20 viewBox, stroke=currentColor
+    const _ic = (d) => `<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
     const DETALHE_ICONS = {
-      // Template fields
-      'Formato': '🎯', 'Transmissão prevista': '📡', 'Transmissão': '📡',
-      'Plataformas': '💻', 'Capacidade': '👥', 'Público esperado': '👥',
-      'Local': '📍', 'Cidade': '📍', 'Local do evento': '📍', 'Modalidade': '🎫',
-      'Formatos comerciais disponíveis': '📢', 'Formatos comerciais': '📢',
-      // Preview fields (chaves técnicas lowercase)
-      'demografico': '📊', 'entregas': '🤝',
-      'metricas_alcance': '📈', 'metricas_engajamento': '💬', 'metricas_impressoes': '👁️',
-      'recorrencia': '🔁'
+      // ── Evento ──────────────────────────────────────────
+      'Tipo de evento':    _ic('<rect x="2" y="4" width="16" height="14" rx="2"/><path d="M2 9h16M6 2v4M14 2v4"/><path d="M7 13l1.5 1.5L13 11"/>'),
+      'Edição ou Ano':     _ic('<path d="M2 10V3.5A1.5 1.5 0 013.5 2H10l8 8-8 8-8-8z"/><circle cx="5.5" cy="5.5" r="1.5" fill="currentColor" stroke="none"/>'),
+      'Formato':           _ic('<rect x="2" y="3" width="16" height="14" rx="2"/><path d="M10 3v14M2 10h16"/>'),
+      'Transmissão prevista': _ic('<path d="M3 17a10 10 0 0114 0M6 13a6 6 0 018 0"/><path d="M10 9v.5"/><circle cx="10" cy="9.5" r="1.5" fill="currentColor" stroke="none"/>'),
+      'Transmissão':       _ic('<path d="M3 17a10 10 0 0114 0M6 13a6 6 0 018 0"/><path d="M10 9v.5"/><circle cx="10" cy="9.5" r="1.5" fill="currentColor" stroke="none"/>'),
+      'Público esperado':  _ic('<circle cx="7" cy="6" r="3.5"/><path d="M1 19c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="15" cy="7" r="2.5"/><path d="M19 19c0-2.7-1.8-5-4-5.5"/>'),
+      'Capacidade':        _ic('<path d="M3 18V4a1 1 0 011-1h12a1 1 0 011 1v14M1 18h18"/><path d="M8 18v-5h4v5M8 8h1M11 8h1M8 12h1M11 12h1"/>'),
+      'Abrangência':       _ic('<circle cx="10" cy="10" r="8"/><path d="M10 2c-2.5 3-4 5.5-4 8s1.5 5 4 8M10 2c2.5 3 4 5.5 4 8s-1.5 5-4 8"/><path d="M2 10h16"/>'),
+      'Local':             _ic('<path d="M10 18s-7-7-7-11a7 7 0 0114 0c0 4-7 11-7 11z"/><circle cx="10" cy="7" r="2.5"/>'),
+      'Cidade':            _ic('<path d="M10 18s-7-7-7-11a7 7 0 0114 0c0 4-7 11-7 11z"/><circle cx="10" cy="7" r="2.5"/>'),
+      'Local do evento':   _ic('<path d="M10 18s-7-7-7-11a7 7 0 0114 0c0 4-7 11-7 11z"/><circle cx="10" cy="7" r="2.5"/>'),
+      'Modalidade':        _ic('<path d="M2 8h16v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8zM2 8V6a2 2 0 012-2h12a2 2 0 012 2v2"/><path d="M10 5v3M10 11v4"/>'),
+      'Formatos comerciais disponíveis': _ic('<path d="M3 7h2l6-5v16l-6-5H3a1 1 0 01-1-1V8a1 1 0 011-1z"/><path d="M15 6a5 5 0 010 8"/>'),
+      'Formatos comerciais': _ic('<path d="M3 7h2l6-5v16l-6-5H3a1 1 0 01-1-1V8a1 1 0 011-1z"/><path d="M15 6a5 5 0 010 8"/>'),
+      'Plataformas':       _ic('<rect x="2" y="2" width="7" height="7" rx="1.5"/><rect x="11" y="2" width="7" height="7" rx="1.5"/><rect x="2" y="11" width="7" height="7" rx="1.5"/><rect x="11" y="11" width="7" height="7" rx="1.5"/>'),
+      // ── Artista ─────────────────────────────────────────
+      'Estilo musical':         _ic('<path d="M12 4v8"/><path d="M12 4l6-1.5v8"/><circle cx="9" cy="12" r="3"/><circle cx="18" cy="10.5" r="2"/>'),
+      'Média de shows por mês': _ic('<rect x="6" y="1" width="8" height="11" rx="4"/><path d="M3 12a7 7 0 0014 0M10 19v-4"/><path d="M8 19h4"/>'),
+      'Média de público por show': _ic('<circle cx="7" cy="6" r="3.5"/><path d="M1 19c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="15" cy="7" r="2.5"/><path d="M19 19c0-2.7-1.8-5-4-5.5"/>'),
+      'Abrangência dos shows':  _ic('<circle cx="10" cy="10" r="8"/><path d="M10 2c-2.5 3-4 5.5-4 8s1.5 5 4 8M10 2c2.5 3 4 5.5 4 8s-1.5 5-4 8"/><path d="M2 10h16"/>'),
+      // ── Mídia ───────────────────────────────────────────
+      'Tipo de veículo':        _ic('<rect x="1" y="5" width="18" height="12" rx="2"/><path d="M5 2l5 3 5-3"/><path d="M7 17v2M13 17v2M7 19h6"/>'),
+      'Nicho editorial':        _ic('<path d="M4 2h8l4 4v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M12 2v4h4M6 10h8M6 14h5"/>'),
+      'Frequência de publicação': _ic('<rect x="2" y="4" width="16" height="14" rx="2"/><path d="M2 9h16M6 2v4M14 2v4"/><path d="M10 12v3l2 1"/>'),
+      // ── Personalidade ───────────────────────────────────
+      'Nicho principal':        _ic('<circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="4.5"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/>'),
+      // ── Chaves técnicas ─────────────────────────────────
+      'demografico':            _ic('<path d="M4 16V9M8 16V5M12 16V11M16 16V7"/><path d="M2 16h16"/>'),
+      'entregas':               _ic('<path d="M5 12l3 3 7-8"/><rect x="2" y="2" width="16" height="16" rx="3"/>'),
+      'metricas_alcance':       _ic('<path d="M2 16L7 10l4 4 7-9"/><path d="M14 5h4v4"/>'),
+      'metricas_engajamento':   _ic('<path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H6l-4 3V6z"/>'),
+      'metricas_impressoes':    _ic('<path d="M2 10c2-4.5 4.5-7 8-7s6 2.5 8 7c-2 4.5-4.5 7-8 7s-6-2.5-8-7z"/><circle cx="10" cy="10" r="2.5"/>'),
+      'recorrencia':            _ic('<path d="M4 10a6 6 0 0111-3.3M16 10a6 6 0 01-11 3.3"/><path d="M15.5 4l.5 3.5-3.5.5M4.5 16l-.5-3.5 3.5-.5"/>'),
     };
     // Labels legíveis para chaves técnicas
     const DETALHE_LABELS = {
-      'demografico': 'Perfil demográfico',
-      'entregas': 'Entregas ao patrocinador',
-      'metricas_alcance': 'Alcance médio',
-      'metricas_engajamento': 'Taxa de engajamento',
-      'metricas_impressoes': 'Impressões mensais',
-      'recorrencia': 'Recorrência'
+      'demografico':              'Perfil demográfico',
+      'entregas':                 'Entregas ao patrocinador',
+      'metricas_alcance':         'Alcance médio',
+      'metricas_engajamento':     'Taxa de engajamento',
+      'metricas_impressoes':      'Impressões mensais',
+      'recorrencia':              'Recorrência',
+      'Tipo de evento':           'Tipo de evento',
+      'Edição ou Ano':            'Edição / Ano',
+      'Público esperado':         'Público esperado',
+      'Abrangência':              'Abrangência',
+      'Abrangência dos shows':    'Abrangência dos shows',
+      'Estilo musical':           'Estilo musical',
+      'Média de shows por mês':   'Shows por mês',
+      'Média de público por show':'Público por show',
+      'Tipo de veículo':          'Tipo de veículo',
+      'Nicho editorial':          'Nicho editorial',
+      'Frequência de publicação': 'Frequência',
+      'Nicho principal':          'Nicho principal',
     };
     // Labels já presentes nos generalFacts da tabela (para evitar duplicata)
     const existingLabels = new Set(generalFacts.map(f => f.label));
@@ -1939,7 +1979,7 @@ function renderPage(oppOverride) {
   // Facts
   var factsHtml = '';
   (opp.facts || []).forEach(function(f) {
-    factsHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
+    factsHtml += '<div class="fact-item"><div class="fact-icon">' + f.icon + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
   });
   document.getElementById('detailFacts').innerHTML = factsHtml;
 
@@ -2415,7 +2455,7 @@ function renderPage(oppOverride) {
       document.getElementById('publicoDesc').textContent = opp.publico;
       var pfHtml = '';
       (opp.publicoFacts || []).forEach(function(f) {
-        pfHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
+        pfHtml += '<div class="fact-item"><div class="fact-icon">' + f.icon + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
       });
       document.getElementById('publicoFacts').innerHTML = pfHtml;
       if (secLegacy) secLegacy.style.display = '';
