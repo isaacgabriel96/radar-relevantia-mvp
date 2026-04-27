@@ -2876,12 +2876,14 @@ br.mobile-only { display: none; }
     font-size: clamp(14px, 3.8vw, 16px);
     margin-top: 4px;
   }
-  /* Rail-wrap: ocupa o restante e clipa overflow */
+  /* Rail-wrap: ocupa o restante e clipa overflow.
+     Background bege depois do cabeçalho (cards aparecem sobre fundo bege). */
   .features-rail-wrap {
     flex: 1;
     min-height: 0;
     overflow: hidden;
     align-items: stretch;
+    background: linear-gradient(180deg, var(--gray-1) 0%, #f1ece1 100%);
   }
   .features-rail {
     padding: 4px 16px;
