@@ -3169,9 +3169,8 @@ br.mobile-only { display: none; }
     margin-top: -16vw;
     margin-bottom: -16vw;
   }
-  .feature-card {
-    width: calc(100vw - 32px);
-  }
+  /* No 430px o card mantém o width definido no breakpoint 600px (calc(100vw - 120px))
+     para garantir que cabe na tela com peek do próximo card. */
   .result-card {
     padding: 18px 10px;
   }
