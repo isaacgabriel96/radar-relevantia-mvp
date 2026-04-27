@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Relevantia — O marketplace de patrocínios</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #C9A43A;
+  --gold-light: #E8C96A;
+  --gold-pale: #FBF5E6;
+  --black: #0E0E0E;
+  --black-2: #1A1A1A;
+  --white: #FFFFFF;
+  --gray-1: #F7F7F7;
+  --gray-2: #EBEBEB;
+  --gray-3: #DDDDDD;
+  --gray-5: #717171;
+  --text: #1A1A1A;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--white);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 0 48px 0 175px;
+  height: 72px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px;
+  transition: background 0.3s, border-color 0.3s, transform 0.32s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+nav.nav-hidden { transform: translateY(-100%); }
+nav.scrolled {
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--gray-2);
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.nav-logo img { height: auto; width: 140px; max-height: none; display: block; }
+.nav-logo-name {
+  font-size: 16px; font-weight: 600;
+  color: var(--black); letter-spacing: -0.02em;
+}
+.nav-logo-divider {
+  width: 1px; height: 16px;
+  background: var(--gray-3);
+}
+.nav-radar {
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold);
+}
+
+.nav-links {
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-link {
+  font-size: 14px; font-weight: 500;
+  color: var(--black); text-decoration: none;
+  padding: 8px 16px; border-radius: 100px;
+  transition: background 0.15s;
+}
+.nav-link:hover { background: var(--gray-1); }
+
+.nav-cta {
+  background: var(--black); color: white;
+  border: none; padding: 10px 22px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.nav-cta:hover { background: var(--gold); }
+.nav-login {
+  background: transparent; color: var(--black);
+  border: 1.5px solid var(--gray-3); padding: 10px 22px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.nav-login:hover { border-color: var(--black); background: var(--gray-1); }
+.nav-login-mobile, .nav-cta-mobile { display: none; }
+
+/* ─── HERO ─── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 120px 48px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle grid background */
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(201,164,58,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,164,58,0.06) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 40%, transparent 100%);
+}
+
+/* Gold orb */
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(201,164,58,0.08) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero-inner { position: relative; z-index: 1; max-width: 820px; }
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid rgba(201,164,58,0.4);
+  background: rgba(201,164,58,0.06);
+  padding: 6px 16px; border-radius: 100px;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 32px;
+  animation: fadeUp 0.6s ease both;
+}
+.hero-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold);
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(42px, 7vw, 80px);
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--gold);
+}
+.hero h1 .line-2 {
+  display: block;
+}
+
+.hero-sub {
+  font-size: 18px; font-weight: 400;
+  color: var(--gray-5);
+  line-height: 1.65;
+  max-width: 520px;
+  margin: 0 auto 40px;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.hero-actions {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+  margin-bottom: 64px;
+}
+
+.btn-primary {
+  background: var(--black); color: white;
+  border: none; padding: 16px 32px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary:hover {
+  background: var(--gold);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(201,164,58,0.3);
+}
+
+.btn-secondary {
+  background: white; color: var(--black);
+  border: 1.5px solid var(--gray-3);
+  padding: 15px 32px;
+  border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-secondary:hover {
+  border-color: var(--black);
+  transform: translateY(-1px);
+}
+
+/* Stats */
+.hero-stats {
+  display: flex; align-items: center; justify-content: center; gap: 0;
+  animation: fadeUp 0.6s 0.4s ease both;
+}
+.hero-stat {
+  padding: 0 36px;
+  border-right: 1px solid var(--gray-2);
+  text-align: center;
+}
+.hero-stat:last-child { border-right: none; }
+.hero-stat-n {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px; font-weight: 600;
+  color: var(--black); line-height: 1;
+  margin-bottom: 4px;
+}
+.hero-stat-l {
+  font-size: 12px; color: var(--gray-5);
+  font-weight: 400;
+}
+
+/* Scroll indicator */
+.scroll-hint {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  animation: fadeUp 0.6s 0.6s ease both;
+  color: var(--gray-5); font-size: 11px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+}
+.scroll-arrow {
+  width: 1px; height: 40px;
+  background: linear-gradient(to bottom, transparent, var(--gold));
+  animation: scrollDown 1.5s ease infinite;
+}
+@keyframes scrollDown {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── PREVIEW STRIP ─── */
+/* ─── PREVIEW STRIP ─── */
+.preview-strip {
+  padding: 60px 0 80px;
+  background: #F4F3F0;
+}
+
+.preview-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+.preview-label {
+  line-height: 1.1;
+  margin-bottom: 40px;
+}
+
+.preview-label-black {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 5vw, 38px);
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: -0.02em;
+  color: var(--black);
+}
+
+.preview-gold-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 2px;
+}
+
+.preview-label-gold {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 5vw, 38px);
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  color: #C9A43A;
+  white-space: nowrap;
+}
+/* Setas no header (lado direito) */
+.pcarousel-header-arrows {
+  display: flex; gap: 6px; align-items: center;
+}
+.pcarousel-nav {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: white; border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--black); transition: all 0.18s; flex-shrink: 0;
+}
+.pcarousel-nav:hover { background: var(--black); color: white; border-color: var(--black); }
+.pcarousel-nav svg { width: 14px; height: 14px; }
+
+/* ── Carrossel wrapper ── */
+.preview-carousel-wrapper {
+  position: relative;
+}
+.preview-carousel-viewport {
+  overflow: hidden;
+  cursor: grab;
+}
+.preview-carousel-viewport.is-dragging { cursor: grabbing; }
+.preview-carousel-track {
+  display: flex;
+  gap: 16px;
+  transition: transform 0.42s cubic-bezier(0.25,0.46,0.45,0.94);
+  will-change: transform;
+}
+.preview-carousel-track.no-transition { transition: none; }
+
+/* Dots do carrossel — abaixo dos cards, centrados */
+.pcarousel-dots {
+  display: flex; justify-content: center; gap: 6px; margin-top: 20px;
+}
+.pcarousel-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(0,0,0,0.18); border: none; padding: 0; cursor: pointer;
+  transition: background 0.22s, transform 0.22s;
+}
+.pcarousel-dot.active { background: var(--black); transform: scale(1.25); }
+
+/* ── OPP LIST CARD ── */
+.opp-list-card {
+  background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.07);
+  padding: 24px; display: flex; flex-direction: column; gap: 0;
+  cursor: pointer; position: relative; overflow: hidden;
+  flex-shrink: 0;
+  /* 3 cards dentro do container: (min(1100px,100vw) - 96px padding - 32px gaps) / 3 */
+  width: calc((min(1100px, 100vw) - 96px - 32px) / 3);
+  transition: border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+}
+.opp-list-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 4px 18px rgba(201,164,58,0.08), 0 1px 3px rgba(0,0,0,0.04);
+  transform: translateY(-1px);
+}
+.opp-list-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(to right, var(--gold), #E8C96A); opacity: 0; transition: opacity 0.22s;
+}
+.opp-list-card:hover::before { opacity: 1; }
+
+/* ── OLC HERO ── */
+.olc-hero {
+  position: relative; width: calc(100% + 48px); margin: -24px -24px 0;
+  height: 220px; border-radius: 16px 16px 0 0; overflow: hidden; flex-shrink: 0;
+}
+.olc-hero-track { display: flex; width: 100%; height: 100%; transition: transform 0.42s cubic-bezier(0.25,0.46,0.45,0.94); }
+.olc-hero-slide { flex-shrink: 0; width: 100%; height: 100%; }
+.olc-hero-slide img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; pointer-events: none; user-select: none; }
+.olc-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.28) 100%); pointer-events: none; z-index: 1; }
+.olc-hero-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 4;
+  width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(8px); border: none; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; opacity: 0; transition: opacity 0.18s, background 0.18s; pointer-events: none;
+}
+.olc-hero-nav svg { width: 12px; height: 12px; color: #0E0E0E; }
+.olc-hero-nav.prev { left: 8px; }
+.olc-hero-nav.next { right: 8px; }
+.olc-hero:hover .olc-hero-nav { opacity: 1; pointer-events: auto; }
+.olc-hero-nav:hover { background: rgba(255,255,255,1); }
+.olc-hero-dots { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 4; }
+.olc-hero-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: background 0.22s, transform 0.22s; cursor: pointer; border: none; padding: 0; flex-shrink: 0; }
+.olc-hero-dot.active { background: rgba(255,255,255,0.95); transform: scale(1.3); }
+.olc-hero-tag { position: absolute; top: 12px; right: 12px; z-index: 3; background: rgba(255,255,255,0.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.28); border-radius: 100px; padding: 4px 11px; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.95); letter-spacing: 0.01em; }
+.olc-hero-count { position: absolute; top: 10px; left: 10px; z-index: 3; background: rgba(0,0,0,0.45); backdrop-filter: blur(6px); border-radius: 100px; padding: 3px 8px; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 4px; }
+.olc-hero-count svg { width: 10px; height: 10px; }
+
+/* ── OLC BODY ── */
+.olc-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--black); line-height: 1.3; letter-spacing: -0.01em; margin-top: 20px; margin-bottom: 8px; }
+.olc-desc { font-size: 13px; color: #717171; line-height: 1.55; margin-bottom: 20px; flex: 1; }
+.olc-divider { height: 1px; background: rgba(0,0,0,0.06); margin-bottom: 16px; }
+.olc-footer { display: flex; align-items: center; justify-content: space-between; }
+.olc-meta-row { display: flex; align-items: center; gap: 12px; }
+.olc-brand-row { display: flex; align-items: center; gap: 7px; }
+.olc-logo { width: 26px; height: 26px; border-radius: 7px; background: #F4F3F0; border: 1px solid rgba(0,0,0,0.07); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #717171; flex-shrink: 0; }
+.olc-brand-name { font-size: 12px; font-weight: 600; color: #717171; }
+.olc-arrow-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1); background: transparent; display: flex; align-items: center; justify-content: center; cursor: default; color: #9A9A9A; flex-shrink: 0; }
+.olc-arrow-btn svg { width: 13px; height: 13px; }
+
+/* intel panel removido — sempre oculto */
+.olc-intel-panel { display: none !important; }
+.card-hype-badge { display: none !important; }
+
+/* ── Legacy ── */
+.cards-scroll-wrapper { display: none; }
+.preview-card { display: none; }
+.preview-card-img { display: none; }
+.preview-card-lock { display: none; }
+.preview-opp-grid { display: none; }
+
+/* ─── HOW IT WORKS ─── */
+.how {
+  padding: 100px 48px;
+  background: var(--black);
+  position: relative;
+  overflow: hidden;
+}
+.how::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(201,164,58,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201,164,58,0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.how-inner { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; }
+
+.section-label {
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 64px;
+}
+.how .section-title { color: white; }
+
+.how-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.how-card {
+  padding: 40px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.2s;
+}
+.how-card:hover { background: rgba(255,255,255,0.04); }
+
+.how-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 13px; font-weight: 400;
+  color: var(--gold); opacity: 0.6;
+  margin-bottom: 20px;
+  letter-spacing: 0.1em;
+}
+
+.how-icon {
+  font-size: 32px; margin-bottom: 16px;
+  display: block;
+}
+
+.how-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 600;
+  color: white; margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.how-card-desc {
+  font-size: 14px; color: rgba(255,255,255,0.5);
+  line-height: 1.7;
+}
+
+/* ─── DUAL CTA (Marcas vs Detentores) ─── */
+.dual {
+  padding: 100px 48px;
+  background: white;
+}
+.dual-inner {
+  max-width: 1100px; margin: 0 auto;
+}
+
+.dual-header {
+  text-align: center;
+  margin-bottom: 56px;
+}
+.dual-header .section-title { color: var(--black); }
+
+.dual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.dual-card {
+  border-radius: 20px;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.dual-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+}
+
+.dual-card.marcas {
+  background: var(--black);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.dual-card.detentores {
+  background: var(--gold-pale);
+  border: 1px solid rgba(201,164,58,0.2);
+}
+
+/* Decorative element */
+.dual-card::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.dual-card.marcas::before {
+  background: radial-gradient(circle, rgba(201,164,58,0.12) 0%, transparent 70%);
+}
+.dual-card.detentores::before {
+  background: radial-gradient(circle, rgba(201,164,58,0.2) 0%, transparent 70%);
+}
+
+.dual-tag {
+  display: inline-block;
+  padding: 4px 12px; border-radius: 100px;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.marcas .dual-tag {
+  background: rgba(201,164,58,0.15);
+  color: var(--gold);
+}
+.detentores .dual-tag {
+  background: rgba(14,14,14,0.08);
+  color: var(--black);
+}
+
+.dual-card-icon {
+  font-size: 40px; margin-bottom: 20px; display: block;
+}
+
+.dual-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 600;
+  line-height: 1.15; margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+.marcas .dual-card-title { color: white; }
+.detentores .dual-card-title { color: var(--black); }
+
+.dual-card-desc {
+  font-size: 15px; line-height: 1.7;
+  margin-bottom: 32px;
+}
+.marcas .dual-card-desc { color: rgba(255,255,255,0.55); }
+.detentores .dual-card-desc { color: var(--gray-5); }
+
+.dual-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 36px;
+}
+.dual-list li {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px;
+}
+.marcas .dual-list li { color: rgba(255,255,255,0.7); }
+.detentores .dual-list li { color: var(--text); }
+.dual-list li::before {
+  content: '✦';
+  font-size: 8px; flex-shrink: 0;
+  color: var(--gold);
+}
+
+.dual-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 28px; border-radius: 100px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; border: none;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.marcas .dual-btn {
+  background: var(--gold); color: white;
+}
+.marcas .dual-btn:hover {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+}
+.detentores .dual-btn {
+  background: var(--black); color: white;
+}
+.detentores .dual-btn:hover {
+  background: var(--gold);
+  transform: translateY(-1px);
+}
+
+/* ─── CURADORIA SECTION ─── */
+.curadoria {
+  padding: 100px 48px;
+  background: var(--gray-1);
+  border-top: 1px solid var(--gray-2);
+  border-bottom: 1px solid var(--gray-2);
+}
+.curadoria-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center;
+}
+
+.curadoria-label { margin-bottom: 16px; }
+.curadoria-label .section-label { color: var(--gold); }
+.curadoria .section-title {
+  color: var(--black); margin-bottom: 20px; font-size: 36px;
+}
+
+.curadoria-text {
+  font-size: 16px; color: var(--gray-5);
+  line-height: 1.75; margin-bottom: 32px;
+}
+
+.curadoria-pills {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.curadoria-pill {
+  background: white;
+  border: 1px solid var(--gray-2);
+  padding: 8px 16px; border-radius: 100px;
+  font-size: 13px; color: var(--text);
+  font-weight: 400;
+}
+
+.curadoria-visual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.curadoria-block {
+  background: white;
+  border: 1px solid var(--gray-2);
+  border-radius: 14px;
+  padding: 24px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.curadoria-block:hover {
+  border-color: var(--gold);
+  box-shadow: 0 4px 20px rgba(201,164,58,0.1);
+}
+.curadoria-block-icon { font-size: 28px; margin-bottom: 10px; }
+.curadoria-block-title {
+  font-size: 13px; font-weight: 600;
+  color: var(--black); margin-bottom: 4px;
+}
+.curadoria-block-sub {
+  font-size: 12px; color: var(--gray-5);
+}
+
+/* ─── FINAL CTA ─── */
+.final-cta {
+  padding: 120px 48px;
+  text-align: center;
+  background: white;
+}
+
+.final-cta-inner { max-width: 680px; margin: 0 auto; }
+
+.final-cta h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 600;
+  color: var(--black);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+}
+.final-cta h2 em {
+  font-style: italic; color: var(--gold);
+}
+
+.final-cta p {
+  font-size: 17px; color: var(--gray-5);
+  line-height: 1.65; margin-bottom: 40px;
+}
+
+.final-cta-actions {
+  display: flex; align-items: center;
+  justify-content: center; gap: 14px;
+  flex-wrap: wrap;
+}
+.final-cta-actions .btn-primary,
+.final-cta-actions .btn-secondary {
+  min-width: 220px; justify-content: center;
+}
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--black);
+  padding: 48px 48px 48px 175px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.footer-logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.footer-logo img { height: auto; width: 160px; max-height: none; display: block; }
+.footer-logo-name {
+  font-size: 14px; font-weight: 500;
+  color: rgba(255,255,255,0.5);
+}
+
+.footer-text {
+  font-size: 13px; color: rgba(255,255,255,0.3);
+}
+
+.footer-link {
+  font-size: 13px; color: rgba(255,255,255,0.4);
+  text-decoration: none; transition: color 0.15s;
+}
+.footer-link:hover { color: var(--gold); }
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px);
+  z-index: 500;
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: 20px;
+  width: 100%; max-width: 520px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+  padding: 28px 32px 0;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.modal-tag {
+  display: inline-block;
+  padding: 4px 12px; border-radius: 100px;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.modal-tag.marca { background: #FBF5E6; color: var(--gold); }
+.modal-tag.detentor { background: #F0FFF4; color: #10B981; }
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; font-weight: 600;
+  color: var(--black); line-height: 1.2;
+}
+
+.modal-close {
+  background: var(--gray-1); border: none;
+  width: 32px; height: 32px; border-radius: 50%;
+  cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-5); flex-shrink: 0; margin-top: 4px;
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--gray-2); color: var(--black); }
+
+.modal-body { padding: 20px 32px 32px; }
+
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block; font-size: 13px; font-weight: 500;
+  color: var(--text); margin-bottom: 6px;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  border: 1.5px solid var(--gray-3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; color: var(--text);
+  background: white; outline: none;
+  transition: border-color 0.15s;
+  appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--gold);
+}
+.form-input::placeholder, .form-textarea::placeholder { color: #B0B0B0; }
+.form-textarea { resize: vertical; min-height: 80px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn-submit {
+  width: 100%;
+  background: var(--black); color: white;
+  border: none; padding: 14px;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  margin-top: 8px;
+}
+.btn-submit:hover { background: var(--gold); }
+
+/* Profile Select Toggle */
+.profile-toggle {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;
+}
+.profile-toggle-btn {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--gray-1); border: 2px solid transparent;
+  border-radius: 12px; padding: 16px 14px; cursor: pointer;
+  text-align: left; transition: all .2s;
+}
+.profile-toggle-btn:hover { border-color: var(--gold-dim); }
+.profile-toggle-btn.active { border-color: var(--gold); background: #1A1600; }
+.profile-toggle-icon { font-size: 22px; flex-shrink: 0; }
+.profile-toggle-label { font-size: 14px; font-weight: 600; color: var(--black); display: block; }
+.profile-toggle-desc { font-size: 12px; color: #555; margin-top: 3px; display: block; line-height: 1.4; }
+.profile-toggle-btn.active .profile-toggle-label { color: #E8E8E8; }
+.profile-toggle-btn.active .profile-toggle-desc { color: #aaa; }
+
+.success-state {
+  display: none; text-align: center; padding: 48px 24px;
+}
+.success-state.show { display: block; }
+.success-icon { font-size: 48px; margin-bottom: 16px; }
+.success-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px; margin-bottom: 10px; color: var(--black);
+}
+.success-text {
+  font-size: 15px; color: var(--gray-5); line-height: 1.65;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (min-width: 901px) {
+  .preview-card { flex: 0 0 364px; }
+  .preview-card-img { height: 224px; font-size: 64px; }
+  .cards-arrow { display: flex; }
+  .cards-preview { cursor: default; }
+}
+
+@media (max-width: 900px) {
+  nav { padding: 0 24px; }
+  .hero { padding: 100px 24px 60px; }
+  .preview-strip { padding: 60px 24px 100px; }
+  .how, .dual, .curadoria, .final-cta { padding-left: 24px; padding-right: 24px; }
+  footer { padding: 32px 24px; }
+  .how-grid { grid-template-columns: 1fr; }
+  .dual-grid { grid-template-columns: 1fr; }
+  .curadoria-inner { grid-template-columns: 1fr; gap: 48px; }
+  .hero-stats { flex-wrap: wrap; }
+  .hero-stat { padding: 0 20px; }
+}
+
+@media (max-width: 640px) {
+  nav { height: 64px; }
+  .nav-links { display: none; }
+  .nav-logo-name, .nav-logo-divider, .nav-radar { display: none; }
+  .nav-mobile-btns { display: flex; align-items: center; gap: 6px; }
+  .nav-login-mobile, .nav-cta-mobile { display: flex; }
+  .nav-login-mobile { padding: 7px 14px; font-size: 13px; }
+  .nav-cta-mobile { padding: 7px 14px; font-size: 13px; }
+  .hero { padding: 80px 20px 48px; }
+  .hero h1 { font-size: 36px; }
+  .hero-sub { font-size: 16px; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions a, .hero-actions button { text-align: center; justify-content: center; }
+  .hero-badge { font-size: 9px; padding: 5px 12px; margin-bottom: 20px; letter-spacing: 0.1em; }
+  .hero-stats {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--gray-2); border-radius: 12px; overflow: hidden;
+  }
+  .hero-stat {
+    padding: 16px; border-right: 1px solid var(--gray-2);
+    border-bottom: 1px solid var(--gray-2); text-align: left;
+  }
+  .hero-stat:nth-child(even) { border-right: none; }
+  .hero-stat:nth-child(3), .hero-stat:nth-child(4) { border-bottom: none; }
+  .hero-stat-n { font-size: 24px; }
+  .preview-strip { padding: 40px 0 64px; }
+  .preview-inner { padding: 0 20px; }
+  /* Mobile: 1 card por vez — container tem padding 0 20px */
+  .opp-list-card { width: calc(100vw - 40px); }
+  /* Mobile: foto proporcional ao desktop — altura maior */
+  .olc-hero { height: 300px; }
+  .cards-preview { gap: 12px; }
+  .how, .dual, .curadoria, .final-cta { padding: 64px 20px; }
+  .cards-preview::after { display: none; }
+  .preview-card { flex: 0 0 260px; }
+  .preview-card-img { height: 180px; }
+  footer { padding: 28px 20px; flex-direction: column; gap: 12px; text-align: center; }
+  .how-card { padding: 28px; }
+  .dual-card { padding: 32px 28px; }
+  .curadoria-visual { grid-template-columns: 1fr 1fr; }
+  .modal { border-radius: 20px 20px 0 0; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-header { padding: 24px 24px 0; }
+  .modal-body { padding: 16px 24px 28px; }
+  .form-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav id="main-nav">
+  <a href="#" class="nav-logo">
+    <img src="3.png" alt="Radar Relevantia">
+  </a>
+  <div class="nav-links">
+    <a href="#como-funciona" class="nav-link">Como funciona</a>
+    <a href="#para-marcas" class="nav-link">Para marcas</a>
+    <a href="#para-detentores" class="nav-link">Para detentores</a>
+    <a href="#" class="nav-link" onclick="openModal('marca'); return false;">Ver oportunidades</a>
+    <button class="nav-login" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-cta" onclick="openModal('profile-select')">Cadastrar</button>
+  </div>
+  <div class="nav-mobile-btns">
+    <button class="nav-login nav-login-mobile" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-cta nav-cta-mobile" onclick="openModal('profile-select')">Cadastrar</button>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      Plataforma de patrocínios estratégicos
+    </div>
+    <h1>
+      O marketplace de <em>patrocínios</em>
+      <span class="line-2">que o Brasil precisava</span>
+    </h1>
+    <p class="hero-sub">
+      Conectamos marcas a celebridades, eventos, propriedades esportivas e comunidades com curadoria estratégica. Sem intermediários genéricos.
+    </p>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="openModal('marca')">
+        Sou uma marca
+      </button>
+      <button class="btn-secondary" onclick="openModal('detentor')">
+        Sou detentor de direitos
+      </button>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-n">47</div>
+        <div class="hero-stat-l">Oportunidades ativas</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">R$12M</div>
+        <div class="hero-stat-l">Em deals facilitados</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">120+</div>
+        <div class="hero-stat-l">Marcas cadastradas</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-n">9</div>
+        <div class="hero-stat-l">Categorias</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ─── PREVIEW STRIP ─── -->
+<section class="preview-strip">
+  <div class="preview-inner">
+    <div class="preview-label">
+      <span class="preview-label-black">Tipos de oportunidades</span>
+      <div class="preview-gold-row">
+        <span class="preview-label-gold">disponíveis no Radar</span>
+        <div class="pcarousel-header-arrows">
+          <button class="pcarousel-nav prev" id="pcNavPrev" aria-label="Anterior">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+          </button>
+          <button class="pcarousel-nav next" id="pcNavNext" aria-label="Próximo">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Carrossel dentro do preview-inner para respeitar margens da seção -->
+    <div class="preview-carousel-wrapper">
+      <div class="preview-carousel-viewport" id="pcViewport">
+        <div class="preview-carousel-track" id="pcTrack">
+
+      <!-- 1. Influenciador -->
+      <div class="opp-list-card" data-card-id="1">
+        <div class="olc-hero" data-hero>
+          <div class="olc-hero-track">
+            <div class="olc-hero-slide" style="background:linear-gradient(135deg,#2D1B4E,#6B3FA0);display:flex;align-items:center;justify-content:center;">
+              <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><circle cx="36" cy="26" r="14" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="2"/><path d="M36 14 C29 14 24 19 24 26 C24 33 29 38 36 38 C43 38 48 33 48 26 C48 19 43 14 36 14Z" fill="rgba(255,255,255,0.25)"/><path d="M12 58 C12 48 23 42 36 42 C49 42 60 48 60 58" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round" fill="none"/><circle cx="54" cy="20" r="8" fill="#C9A43A" opacity="0.9"/><path d="M51 20 L53 22 L57 18" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <span class="olc-hero-tag">Personalidades</span>
+        </div>
+        <div class="olc-title">Influenciador</div>
+        <div class="olc-desc">Inserções orgânicas em stories, reels e lives com criadores de conteúdo de todos os nichos e tamanhos de audiência.</div>
+        <div class="olc-divider"></div>
+        <div class="olc-footer">
+          <div class="olc-brand-row"><div class="olc-logo" style="background:linear-gradient(135deg,#6B3FA0,#2D1B4E);color:white;">IN</div><span class="olc-brand-name">Exemplo de ativo</span></div>
+          <button class="olc-arrow-btn" aria-label="Bloqueado"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8zm2 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 2. Festivais -->
+      <div class="opp-list-card" data-card-id="2">
+        <div class="olc-hero" data-hero>
+          <div class="olc-hero-track">
+            <div class="olc-hero-slide" style="background:linear-gradient(135deg,#0A1628,#1B3A6B);display:flex;align-items:center;justify-content:center;">
+              <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><rect x="8" y="44" width="56" height="6" rx="3" fill="rgba(255,255,255,0.2)"/><rect x="20" y="30" width="32" height="14" rx="3" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/><line x1="36" y1="14" x2="36" y2="30" stroke="rgba(255,255,255,0.4)" stroke-width="2"/><circle cx="20" cy="26" r="5" fill="#C9A43A" opacity="0.9"/><circle cx="36" cy="18" r="5" fill="#C9A43A" opacity="0.9"/><circle cx="52" cy="26" r="5" fill="#C9A43A" opacity="0.9"/><line x1="20" y1="26" x2="36" y2="18" stroke="rgba(201,164,58,0.4)" stroke-width="1.5"/><line x1="36" y1="18" x2="52" y2="26" stroke="rgba(201,164,58,0.4)" stroke-width="1.5"/></svg>
+            </div>
+          </div>
+          <span class="olc-hero-tag">Evento</span>
+        </div>
+        <div class="olc-title">Festivais</div>
+        <div class="olc-desc">Ativação presencial nos maiores festivais do país com espaço de marca, naming rights e ações com o público.</div>
+        <div class="olc-divider"></div>
+        <div class="olc-footer">
+          <div class="olc-brand-row"><div class="olc-logo" style="background:linear-gradient(135deg,#1B3A6B,#0A1628);color:white;">FE</div><span class="olc-brand-name">Exemplo de ativo</span></div>
+          <button class="olc-arrow-btn" aria-label="Bloqueado"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8zm2 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 3. Podcasts -->
+      <div class="opp-list-card" data-card-id="3">
+        <div class="olc-hero" data-hero>
+          <div class="olc-hero-track">
+            <div class="olc-hero-slide" style="background:linear-gradient(135deg,#0D1F0D,#1A4A1A);display:flex;align-items:center;justify-content:center;">
+              <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><rect x="30" y="12" width="12" height="28" rx="6" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/><path d="M18 34 C18 47 27 54 36 54 C45 54 54 47 54 34" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round" fill="none"/><line x1="36" y1="54" x2="36" y2="62" stroke="rgba(255,255,255,0.4)" stroke-width="2.5" stroke-linecap="round"/><line x1="26" y1="62" x2="46" y2="62" stroke="rgba(255,255,255,0.4)" stroke-width="2.5" stroke-linecap="round"/><circle cx="54" cy="18" r="8" fill="#C9A43A" opacity="0.9"/><path d="M51 18 L53 20 L57 16" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <span class="olc-hero-tag">Mídia</span>
+        </div>
+        <div class="olc-title">Podcasts</div>
+        <div class="olc-desc">Vinheta, menção ao vivo e episódio patrocinado nos podcasts mais ouvidos de cada segmento.</div>
+        <div class="olc-divider"></div>
+        <div class="olc-footer">
+          <div class="olc-brand-row"><div class="olc-logo" style="background:linear-gradient(135deg,#1A4A1A,#0D1F0D);color:white;">PO</div><span class="olc-brand-name">Exemplo de ativo</span></div>
+          <button class="olc-arrow-btn" aria-label="Bloqueado"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8zm2 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 4. Cantor(a) -->
+      <div class="opp-list-card" data-card-id="4">
+        <div class="olc-hero" data-hero>
+          <div class="olc-hero-track">
+            <div class="olc-hero-slide" style="background:linear-gradient(135deg,#2A0A00,#6B2000);display:flex;align-items:center;justify-content:center;">
+              <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><path d="M28 48 L28 24 L52 18 L52 42" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="24" cy="50" r="6" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/><circle cx="48" cy="44" r="6" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/><line x1="28" y1="32" x2="52" y2="26" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/><circle cx="56" cy="16" r="8" fill="#C9A43A" opacity="0.9"/><path d="M53 16 L55 18 L59 14" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <span class="olc-hero-tag">Artistas Musicais</span>
+        </div>
+        <div class="olc-title">Cantor(a)</div>
+        <div class="olc-desc">Patrocínio de turnês, shows e ativações digitais com os maiores nomes da música brasileira.</div>
+        <div class="olc-divider"></div>
+        <div class="olc-footer">
+          <div class="olc-brand-row"><div class="olc-logo" style="background:linear-gradient(135deg,#C9A43A,#6B2000);color:white;">CA</div><span class="olc-brand-name">Exemplo de ativo</span></div>
+          <button class="olc-arrow-btn" aria-label="Bloqueado"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8zm2 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 5. Newsletter -->
+      <div class="opp-list-card" data-card-id="5">
+        <div class="olc-hero" data-hero>
+          <div class="olc-hero-track">
+            <div class="olc-hero-slide" style="background:linear-gradient(135deg,#1A1200,#4A3500);display:flex;align-items:center;justify-content:center;">
+              <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><rect x="10" y="20" width="52" height="36" rx="5" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.35)" stroke-width="2"/><path d="M10 26 L36 42 L62 26" stroke="rgba(255,255,255,0.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><line x1="20" y1="48" x2="36" y2="48" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" stroke-linecap="round"/><circle cx="56" cy="18" r="8" fill="#C9A43A" opacity="0.9"/><path d="M53 18 L55 20 L59 16" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+          <span class="olc-hero-tag">Mídia</span>
+        </div>
+        <div class="olc-title">Newsletter</div>
+        <div class="olc-desc">Inserções editoriais e conteúdo patrocinado nas newsletters mais lidas de cada segmento.</div>
+        <div class="olc-divider"></div>
+        <div class="olc-footer">
+          <div class="olc-brand-row"><div class="olc-logo" style="background:linear-gradient(135deg,#C9A43A,#4A3500);color:white;">NL</div><span class="olc-brand-name">Exemplo de ativo</span></div>
+          <button class="olc-arrow-btn" aria-label="Bloqueado"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8zm2 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 6. Summit -->
+      <div class="opp-list-card" data-card-id="6">
+        <div class="olc-hero" data-hero>
+          <div class="olc-hero-track">
+            <div class="olc-hero-slide" style="background:linear-gradient(135deg,#0A0A0A,#2A2A2A);display:flex;align-items:center;justify-content:center;">
+              <svg width="72" height="72" viewBox="0 0 72 72" fill="none"><path d="M36 12 L50 40 L62 40 L36 60 L10 40 L22 40 Z" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linejoin="round"/><path d="M36 20 L46 40 L26 40 Z" fill="rgba(201,164,58,0.2)" stroke="rgba(201,164,58,0.5)" stroke-width="1.5" stroke-linejoin="round"/><circle cx="36" cy="14" r="4" fill="#C9A43A" opacity="0.9"/><line x1="16" y1="62" x2="56" y2="62" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+          <span class="olc-hero-tag">Evento</span>
+        </div>
+        <div class="olc-title">Summit</div>
+        <div class="olc-desc">Cotas de patrocínio em conferências e summits de alto impacto com naming, estande e conteúdo.</div>
+        <div class="olc-divider"></div>
+        <div class="olc-footer">
+          <div class="olc-brand-row"><div class="olc-logo" style="background:linear-gradient(135deg,#444,#0A0A0A);color:white;">SU</div><span class="olc-brand-name">Exemplo de ativo</span></div>
+          <button class="olc-arrow-btn" aria-label="Bloqueado"><svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-1V6a4 4 0 00-4-4zm-2 6V6a2 2 0 114 0v2H8zm2 4a1 1 0 100 2 1 1 0 000-2z" clip-rule="evenodd"/></svg></button>
+        </div>
+      </div>
+
+        </div><!-- end preview-carousel-track -->
+      </div><!-- end preview-carousel-viewport -->
+
+      <div class="pcarousel-dots" id="pcDots"></div>
+    </div><!-- end preview-carousel-wrapper -->
+
+  </div><!-- end preview-inner -->
+</section>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section class="how" id="como-funciona">
+  <div class="how-inner">
+    <div class="section-label">Como funciona</div>
+    <h2 class="section-title">Simples para marcas.<br>Poderoso para detentores.</h2>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-number">01</div>
+        <span class="how-icon">🔍</span>
+        <div class="how-card-title">Explore oportunidades curadas</div>
+        <div class="how-card-desc">Navegue por um catálogo exclusivo de ativos com dados reais de audiência, formatos de patrocínio e cotas disponíveis.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-number">02</div>
+        <span class="how-icon">✦</span>
+        <div class="how-card-title">Manifeste interesse</div>
+        <div class="how-card-desc">Encontrou algo relevante? Sinalize interesse em segundos. Nossa equipe avalia o fit estratégico e entra em contato.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-number">03</div>
+        <span class="how-icon">🤝</span>
+        <div class="how-card-title">Negociação facilitada</div>
+        <div class="how-card-desc">A Relevantia atua como concierge estratégico — estruturando a proposta, mediando a negociação e garantindo o alinhamento.</div>
+      </div>
+      <div class="how-card">
+        <div class="how-number">04</div>
+        <span class="how-icon">🚀</span>
+        <div class="how-card-title">Ativação com propósito</div>
+        <div class="how-card-desc">O deal fechado é apenas o começo. Acompanhamos a execução para garantir que a parceria gere resultado real de marca.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DUAL CTA ─── -->
+<section class="dual" id="para-marcas">
+  <div class="dual-inner">
+    <div class="dual-header">
+      <div class="section-label" style="color:var(--gold)">Para quem é o Radar</div>
+      <h2 class="section-title">Dois lados.<br>Um propósito.</h2>
+    </div>
+    <div class="dual-grid">
+
+      <div class="dual-card marcas" id="para-marcas-card">
+        <div class="dual-tag">Marcas</div>
+        <span class="dual-card-icon">🏢</span>
+        <div class="dual-card-title">Sua marca no lugar certo, na hora certa</div>
+        <div class="dual-card-desc">Acesse oportunidades de patrocínio com curadoria estratégica — sem gastar horas prospectando ou avaliando propostas genéricas.</div>
+        <ul class="dual-list">
+          <li>Catálogo exclusivo de ativos verificados</li>
+          <li>Dados reais de audiência e engajamento</li>
+          <li>Cotas e formatos detalhados por oportunidade</li>
+          <li>Zero custo para marcas — remuneração via detentor</li>
+          <li>Consultoria estratégica inclusa no processo</li>
+        </ul>
+        <button class="dual-btn" onclick="openModal('marca')">Cadastrar minha marca →</button>
+      </div>
+
+      <div class="dual-card detentores" id="para-detentores">
+        <div class="dual-tag">Detentores de Direitos</div>
+        <span class="dual-card-icon">⭐</span>
+        <div class="dual-card-title">Monetize seu ativo com as marcas certas</div>
+        <div class="dual-card-desc">Seja uma celebridade, evento, propriedade esportiva ou comunidade — cadastre seu ativo e receba propostas de marcas alinhadas ao seu perfil.</div>
+        <ul class="dual-list">
+          <li>Visibilidade para marcas premium e qualificadas</li>
+          <li>Estruturação profissional das suas cotas</li>
+          <li>Negociação mediada pela Relevantia</li>
+          <li>Acesso a network de decisores de marketing</li>
+          <li>Sem exclusividade — você mantém controle total</li>
+        </ul>
+        <button class="dual-btn" onclick="openModal('detentor')">Cadastrar meu ativo →</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─── CURADORIA ─── -->
+<section class="curadoria">
+  <div class="curadoria-inner">
+    <div>
+      <div class="curadoria-label">
+        <div class="section-label">Diferencial</div>
+      </div>
+      <h2 class="section-title">Curadoria é tudo.</h2>
+      <p class="curadoria-text">
+        O Radar não é um diretório. É um marketplace com filtro humano — a Relevantia analisa cada ativo antes de publicar, garantindo que só oportunidades com real potencial de geração de valor chegam até as marcas.
+      </p>
+      <div class="curadoria-pills">
+        <span class="curadoria-pill">Celebridades</span>
+        <span class="curadoria-pill">Eventos</span>
+        <span class="curadoria-pill">Propriedades esportivas</span>
+        <span class="curadoria-pill">Comunidades</span>
+        <span class="curadoria-pill">Podcasts & Mídia</span>
+        <span class="curadoria-pill">Rodeios</span>
+        <span class="curadoria-pill">Cinema & Entretenimento</span>
+        <span class="curadoria-pill">Espaços & Venues</span>
+      </div>
+    </div>
+    <div class="curadoria-visual">
+      <div class="curadoria-block">
+        <div class="curadoria-block-icon">🔐</div>
+        <div class="curadoria-block-title">Acesso exclusivo</div>
+        <div class="curadoria-block-sub">Ativos que não estão no mercado aberto</div>
+      </div>
+      <div class="curadoria-block">
+        <div class="curadoria-block-icon">📊</div>
+        <div class="curadoria-block-title">Dados verificados</div>
+        <div class="curadoria-block-sub">Audiência, alcance e engajamento reais</div>
+      </div>
+      <div class="curadoria-block">
+        <div class="curadoria-block-icon">🎯</div>
+        <div class="curadoria-block-title">Fit estratégico</div>
+        <div class="curadoria-block-sub">Só conectamos quando faz sentido</div>
+      </div>
+      <div class="curadoria-block">
+        <div class="curadoria-block-icon">⚡</div>
+        <div class="curadoria-block-title">Resposta em 48h</div>
+        <div class="curadoria-block-sub">Sem ficar esperando retorno</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FINAL CTA ─── -->
+<section class="final-cta">
+  <div class="final-cta-inner">
+    <h2>Pronto para encontrar sua <em>próxima parceria?</em></h2>
+    <p>Cadastre-se gratuitamente e tenha acesso ao catálogo completo de oportunidades curadas pela Relevantia.</p>
+    <div class="final-cta-actions">
+      <button class="btn-primary" onclick="openModal('marca')">Sou uma marca</button>
+      <button class="btn-secondary" onclick="openModal('detentor')">Sou detentor de direitos</button>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-logo">
+    <img src="1.png" alt="Radar Relevantia">
+  </div>
+  <span class="footer-text">© 2026 Relevantia. Todos os direitos reservados.</span>
+</footer>
+
+<!-- ─── MODAL PROFILE SELECT ─── -->
+<div class="modal-overlay" id="modal-profile-select">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" style="font-size:20px;">Criar conta</div>
+        <div style="font-size:13px;color:#888;margin-top:4px;">Escolha seu perfil para começar</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-profile-select')">×</button>
+    </div>
+    <div class="modal-body" style="padding-top:8px;">
+      <div class="profile-toggle">
+        <button class="profile-toggle-btn active" id="toggle-marca" onclick="selectProfile('marca')">
+          <span class="profile-toggle-icon">🏷️</span>
+          <div>
+            <div class="profile-toggle-label">Marca</div>
+            <div class="profile-toggle-desc">Quero patrocinar ativos</div>
+          </div>
+        </button>
+        <button class="profile-toggle-btn" id="toggle-detentor" onclick="selectProfile('detentor')">
+          <span class="profile-toggle-icon">🎤</span>
+          <div>
+            <div class="profile-toggle-label">Detentor de Direitos</div>
+            <div class="profile-toggle-desc">Influenciador, evento, podcast, atleta…</div>
+          </div>
+        </button>
+      </div>
+      <div id="ps-form-marca">
+        <div class="form-group">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-input" placeholder="Nome" id="ps-m-primeiro-nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sobrenome</label>
+          <input type="text" class="form-input" placeholder="Sobrenome" id="ps-m-sobrenome">
+        </div>
+        <button class="btn-submit" onclick="submitProfileMarca()">Continuar →</button>
+        <p style="text-align:center;font-size:12px;color:#B0B0B0;margin-top:12px;">Menos burocracia. Mais efetividade.</p>
+      </div>
+      <div id="ps-form-detentor" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Seu nome</label>
+          <input type="text" class="form-input" placeholder="Nome completo" id="ps-d-nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input type="email" class="form-input" placeholder="contato@ativo.com.br" id="ps-d-email">
+        </div>
+        <button class="btn-submit" onclick="submitProfileDetentor()">Cadastrar meu ativo →</button>
+        <p style="text-align:center;font-size:12px;color:#B0B0B0;margin-top:12px;">O ponto de encontro entre marcas e ativos.</p>
+      </div>
+      <div class="success-state" id="ps-success" style="display:none;">
+        <div class="success-icon">✦</div>
+        <div class="success-title">Cadastro realizado!</div>
+        <div class="success-text" id="ps-success-text">Nossa equipe vai analisar seu perfil e entrar em contato em até 48 horas.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL MARCA ─── -->
+<div class="modal-overlay" id="modal-marca">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-tag marca">Marca</div>
+        <div class="modal-title">Acesse o catálogo completo de oportunidades</div>
+        <div style="font-size:13px;color:#888;margin-top:6px;">Preencha os dados da sua empresa para acessar oportunidades de patrocínio curadas pelo Radar.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-marca')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="form-marca">
+        <div class="form-group">
+          <label class="form-label">Nome</label>
+          <input type="text" class="form-input" placeholder="Nome" id="m-primeiro-nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sobrenome</label>
+          <input type="text" class="form-input" placeholder="Sobrenome" id="m-sobrenome">
+        </div>
+        <button class="btn-submit" onclick="submitMarca()">Cadastrar minha marca →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── MODAL DETENTOR ─── -->
+<div class="modal-overlay" id="modal-detentor">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-tag detentor">Detentor de Direitos</div>
+        <div class="modal-title">Cadastre seu ativo no Radar</div>
+        <div style="font-size:13px;color:#888;margin-top:6px;">Se você tem audiência, visibilidade ou uma propriedade com potencial de patrocínio, cadastre-se na plataforma e conecte seu ativo às marcas certas.</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-detentor')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="form-detentor">
+        <div class="form-group">
+          <label class="form-label">Seu nome</label>
+          <input type="text" class="form-input" placeholder="Nome completo" id="d-nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input type="email" class="form-input" placeholder="contato@ativo.com.br" id="d-email">
+        </div>
+        <button class="btn-submit" onclick="submitDetentor()">Cadastrar meu ativo →</button>
+        
+      </div>
+      <div class="success-state" id="success-detentor">
+        <div class="success-icon">✦</div>
+        <div class="success-title">Cadastro realizado!</div>
+        <div class="success-text">Nossa equipe vai analisar seu ativo e entrar em contato em até 48 horas.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core.js"></script>
+<script>
+// ── Interceptor de magic link ──────────────────────────────────
+// O Supabase sempre redireciona para o Site URL (raiz).
+// Se há um access_token no hash, lemos o tipo do JWT e
+// redirecionamos para a página certa antes de renderizar qualquer coisa.
+(function() {
+  const hash = window.location.hash.substring(1);
+  if (!hash.includes('access_token')) return;
+  const params = new URLSearchParams(hash);
+  const token = params.get('access_token');
+  if (!token) return;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    const tipo = payload?.user_metadata?.tipo;
+    if (tipo === 'detentor') {
+      window.location.replace('/acesso-detentor.html#' + hash);
+    } else if (tipo === 'marca') {
+      window.location.replace('/acesso-marca.html#' + hash);
+    }
+  } catch(e) {}
+})();
+
+async function sbInsert(table, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+// ─── Cards: setas no desktop, drag no mobile/tablet ───
+document.querySelectorAll('.cards-scroll-wrapper').forEach(wrapper => {
+  const el = wrapper.querySelector('.cards-preview');
+  const btnPrev = wrapper.querySelector('.cards-arrow-prev');
+  const btnNext = wrapper.querySelector('.cards-arrow-next');
+
+  // Atualiza visibilidade das setas
+  function updateArrows() {
+    if (!btnPrev || !btnNext) return;
+    btnPrev.classList.toggle('hidden', el.scrollLeft <= 0);
+    btnNext.classList.toggle('hidden', el.scrollLeft >= el.scrollWidth - el.clientWidth - 2);
+  }
+
+  // Setas (desktop)
+  if (btnPrev && btnNext) {
+    const scrollAmt = () => el.clientWidth * 0.8;
+    btnPrev.addEventListener('click', () => {
+      el.scrollBy({ left: -scrollAmt(), behavior: 'smooth' });
+    });
+    btnNext.addEventListener('click', () => {
+      el.scrollBy({ left: scrollAmt(), behavior: 'smooth' });
+    });
+    el.addEventListener('scroll', updateArrows);
+    updateArrows();
+  }
+
+  // Drag (touch/mobile — sempre ativo)
+  el.addEventListener('touchstart', () => {}, { passive: true });
+
+  // Drag com mouse (apenas se não for desktop)
+  let isDown = false, startX, scrollLeft;
+  el.addEventListener('mousedown', e => {
+    if (window.innerWidth > 900) return;
+    isDown = true; el.classList.add('grabbing');
+    startX = e.pageX - el.offsetLeft;
+    scrollLeft = el.scrollLeft;
+  });
+  el.addEventListener('mouseleave', () => { isDown = false; el.classList.remove('grabbing'); });
+  el.addEventListener('mouseup', () => { isDown = false; el.classList.remove('grabbing'); });
+  el.addEventListener('mousemove', e => {
+    if (!isDown || window.innerWidth > 900) return;
+    e.preventDefault();
+    el.scrollLeft = scrollLeft - (e.pageX - el.offsetLeft - startX) * 1.5;
+  });
+});
+
+// ─── Nav scroll effect ───
+(function() {
+  var nav = document.getElementById('main-nav');
+  var lastY = 0;
+  var ticking = false;
+
+  window.addEventListener('scroll', function() {
+    if (!ticking) {
+      window.requestAnimationFrame(function() {
+        var y = window.scrollY;
+        // Scrolled class (fundo branco) — sempre
+        nav.classList.toggle('scrolled', y > 40);
+
+        // Hide/show apenas no mobile (≤640px)
+        if (window.innerWidth <= 640) {
+          if (y > lastY && y > 80) {
+            // scrollando para baixo — esconde nav
+            nav.classList.add('nav-hidden');
+          } else {
+            // scrollando para cima — mostra nav
+            nav.classList.remove('nav-hidden');
+          }
+        } else {
+          nav.classList.remove('nav-hidden');
+        }
+        lastY = y;
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+})();
+
+// Mobile CTA - handled via CSS media query
+
+// ─── Modals ───
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ─── Profile Select ───
+function openModal(type) {
+  // Reset profile-select modal state when opening it freshly
+  if (type === 'profile-select') {
+    selectProfile('marca');
+    document.getElementById('ps-form-marca').style.display = 'block';
+    document.getElementById('ps-form-detentor').style.display = 'none';
+    document.getElementById('ps-success').style.display = 'none';
+  }
+  document.getElementById('modal-' + type).classList.add('open');
+}
+
+function selectProfile(type) {
+  document.getElementById('toggle-marca').classList.toggle('active', type === 'marca');
+  document.getElementById('toggle-detentor').classList.toggle('active', type === 'detentor');
+  document.getElementById('ps-form-marca').style.display = type === 'marca' ? 'block' : 'none';
+  document.getElementById('ps-form-detentor').style.display = type === 'detentor' ? 'block' : 'none';
+  document.getElementById('ps-success').style.display = 'none';
+}
+
+async function submitProfileMarca() {
+  const firstName = document.getElementById('ps-m-primeiro-nome').value.trim();
+  const lastName  = document.getElementById('ps-m-sobrenome').value.trim();
+  if (!firstName || !lastName) { alert('Por favor preencha nome e sobrenome.'); return; }
+  const params = new URLSearchParams({ firstName, lastName });
+  window.location.href = 'cadastro-marca.html?' + params.toString();
+}
+
+async function submitProfileDetentor() {
+  const nome = document.getElementById('ps-d-nome').value;
+  const email = document.getElementById('ps-d-email').value;
+  if (!nome || !email) { alert('Por favor preencha todos os campos.'); return; }
+  await sbInsert('cadastros_detentores', { nome_contato: nome, email, status: 'novo' });
+  const params = new URLSearchParams({ nome, email });
+  window.location.href = 'cadastro-detentor.html?' + params.toString();
+}
+
+// ─── Submit Marca ───
+function submitMarca() {
+  const firstName = document.getElementById('m-primeiro-nome').value.trim();
+  const lastName  = document.getElementById('m-sobrenome').value.trim();
+
+  if (!firstName || !lastName) {
+    alert('Por favor preencha nome e sobrenome.');
+    return;
+  }
+
+  const params = new URLSearchParams({ firstName, lastName });
+  window.location.href = `cadastro-marca.html?${params.toString()}`;
+}
+
+// ─── Submit Detentor ───
+async function submitDetentor() {
+  const nome = document.getElementById('d-nome').value;
+  const email = document.getElementById('d-email').value;
+
+  if (!nome || !email) {
+    alert('Por favor preencha todos os campos.');
+    return;
+  }
+
+  await sbInsert('cadastros_detentores', {
+    nome_contato: nome,
+    email,
+    status: 'novo'
+  });
+
+  const params = new URLSearchParams({ nome, email });
+  window.location.href = `cadastro-detentor.html?${params.toString()}`;
+}
+
+// Smooth scroll para anchors
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+});
+
+// ─── Hero carousel inside each opp-list-card ────────────────────────────────
+(function initPreviewHeroCarousels() {
+  document.querySelectorAll('#pcTrack [data-hero]').forEach(function(hero) {
+    var track   = hero.querySelector('.olc-hero-track');
+    var slides  = hero.querySelectorAll('.olc-hero-slide');
+    var dots    = hero.querySelectorAll('.olc-hero-dot');
+    var curEl   = hero.querySelector('.hero-cur');
+    var btnPrev = hero.querySelector('.olc-hero-nav.prev');
+    var btnNext = hero.querySelector('.olc-hero-nav.next');
+    var total   = slides.length;
+    var current = 0;
+
+    function goTo(idx) {
+      idx = ((idx % total) + total) % total;
+      current = idx;
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+      if (curEl) curEl.textContent = current + 1;
+    }
+
+    if (btnPrev) btnPrev.addEventListener('click', function(e) { e.stopPropagation(); goTo(current - 1); });
+    if (btnNext) btnNext.addEventListener('click', function(e) { e.stopPropagation(); goTo(current + 1); });
+    dots.forEach(function(dot, i) { dot.addEventListener('click', function(e) { e.stopPropagation(); goTo(i); }); });
+
+    var startX = null;
+    hero.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+    hero.addEventListener('touchend', function(e) {
+      if (startX === null) return;
+      var diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) goTo(diff > 0 ? current + 1 : current - 1);
+      startX = null;
+    }, { passive: true });
+  });
+})();
+
+// ─── Preview section: infinite-loop carousel (1 card at a time, 3 visible) ──
+(function initPreviewCarousel() {
+  var track    = document.getElementById('pcTrack');
+  var viewport = document.getElementById('pcViewport');
+  var dotsWrap = document.getElementById('pcDots');
+  var btnPrev  = document.getElementById('pcNavPrev');
+  var btnNext  = document.getElementById('pcNavNext');
+  if (!track || !viewport) return;
+
+  // Snapshot original cards BEFORE any cloning
+  var origCards = Array.prototype.slice.call(track.children);
+  var total     = origCards.length;
+  if (total === 0) return;
+
+  // ── Build dots ───────────────────────────────────────────────────────────
+  if (dotsWrap) {
+    for (var d = 0; d < total; d++) {
+      var dot = document.createElement('button');
+      dot.className = 'pcarousel-dot' + (d === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', 'Ir para card ' + (d + 1));
+      dotsWrap.appendChild(dot);
+    }
+  }
+  var dotEls = dotsWrap ? Array.prototype.slice.call(dotsWrap.querySelectorAll('.pcarousel-dot')) : [];
+
+  // ── Clone enough cards for seamless infinite loop ────────────────────────
+  // We clone all original cards once on each side so that any jump is smooth.
+  // Layout: [clone(N-1)…clone(0)] [orig0…orig(N-1)] [clone(0)…clone(N-1)]
+  // "current" is the index of the displayed real card in the full extended track.
+  var CLONE_COUNT = total; // clone all cards on each side
+
+  // Prepend clones of LAST N originals (in original order)
+  for (var i = CLONE_COUNT - 1; i >= 0; i--) {
+    var cl = origCards[i].cloneNode(true);
+    cl.setAttribute('aria-hidden', 'true');
+    track.insertBefore(cl, track.firstChild);
+  }
+  // Append clones of FIRST N originals (in original order)
+  for (var j = 0; j < CLONE_COUNT; j++) {
+    var cl2 = origCards[j].cloneNode(true);
+    cl2.setAttribute('aria-hidden', 'true');
+    track.appendChild(cl2);
+  }
+
+  // current = index in the full extended track for origCards[0]
+  // Full track: [clone(0)..clone(N-1)] [orig(0)..orig(N-1)] [clone(0)..clone(N-1)]
+  //              0          N-1          N        2N-1          2N       3N-1
+  var current = CLONE_COUNT; // points to origCards[0]
+  var isAnimating = false;
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  // step = card width + gap; measured once at init and on resize, never mid-drag
+  var step = 0;
+
+  function measureStep() {
+    var first = track.children[0];
+    var w = first ? first.offsetWidth : 300;
+    var s = window.getComputedStyle(track);
+    var gap = parseFloat(s.columnGap || s.gap || '16') || 16;
+    step = w + gap;
+  }
+
+  function getCardWidth() {
+    return step ? step - (parseFloat(window.getComputedStyle(track).columnGap || window.getComputedStyle(track).gap || '16') || 16) : 300;
+  }
+
+  function getGap() {
+    var s = window.getComputedStyle(track);
+    return parseFloat(s.columnGap || s.gap || '16') || 16;
+  }
+
+  function offsetFor(idx) {
+    return idx * step;
+  }
+
+  function setPos(instant) {
+    var offset = offsetFor(current);
+    if (instant) {
+      track.classList.add('no-transition');
+      track.style.transform = 'translateX(-' + offset + 'px)';
+      track.getBoundingClientRect(); // force reflow
+      track.classList.remove('no-transition');
+    } else {
+      track.style.transform = 'translateX(-' + offset + 'px)';
+    }
+  }
+
+  function realIdx() {
+    // Map current (0-based in extended track) to 0-based index in origCards
+    return ((current - CLONE_COUNT) % total + total) % total;
+  }
+
+  function updateDots() {
+    var r = realIdx();
+    dotEls.forEach(function(dot, i) {
+      dot.classList.toggle('active', i === r);
+    });
+  }
+
+  // Init
+  measureStep();
+  setPos(true);
+  updateDots();
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+  function goTo(newIdx) {
+    if (isAnimating) return;
+    isAnimating = true;
+    current = newIdx;
+    setPos(false);
+    updateDots();
+  }
+
+  function advance(dir) {
+    goTo(current + dir);
+  }
+
+  // After transition: if we're on a clone, silently jump to the real position
+  track.addEventListener('transitionend', function() {
+    isAnimating = false;
+    var extended = CLONE_COUNT + total + CLONE_COUNT; // total slots in extended track
+    if (current < CLONE_COUNT) {
+      // Went past the left clones → jump to equivalent real card on the right
+      current = current + total;
+      setPos(true);
+      updateDots();
+    } else if (current >= CLONE_COUNT + total) {
+      // Went past the right clones → jump to equivalent real card on the left
+      current = current - total;
+      setPos(true);
+      updateDots();
+    }
+  });
+
+  if (btnPrev) btnPrev.addEventListener('click', function() { advance(-1); });
+  if (btnNext) btnNext.addEventListener('click', function() { advance(1); });
+
+  dotEls.forEach(function(dot, i) {
+    dot.addEventListener('click', function() { goTo(CLONE_COUNT + i); });
+  });
+
+  // ── Drag / swipe ──────────────────────────────────────────────────────────
+  var dragStartX = null;
+  var dragStartT = null;
+  var wasDrag    = false;
+  var THRESH     = 50;
+
+  viewport.addEventListener('mousedown', function(e) {
+    if (isAnimating) return;
+    dragStartX = e.clientX;
+    dragStartT = Date.now();
+    wasDrag    = false;
+    viewport.classList.add('is-dragging');
+  });
+
+  window.addEventListener('mousemove', function(e) {
+    if (dragStartX === null) return;
+    if (Math.abs(e.clientX - dragStartX) > 8) wasDrag = true;
+  });
+
+  window.addEventListener('mouseup', function(e) {
+    if (dragStartX === null) return;
+    var diff = dragStartX - e.clientX;
+    var dt   = Date.now() - dragStartT;
+    if (wasDrag && (Math.abs(diff) > THRESH || (Math.abs(diff) > 20 && dt < 300))) {
+      advance(diff > 0 ? 1 : -1);
+    }
+    dragStartX = null;
+    viewport.classList.remove('is-dragging');
+    setTimeout(function() { wasDrag = false; }, 0);
+  });
+
+  viewport.addEventListener('touchstart', function(e) {
+    if (isAnimating) return;
+    dragStartX = e.touches[0].clientX;
+    dragStartT = Date.now();
+  }, { passive: true });
+
+  viewport.addEventListener('touchend', function(e) {
+    if (dragStartX === null) return;
+    var diff = dragStartX - e.changedTouches[0].clientX;
+    var dt   = Date.now() - dragStartT;
+    if (Math.abs(diff) > THRESH || (Math.abs(diff) > 20 && dt < 300)) {
+      advance(diff > 0 ? 1 : -1);
+    }
+    dragStartX = null;
+  }, { passive: true });
+
+  viewport.addEventListener('click', function(e) {
+    if (wasDrag) e.preventDefault();
+  });
+
+  // Recalculate on resize
+  var resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function() { measureStep(); setPos(true); }, 80);
+  });
+})();
+</script>
+</body>
+</html>
