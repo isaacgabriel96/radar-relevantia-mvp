@@ -881,7 +881,7 @@ h3 { font-size: clamp(22px, 2.5vw, 28px); }
   gap: 28px;
   padding: 8px max(var(--pad-x), calc((100vw - var(--max-w)) / 2));
   will-change: transform;
-  transition: transform 0.18s linear;
+  /* No CSS transition — scroll is driven frame-by-frame to avoid jitter on iOS */
 }
 
 .feature-card {
@@ -3122,7 +3122,7 @@ br.mobile-only { display: none; }
     margin-bottom: -16vw;
   }
   .feature-card {
-    width: 88vw;
+    width: calc(100vw - 32px);
   }
   .result-card {
     padding: 18px 10px;
@@ -4452,6 +4452,7 @@ if (window.gsap && window.ScrollTrigger) {
   let railWidth = 0;
   let railTravel = 0;    // actual horizontal pixels the rail needs to move
   let scrollDistance = 0; // vertical scroll consumed (= railTravel × speed multiplier)
+  let startOffset = 0;   // initial right-shift on mobile so first card slides in from right
   let viewportW = window.innerWidth;
   const isMobile = () => false; // sticky horizontal scroll igual ao desktop em todos os breakpoints
 
@@ -4469,9 +4470,16 @@ if (window.gsap && window.ScrollTrigger) {
       travel = Math.max(0, railWidth - viewportW);
     }
     railTravel = Math.max(0, travel);
-    // On mobile (≤768px) slow down to 2× — each card stays visible ~twice as long
-    const slowMultiplier = viewportW <= 768 ? 2 : 1;
-    scrollDistance = railTravel * slowMultiplier;
+
+    // On mobile: offset so first card starts ~60% from the right and slides into view
+    startOffset = viewportW <= 768 ? Math.round(viewportW * 0.6) : 0;
+
+    // Total travel = actual rail travel + the initial offset to overcome
+    const totalTravel = railTravel + startOffset;
+
+    // Slow multiplier: more vertical scroll needed per card on mobile (less rushed)
+    const slowMultiplier = viewportW <= 768 ? 1.6 : 1;
+    scrollDistance = totalTravel * slowMultiplier;
     section.style.height = (window.innerHeight + scrollDistance) + 'px';
   }
 
@@ -4482,7 +4490,6 @@ if (window.gsap && window.ScrollTrigger) {
       return;
     }
     const rect = section.getBoundingClientRect();
-    // pin starts when section.top hits 0; ends after scrollDistance more pixels of scroll
     let progress = 0;
     if (rect.top >= 0) {
       progress = 0;
@@ -4492,8 +4499,10 @@ if (window.gsap && window.ScrollTrigger) {
       progress = -rect.top / scrollDistance;
     }
     progress = Math.max(0, Math.min(1, progress));
-    // Translate by railTravel (actual distance), driven by progress (which is slower on mobile)
-    rail.style.transform = `translate3d(${-progress * railTravel}px, 0, 0)`;
+    // At progress=0: translate = +startOffset (first card starts right of center)
+    // At progress=1: translate = -(railTravel) (last card fully visible)
+    const tx = startOffset - progress * (railTravel + startOffset);
+    rail.style.transform = `translate3d(${tx}px, 0, 0)`;
     if (fill) fill.style.width = (progress * 100) + '%';
   }
 
@@ -4514,7 +4523,12 @@ if (window.gsap && window.ScrollTrigger) {
 
   applyMode();
   window.addEventListener('resize', () => { applyMode(); }, { passive: true });
-  window.addEventListener('scroll', () => { if (!isMobile()) update(); }, { passive: true });
+  // Use Lenis scroll event if available (avoids jitter from double-firing on iOS)
+  if (window.lenis) {
+    window.lenis.on('scroll', () => { if (!isMobile()) update(); });
+  } else {
+    window.addEventListener('scroll', () => { if (!isMobile()) update(); }, { passive: true });
+  }
   // remeasure once images / fonts settle
   window.addEventListener('load', applyMode);
   setTimeout(applyMode, 400);
