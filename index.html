@@ -912,7 +912,9 @@ h3 { font-size: clamp(22px, 2.5vw, 28px); }
   /* fixed height so titles align even when one wraps */
   min-height: 28px;
 }
-.feature-card > p {
+/* Selector funciona tanto com p direto no .feature-card quanto dentro do .feature-card-inner */
+.feature-card p,
+.feature-card .feature-card-inner > p {
   font-size: 13.5px;
   color: var(--gray-4);
   line-height: 1.5;
@@ -925,7 +927,7 @@ h3 { font-size: clamp(22px, 2.5vw, 28px); }
   -webkit-box-orient: vertical;
 }
 /* spacer between text and the mock UI */
-.feature-card > p + .feature-ui {
+.feature-card p + .feature-ui {
   margin-top: 18px;
 }
 .feature-card:hover { box-shadow: var(--shadow-md); border-color: var(--gold-light); }
