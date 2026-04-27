@@ -4450,7 +4450,8 @@ if (window.gsap && window.ScrollTrigger) {
   if (!section || !rail) return;
 
   let railWidth = 0;
-  let scrollDistance = 0; // how much vertical scroll inside section
+  let railTravel = 0;    // actual horizontal pixels the rail needs to move
+  let scrollDistance = 0; // vertical scroll consumed (= railTravel × speed multiplier)
   let viewportW = window.innerWidth;
   const isMobile = () => false; // sticky horizontal scroll igual ao desktop em todos os breakpoints
 
@@ -4458,7 +4459,6 @@ if (window.gsap && window.ScrollTrigger) {
     viewportW = window.innerWidth;
     railWidth = rail.scrollWidth;
     // Travel until the LAST card is aligned to the left padding of the rail.
-    // = lastCard.offsetLeft - rail's left padding
     const lastCard = rail.lastElementChild;
     const railStyle = getComputedStyle(rail);
     const padLeft = parseFloat(railStyle.paddingLeft) || 0;
@@ -4468,7 +4468,10 @@ if (window.gsap && window.ScrollTrigger) {
     } else {
       travel = Math.max(0, railWidth - viewportW);
     }
-    scrollDistance = Math.max(0, travel);
+    railTravel = Math.max(0, travel);
+    // On mobile (≤768px) slow down to 2× — each card stays visible ~twice as long
+    const slowMultiplier = viewportW <= 768 ? 2 : 1;
+    scrollDistance = railTravel * slowMultiplier;
     section.style.height = (window.innerHeight + scrollDistance) + 'px';
   }
 
@@ -4489,7 +4492,8 @@ if (window.gsap && window.ScrollTrigger) {
       progress = -rect.top / scrollDistance;
     }
     progress = Math.max(0, Math.min(1, progress));
-    rail.style.transform = `translate3d(${-progress * scrollDistance}px, 0, 0)`;
+    // Translate by railTravel (actual distance), driven by progress (which is slower on mobile)
+    rail.style.transform = `translate3d(${-progress * railTravel}px, 0, 0)`;
     if (fill) fill.style.width = (progress * 100) + '%';
   }
 
