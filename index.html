@@ -3624,7 +3624,7 @@ br.mobile-only { display: none; }
     </div>
 
     <div class="features-rail-wrap">
-      <div class="features-rail" id="featuresRail" style="height: 568px; transform: translate3d(-1250.75px, 0px, 0px)">
+      <div class="features-rail" id="featuresRail">
         <!-- 1. Agente de cadastro (PDF + descrição + análise) -->
         <div class="feature-card">
           <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
@@ -4538,12 +4538,16 @@ if (window.gsap && window.ScrollTrigger) {
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', () => { applyMode(); }, { passive: true });
   }
-  // Use Lenis scroll event if available (avoids jitter from double-firing on iOS)
-  if (window.lenis) {
-    window.lenis.on('scroll', () => { if (!isMobile()) update(); });
-  } else {
-    window.addEventListener('scroll', () => { if (!isMobile()) update(); }, { passive: true });
+
+  // rAF-driven update: roda a cada frame quando a section está visível.
+  // Mais confiável que scroll events (Lenis pode atrasar/coalescer; iOS pode pular).
+  let rafId = null;
+  function tick() {
+    if (!isMobile()) update();
+    rafId = requestAnimationFrame(tick);
   }
+  rafId = requestAnimationFrame(tick);
+
   // remeasure once images / fonts settle
   window.addEventListener('load', applyMode);
   setTimeout(applyMode, 400);
