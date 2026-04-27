@@ -2847,19 +2847,19 @@ br.mobile-only { display: none; }
     padding: 14px 16px;
   }
 
-  /* ── FEATURES RAIL — sticky horizontal igual ao desktop ── */
+  /* ── FEATURES RAIL — scroll nativo no mobile (sem JS animation) ── */
+  /* O pin sticky é desligado; o rail vira um scroll horizontal com snap nativo do iOS */
   .features-pin {
-    /* svh = small viewport height (iOS Safari desconta barra de endereço).
-       top: 56px pina abaixo do nav fixo para não esconder o card atrás dele.
-       height: 100svh - 56px = área visível real abaixo do nav. */
-    top: 56px;
-    height: calc(100svh - 56px);
-    padding: clamp(14px, 2svh, 24px) 0 clamp(14px, 2svh, 24px);
+    position: static;   /* sem sticky no mobile */
+    height: auto;
+    top: 0;
+    padding: clamp(14px, 4vw, 24px) 0 clamp(20px, 5vw, 32px);
+    overflow: visible;
   }
   .features .section-head {
-    padding: 0 12px;
+    padding: 0 16px;
     text-align: left;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
   }
   .features .section-head h2 {
     font-size: clamp(22px, 6.4vw, 26px);
@@ -2869,16 +2869,35 @@ br.mobile-only { display: none; }
     font-size: clamp(14px, 3.8vw, 16px);
     margin-top: 4px;
   }
-  /* Cards: altura calculada com a área real abaixo do nav (100svh - 56px nav - padding - section-head) */
-  .feature-card {
-    width: 82vw;
-    height: calc(100svh - 56px - clamp(120px, 20svh, 160px));
-    max-height: none;
-  }
-  /* Rail-wrap: alinhar ao topo, sem espaço extra acima dos cards */
+  /* Rail-wrap vira o container de scroll horizontal */
   .features-rail-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
     align-items: flex-start;
+    /* esconde scrollbar mas mantém funcional */
+    scrollbar-width: none;
   }
+  .features-rail-wrap::-webkit-scrollbar { display: none; }
+  /* Rail: sem transform JS, sem overflow oculto */
+  .features-rail {
+    transform: none !important;
+    overflow: visible;
+    padding: 4px 16px 16px;
+    gap: 12px;
+  }
+  /* Cards: largura mostra ~90% + peek do próximo, altura automática */
+  .feature-card {
+    width: calc(100vw - 56px);
+    height: auto;
+    min-height: 420px;
+    max-height: none;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  /* Último card: margem direita para não grudar na borda */
+  .feature-card:last-child { margin-right: 16px; }
   /* Libera a altura travada da descrição para não cortar o texto */
   .feature-card > p {
     height: auto;
@@ -2890,7 +2909,7 @@ br.mobile-only { display: none; }
     flex: 1;
     min-height: 0;
   }
-  /* Chat body: conteúdo cola no fundo, remove máscara */
+  /* Chat body: remove máscara */
   .fui-chat-body {
     justify-content: flex-end;
     mask-image: none !important;
@@ -4459,7 +4478,7 @@ if (window.gsap && window.ScrollTrigger) {
   let railTravel = 0;    // actual horizontal pixels the rail needs to move
   let scrollDistance = 0; // vertical scroll consumed (= railTravel × speed multiplier)
   let viewportW = window.innerWidth;
-  const isMobile = () => false; // sticky horizontal scroll igual ao desktop em todos os breakpoints
+  const isMobile = () => window.innerWidth <= 600; // mobile usa scroll nativo (CSS snap)
 
   function measure() {
     viewportW = window.innerWidth;
@@ -4479,11 +4498,7 @@ if (window.gsap && window.ScrollTrigger) {
     // Slow multiplier on mobile: user scrolls more per card so each card stays longer
     const slowMultiplier = viewportW <= 768 ? 2 : 1;
     scrollDistance = railTravel * slowMultiplier;
-    // Use visualViewport height when available (accounts for iOS Safari chrome).
-    // On mobile subtract nav height (56px) since pin starts at top:56px.
-    const rawVh = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-    const navH = viewportW <= 768 ? 56 : 0;
-    const vh = rawVh - navH;
+    const vh = window.innerHeight;
     section.style.height = (vh + scrollDistance) + 'px';
   }
 
