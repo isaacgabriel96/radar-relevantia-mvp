@@ -1083,6 +1083,8 @@ a { text-decoration: none; color: inherit; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/core.js"></script>
 <script src="js/sanitize.js"></script>
+<script src="js/demo-data.js"></script>
+<script>if(new URLSearchParams(location.search).get('demo')==='true')document.write('<script src="js\/demo-mode.js"><\/script>');</script>
 <script>
 /* ═══════════════════════════════════════════
    MOCK DATA (fallback for opportunities not yet in Supabase detail)
@@ -1904,7 +1906,7 @@ var LOGGED_USER = (function() {
   }
   return null;
 })();
-if (!LOGGED_USER || !LOGGED_USER.id) { window.location.href = 'login.html'; }
+if ((!LOGGED_USER || !LOGGED_USER.id) && !(typeof isDemoMode === 'function' && isDemoMode())) { window.location.href = 'login.html'; }
 
 // Preenche sidebar com dados reais
 (function() {
@@ -2053,6 +2055,12 @@ function goToFullEdit() {
 
 /* ─── INIT ─── */
 (async function initDetail() {
+  // ── DEMO MODE: pula fetch do Supabase e renderiza opp do window.DEMO ──
+  if (typeof isDemoMode === 'function' && isDemoMode() && typeof window.loadDemoOppDetail === 'function') {
+    var rendered = await window.loadDemoOppDetail();
+    if (rendered) return;
+  }
+
   if (!LOGGED_USER || !LOGGED_USER.id) {
     window.location.href = 'login.html';
     return;

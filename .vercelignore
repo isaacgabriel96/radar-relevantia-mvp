@@ -1,0 +1,22 @@
+node_modules/
+.claude/
+Arquivado/
+prompts/
+specs/
+MVP/
+Showcase/
+Novo Radar Intelligence/
+Relevantia Intelligence/
+*.bak
+*.pdf
+*.jsx
+autofill-test.html
+prototipo-live-preview.html
+prototype-mediakit-viewer.html
+og-preview-design.html
+teste-emv.html
+design-system - mvp.html
+modelo-negocio.html
+patrocinio-landing.html
+index-v2.html
+radar-margem.jsx

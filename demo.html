@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo — Radar Relevantia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #B8860B;
+      --gold-gradient: linear-gradient(135deg, #B8860B, #C8A84B);
+      --black: #1A1200;
+      --white: #FFFFFF;
+      --font-heading: 'Poppins', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-body);
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% -10%, rgba(184,134,11,.18) 0%, transparent 70%),
+        var(--black);
+    }
+
+    .logo {
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .logo img { height: 36px; }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 52px;
+    }
+    .hero-label {
+      display: inline-block;
+      font-family: var(--font-heading);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(184,134,11,.4);
+      padding: 5px 16px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .hero h1 span {
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.55);
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .cards {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    .card {
+      flex: 1 1 340px;
+      max-width: 380px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 20px;
+      padding: 36px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: border-color .2s, transform .2s, box-shadow .2s;
+      cursor: default;
+    }
+    .card:hover {
+      border-color: rgba(184,134,11,.45);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(184,134,11,.1);
+    }
+
+    .card-role {
+      font-family: var(--font-heading);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 24px;
+    }
+
+    .card-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--gold-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--black);
+      flex-shrink: 0;
+      letter-spacing: -.02em;
+    }
+    .profile-info {}
+    .profile-name {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.2;
+      margin-bottom: 3px;
+    }
+    .profile-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,.45);
+    }
+
+    .card-divider {
+      height: 1px;
+      background: rgba(255,255,255,.07);
+      margin: 20px 0;
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,.5);
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 28px;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 28px;
+    }
+    .tag {
+      font-size: 11px;
+      font-weight: 500;
+      color: rgba(255,255,255,.5);
+      border: 1px solid rgba(255,255,255,.1);
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+
+    .btn-demo {
+      display: block;
+      width: 100%;
+      padding: 14px 24px;
+      background: var(--gold-gradient);
+      color: var(--black);
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      border: none;
+      border-radius: 100px;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity .15s, transform .15s;
+    }
+    .btn-demo:hover { opacity: .9; transform: scale(1.01); }
+
+    .footer {
+      margin-top: 52px;
+      font-size: 12px;
+      color: rgba(255,255,255,.2);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 520px) {
+      .card { padding: 28px 24px 24px; }
+      .hero h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo">
+    <img src="logos/5.png" alt="Radar Relevantia">
+  </div>
+
+  <div class="hero">
+    <div class="hero-label">Demo interativo</div>
+    <h1>Veja o Radar<br><span>em pleno funcionamento</span></h1>
+    <p>Escolha qual perspectiva você quer explorar — os dados são fictícios mas o produto é real.</p>
+  </div>
+
+  <div class="cards">
+
+    <!-- Card: Marca -->
+    <div class="card">
+      <div class="card-role">Perspectiva da Marca</div>
+      <div class="card-profile">
+        <div class="avatar">NB</div>
+        <div class="profile-info">
+          <div class="profile-name">Nike Brasil</div>
+          <div class="profile-sub">Carlos Mendes · Head de Marketing</div>
+        </div>
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-desc">
+        Explore oportunidades de patrocínio, envie propostas, acompanhe negociações e gerencie seu portfólio de investimentos em mídia e eventos.
+      </div>
+      <div class="card-tags">
+        <span class="tag">20 oportunidades</span>
+        <span class="tag">8 propostas enviadas</span>
+        <span class="tag">4 deals fechados</span>
+      </div>
+      <a class="btn-demo" href="dashboard-marca.html?demo=true">Entrar como Marca →</a>
+    </div>
+
+    <!-- Card: Detentor -->
+    <div class="card">
+      <div class="card-role">Perspectiva do Detentor</div>
+      <div class="card-profile">
+        <div class="avatar">IE</div>
+        <div class="profile-info">
+          <div class="profile-name">Instituto Esportivo SP</div>
+          <div class="profile-sub">Isaac Gabriel · Diretor Comercial</div>
+        </div>
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-desc">
+        Publique oportunidades de patrocínio, receba solicitações de acesso, conduza negociações e feche contratos com marcas parceiras.
+      </div>
+      <div class="card-tags">
+        <span class="tag">8 oportunidades</span>
+        <span class="tag">20 negociações</span>
+        <span class="tag">7 deals fechados</span>
+      </div>
+      <a class="btn-demo" href="dashboard-detentor.html?demo=true">Entrar como Detentor →</a>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Dados fictícios gerados para demonstração &nbsp;·&nbsp; Nenhuma informação real é utilizada
+  </div>
+
+</body>
+</html>

@@ -1470,6 +1470,8 @@ a { text-decoration: none; color: inherit; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/core.js"></script>
 <script src="js/sanitize.js"></script>
+<script src="js/demo-data.js"></script>
+<script>if(new URLSearchParams(location.search).get('demo')==='true')document.write('<script src="js\/demo-mode.js"><\/script>');</script>
 <script>
 /* ═══════════════════════════════════════════
    MOCK DATA — removido. Dados vêm do Supabase.
@@ -3668,6 +3670,12 @@ function updateFavBtnState(isFav) {
 
 /* ─── INIT ─── */
 (async function initDetail() {
+  // ── DEMO MODE: pula fetch do Supabase e renderiza opp do window.DEMO/CATALOG ──
+  if (typeof isDemoMode === 'function' && isDemoMode() && typeof window.loadDemoOppDetail === 'function') {
+    var rendered = await window.loadDemoOppDetail();
+    if (rendered) return;
+  }
+
   var params = new URLSearchParams(window.location.search);
   var rawKey = params.keys().next().value;
   var perfilSlug = null, oppSlug = null, id = null;

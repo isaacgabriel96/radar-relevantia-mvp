@@ -712,6 +712,49 @@ tbody tr:last-child td { border-bottom: none; }
 .prop-pill.active .prop-pill-count { background: rgba(255,255,255,0.2); }
 .prop-pill:not(.active) .prop-pill-count { background: var(--gray-200); color: var(--gray-500); }
 
+/* ─── CAMPANHAS ─── */
+.campanha-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 12px; }
+.campanha-toolbar-hint { font-size: 13px; color: var(--gray-3); margin: 0; }
+/* Campanhas — grid de pastas */
+.campanha-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 8px; }
+.campanha-pasta { position: relative; background: rgba(255,253,247,0.55); backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5); border: 1px solid rgba(255,255,255,0.72); border-radius: 16px; padding: 22px 24px 24px; cursor: pointer; transition: box-shadow .28s ease, transform .28s ease, border-color .28s ease, background .28s ease; min-height: 148px; display: flex; flex-direction: column; box-shadow: 0 2px 12px rgba(30,22,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8); }
+.campanha-pasta:hover { background: rgba(255,253,247,0.72); border-color: rgba(200,168,75,0.35); box-shadow: 0 8px 28px rgba(30,22,0,0.1), inset 0 1px 0 rgba(255,255,255,0.9); transform: translateY(-2px); }
+.campanha-pasta-label { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--gray-3); margin-bottom: 10px; }
+.campanha-pasta-label::before { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--gold); border-radius: 1px; flex-shrink: 0; }
+.campanha-pasta-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; opacity: 0; transition: opacity .2s ease; }
+.campanha-pasta:hover .campanha-pasta-actions { opacity: 1; }
+.campanha-pasta-edit, .campanha-pasta-delete { width: 26px; height: 26px; border-radius: 8px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s, color .15s; }
+.campanha-pasta-edit { color: var(--gray-3); }
+.campanha-pasta-edit:hover { background: var(--gray-1); color: var(--black); }
+.campanha-pasta-delete { color: var(--gray-3); }
+.campanha-pasta-delete:hover { background: #FEF2F2; color: #EF4444; }
+.campanha-pasta-nome { font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--black); line-height: 1.3; word-break: break-word; padding-right: 24px; margin-bottom: 6px; }
+.campanha-pasta-count { font-size: 13px; color: var(--gray-3); line-height: 1.5; flex: 1; }
+.campanha-pasta-meta { display: flex; align-items: center; margin-top: auto; padding-top: 14px; }
+.campanha-pasta-arrow { margin-left: auto; color: var(--gray-2); transition: transform .25s ease; }
+.campanha-pasta:hover .campanha-pasta-arrow { transform: translateX(3px); }
+.campanha-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 64px 20px; text-align: center; gap: 4px; }
+/* Detalhe de campanha */
+.campanha-detalhe-header { display: flex; align-items: center; gap: 12px; margin: 0 0 24px; }
+.campanha-detalhe-back { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; color: var(--gray-3); font-size: 13px; font-family: var(--font-body); font-weight: 500; padding: 6px 10px 6px 6px; border-radius: 8px; transition: background .15s, color .15s; }
+.campanha-detalhe-back:hover { background: var(--gray-1); color: var(--black); }
+.campanha-detalhe-titulo { font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--black); }
+.campanha-detalhe-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 10px; background: var(--white); border: 1.5px dashed var(--gray-2); border-radius: 14px; }
+/* Modal criar campanha */
+.modal-campanha-overlay { position: fixed; inset: 0; background: rgba(30,22,0,0.45); backdrop-filter: blur(4px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal-campanha-overlay.open { display: flex; }
+.modal-campanha { background: var(--white); border-radius: 16px; width: 100%; max-width: 480px; box-shadow: 0 20px 60px rgba(30,22,0,0.18); overflow: hidden; }
+.modal-campanha-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 22px 24px 0; }
+.modal-campanha-title { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--black); }
+.modal-campanha-close { background: var(--gray-100); border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); flex-shrink: 0; transition: background 0.15s; }
+.modal-campanha-close:hover { background: var(--gray-200); color: var(--black); }
+.modal-campanha-body { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+.btn-toolbar { background: var(--black); color: var(--white); }
+.btn-toolbar:hover { opacity: 0.82; transform: translateY(-1px); }
+.btn-campanha-criar { background: #503A00; color: var(--white); border: none; padding: 10px 20px; font-family: var(--font-body); font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease; }
+.btn-campanha-criar:hover:not(:disabled) { background: var(--gold-gradient); box-shadow: 0 6px 20px rgba(184,134,11,0.35); transform: translateY(-1px); }
+.btn-campanha-criar:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ─── DEALS FECHADOS — ACCORDION POR OPP ─── */
 .deals-opp-group { display: flex; flex-direction: column; gap: 12px; }
 .deals-opp-accordion { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
@@ -864,7 +907,7 @@ tbody tr:last-child td { border-bottom: none; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/sanitize.js"></script>
 <script src="js/core.js"></script>
-<script src="js/demo-data.js"></script>
+<script>if(new URLSearchParams(location.search).get('demo')==='true'){document.write('<script src="js\/demo-data.js"><\/script>');document.write('<script src="js\/demo-mode.js"><\/script>');}</script>
 
 <!-- Loading -->
 <div id="loadingScreen">
@@ -1176,6 +1219,10 @@ tbody tr:last-child td { border-bottom: none; }
           Propostas
           <span class="sub-tab-badge">4</span>
         </button>
+        <button class="sub-tab" id="subtab-prop-campanhas" onclick="switchPropostasTab('campanhas')">
+          Campanhas
+          <span class="sub-tab-badge" id="prop-campanhas-badge">0</span>
+        </button>
         <button class="sub-tab" id="subtab-prop-deals" onclick="switchPropostasTab('deals')">
           Deals Fechados
           <span class="sub-tab-badge" id="prop-deals-badge">0</span>
@@ -1208,6 +1255,42 @@ tbody tr:last-child td { border-bottom: none; }
 
         <div class="opp-grid" id="prop-cards-grid">
           <!-- preenchido por renderPropostasTable() -->
+        </div>
+
+      </div>
+
+      <!-- Painel: Campanhas -->
+      <div class="sub-panel" id="subpanel-prop-campanhas">
+
+        <div class="campanha-toolbar">
+          <p class="campanha-toolbar-hint">Organize suas propostas em campanhas para acompanhar budget e progresso.</p>
+          <button class="btn btn-campanha-criar btn-sm" onclick="openCriarCampanhaModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova campanha
+          </button>
+        </div>
+
+        <div id="campanha-empty" class="campanha-empty" style="display:none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gray-2)"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <div style="font-weight:600;font-size:15px;color:var(--black);margin-top:8px">Nenhuma campanha criada</div>
+          <div style="font-size:13px;color:var(--gray-3);margin-top:4px">Crie sua primeira campanha para começar a organizar suas propostas.</div>
+        </div>
+
+        <div id="campanha-cards-grid" class="campanha-grid">
+          <!-- preenchido por renderCampanhasPanel() -->
+        </div>
+
+        <!-- Detalhe: propostas da campanha -->
+        <div id="campanha-propostas-section" style="display:none">
+          <div class="campanha-detalhe-header">
+            <button class="campanha-detalhe-back" onclick="fecharCampanhaDetalhe()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+              Campanhas
+            </button>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gray-2)"><polyline points="9 18 15 12 9 6"/></svg>
+            <span class="campanha-detalhe-titulo" id="campanha-detalhe-nome"></span>
+          </div>
+          <div id="campanha-detalhe-grid"></div>
         </div>
 
       </div>
@@ -1584,6 +1667,31 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- Modal: Criar / Editar Campanha -->
+<div class="modal-campanha-overlay" id="modal-campanha-overlay" onclick="if(event.target===this)closeCriarCampanhaModal()">
+  <div class="modal-campanha">
+    <div class="modal-campanha-header">
+      <div class="modal-campanha-title" id="modal-campanha-title">Nova campanha</div>
+      <button class="modal-campanha-close" onclick="closeCriarCampanhaModal()">✕</button>
+    </div>
+    <div class="modal-campanha-body">
+      <input type="hidden" id="mc-edit-id">
+      <div class="form-group">
+        <label class="form-label">Nome <span style="color:#e53e3e">*</span></label>
+        <input class="form-input" type="text" id="mc-nome" placeholder="Ex: Campanha Q2 2026" oninput="_mcValidate()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Objetivo <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-300)">(opcional)</span></label>
+        <input class="form-input" type="text" id="mc-descricao" placeholder="Ex: Brand awareness no Q2">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn btn-ghost" onclick="closeCriarCampanhaModal()" style="flex:1">Cancelar</button>
+        <button class="btn btn-campanha-criar" id="mc-btn-salvar" disabled onclick="salvarCampanha()" style="flex:2">Criar campanha</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ═══════════════════════════════════════
    RADAR RELEVANTIA — Dashboard Marca MVP
@@ -1635,7 +1743,7 @@ function mapDbOpp(row) {
 function loadOpportunities(callback) {
   // Demo mode: usa dados mockados
   if (isDemoMode() && window.CATALOG) {
-    MOCK_OPPORTUNITIES = window.CATALOG.slice(0, 6);
+    MOCK_OPPORTUNITIES = window.CATALOG;
     callback(MOCK_OPPORTUNITIES);
     return;
   }
@@ -1654,9 +1762,10 @@ function loadOpportunities(callback) {
     MOCK_OPPORTUNITIES = visible.map(mapDbOpp);
     callback(MOCK_OPPORTUNITIES);
   })
-  .catch(() => {
-    // Fallback para CATALOG se Supabase falhar
-    MOCK_OPPORTUNITIES = window.CATALOG ? window.CATALOG.slice(0, 6) : [];
+  .catch((err) => {
+    // Em produção: Supabase falhou → estado vazio (não carregar dados de demo)
+    console.error('[loadOpportunities] Supabase error, showing empty state:', err);
+    MOCK_OPPORTUNITIES = [];
     callback(MOCK_OPPORTUNITIES);
   });
 }
@@ -1701,6 +1810,7 @@ async function init() {
     updateDashboardKPIs();
     renderDashboardTimeline();
     renderDashboardPropostasRecentes();
+    loadCampanhas();
 
     // Check hash for deep linking
     const hash = window.location.hash.replace('#', '');
@@ -3345,6 +3455,46 @@ function filterPropostas(filter) {
   renderPropostasTable();
 }
 
+function _buildPropostaCard(p, catalogMap) {
+  const cfg = PROP_STATUS_CONFIG[p.status] || { label: p.statusLabel, cls: 'badge' };
+  const catalogItem = catalogMap[p.opp_id];
+  const img = catalogItem && catalogItem.images && catalogItem.images[0];
+  const cat = getOppCatMarca(p.opp);
+  const propFp = img && catalogItem && catalogItem._imagensFocal ? (catalogItem._imagensFocal[img] || {x:50,y:20}) : {x:50,y:20};
+  const heroContent = img
+    ? `<div class="olc-hero-track"><div class="olc-hero-slide"><img src="${img}" alt="${p.opp}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:${propFp.x}% ${propFp.y}%"></div></div>`
+    : `<div style="width:100%;height:100%;background:${cat.bg};display:flex;align-items:center;justify-content:center">
+         <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" style="width:64px;height:64px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+       </div>`;
+  const thread = p.thread || [];
+  const lastMsg = thread[thread.length - 1];
+  const hasUnread = lastMsg && lastMsg.autor === 'detentor';
+  const unreadDot = hasUnread
+    ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:#EF4444;border-radius:50%;font-size:10px;font-weight:700;color:#fff;line-height:1;flex-shrink:0">1</span>`
+    : '';
+  return `<div class="opp-card" style="cursor:default">
+    <div class="olc-hero" data-idx="0" style="height:180px">
+      ${heroContent}
+      <div class="olc-hero-tag tag-top-left">${cfg.label}</div>
+    </div>
+    <div class="opp-card-body">
+      <div class="opp-card-title" style="font-size:15px">${p.opp}</div>
+      <div style="font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--text);margin:6px 0 14px">${p.valor}</div>
+      <div class="opp-card-divider"></div>
+      <div class="opp-card-footer" style="align-items:center;justify-content:space-between">
+        <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:8px" onclick="openPropostaModal('${p.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Ver negociação
+          ${unreadDot}
+        </button>
+        ${p.status === 'aceita'
+          ? `<button class="btn btn-gold btn-sm" onclick="switchPropostasTab('deals')">Ver deal →</button>`
+          : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderPropostasTable() {
   const grid = document.getElementById('prop-cards-grid');
   if (!grid) return;
@@ -3362,55 +3512,9 @@ function renderPropostasTable() {
     return;
   }
 
-  // Mapear catálogo por id para pegar imagem
   const catalogMap = {};
   (MOCK_OPPORTUNITIES || []).forEach(o => { catalogMap[o.id] = o; });
-
-  grid.innerHTML = list.map(p => {
-    const cfg = PROP_STATUS_CONFIG[p.status] || { label: p.statusLabel, cls: 'badge' };
-    const catalogItem = catalogMap[p.opp_id];
-    const img = catalogItem && catalogItem.images && catalogItem.images[0];
-    const cat = getOppCatMarca(p.opp);
-    const org = catalogItem ? catalogItem.org : p.opp;
-    const orgInitials = catalogItem ? catalogItem.orgInitials : p.opp.substring(0, 2).toUpperCase();
-
-    const propFp = img && catalogItem && catalogItem._imagensFocal ? (catalogItem._imagensFocal[img] || {x:50,y:20}) : {x:50,y:20};
-    const heroContent = img
-      ? `<div class="olc-hero-track"><div class="olc-hero-slide"><img src="${img}" alt="${p.opp}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:${propFp.x}% ${propFp.y}%"></div></div>`
-      : `<div style="width:100%;height:100%;background:${cat.bg};display:flex;align-items:center;justify-content:center">
-           <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" style="width:64px;height:64px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-         </div>`;
-
-    // Detecta mensagens não lidas: última mensagem da thread enviada pelo detentor
-    const thread = p.thread || [];
-    const lastMsg = thread[thread.length - 1];
-    const hasUnread = lastMsg && lastMsg.autor === 'detentor';
-    const unreadDot = hasUnread
-      ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:#EF4444;border-radius:50%;font-size:10px;font-weight:700;color:#fff;line-height:1;flex-shrink:0">1</span>`
-      : '';
-
-    return `<div class="opp-card" style="cursor:default">
-      <div class="olc-hero" data-idx="0" style="height:180px">
-        ${heroContent}
-        <div class="olc-hero-tag tag-top-left">${cfg.label}</div>
-      </div>
-      <div class="opp-card-body">
-        <div class="opp-card-title" style="font-size:15px">${p.opp}</div>
-        <div style="font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--text);margin:6px 0 14px">${p.valor}</div>
-        <div class="opp-card-divider"></div>
-        <div class="opp-card-footer" style="align-items:center;justify-content:space-between">
-          <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:8px" onclick="openPropostaModal('${p.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;flex-shrink:0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            Ver negociação
-            ${unreadDot}
-          </button>
-          ${p.status === 'aceita'
-            ? `<button class="btn btn-gold btn-sm" onclick="switchPropostasTab('deals')">Ver deal →</button>`
-            : ''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  grid.innerHTML = list.map(p => _buildPropostaCard(p, catalogMap)).join('');
 }
 
 function initPropostasSection() {
@@ -3439,12 +3543,214 @@ function initPropostasSection() {
   renderPropostasTable();
 }
 
-// ─── DEALS FECHADOS (PROPOSTAS) ───
+// ─── DEALS FECHADOS / CAMPANHAS — SUB-TABS ───
 function switchPropostasTab(tab) {
   document.querySelectorAll('#sec-propostas .sub-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('#sec-propostas .sub-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('subtab-prop-' + tab).classList.add('active');
   document.getElementById('subpanel-prop-' + tab).classList.add('active');
+  if (tab === 'campanhas') renderCampanhasPanel();
+}
+
+// ─── CAMPANHAS ───
+let _CAMPANHAS = [];
+
+async function loadCampanhas() {
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+  const marcaId = session && session.user ? session.user.id : null;
+  if (!marcaId) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas?select=*&marca_id=eq.' + marcaId + '&order=created_at.desc', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    });
+    _CAMPANHAS = res.ok ? (await res.json()) : [];
+    const badge = document.getElementById('prop-campanhas-badge');
+    if (badge) badge.textContent = _CAMPANHAS.length;
+  } catch(e) { _CAMPANHAS = []; }
+}
+
+function renderCampanhasPanel() {
+  const grid = document.getElementById('campanha-cards-grid');
+  const empty = document.getElementById('campanha-empty');
+  const detSection = document.getElementById('campanha-propostas-section');
+  if (detSection) detSection.style.display = 'none';
+  if (!grid) return;
+
+  if (!_CAMPANHAS.length) {
+    grid.innerHTML = '';
+    if (empty) empty.style.display = 'flex';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  const statusLabels = { planejamento: 'Planejamento', ativa: 'Ativa', concluida: 'Concluída' };
+  grid.innerHTML = _CAMPANHAS.map(c => {
+    const propsNaCampanha = (typeof PROPOSTAS !== 'undefined' ? PROPOSTAS : []).filter(p => p.campanha_id === c.id);
+    const n = propsNaCampanha.length;
+    const nomeEsc = c.nome.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+
+    return `<div class="campanha-pasta" onclick="abrirCampanhaDetalhe('${c.id}','${nomeEsc}')">
+      <div class="campanha-pasta-actions">
+        <button class="campanha-pasta-edit" onclick="event.stopPropagation();editarCampanha('${c.id}')" title="Editar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="campanha-pasta-delete" onclick="event.stopPropagation();deletarCampanha('${c.id}','${nomeEsc}')" title="Excluir">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+      <div class="campanha-pasta-label">Campanha</div>
+      <div class="campanha-pasta-nome">${c.nome}</div>
+      <div class="campanha-pasta-count">${n} proposta${n !== 1 ? 's' : ''}</div>
+      <div class="campanha-pasta-meta">
+        <span></span>
+        <svg class="campanha-pasta-arrow" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function abrirCampanhaDetalhe(campanhaId, campanhaNome) {
+  const section = document.getElementById('campanha-propostas-section');
+  const nomeEl = document.getElementById('campanha-detalhe-nome');
+  const detalheGrid = document.getElementById('campanha-detalhe-grid');
+  const cardsGrid = document.getElementById('campanha-cards-grid');
+  const toolbar = document.querySelector('.campanha-toolbar');
+  const empty = document.getElementById('campanha-empty');
+  if (!section || !detalheGrid) return;
+
+  if (nomeEl) nomeEl.textContent = campanhaNome;
+  // oculta grid de pastas e toolbar, mostra detalhe
+  if (cardsGrid) cardsGrid.style.display = 'none';
+  if (toolbar) toolbar.style.display = 'none';
+  if (empty) empty.style.display = 'none';
+  section.style.display = '';
+
+  const props = (typeof PROPOSTAS !== 'undefined' ? PROPOSTAS : []).filter(p => p.campanha_id === campanhaId);
+  if (!props.length) {
+    detalheGrid.innerHTML = `<div class="campanha-detalhe-empty">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gray-2)"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <div style="font-family:var(--font-heading);font-size:15px;font-weight:600;color:var(--black)">Pasta vazia</div>
+      <div style="font-size:13px;color:var(--gray-3);max-width:280px;line-height:1.5">Ao manifestar interesse em uma oportunidade, selecione esta campanha para ela aparecer aqui.</div>
+      <button class="btn btn-campanha-criar btn-sm" style="margin-top:8px" onclick="showSection('oportunidades')">Explorar oportunidades →</button>
+    </div>`;
+    return;
+  }
+  const catalogMap = {};
+  (MOCK_OPPORTUNITIES || []).forEach(o => { catalogMap[o.id] = o; });
+  detalheGrid.className = 'opp-grid';
+  detalheGrid.innerHTML = props.map(p => _buildPropostaCard(p, catalogMap)).join('');
+}
+
+function fecharCampanhaDetalhe() {
+  const section = document.getElementById('campanha-propostas-section');
+  const cardsGrid = document.getElementById('campanha-cards-grid');
+  const toolbar = document.querySelector('.campanha-toolbar');
+  if (section) section.style.display = 'none';
+  if (cardsGrid) cardsGrid.style.display = '';
+  if (toolbar) toolbar.style.display = '';
+  // mostra empty state se não houver campanhas
+  if (!_CAMPANHAS.length) {
+    const empty = document.getElementById('campanha-empty');
+    if (empty) empty.style.display = 'flex';
+  }
+}
+
+function openCriarCampanhaModal(campanha) {
+  const overlay = document.getElementById('modal-campanha-overlay');
+  const titleEl = document.getElementById('modal-campanha-title');
+  const btnSalvar = document.getElementById('mc-btn-salvar');
+  document.getElementById('mc-edit-id').value = campanha ? campanha.id : '';
+  document.getElementById('mc-nome').value = campanha ? campanha.nome : '';
+  document.getElementById('mc-descricao').value = campanha ? (campanha.descricao || '') : '';
+  if (titleEl) titleEl.textContent = campanha ? 'Editar campanha' : 'Nova campanha';
+  if (btnSalvar) { btnSalvar.textContent = campanha ? 'Salvar alterações' : 'Criar campanha'; btnSalvar.disabled = !campanha; }
+  overlay.classList.add('open');
+}
+
+function closeCriarCampanhaModal() {
+  document.getElementById('modal-campanha-overlay').classList.remove('open');
+}
+
+function _mcValidate() {
+  const btn = document.getElementById('mc-btn-salvar');
+  const nome = (document.getElementById('mc-nome') || {}).value || '';
+  if (btn) btn.disabled = !nome.trim();
+}
+
+function editarCampanha(campanhaId) {
+  const c = _CAMPANHAS.find(x => x.id === campanhaId);
+  if (c) openCriarCampanhaModal(c);
+}
+
+async function deletarCampanha(campanhaId, campanhaNome) {
+  if (!confirm(`Excluir a campanha "${campanhaNome}"?\n\nAs propostas vinculadas não serão excluídas.`)) return;
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+  if (!session) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas?id=eq.' + campanhaId, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    });
+    if (res.ok) {
+      await loadCampanhas();
+      renderCampanhasPanel();
+      if (typeof showToast === 'function') showToast('Campanha excluída.', 'success');
+    } else {
+      if (typeof showToast === 'function') showToast('Erro ao excluir campanha.', 'error');
+    }
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Erro ao excluir campanha.', 'error');
+  }
+}
+
+async function salvarCampanha() {
+  const btn = document.getElementById('mc-btn-salvar');
+  if (btn) btn.disabled = true;
+
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+  const marcaId = session && session.user ? session.user.id : null;
+  if (!marcaId) return;
+
+  const editId = document.getElementById('mc-edit-id').value;
+  const nome = (document.getElementById('mc-nome') || {}).value || '';
+  if (!nome.trim()) { if (btn) btn.disabled = false; return; }
+
+  const payload = {
+    nome: nome.trim(),
+    descricao: (document.getElementById('mc-descricao') || {}).value || null
+  };
+
+  try {
+    let res;
+    if (editId) {
+      res = await fetch(SUPABASE_URL + '/rest/v1/campanhas?id=eq.' + editId, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+    } else {
+      payload.marca_id = marcaId;
+      res = await fetch(SUPABASE_URL + '/rest/v1/campanhas', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify(payload)
+      });
+    }
+    if (res.ok) {
+      closeCriarCampanhaModal();
+      await loadCampanhas();
+      renderCampanhasPanel();
+      const badge = document.getElementById('prop-campanhas-badge');
+      if (badge) badge.textContent = _CAMPANHAS.length;
+      if (typeof showToast === 'function') showToast(editId ? 'Campanha atualizada!' : 'Campanha criada!', 'success');
+    } else {
+      if (typeof showToast === 'function') showToast('Erro ao salvar campanha.', 'error');
+      if (btn) btn.disabled = false;
+    }
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Erro ao salvar campanha.', 'error');
+    if (btn) btn.disabled = false;
+  }
 }
 
 // Chevron SVG para accordion de deals

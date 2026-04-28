@@ -1102,7 +1102,7 @@ tbody tr:last-child td { border-bottom: none; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/sanitize.js"></script>
 <script src="js/core.js"></script>
-<script src="js/demo-data.js"></script>
+<script>if(new URLSearchParams(location.search).get('demo')==='true'){document.write('<script src="js\/demo-data.js"><\/script>');document.write('<script src="js\/demo-mode.js"><\/script>');}</script>
 <script src="shared-state.js"></script>
 
 <!-- Loading -->
