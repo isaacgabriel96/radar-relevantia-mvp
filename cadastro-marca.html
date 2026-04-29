@@ -649,7 +649,7 @@
       </div>
 
       <!-- REFERRAL / CÓDIGO -->
-      <div style="margin-top:32px; border-top: 1px solid var(--gray-border); padding-top: 28px;">
+      <div style="display:none; margin-top:32px; border-top: 1px solid var(--gray-border); padding-top: 28px;">
         <div class="section-label" style="display:flex;align-items:center;gap:7px;padding-bottom:14px;border-bottom:1px solid var(--gray-border);margin-bottom:20px;">
           <span>🔑</span> Indicação &amp; Acesso
         </div>
@@ -853,10 +853,16 @@
     const hintEl = document.getElementById('emailDomainHint');
     const errorEl = document.getElementById('emailError');
     const hintText = document.getElementById('emailDomainText');
-    if (!val || !val.includes('@')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+    if (!val || !emailRegex.test(val)) {
       input.classList.remove('error');
       hintEl.classList.remove('show');
       errorEl.classList.remove('show');
+      if (val && !emailRegex.test(val)) {
+        input.classList.add('error');
+        errorEl.textContent = 'Digite um e-mail válido (ex: voce@empresa.com.br)';
+        errorEl.classList.add('show');
+      }
       return;
     }
     const domain = val.split('@')[1]?.toLowerCase();
