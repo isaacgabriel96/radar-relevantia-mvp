@@ -704,6 +704,29 @@
       </div>
       <span class="field-error" id="companySearchError" style="display:none;margin-top:6px;">Selecione uma empresa para continuar.</span>
 
+      <!-- Link entrada manual -->
+      <div id="manualToggleWrap" style="margin-top:12px;text-align:center;">
+        <button type="button" onclick="toggleManualCompany()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--gray-light);text-decoration:underline;padding:0;">
+          Não encontrei minha empresa — cadastrar manualmente
+        </button>
+      </div>
+
+      <!-- Formulário manual (oculto por padrão) -->
+      <div id="manualCompanyForm" style="display:none;margin-top:16px;border:1px solid var(--gray-border);border-radius:var(--radius-md);padding:18px 16px;background:var(--gray-bg);">
+        <p style="font-size:13px;font-weight:600;color:var(--gray-mid);margin:0 0 12px;">Preencha os dados da empresa</p>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Nome da empresa <span style="color:#c0392b">*</span></label>
+          <input type="text" id="manualCompanyName" placeholder="Ex: Acme Corp" autocomplete="organization">
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label>Website <span style="font-size:11px;font-weight:400;color:var(--gray-light);margin-left:4px;">(opcional)</span></label>
+          <input type="text" id="manualCompanyWebsite" placeholder="Ex: acmecorp.com.br">
+        </div>
+        <button type="button" onclick="confirmManualCompany()" style="background:var(--black);color:#fff;border:none;border-radius:var(--radius-pill);padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;">
+          Usar esta empresa
+        </button>
+      </div>
+
       <div class="step-actions">
         <button class="btn-back" onclick="goToStep(1)">
           <svg viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1187,10 +1210,46 @@
     // Mostra lupa novamente
     const searchIcon = document.querySelector('#step-2 .search-icon');
     if (searchIcon) searchIcon.classList.remove('hidden');
+    // Restaura link de cadastro manual
+    const toggleWrap = document.getElementById('manualToggleWrap');
+    if (toggleWrap) toggleWrap.style.display = 'block';
+    // Limpa campos manuais
+    const mName = document.getElementById('manualCompanyName');
+    const mSite = document.getElementById('manualCompanyWebsite');
+    if (mName) mName.value = '';
+    if (mSite) mSite.value = '';
   }
 
   // Mantida para compatibilidade (prefillCompanyFromEmail usa setCompanyMode internamente)
   function setCompanyMode() { /* no-op — modo único agora */ }
+
+  function toggleManualCompany() {
+    const form = document.getElementById('manualCompanyForm');
+    const isVisible = form.style.display !== 'none';
+    form.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) {
+      document.getElementById('manualCompanyName').focus();
+      // Limpa seleção anterior se houver
+      if (_selectedBrand) clearCompany();
+    }
+  }
+
+  function confirmManualCompany() {
+    const name = document.getElementById('manualCompanyName').value.trim();
+    if (!name) {
+      document.getElementById('manualCompanyName').classList.add('error');
+      setTimeout(() => document.getElementById('manualCompanyName').classList.remove('error'), 2000);
+      return;
+    }
+    let domain = document.getElementById('manualCompanyWebsite').value.trim();
+    // Normaliza o domínio (remove http/https e paths)
+    domain = domain.replace(/^https?:\/\//i, '').split('/')[0].trim();
+    // Seleciona como se fosse Brandfetch (reutiliza selectBrandfetchBrand)
+    selectBrandfetchBrand({ name, domain, icon: '', manual: true });
+    // Oculta o formulário manual e o toggle
+    document.getElementById('manualCompanyForm').style.display = 'none';
+    document.getElementById('manualToggleWrap').style.display = 'none';
+  }
 
   // ─── PRÉ-PREENCHIMENTO DA EMPRESA PELO E-MAIL ───
   // Domínios genéricos que NÃO devem ser usados como nome de empresa
@@ -1254,7 +1313,10 @@
         searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
         searchInput.focus();
       }
-      if (errEl) errEl.style.display = 'block';
+      if (errEl) {
+        errEl.textContent = 'Selecione uma empresa ou cadastre manualmente.';
+        errEl.style.display = 'block';
+      }
       ok = false;
     }
     return ok;
