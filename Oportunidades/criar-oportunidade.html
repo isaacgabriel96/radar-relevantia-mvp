@@ -11429,6 +11429,15 @@ function initImpersonateMode() {
     if (nameEl) {
       nameEl.textContent = ctx.target_nome || ctx.target_email || ctx.target_user_id;
     }
+    // Sobrescrever sidebar com dados do detentor impersonado
+    const sidebarName   = document.getElementById('sidebarUserName');
+    const sidebarEmail  = document.getElementById('sidebarEmail');
+    const sidebarAvatar = document.getElementById('avatarInitials');
+    const displayName   = ctx.target_nome || ctx.target_email || '?';
+    const initials      = displayName.split(' ').filter(w => w.length > 0).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '?';
+    if (sidebarName)   sidebarName.textContent   = displayName;
+    if (sidebarEmail)  sidebarEmail.textContent  = ctx.target_email || '';
+    if (sidebarAvatar) sidebarAvatar.textContent = initials;
     console.log('[Impersonate] Modo ativo para:', ctx.target_nome, '(' + ctx.target_user_id + ')');
   } catch (e) {
     console.warn('[Impersonate] Erro ao inicializar modo:', e);
