@@ -552,6 +552,13 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
           Criar como Cliente
         </div>
       </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Configurações</div>
+        <div class="sidebar-item" onclick="showSection('admins', this)">
+          <span class="sidebar-item-icon">🔐</span>
+          Usuários Admin
+        </div>
+      </div>
     </aside>
 
     <!-- Content -->
@@ -1216,6 +1223,90 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
 
       </div><!-- /section-impersonation -->
 
+      <!-- ADMINS -->
+      <div id="section-admins" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Usuários Admin</h1>
+          <p class="page-sub">Gerencie quem tem acesso ao painel administrativo</p>
+        </div>
+
+        <!-- Banner aviso -->
+        <div style="display:flex;align-items:flex-start;gap:14px;background:rgba(184,134,11,0.07);border:1px solid rgba(184,134,11,0.25);border-radius:12px;padding:18px 20px;max-width:720px;margin-bottom:28px">
+          <span style="font-size:22px;flex-shrink:0;margin-top:1px">⚠️</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--black);margin-bottom:4px">Acesso total ao painel</div>
+            <div style="font-size:13px;color:var(--gray-5);line-height:1.6">Usuários admin têm acesso completo a todos os dados da plataforma. Crie senhas provisórias seguras e compartilhe por canal privado. O novo admin poderá alterar a senha pelo painel.</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;align-items:start">
+
+          <!-- Card: Admins atuais -->
+          <div style="background:var(--white);border:1px solid var(--gray-2);border-radius:16px;padding:24px">
+            <div style="font-size:14px;font-weight:700;color:var(--black);margin-bottom:4px">Admins cadastrados</div>
+            <div style="font-size:12px;color:var(--gray-5);margin-bottom:20px">Clique em ✕ para remover o acesso</div>
+
+            <div id="admins-loading" style="display:flex;align-items:center;gap:8px;color:var(--gray-5);font-size:13px;padding:8px 0">
+              <div style="width:14px;height:14px;border:2px solid var(--gray-3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite"></div>
+              Carregando…
+            </div>
+
+            <div id="admins-list" style="display:none;display:flex;flex-direction:column;gap:8px"></div>
+            <div id="admins-empty" style="display:none;font-size:13px;color:var(--gray-5);padding:8px 0">Nenhum admin encontrado.</div>
+            <div id="admins-list-error" style="display:none;font-size:12px;color:#991B1B;background:rgba(239,68,68,0.08);border-radius:8px;padding:10px 12px;margin-top:8px"></div>
+          </div>
+
+          <!-- Card: Convidar novo admin -->
+          <div style="background:var(--white);border:1px solid var(--gray-2);border-radius:16px;padding:24px">
+            <div style="font-size:14px;font-weight:700;color:var(--black);margin-bottom:4px">Convidar novo admin</div>
+            <div style="font-size:12px;color:var(--gray-5);margin-bottom:20px">O acesso é imediato — compartilhe as credenciais por canal seguro</div>
+
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div>
+                <label style="font-size:12px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:5px">Nome</label>
+                <input type="text" id="adminInviteNome" placeholder="Ex: Mariana Costa"
+                  style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:10px;font-size:13px;font-family:var(--font-body);outline:none;box-sizing:border-box;transition:border-color 0.15s"
+                  onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--gray-2)'">
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:5px">Email <span style="color:var(--gold)">*</span></label>
+                <input type="email" id="adminInviteEmail" placeholder="email@relevantia.com"
+                  style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:10px;font-size:13px;font-family:var(--font-body);outline:none;box-sizing:border-box;transition:border-color 0.15s"
+                  onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--gray-2)'">
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:5px">Senha provisória <span style="color:var(--gold)">*</span></label>
+                <div style="display:flex;gap:8px">
+                  <input type="text" id="adminInvitePassword" placeholder="Mín. 8 caracteres"
+                    style="flex:1;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:10px;font-size:13px;font-family:var(--font-body);outline:none;box-sizing:border-box;transition:border-color 0.15s"
+                    onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--gray-2)'">
+                  <button onclick="adminGeneratePassword()"
+                    style="flex-shrink:0;background:var(--gray-1);border:1px solid var(--gray-2);border-radius:8px;padding:0 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray-4);font-family:var(--font-body);white-space:nowrap;transition:background 0.15s"
+                    onmouseover="this.style.background='var(--gray-2)'" onmouseout="this.style.background='var(--gray-1)'">
+                    🎲 Gerar
+                  </button>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+                  <button id="adminCopyPwdBtn" onclick="adminCopyPassword()" style="display:none;background:transparent;border:none;padding:0;cursor:pointer;font-size:12px;color:var(--gold);font-family:var(--font-body);font-weight:600;text-decoration:underline">
+                    📋 Copiar senha
+                  </button>
+                </div>
+              </div>
+
+              <div id="adminInviteError" style="display:none;font-size:12px;color:#991B1B;background:rgba(239,68,68,0.08);border-radius:8px;padding:10px 12px"></div>
+              <div id="adminInviteSuccess" style="display:none;font-size:12px;color:#166534;background:rgba(34,197,94,0.08);border-radius:8px;padding:10px 12px;line-height:1.5"></div>
+
+              <button id="adminInviteBtn" onclick="adminInvite()"
+                style="background:var(--black);color:var(--white);border:none;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:opacity 0.15s;margin-top:4px"
+                onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                Criar acesso →
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /section-admins -->
+
     </main>
   </div>
 </div><!-- /dashboard -->
@@ -1484,6 +1575,7 @@ function showSection(name, el) {
   if (name === 'deals')           loadDeals();
   if (name === 'mudancas-marca')  loadMudancasMarca();
   if (name === 'impersonation')   loadImpersonationDetentores();
+  if (name === 'admins')          loadAdmins();
 }
 
 // ── Load all data ─────────────────────────────────────────────
@@ -2546,6 +2638,153 @@ function openFormAsClient() {
   // Abre o formulário em nova aba
   window.open('criar-oportunidade.html', '_blank');
   showToast(`Formulário aberto como ${_impersonateSelected.nome}`, 'success');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GERENCIAMENTO DE ADMINS
+═══════════════════════════════════════════════════════════════ */
+async function _callManageAdmins(payload) {
+  const session = await getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('Sessão expirada. Faça login novamente.');
+
+  const res = await fetch('/api/manage-admins', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Erro HTTP ${res.status}`);
+  return data;
+}
+
+async function loadAdmins() {
+  const loadingEl = document.getElementById('admins-loading');
+  const listEl    = document.getElementById('admins-list');
+  const emptyEl   = document.getElementById('admins-empty');
+  const errorEl   = document.getElementById('admins-list-error');
+
+  loadingEl.style.display = 'flex';
+  listEl.style.display    = 'none';
+  emptyEl.style.display   = 'none';
+  errorEl.style.display   = 'none';
+
+  try {
+    const { admins } = await _callManageAdmins({ action: 'list' });
+    loadingEl.style.display = 'none';
+
+    if (!admins || admins.length === 0) {
+      emptyEl.style.display = 'block';
+      return;
+    }
+
+    const session = await getSession();
+    const myId = session?.user?.id;
+
+    listEl.innerHTML = admins.map(a => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--gray-2);border-radius:10px;background:var(--gray-1)">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gold-gradient);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🔐</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(a.nome || a.email)}</div>
+          <div style="font-size:11px;color:var(--gray-5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(a.email)}</div>
+        </div>
+        ${a.id === myId
+          ? `<span style="font-size:11px;color:var(--gray-5);flex-shrink:0">(você)</span>`
+          : `<button onclick="adminRemove('${a.id}','${escHtml(a.email)}')"
+               style="flex-shrink:0;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:#991B1B;cursor:pointer;font-family:var(--font-body);transition:background 0.15s"
+               onmouseover="this.style.background='rgba(239,68,68,0.07)'" onmouseout="this.style.background='transparent'">
+               ✕ Remover
+             </button>`
+        }
+      </div>
+    `).join('');
+    listEl.style.display = 'flex';
+  } catch (err) {
+    loadingEl.style.display = 'none';
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+  }
+}
+
+async function adminRemove(userId, email) {
+  if (!confirm(`Remover acesso de "${email}"?\n\nEsta ação não pode ser desfeita.`)) return;
+  try {
+    await _callManageAdmins({ action: 'remove', userId });
+    showToast(`Acesso de ${email} removido.`, 'success');
+    loadAdmins();
+  } catch (err) {
+    showToast('Erro ao remover: ' + err.message, 'error');
+  }
+}
+
+function adminGeneratePassword() {
+  const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$';
+  let pwd = '';
+  const arr = new Uint8Array(12);
+  crypto.getRandomValues(arr);
+  arr.forEach(b => { pwd += chars[b % chars.length]; });
+  document.getElementById('adminInvitePassword').value = pwd;
+  document.getElementById('adminCopyPwdBtn').style.display = 'inline';
+}
+
+function adminCopyPassword() {
+  const pwd = document.getElementById('adminInvitePassword').value;
+  if (!pwd) return;
+  navigator.clipboard.writeText(pwd).then(() => {
+    const btn = document.getElementById('adminCopyPwdBtn');
+    btn.textContent = '✅ Copiado!';
+    setTimeout(() => { btn.textContent = '📋 Copiar senha'; }, 2000);
+  });
+}
+
+async function adminInvite() {
+  const email    = document.getElementById('adminInviteEmail').value.trim().toLowerCase();
+  const nome     = document.getElementById('adminInviteNome').value.trim();
+  const password = document.getElementById('adminInvitePassword').value;
+  const errEl    = document.getElementById('adminInviteError');
+  const sucEl    = document.getElementById('adminInviteSuccess');
+  const btn      = document.getElementById('adminInviteBtn');
+
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+
+  if (!email) { errEl.textContent = 'Email é obrigatório.'; errEl.style.display = 'block'; return; }
+  if (!password || password.length < 8) { errEl.textContent = 'A senha precisa ter no mínimo 8 caracteres.'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Criando…';
+
+  try {
+    await _callManageAdmins({ action: 'invite', email, nome, tempPassword: password });
+
+    sucEl.innerHTML = `
+      ✅ <strong>${escHtml(email)}</strong> criado com sucesso!<br>
+      Compartilhe as credenciais por canal seguro:<br>
+      <strong>Email:</strong> ${escHtml(email)}<br>
+      <strong>Senha:</strong> ${escHtml(password)}
+    `;
+    sucEl.style.display = 'block';
+
+    document.getElementById('adminInviteEmail').value    = '';
+    document.getElementById('adminInviteNome').value     = '';
+    document.getElementById('adminInvitePassword').value = '';
+    document.getElementById('adminCopyPwdBtn').style.display = 'none';
+
+    loadAdmins();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Criar acesso →';
+  }
+}
+
+function escHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 </script>
 </body>
