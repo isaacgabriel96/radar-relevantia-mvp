@@ -4455,8 +4455,8 @@ async function validateSlugUnique(forceCheck) {
   } catch (e) {
     console.warn('[validateSlugUnique] error:', e);
     setSlugStatus('error', 'Não foi possível verificar a disponibilidade.');
-    formState.slugIsValid = false;
-    return false; // falha conservadora — não bloqueia publicação se o check falhou
+    formState.slugIsValid = true; // falha permissiva — não bloqueia publicação se o check falhou
+    return true;
   }
 }
 
@@ -9354,7 +9354,7 @@ function collectOppData() {
     : [cidadeVal, paisReview].filter(Boolean).join(', ');
   const abrangenciaEl = document.getElementById('opp-abrangencia');
   const alcance = abrangenciaEl?.options[abrangenciaEl.selectedIndex]?.text || '';
-  if (alcance === 'Selecione…') alcance_clean = ''; else alcance_clean = alcance;
+  let alcance_clean = (alcance === 'Selecione…') ? '' : alcance;
   const segmentos = Array.from(
     document.querySelectorAll('#segmentPillGrid .segment-pill.selected')
   ).map(p => p.textContent.trim());
@@ -9955,14 +9955,23 @@ async function publishOpportunity() {
       if (!f.required) continue;
       const el = document.getElementById(f.id);
       if (!el) continue;
-      let val = '';
+      let filled = false;
       if (f.type === 'select') {
-        val = el.options[el.selectedIndex]?.value || '';
-        if (val === '' || val === 'Selecione…') val = '';
-      } else if (f.type === 'text' || f.type === 'textarea') {
-        val = el.value.trim();
+        const val = el.options[el.selectedIndex]?.value || '';
+        filled = val !== '' && val !== 'Selecione…';
+      } else if (f.type === 'text' || f.type === 'textarea' || f.type === 'year-input') {
+        filled = el.value.trim() !== '';
+      } else if (f.type === 'multiselect-pills') {
+        // Pills selecionadas têm classe .pill-opt.selected
+        filled = el.querySelectorAll('.pill-opt.selected').length > 0;
+      } else if (f.type === 'tag-select') {
+        // Tags selecionadas têm classe .tag-sel-opt.selected
+        filled = el.querySelectorAll('.tag-sel-opt.selected').length > 0;
+      } else {
+        // Tipos não mapeados: não bloquear (assumir preenchido)
+        filled = true;
       }
-      if (!val) {
+      if (!filled) {
         showToast('Preencha o campo obrigatório: ' + f.label, 'error');
         nextStep(2); // leva de volta ao step de detalhes específicos do template
         return;

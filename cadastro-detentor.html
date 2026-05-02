@@ -405,6 +405,29 @@ select:disabled { background: var(--gray-1); color: var(--gray-5); cursor: not-a
           <button type="button" onclick="detClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-4);font-size:20px;line-height:1;padding:2px 4px;border-radius:4px;" title="Remover">×</button>
         </div>
         <span class="field-error" id="det-empresaError" style="font-size:11px;display:none;color:#D32F2F;margin-top:4px;"></span>
+
+        <!-- Link entrada manual -->
+        <div id="detManualToggleWrap" style="margin-top:10px;text-align:center;">
+          <button type="button" onclick="toggleManualDetCompany()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--gray-4);text-decoration:underline;padding:0;">
+            Não encontrei minha empresa — cadastrar manualmente
+          </button>
+        </div>
+
+        <!-- Formulário manual (oculto por padrão) -->
+        <div id="detManualCompanyForm" style="display:none;margin-top:14px;border:1px solid var(--gray-2);border-radius:10px;padding:16px;background:var(--gray-bg);">
+          <p style="font-size:13px;font-weight:600;color:var(--gray-mid);margin:0 0 12px;">Preencha os dados da empresa</p>
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>Nome da empresa <span style="color:#c0392b">*</span></label>
+            <input type="text" id="detManualCompanyName" placeholder="Ex: Minha Empresa Ltda" autocomplete="organization">
+          </div>
+          <div class="form-group" style="margin-bottom:14px;">
+            <label>Website <span style="font-size:11px;font-weight:400;color:var(--gray-4);margin-left:4px;">(opcional)</span></label>
+            <input type="text" id="detManualCompanyWebsite" placeholder="Ex: minhaempresa.com.br">
+          </div>
+          <button type="button" onclick="confirmManualDetCompany()" style="background:var(--black);color:#fff;border:none;border-radius:100px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;width:100%;">
+            Usar esta empresa
+          </button>
+        </div>
       </div>
 
       <!-- Segmento — linha cheia -->
@@ -718,7 +741,43 @@ function detClearCompany() {
   if (searchIcon) searchIcon.classList.remove('hidden');
   card.style.display = 'none';
   document.getElementById('detBrandfetchResults').classList.remove('show');
+  // Restaura link de cadastro manual
+  const toggleWrap = document.getElementById('detManualToggleWrap');
+  if (toggleWrap) toggleWrap.style.display = 'block';
+  // Limpa campos manuais
+  const mName = document.getElementById('detManualCompanyName');
+  const mSite = document.getElementById('detManualCompanyWebsite');
+  if (mName) mName.value = '';
+  if (mSite) mSite.value = '';
   searchInput.focus();
+}
+
+function toggleManualDetCompany() {
+  const form = document.getElementById('detManualCompanyForm');
+  const isVisible = form.style.display !== 'none';
+  form.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) {
+    document.getElementById('detManualCompanyName').focus();
+    // Limpa seleção anterior se houver
+    if (_detSelectedBrand) detClearCompany();
+  }
+}
+
+function confirmManualDetCompany() {
+  const name = document.getElementById('detManualCompanyName').value.trim();
+  if (!name) {
+    document.getElementById('detManualCompanyName').classList.add('error');
+    setTimeout(() => document.getElementById('detManualCompanyName').classList.remove('error'), 2000);
+    return;
+  }
+  let domain = document.getElementById('detManualCompanyWebsite').value.trim();
+  // Normaliza domínio (remove http/https e paths)
+  domain = domain.replace(/^https?:\/\//i, '').split('/')[0].trim();
+  // Seleciona como se fosse Brandfetch
+  detSelectBrandfetchBrand({ name, domain, icon: '', manual: true });
+  // Oculta formulário e toggle
+  document.getElementById('detManualCompanyForm').style.display = 'none';
+  document.getElementById('detManualToggleWrap').style.display = 'none';
 }
 
 // Event delegation para clicks no dropdown
