@@ -20,6 +20,8 @@
 export const config = { runtime: 'edge' };
 
 const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
+// Chave pública (anon) — segura para usar no servidor para verificar JWTs de usuários
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,12 +36,13 @@ function json(data, status = 200) {
   });
 }
 
-/** Verifica se o token pertence a um admin e retorna os dados do usuário */
+/** Verifica se o token pertence a um admin e retorna os dados do usuário.
+ *  Usa a anon key (pública) — não depende da service_role key. */
 async function verifyAdmin(token) {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+      'apikey': SUPABASE_ANON_KEY,
     },
   });
   if (!res.ok) return null;
@@ -133,7 +136,7 @@ export default async function handler(req) {
   if (!caller) return json({ error: 'Acesso restrito a administradores.' }, 403);
 
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) return json({ error: 'Configuração do servidor incompleta (service role key ausente).' }, 500);
+  if (!serviceKey) return json({ error: 'SUPABASE_SERVICE_ROLE_KEY não configurada na Vercel. Vá em Settings → Environment Variables e adicione a chave service_role do Supabase.' }, 500);
 
   let body = {};
   try { body = await req.json(); } catch {}
