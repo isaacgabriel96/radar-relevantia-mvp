@@ -2648,10 +2648,12 @@ async function _callManageAdmins(payload) {
   const token = session?.access_token;
   if (!token) throw new Error('Sessão expirada. Faça login novamente.');
 
-  const res = await fetch('/api/manage-admins', {
+  // Chama admin-actions no Supabase (já tem service_role key configurada lá)
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-actions`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_KEY,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
@@ -2673,7 +2675,7 @@ async function loadAdmins() {
   errorEl.style.display   = 'none';
 
   try {
-    const { admins } = await _callManageAdmins({ action: 'list' });
+    const { admins } = await _callManageAdmins({ action: 'list-admins' });
     loadingEl.style.display = 'none';
 
     if (!admins || admins.length === 0) {
@@ -2712,7 +2714,7 @@ async function loadAdmins() {
 async function adminRemove(userId, email) {
   if (!confirm(`Remover acesso de "${email}"?\n\nEsta ação não pode ser desfeita.`)) return;
   try {
-    await _callManageAdmins({ action: 'remove', userId });
+    await _callManageAdmins({ action: 'remove-admin', userId });
     showToast(`Acesso de ${email} removido.`, 'success');
     loadAdmins();
   } catch (err) {
@@ -2758,7 +2760,7 @@ async function adminInvite() {
   btn.textContent = 'Criando…';
 
   try {
-    await _callManageAdmins({ action: 'invite', email, nome, tempPassword: password });
+    await _callManageAdmins({ action: 'create-admin', email, nome, tempPassword: password });
 
     sucEl.innerHTML = `
       ✅ <strong>${escHtml(email)}</strong> criado com sucesso!<br>
