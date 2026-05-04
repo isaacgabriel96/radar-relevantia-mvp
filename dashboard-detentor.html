@@ -1856,11 +1856,23 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-4);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Nova senha</label>
-        <input id="novaSenhaInput" type="password" placeholder="Mínimo 8 caracteres" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+        <div style="position:relative">
+          <input id="novaSenhaInput" type="password" placeholder="Mínimo 8 caracteres" style="width:100%;padding:10px 40px 10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+          <button type="button" onclick="toggleSenhaVisivel('novaSenhaInput', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-3);padding:2px;display:flex;align-items:center">
+            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-4);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Confirmar nova senha</label>
-        <input id="confirmarSenhaInput" type="password" placeholder="Repita a nova senha" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+        <div style="position:relative">
+          <input id="confirmarSenhaInput" type="password" placeholder="Repita a nova senha" style="width:100%;padding:10px 40px 10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+          <button type="button" onclick="toggleSenhaVisivel('confirmarSenhaInput', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-3);padding:2px;display:flex;align-items:center">
+            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
       <div id="senhaErro" style="display:none;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-base);font-size:13px;color:#DC2626"></div>
       <div style="display:flex;gap:10px;margin-top:4px">
@@ -2800,6 +2812,13 @@ async function savePerfil() {
 }
 
 // ─── ALTERAR SENHA ───
+function toggleSenhaVisivel(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isVisible = input.type === 'text';
+  input.type = isVisible ? 'password' : 'text';
+  btn.querySelector('.eye-off').style.display = isVisible ? '' : 'none';
+  btn.querySelector('.eye-on').style.display  = isVisible ? 'none' : '';
+}
 function abrirModalAlterarSenha() {
   document.getElementById('senhaPasso1').style.display = 'flex';
   document.getElementById('senhaPasso2').style.display = 'none';
