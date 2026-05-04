@@ -606,6 +606,21 @@ tbody tr:last-child td { border-bottom: none; }
 .form-input::placeholder, .form-textarea::placeholder { color: var(--gray-400); }
 .form-input:disabled, .form-select:disabled, .form-textarea:disabled { background: var(--gray-100); color: var(--gray-400); cursor: not-allowed; }
 .form-textarea { resize: vertical; min-height: 80px; }
+/* Phone wrap component */
+.perfil-phone-wrap { display:flex; border:1.5px solid var(--gray-200); border-radius:var(--radius-base,8px); overflow:visible; position:relative; background:#fff; }
+.perfil-phone-wrap:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,134,11,0.1); }
+.perfil-phone-wrap .phone-country { display:flex; align-items:center; gap:6px; padding:10px 12px; cursor:pointer; background:var(--gray-100); border-right:1px solid var(--gray-200); white-space:nowrap; position:relative; user-select:none; min-width:90px; border-radius:var(--radius-base,8px) 0 0 var(--radius-base,8px); font-size:14px; }
+.perfil-phone-wrap .phone-country .caret { font-size:10px; color:var(--gray-400); }
+.perfil-phone-wrap.disabled .phone-country { pointer-events:none; cursor:default; }
+.perfil-phone-wrap .phone-number { flex:1; padding:10px 12px; border:none; outline:none; font-size:14px; font-family:var(--font-body,'DM Sans'),sans-serif; background:transparent; min-width:0; color:var(--text); }
+.perfil-phone-wrap .phone-number:disabled { color:var(--gray-400); cursor:default; }
+.perfil-phone-wrap .phone-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; background:#fff; border:1px solid var(--gray-200); border-radius:var(--radius-base,8px); box-shadow:0 4px 16px rgba(0,0,0,0.12); z-index:400; min-width:220px; max-height:220px; overflow-y:auto; }
+.perfil-phone-wrap .phone-dropdown.open { display:block; }
+.perfil-phone-wrap .phone-option { display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; font-size:13px; }
+.perfil-phone-wrap .phone-option:hover { background:var(--gray-100); }
+.perfil-phone-wrap .phone-option .flag { font-size:16px; }
+.perfil-phone-wrap .phone-option .country-name { flex:1; color:var(--text); }
+.perfil-phone-wrap .phone-option .country-dial { font-size:12px; color:var(--gray-400); }
 .form-select {
   appearance: none; cursor: pointer; padding-right: 36px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -1336,21 +1351,57 @@ tbody tr:last-child td { border-bottom: none; }
               <label class="form-label">Segmento</label>
               <select class="form-select marca-field" disabled>
                 <option value="">Selecione</option>
-                <option>Tecnologia</option>
-                <option>Moda</option>
-                <option>Alimentos</option>
-                <option>Esportes</option>
-                <option>Saúde</option>
-                <option>Automotivo</option>
-                <option>Financeiro</option>
-                <option>Educação</option>
-                <option>Entretenimento</option>
-                <option>Outro</option>
+                <optgroup label="Tecnologia &amp; Inovação">
+                  <option>Tecnologia</option>
+                  <option>Software / SaaS</option>
+                  <option>Inteligência Artificial</option>
+                  <option>Telecomunicações</option>
+                  <option>Games &amp; E-Sports</option>
+                  <option>Blockchain / Web3</option>
+                </optgroup>
+                <optgroup label="Consumo &amp; Varejo">
+                  <option>Alimentação &amp; Bebidas</option>
+                  <option>Moda &amp; Vestuário</option>
+                  <option>Beleza &amp; Cosméticos</option>
+                  <option>Casa &amp; Decoração</option>
+                  <option>Varejo</option>
+                  <option>E-commerce</option>
+                  <option>Luxo &amp; Alto Padrão</option>
+                </optgroup>
+                <optgroup label="Serviços &amp; Finanças">
+                  <option>Financeiro &amp; Banking</option>
+                  <option>Fintechs &amp; Pagamentos</option>
+                  <option>Seguros</option>
+                  <option>Imobiliário</option>
+                  <option>Consultoria &amp; Serviços</option>
+                </optgroup>
+                <optgroup label="Saúde &amp; Bem-estar">
+                  <option>Saúde &amp; Medicina</option>
+                  <option>Bem-estar &amp; Fitness</option>
+                  <option>Farmacêutico</option>
+                  <option>Suplementos &amp; Nutrição</option>
+                </optgroup>
+                <optgroup label="Mídia &amp; Entretenimento">
+                  <option>Entretenimento</option>
+                  <option>Mídia &amp; Comunicação</option>
+                  <option>Streaming &amp; Conteúdo</option>
+                  <option>Publicidade &amp; Marketing</option>
+                </optgroup>
+                <optgroup label="Outros Setores">
+                  <option>Educação</option>
+                  <option>Automotivo</option>
+                  <option>Turismo &amp; Hospitalidade</option>
+                  <option>Esportes</option>
+                  <option>Sustentabilidade &amp; ESG</option>
+                  <option>Energia</option>
+                  <option>Agronegócio</option>
+                  <option>Outro</option>
+                </optgroup>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label">Website</label>
-              <input class="form-input marca-field" type="url" value="" disabled>
+              <input class="form-input marca-field" type="text" value="" placeholder="https://suamarca.com.br" disabled onblur="perfilNormalizarUrl(this)">
             </div>
             <div class="form-group full">
               <label class="form-label">Descrição da marca</label>
@@ -1385,11 +1436,56 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="form-group">
               <label class="form-label">Telefone</label>
-              <input class="form-input resp-field" type="text" value="" disabled>
+              <div id="marcaPhoneWrap" class="perfil-phone-wrap disabled">
+                <div id="marcaPhoneCountry" class="phone-country" onclick="toggleMarcaPhoneDropdown()">
+                  <span id="marcaPhoneFlag">🇧🇷</span>
+                  <span id="marcaPhoneDial">+55</span>
+                  <span class="caret">▾</span>
+                  <div id="marcaPhoneDropdown" class="phone-dropdown">
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇧🇷','+55')"><span class="flag">🇧🇷</span><span class="country-name">Brasil</span><span class="country-dial">+55</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇵🇹','+351')"><span class="flag">🇵🇹</span><span class="country-name">Portugal</span><span class="country-dial">+351</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇺🇸','+1')"><span class="flag">🇺🇸</span><span class="country-name">EUA</span><span class="country-dial">+1</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇬🇧','+44')"><span class="flag">🇬🇧</span><span class="country-name">Reino Unido</span><span class="country-dial">+44</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇦🇷','+54')"><span class="flag">🇦🇷</span><span class="country-name">Argentina</span><span class="country-dial">+54</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇨🇴','+57')"><span class="flag">🇨🇴</span><span class="country-name">Colômbia</span><span class="country-dial">+57</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇲🇽','+52')"><span class="flag">🇲🇽</span><span class="country-name">México</span><span class="country-dial">+52</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇨🇱','+56')"><span class="flag">🇨🇱</span><span class="country-name">Chile</span><span class="country-dial">+56</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇪🇸','+34')"><span class="flag">🇪🇸</span><span class="country-name">Espanha</span><span class="country-dial">+34</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇩🇪','+49')"><span class="flag">🇩🇪</span><span class="country-name">Alemanha</span><span class="country-dial">+49</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇫🇷','+33')"><span class="flag">🇫🇷</span><span class="country-name">França</span><span class="country-dial">+33</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇮🇹','+39')"><span class="flag">🇮🇹</span><span class="country-name">Itália</span><span class="country-dial">+39</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇯🇵','+81')"><span class="flag">🇯🇵</span><span class="country-name">Japão</span><span class="country-dial">+81</span></div>
+                    <div class="phone-option" onclick="selectMarcaCountry(event,'🇨🇳','+86')"><span class="flag">🇨🇳</span><span class="country-name">China</span><span class="country-dial">+86</span></div>
+                  </div>
+                </div>
+                <input id="marcaTelInput" class="phone-number resp-field" type="tel" placeholder="(11) 99999-9999" disabled oninput="formatMarcaPhone(this)">
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Cargo</label>
-              <input class="form-input resp-field" type="text" value="" disabled>
+              <select class="form-input resp-field" disabled style="appearance:auto">
+                <option value="" disabled>Selecione seu cargo</option>
+                <option>CEO / Fundador</option>
+                <option>Sócio / Co-fundador</option>
+                <option>Diretor Geral</option>
+                <option>Presidente</option>
+                <option>Diretor Comercial</option>
+                <option>Gerente Comercial</option>
+                <option>Gerente de Parcerias</option>
+                <option>Coordenador de Parcerias</option>
+                <option>Analista Comercial</option>
+                <option>Executivo de Vendas</option>
+                <option>Diretor de Marketing</option>
+                <option>Gerente de Marketing</option>
+                <option>Coordenador de Marketing</option>
+                <option>Analista de Marketing</option>
+                <option>Produtor Executivo</option>
+                <option>Coordenador de Produção</option>
+                <option>Gerente de Operações</option>
+                <option>Assessor / Consultor</option>
+                <option>Representante</option>
+                <option>Outro</option>
+              </select>
             </div>
           </div>
           <div class="form-actions" id="respActions" style="display:none">
@@ -1452,7 +1548,7 @@ tbody tr:last-child td { border-bottom: none; }
               <div style="font-size:14px; font-weight:600; color:var(--text)">Alterar senha</div>
               <div style="font-size:13px; color:var(--gray-400); margin-top:2px">Redefina sua senha de acesso à plataforma</div>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="showToast('Recurso disponível em breve', 'success')">Alterar</button>
+            <button class="btn btn-ghost btn-sm" onclick="abrirModalAlterarSenha()">Alterar →</button>
           </div>
           <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 0">
             <div>
@@ -1639,6 +1735,64 @@ tbody tr:last-child td { border-bottom: none; }
       <div style="display:flex;gap:10px;justify-content:flex-end">
         <button class="btn btn-ghost" onclick="fecharModalConvite()">Cancelar</button>
         <button id="btnEnviarConvite" class="btn btn-gold" onclick="enviarConvite()">Enviar convite</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Alterar Senha -->
+<div id="modalAlterarSenha" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:var(--radius-lg);padding:32px;width:100%;max-width:420px;margin:16px;box-shadow:0 24px 64px rgba(30,22,0,0.2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <h3 style="font-size:18px;font-weight:700;color:var(--text);margin:0">Alterar senha</h3>
+      <button onclick="fecharModalAlterarSenha()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);padding:4px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <!-- Passo 1: solicitar código -->
+    <div id="senhaPasso1" style="display:flex;flex-direction:column;gap:16px">
+      <div style="padding:12px 14px;background:var(--gray-100);border-radius:var(--radius-base);font-size:13px;color:var(--gray-600);line-height:1.5">
+        Para sua segurança, enviaremos um código de verificação para o e-mail da sua conta.
+      </div>
+      <div id="senhaErro1" style="display:none;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-base);font-size:13px;color:#DC2626"></div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button onclick="fecharModalAlterarSenha()" style="flex:1;padding:10px;background:var(--gray-100);border:none;border-radius:var(--radius-pill,100px);font-size:14px;font-weight:600;cursor:pointer;color:var(--gray-600)">Cancelar</button>
+        <button id="btnEnviarCodigo" onclick="enviarCodigoSenha()" style="flex:1;padding:10px;background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B));border:none;border-radius:var(--radius-pill,100px);font-size:14px;font-weight:600;color:#fff;cursor:pointer">Enviar código</button>
+      </div>
+    </div>
+    <!-- Passo 2: código + nova senha -->
+    <div id="senhaPasso2" style="display:none;flex-direction:column;gap:16px">
+      <div style="padding:12px 14px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--radius-base);font-size:13px;color:#166534;line-height:1.5">
+        Código enviado! Verifique sua caixa de entrada e insira abaixo.
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Código de verificação</label>
+        <input id="otpSenhaInput" type="text" inputmode="numeric" maxlength="8" placeholder="00000000" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-border,#E5E5E5);border-radius:var(--radius-base);font-size:20px;letter-spacing:0.25em;text-align:center;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Nova senha</label>
+        <div style="position:relative">
+          <input id="novaSenhaInput" type="password" placeholder="Mínimo 8 caracteres" style="width:100%;padding:10px 40px 10px 12px;border:1.5px solid var(--gray-border,#E5E5E5);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+          <button type="button" onclick="toggleSenhaVisivel('novaSenhaInput', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);padding:2px;display:flex;align-items:center">
+            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Confirmar nova senha</label>
+        <div style="position:relative">
+          <input id="confirmarSenhaInput" type="password" placeholder="Repita a nova senha" style="width:100%;padding:10px 40px 10px 12px;border:1.5px solid var(--gray-border,#E5E5E5);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
+          <button type="button" onclick="toggleSenhaVisivel('confirmarSenhaInput', this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);padding:2px;display:flex;align-items:center">
+            <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;display:none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="senhaErro" style="display:none;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-base);font-size:13px;color:#DC2626"></div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button onclick="fecharModalAlterarSenha()" style="flex:1;padding:10px;background:var(--gray-100);border:none;border-radius:var(--radius-pill,100px);font-size:14px;font-weight:600;cursor:pointer;color:var(--gray-600)">Cancelar</button>
+        <button id="btnSalvarSenha" onclick="salvarNovaSenha()" style="flex:1;padding:10px;background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B));border:none;border-radius:var(--radius-pill,100px);font-size:14px;font-weight:600;color:#fff;cursor:pointer">Salvar senha</button>
       </div>
     </div>
   </div>
@@ -1973,12 +2127,34 @@ function populateConfigFields(p) {
   if (marcaFields[3]) marcaFields[3].value = p.website || '';
   if (marcaFields[4]) marcaFields[4].value = p.descricao || '';
 
-  // Resp fields: [0]=nome, [1]=email, [2]=telefone, [3]=cargo
+  // Resp fields: [0]=nome, [1]=email, [2]=phone input (tel), [3]=cargo (select)
   const respFields = document.querySelectorAll('.resp-field');
   if (respFields[0]) respFields[0].value = p.nome || '';
   if (respFields[1]) respFields[1].value = p.email || '';
-  if (respFields[2]) respFields[2].value = p.telefone || '';
-  if (respFields[3]) respFields[3].value = p.cargo || '';
+  // Phone: parse DDI + number
+  const dialMap = {'+55':'🇧🇷','+351':'🇵🇹','+1':'🇺🇸','+44':'🇬🇧','+54':'🇦🇷','+57':'🇨🇴','+52':'🇲🇽','+56':'🇨🇱','+34':'🇪🇸','+49':'🇩🇪','+33':'🇫🇷','+39':'🇮🇹','+81':'🇯🇵','+86':'🇨🇳'};
+  let telRaw = p.telefone || '';
+  let dialCode = '+55', flag = '🇧🇷', numero = telRaw;
+  if (telRaw.startsWith('+')) {
+    const m = telRaw.match(/^(\+\d{1,3})\s?(.*)/);
+    if (m) { dialCode = m[1]; numero = m[2]; flag = dialMap[dialCode] || flag; }
+  }
+  const flagEl2 = document.getElementById('marcaPhoneFlag');
+  const dialEl2 = document.getElementById('marcaPhoneDial');
+  const telEl2  = document.getElementById('marcaTelInput');
+  if (flagEl2) flagEl2.textContent = flag;
+  if (dialEl2) dialEl2.textContent = dialCode;
+  if (telEl2) {
+    const conf2 = _marcaPhoneMasks[dialCode];
+    if (conf2) { telEl2.placeholder = conf2.placeholder; telEl2.value = conf2.mask(numero); }
+    else telEl2.value = numero;
+  }
+  // Cargo select
+  if (respFields[3] && p.cargo) {
+    const opt = Array.from(respFields[3].options).find(o => o.value === p.cargo || o.textContent === p.cargo);
+    if (opt) respFields[3].value = opt.value;
+    else { const custom = document.createElement('option'); custom.value = p.cargo; custom.textContent = p.cargo; respFields[3].appendChild(custom); respFields[3].value = p.cargo; }
+  }
 }
 
 // ─── NAVIGATION ───
@@ -2461,22 +2637,34 @@ function toggleEditResp() {
     if (f.type === 'email') return;
     f.disabled = !editingResp;
   });
+  // Toggle phone-wrap disabled state
+  const phoneWrap = document.getElementById('marcaPhoneWrap');
+  if (phoneWrap) {
+    if (editingResp) phoneWrap.classList.remove('disabled');
+    else phoneWrap.classList.add('disabled');
+  }
   actions.style.display = editingResp ? 'flex' : 'none';
   btn.style.display = editingResp ? 'none' : '';
 }
 
 async function saveResp() {
-  const nomeInput = document.querySelector('.resp-field[type="text"]');
+  // resp-field order: [0]=nome (text), [1]=email, [2]=phone input (tel), [3]=cargo (select)
+  const nomeInput  = document.querySelector('.resp-field[type="text"]');
+  const emailInput = document.querySelector('.resp-field[type="email"]');
   if (nomeInput) {
-    const newName = nomeInput.value;
-    const email = document.querySelector('.resp-field[type="email"]').value;
+    const newName  = nomeInput.value.trim();
+    const email    = emailInput?.value || '';
     setUserInfo(newName, email);
     if (!isDemoMode()) {
-      const userId = await getAuthUserId();
-      const token = await _getWriteToken();
+      const dialCode = document.getElementById('marcaPhoneDial')?.textContent || '+55';
+      const telNum   = document.getElementById('marcaTelInput')?.value?.trim() || '';
+      const telefone = telNum ? dialCode + ' ' + telNum : '';
+      const cargo    = document.querySelector('.resp-field[style*="appearance"]')?.value || '';
+      const userId   = await getAuthUserId();
+      const token    = await _getWriteToken();
       if (userId && token) {
         await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId, {
-          method: 'PATCH', body: JSON.stringify({ nome: newName }),
+          method: 'PATCH', body: JSON.stringify({ nome: newName, telefone, cargo }),
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
         });
@@ -2485,6 +2673,133 @@ async function saveResp() {
   }
   toggleEditResp();
   showToast('Dados do responsável salvos com sucesso!', 'success');
+}
+
+// ─── MARCA PHONE ───
+const _marcaPhoneMasks = {
+  '+55':  { mask: v => { v=v.replace(/\D/g,'').substring(0,11); if(v.length>6) return v.replace(/^(\d{2})(\d{5})(\d{0,4})/,'($1) $2-$3'); if(v.length>2) return v.replace(/^(\d{2})(\d{0,5})/,'($1) $2'); return v.length?v.replace(/^(\d{0,2})/,'($1'):v; }, placeholder:'(11) 99999-9999' },
+  '+1':   { mask: v => { v=v.replace(/\D/g,'').substring(0,10); if(v.length>6) return v.replace(/^(\d{3})(\d{3})(\d{0,4})/,'($1) $2-$3'); if(v.length>3) return v.replace(/^(\d{3})(\d{0,3})/,'($1) $2'); return v; }, placeholder:'(555) 000-0000' },
+  '+351': { mask: v => { v=v.replace(/\D/g,'').substring(0,9); if(v.length>6) return v.replace(/^(\d{3})(\d{3})(\d{0,3})/,'$1 $2 $3'); if(v.length>3) return v.replace(/^(\d{3})(\d{0,3})/,'$1 $2'); return v; }, placeholder:'912 345 678' },
+  '+44':  { mask: v => { v=v.replace(/\D/g,'').substring(0,11); if(v.length>5) return v.replace(/^(\d{5})(\d{0,6})/,'$1 $2'); return v; }, placeholder:'07911 123456' },
+  '+54':  { mask: v => { v=v.replace(/\D/g,'').substring(0,10); if(v.length>6) return v.replace(/^(\d{2})(\d{4})(\d{0,4})/,'($1) $2-$3'); if(v.length>2) return v.replace(/^(\d{2})(\d{0,4})/,'($1) $2'); return v; }, placeholder:'(11) 1234-5678' },
+  '+57':  { mask: v => { v=v.replace(/\D/g,'').substring(0,10); if(v.length>6) return v.replace(/^(\d{3})(\d{3})(\d{0,4})/,'($1) $2-$3'); if(v.length>3) return v.replace(/^(\d{3})(\d{0,3})/,'($1) $2'); return v; }, placeholder:'(300) 123-4567' },
+  '+52':  { mask: v => { v=v.replace(/\D/g,'').substring(0,10); if(v.length>6) return v.replace(/^(\d{2})(\d{4})(\d{0,4})/,'($1) $2-$3'); if(v.length>2) return v.replace(/^(\d{2})(\d{0,4})/,'($1) $2'); return v; }, placeholder:'(55) 1234-5678' },
+  '+56':  { mask: v => { v=v.replace(/\D/g,'').substring(0,9); if(v.length>5) return v.replace(/^(\d{1})(\d{4})(\d{0,4})/,'$1 $2-$3'); if(v.length>1) return v.replace(/^(\d{1})(\d{0,4})/,'$1 $2'); return v; }, placeholder:'9 1234-5678' },
+  '+34':  { mask: v => { v=v.replace(/\D/g,'').substring(0,9); if(v.length>6) return v.replace(/^(\d{3})(\d{3})(\d{0,3})/,'$1 $2 $3'); if(v.length>3) return v.replace(/^(\d{3})(\d{0,3})/,'$1 $2'); return v; }, placeholder:'612 345 678' },
+  '+49':  { mask: v => { v=v.replace(/\D/g,'').substring(0,11); if(v.length>4) return v.replace(/^(\d{4})(\d{0,7})/,'$1 $2'); return v; }, placeholder:'1512 3456789' },
+  '+33':  { mask: v => { v=v.replace(/\D/g,'').substring(0,9); if(v.length>1) return v.replace(/(\d{1})(?=\d)/g,'$1 ').trim().substring(0,14); return v; }, placeholder:'6 12 34 56 78' },
+  '+39':  { mask: v => { v=v.replace(/\D/g,'').substring(0,10); if(v.length>6) return v.replace(/^(\d{3})(\d{3})(\d{0,4})/,'$1 $2 $3'); if(v.length>3) return v.replace(/^(\d{3})(\d{0,3})/,'$1 $2'); return v; }, placeholder:'312 345 6789' },
+  '+81':  { mask: v => { v=v.replace(/\D/g,'').substring(0,11); if(v.length>6) return v.replace(/^(\d{2})(\d{4})(\d{0,4})/,'$1-$2-$3'); if(v.length>2) return v.replace(/^(\d{2})(\d{0,4})/,'$1-$2'); return v; }, placeholder:'90-1234-5678' },
+  '+86':  { mask: v => { v=v.replace(/\D/g,'').substring(0,11); if(v.length>7) return v.replace(/^(\d{3})(\d{4})(\d{0,4})/,'$1 $2 $3'); if(v.length>3) return v.replace(/^(\d{3})(\d{0,4})/,'$1 $2'); return v; }, placeholder:'131 2345 6789' },
+};
+function formatMarcaPhone(input) {
+  const dial = document.getElementById('marcaPhoneDial')?.textContent?.trim() || '+55';
+  const conf = _marcaPhoneMasks[dial];
+  if (conf) input.value = conf.mask(input.value);
+  else input.value = input.value.replace(/\D/g,'').substring(0,12);
+}
+function perfilNormalizarUrl(input) {
+  let v = input.value.trim();
+  if (!v) return;
+  if (!/^https?:\/\//i.test(v)) input.value = 'https://' + v;
+}
+function toggleMarcaPhoneDropdown() {
+  if (document.getElementById('marcaPhoneWrap').classList.contains('disabled')) return;
+  document.getElementById('marcaPhoneDropdown').classList.toggle('open');
+}
+function selectMarcaCountry(event, flag, dial) {
+  event.stopPropagation();
+  document.getElementById('marcaPhoneFlag').textContent = flag;
+  document.getElementById('marcaPhoneDial').textContent = dial;
+  document.getElementById('marcaPhoneDropdown').classList.remove('open');
+  const input = document.getElementById('marcaTelInput');
+  const conf = _marcaPhoneMasks[dial];
+  if (conf) { input.placeholder = conf.placeholder; formatMarcaPhone(input); }
+  input.focus();
+}
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('marcaPhoneDropdown');
+  if (dd && !e.target.closest('#marcaPhoneCountry')) dd.classList.remove('open');
+});
+
+// ─── ALTERAR SENHA ───
+function toggleSenhaVisivel(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isVisible = input.type === 'text';
+  input.type = isVisible ? 'password' : 'text';
+  btn.querySelector('.eye-off').style.display = isVisible ? '' : 'none';
+  btn.querySelector('.eye-on').style.display  = isVisible ? 'none' : '';
+}
+function abrirModalAlterarSenha() {
+  document.getElementById('senhaPasso1').style.display = 'flex';
+  document.getElementById('senhaPasso2').style.display = 'none';
+  document.getElementById('senhaErro1').style.display = 'none';
+  document.getElementById('senhaErro').style.display = 'none';
+  const btnEnviar = document.getElementById('btnEnviarCodigo');
+  btnEnviar.disabled = false;
+  btnEnviar.textContent = 'Enviar código';
+  document.getElementById('modalAlterarSenha').style.display = 'flex';
+}
+function fecharModalAlterarSenha() {
+  document.getElementById('modalAlterarSenha').style.display = 'none';
+}
+async function enviarCodigoSenha() {
+  const btnEl  = document.getElementById('btnEnviarCodigo');
+  const erroEl = document.getElementById('senhaErro1');
+  erroEl.style.display = 'none';
+  btnEl.disabled = true;
+  btnEl.textContent = 'Enviando...';
+  try {
+    const { error } = await sb.auth.reauthenticate();
+    if (error) throw error;
+    document.getElementById('senhaPasso1').style.display = 'none';
+    document.getElementById('senhaPasso2').style.display = 'flex';
+    document.getElementById('otpSenhaInput').value = '';
+    document.getElementById('novaSenhaInput').value = '';
+    document.getElementById('confirmarSenhaInput').value = '';
+    document.getElementById('otpSenhaInput').focus();
+  } catch (err) {
+    erroEl.textContent = err.message || 'Erro ao enviar código. Tente novamente.';
+    erroEl.style.display = '';
+    btnEl.disabled = false;
+    btnEl.textContent = 'Enviar código';
+  }
+}
+async function salvarNovaSenha() {
+  const otp       = document.getElementById('otpSenhaInput').value.trim();
+  const nova      = document.getElementById('novaSenhaInput').value;
+  const confirmar = document.getElementById('confirmarSenhaInput').value;
+  const erroEl    = document.getElementById('senhaErro');
+  const btnEl     = document.getElementById('btnSalvarSenha');
+  erroEl.style.display = 'none';
+  if (!otp) {
+    erroEl.textContent = 'Insira o código recebido por e-mail.';
+    erroEl.style.display = '';
+    return;
+  }
+  if (nova.length < 8) {
+    erroEl.textContent = 'A senha deve ter pelo menos 8 caracteres.';
+    erroEl.style.display = '';
+    return;
+  }
+  if (nova !== confirmar) {
+    erroEl.textContent = 'As senhas não coincidem.';
+    erroEl.style.display = '';
+    return;
+  }
+  btnEl.disabled = true;
+  btnEl.textContent = 'Salvando...';
+  try {
+    const { error } = await sb.auth.updateUser({ password: nova, nonce: otp });
+    if (error) throw error;
+    fecharModalAlterarSenha();
+    showToast('Senha alterada com sucesso!', 'success');
+  } catch (err) {
+    erroEl.textContent = err.message || 'Código inválido ou expirado.';
+    erroEl.style.display = '';
+    btnEl.disabled = false;
+    btnEl.textContent = 'Salvar senha';
+  }
 }
 
 // ─── LOGOUT ───
