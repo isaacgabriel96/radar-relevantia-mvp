@@ -1833,27 +1833,7 @@ tbody tr:last-child td { border-bottom: none; }
       </button>
     </div>
 
-    <!-- Etapa 1: enviar código -->
-    <div id="senhaPasso1" style="display:flex;flex-direction:column;gap:16px">
-      <div style="padding:12px 14px;background:var(--gray-1);border-radius:var(--radius-base);font-size:13px;color:var(--gray-4);line-height:1.5">
-        Para sua segurança, enviaremos um código de verificação para o e-mail da sua conta.
-      </div>
-      <div id="senhaErro1" style="display:none;padding:10px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-base);font-size:13px;color:#DC2626"></div>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button onclick="fecharModalAlterarSenha()" style="flex:1;padding:10px;background:var(--gray-1);border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;cursor:pointer;color:var(--gray-4)">Cancelar</button>
-        <button id="btnEnviarCodigo" onclick="enviarCodigoSenha()" style="flex:1;padding:10px;background:var(--gold-gradient);border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;color:#fff;cursor:pointer">Enviar código</button>
-      </div>
-    </div>
-
-    <!-- Etapa 2: código + nova senha -->
-    <div id="senhaPasso2" style="display:none;flex-direction:column;gap:16px">
-      <div style="padding:12px 14px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--radius-base);font-size:13px;color:#166534;line-height:1.5">
-        Código enviado! Verifique sua caixa de entrada e insira abaixo.
-      </div>
-      <div>
-        <label style="font-size:12px;font-weight:600;color:var(--gray-4);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Código de verificação</label>
-        <input id="otpSenhaInput" type="text" inputmode="numeric" maxlength="6" placeholder="000000" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:18px;letter-spacing:0.2em;text-align:center;outline:none;box-sizing:border-box;font-family:var(--font-body)">
-      </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
       <div>
         <label style="font-size:12px;font-weight:600;color:var(--gray-4);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:6px">Nova senha</label>
         <input id="novaSenhaInput" type="password" placeholder="Mínimo 8 caracteres" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:14px;outline:none;box-sizing:border-box;font-family:var(--font-body)">
@@ -2800,59 +2780,20 @@ async function savePerfil() {
 }
 
 // ─── ALTERAR SENHA ───
-let _senhaOtpEmail = null; // guarda o email para verifyOtp
-
 function abrirModalAlterarSenha() {
-  document.getElementById('senhaPasso1').style.display = 'flex';
-  document.getElementById('senhaPasso2').style.display = 'none';
-  document.getElementById('senhaErro1').style.display = 'none';
+  document.getElementById('novaSenhaInput').value = '';
+  document.getElementById('confirmarSenhaInput').value = '';
   document.getElementById('senhaErro').style.display = 'none';
-  const btnEnviar = document.getElementById('btnEnviarCodigo');
-  btnEnviar.disabled = false;
-  btnEnviar.textContent = 'Enviar código';
-  _senhaOtpEmail = null;
+  const btn = document.getElementById('btnSalvarSenha');
+  btn.disabled = false;
+  btn.textContent = 'Salvar senha';
   document.getElementById('modalAlterarSenha').style.display = 'flex';
+  setTimeout(() => document.getElementById('novaSenhaInput').focus(), 100);
 }
 function fecharModalAlterarSenha() {
   document.getElementById('modalAlterarSenha').style.display = 'none';
-  _senhaOtpEmail = null;
-}
-async function enviarCodigoSenha() {
-  const btnEl  = document.getElementById('btnEnviarCodigo');
-  const erroEl = document.getElementById('senhaErro1');
-  erroEl.style.display = 'none';
-  btnEl.disabled = true;
-  btnEl.textContent = 'Enviando...';
-  try {
-    // Obter email do usuário logado
-    const session = await getSessionAsync('rightsholder');
-    const email = session?.user?.email;
-    if (!email) throw new Error('Sessão expirada. Faça login novamente.');
-    _senhaOtpEmail = email;
-
-    // Enviar OTP via magic link / signInWithOtp (não requer configuração extra)
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false }
-    });
-    if (error) throw error;
-
-    // Avança para passo 2
-    document.getElementById('senhaPasso1').style.display = 'none';
-    document.getElementById('senhaPasso2').style.display = 'flex';
-    document.getElementById('otpSenhaInput').value = '';
-    document.getElementById('novaSenhaInput').value = '';
-    document.getElementById('confirmarSenhaInput').value = '';
-    document.getElementById('otpSenhaInput').focus();
-  } catch (err) {
-    erroEl.textContent = err.message || 'Erro ao enviar código. Tente novamente.';
-    erroEl.style.display = '';
-    btnEl.disabled = false;
-    btnEl.textContent = 'Enviar código';
-  }
 }
 async function salvarNovaSenha() {
-  const otp       = document.getElementById('otpSenhaInput').value.trim();
   const nova      = document.getElementById('novaSenhaInput').value;
   const confirmar = document.getElementById('confirmarSenhaInput').value;
   const erroEl    = document.getElementById('senhaErro');
@@ -2860,11 +2801,6 @@ async function salvarNovaSenha() {
 
   erroEl.style.display = 'none';
 
-  if (!otp || otp.length < 4) {
-    erroEl.textContent = 'Insira o código de verificação recebido por e-mail.';
-    erroEl.style.display = '';
-    return;
-  }
   if (nova.length < 8) {
     erroEl.textContent = 'A senha deve ter pelo menos 8 caracteres.';
     erroEl.style.display = '';
@@ -2879,18 +2815,8 @@ async function salvarNovaSenha() {
   btnEl.disabled = true;
   btnEl.textContent = 'Salvando...';
   try {
-    // Verificar OTP — isso atualiza a sessão
-    const { error: otpError } = await sb.auth.verifyOtp({
-      email: _senhaOtpEmail,
-      token: otp,
-      type: 'email'
-    });
-    if (otpError) throw new Error('Código inválido ou expirado. Verifique e tente novamente.');
-
-    // Agora atualizar a senha com a sessão renovada
-    const { error: pwError } = await sb.auth.updateUser({ password: nova });
-    if (pwError) throw pwError;
-
+    const { error } = await sb.auth.updateUser({ password: nova });
+    if (error) throw error;
     fecharModalAlterarSenha();
     showToast('Senha alterada com sucesso!', 'success');
   } catch (err) {
