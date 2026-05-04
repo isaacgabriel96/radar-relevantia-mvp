@@ -2800,8 +2800,9 @@ async function savePerfil() {
 }
 
 // ─── ALTERAR SENHA ───
+let _senhaOtpEmail = null; // guarda o email para verifyOtp
+
 function abrirModalAlterarSenha() {
-  // Resetar passo 1
   document.getElementById('senhaPasso1').style.display = 'flex';
   document.getElementById('senhaPasso2').style.display = 'none';
   document.getElementById('senhaErro1').style.display = 'none';
@@ -2809,10 +2810,12 @@ function abrirModalAlterarSenha() {
   const btnEnviar = document.getElementById('btnEnviarCodigo');
   btnEnviar.disabled = false;
   btnEnviar.textContent = 'Enviar código';
+  _senhaOtpEmail = null;
   document.getElementById('modalAlterarSenha').style.display = 'flex';
 }
 function fecharModalAlterarSenha() {
   document.getElementById('modalAlterarSenha').style.display = 'none';
+  _senhaOtpEmail = null;
 }
 async function enviarCodigoSenha() {
   const btnEl  = document.getElementById('btnEnviarCodigo');
@@ -2821,8 +2824,19 @@ async function enviarCodigoSenha() {
   btnEl.disabled = true;
   btnEl.textContent = 'Enviando...';
   try {
-    const { error } = await sb.auth.reauthenticate();
+    // Obter email do usuário logado
+    const session = await getSessionAsync('detentor');
+    const email = session?.user?.email;
+    if (!email) throw new Error('Sessão expirada. Faça login novamente.');
+    _senhaOtpEmail = email;
+
+    // Enviar OTP via magic link / signInWithOtp (não requer configuração extra)
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false }
+    });
     if (error) throw error;
+
     // Avança para passo 2
     document.getElementById('senhaPasso1').style.display = 'none';
     document.getElementById('senhaPasso2').style.display = 'flex';
@@ -2865,12 +2879,22 @@ async function salvarNovaSenha() {
   btnEl.disabled = true;
   btnEl.textContent = 'Salvando...';
   try {
-    const { error } = await sb.auth.updateUser({ password: nova, nonce: otp });
-    if (error) throw error;
+    // Verificar OTP — isso atualiza a sessão
+    const { error: otpError } = await sb.auth.verifyOtp({
+      email: _senhaOtpEmail,
+      token: otp,
+      type: 'email'
+    });
+    if (otpError) throw new Error('Código inválido ou expirado. Verifique e tente novamente.');
+
+    // Agora atualizar a senha com a sessão renovada
+    const { error: pwError } = await sb.auth.updateUser({ password: nova });
+    if (pwError) throw pwError;
+
     fecharModalAlterarSenha();
     showToast('Senha alterada com sucesso!', 'success');
   } catch (err) {
-    erroEl.textContent = err.message || 'Código inválido ou expirado. Tente novamente.';
+    erroEl.textContent = err.message || 'Erro ao alterar senha. Tente novamente.';
     erroEl.style.display = '';
   } finally {
     btnEl.disabled = false;
