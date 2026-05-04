@@ -2825,7 +2825,7 @@ async function enviarCodigoSenha() {
   btnEl.textContent = 'Enviando...';
   try {
     // Obter email do usuário logado
-    const session = await getSessionAsync('detentor');
+    const session = await getSessionAsync('rightsholder');
     const email = session?.user?.email;
     if (!email) throw new Error('Sessão expirada. Faça login novamente.');
     _senhaOtpEmail = email;
