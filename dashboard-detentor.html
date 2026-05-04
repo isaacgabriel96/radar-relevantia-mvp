@@ -1089,6 +1089,22 @@ tbody tr:last-child td { border-bottom: none; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
   .pub-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 }
+
+/* ─── PERFIL PHONE WRAP ─── */
+.perfil-phone-wrap { display:flex; border:1.5px solid var(--gray-2,#E0D8CC); border-radius:var(--radius-base,10px); overflow:visible; position:relative; background:#fff; }
+.perfil-phone-wrap:focus-within { border-color:var(--gold,#B8860B); }
+.perfil-phone-wrap .phone-country { display:flex; align-items:center; gap:6px; padding:10px 12px; cursor:pointer; background:var(--gray-1,#F5F0E8); border-right:1px solid var(--gray-2,#E0D8CC); white-space:nowrap; position:relative; user-select:none; min-width:90px; border-radius:var(--radius-base,10px) 0 0 var(--radius-base,10px); font-size:14px; }
+.perfil-phone-wrap .phone-country .caret { font-size:10px; color:var(--gray-3,#A89880); }
+.perfil-phone-wrap.disabled .phone-country { pointer-events:none; cursor:default; }
+.perfil-phone-wrap .phone-number { flex:1; padding:10px 12px; border:none; outline:none; font-size:14px; font-family:var(--font-body,'DM Sans'),sans-serif; background:transparent; min-width:0; color:var(--black,#1A1200); }
+.perfil-phone-wrap .phone-number:disabled { color:var(--gray-400,#9ca3af); cursor:default; }
+.perfil-phone-wrap .phone-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; background:#fff; border:1px solid var(--gray-2,#E0D8CC); border-radius:var(--radius-base,10px); box-shadow:0 4px 16px rgba(30,22,0,.12); z-index:400; min-width:220px; max-height:220px; overflow-y:auto; }
+.perfil-phone-wrap .phone-dropdown.open { display:block; }
+.perfil-phone-wrap .phone-option { display:flex; align-items:center; gap:8px; padding:8px 12px; cursor:pointer; font-size:13px; }
+.perfil-phone-wrap .phone-option:hover { background:var(--gray-1,#F5F0E8); }
+.perfil-phone-wrap .phone-option .flag { font-size:16px; }
+.perfil-phone-wrap .phone-option .country-name { flex:1; color:var(--black,#1A1200); }
+.perfil-phone-wrap .phone-option .country-dial { font-size:12px; color:var(--gray-3,#A89880); }
 </style>
 </head>
 <body>
@@ -1520,10 +1536,48 @@ tbody tr:last-child td { border-bottom: none; }
               <label class="form-label">Segmento</label>
               <select class="form-select empresa-field" disabled>
                 <option value="">Selecione</option>
-                <option>Esporte</option>
-                <option>Cultura</option>
-                <option>Entretenimento</option>
-                <option>Educação</option>
+                <optgroup label="Pessoas &amp; Talentos">
+                  <option>Influenciador(a)</option>
+                  <option>Atleta</option>
+                  <option>Celebridade / Artista</option>
+                  <option>Músico / Banda</option>
+                  <option>Comediante / Humorista</option>
+                  <option>Streamer / Gamer</option>
+                  <option>Apresentador / Comunicador</option>
+                  <option>Representante</option>
+                </optgroup>
+                <optgroup label="Empresas &amp; Organizações">
+                  <option>Empresa de Eventos</option>
+                  <option>Venue / Espaço de Eventos</option>
+                  <option>Complexo Esportivo</option>
+                  <option>Marca com Ativo de Patrocínio</option>
+                  <option>Negócio / Estabelecimento</option>
+                  <option>Startup / Scale-up</option>
+                  <option>Clube Esportivo</option>
+                  <option>Liga / Federação Esportiva</option>
+                  <option>Time de E-Sports</option>
+                  <option>ONG / Instituto</option>
+                  <option>Associação / Entidade</option>
+                </optgroup>
+                <optgroup label="Mídia &amp; Conteúdo">
+                  <option>Podcast</option>
+                  <option>Canal YouTube / Streaming</option>
+                  <option>Empresa de Mídia</option>
+                  <option>Produtora de Conteúdo</option>
+                  <option>Plataforma Digital</option>
+                </optgroup>
+                <optgroup label="Agências &amp; Representação">
+                  <option>Agência de Talentos</option>
+                  <option>Agência de Eventos</option>
+                  <option>Agência de Marketing Esportivo</option>
+                  <option>Assessoria / Gestora de Direitos</option>
+                </optgroup>
+                <optgroup label="Projeto ou Iniciativa Específica">
+                  <option>Summit / Conferência</option>
+                  <option>Lançamento de Produto</option>
+                  <option>Projeto Cultural</option>
+                  <option>Outro</option>
+                </optgroup>
               </select>
             </div>
             <div class="form-group full">
@@ -1613,7 +1667,30 @@ tbody tr:last-child td { border-bottom: none; }
             </div>
             <div class="form-group">
               <label class="form-label">Telefone</label>
-              <input class="form-input perfil-field" type="text" value="" disabled>
+              <div id="perfilPhoneWrap" class="perfil-phone-wrap disabled">
+                <div id="perfilPhoneCountry" class="phone-country" onclick="togglePerfilPhoneDropdown()">
+                  <span id="perfilPhoneFlag">🇧🇷</span>
+                  <span id="perfilPhoneDial">+55</span>
+                  <span class="caret">▾</span>
+                  <div id="perfilPhoneDropdown" class="phone-dropdown">
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇧🇷','+55')"><span class="flag">🇧🇷</span><span class="country-name">Brasil</span><span class="country-dial">+55</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇵🇹','+351')"><span class="flag">🇵🇹</span><span class="country-name">Portugal</span><span class="country-dial">+351</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇺🇸','+1')"><span class="flag">🇺🇸</span><span class="country-name">EUA</span><span class="country-dial">+1</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇬🇧','+44')"><span class="flag">🇬🇧</span><span class="country-name">Reino Unido</span><span class="country-dial">+44</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇦🇷','+54')"><span class="flag">🇦🇷</span><span class="country-name">Argentina</span><span class="country-dial">+54</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇨🇴','+57')"><span class="flag">🇨🇴</span><span class="country-name">Colômbia</span><span class="country-dial">+57</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇲🇽','+52')"><span class="flag">🇲🇽</span><span class="country-name">México</span><span class="country-dial">+52</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇨🇱','+56')"><span class="flag">🇨🇱</span><span class="country-name">Chile</span><span class="country-dial">+56</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇪🇸','+34')"><span class="flag">🇪🇸</span><span class="country-name">Espanha</span><span class="country-dial">+34</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇩🇪','+49')"><span class="flag">🇩🇪</span><span class="country-name">Alemanha</span><span class="country-dial">+49</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇫🇷','+33')"><span class="flag">🇫🇷</span><span class="country-name">França</span><span class="country-dial">+33</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇮🇹','+39')"><span class="flag">🇮🇹</span><span class="country-name">Itália</span><span class="country-dial">+39</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇯🇵','+81')"><span class="flag">🇯🇵</span><span class="country-name">Japão</span><span class="country-dial">+81</span></div>
+                    <div class="phone-option" onclick="selectPerfilCountry(event,'🇨🇳','+86')"><span class="flag">🇨🇳</span><span class="country-name">China</span><span class="country-dial">+86</span></div>
+                  </div>
+                </div>
+                <input id="perfilTelInput" class="phone-number perfil-field" type="tel" placeholder="(11) 99999-9999" disabled>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Cargo</label>
@@ -2058,7 +2135,21 @@ function populateDetenorFields(p) {
   const perfilFields = document.querySelectorAll('.perfil-field');
   if (perfilFields[0]) perfilFields[0].value = p.nome || '';
   if (perfilFields[1]) perfilFields[1].value = p.email || '';
-  if (perfilFields[2]) perfilFields[2].value = p.telefone || '';
+  // Telefone: parse dial code se presente (ex: "+55 21997812827")
+  if (perfilFields[2]) {
+    let telRaw = p.telefone || '';
+    let dialCode = '+55', flag = '🇧🇷', numero = telRaw;
+    const dialMap = {'+55':'🇧🇷','+351':'🇵🇹','+1':'🇺🇸','+44':'🇬🇧','+54':'🇦🇷','+57':'🇨🇴','+52':'🇲🇽','+56':'🇨🇱','+34':'🇪🇸','+49':'🇩🇪','+33':'🇫🇷','+39':'🇮🇹','+81':'🇯🇵','+86':'🇨🇳'};
+    if (telRaw.startsWith('+')) {
+      const m = telRaw.match(/^(\+\d{1,3})\s?(.*)/);
+      if (m) { dialCode = m[1]; numero = m[2]; flag = dialMap[dialCode] || flag; }
+    }
+    const flagEl = document.getElementById('perfilPhoneFlag');
+    const dialEl = document.getElementById('perfilPhoneDial');
+    if (flagEl) flagEl.textContent = flag;
+    if (dialEl) dialEl.textContent = dialCode;
+    perfilFields[2].value = numero;
+  }
   if (perfilFields[3]) perfilFields[3].value = p.cargo || '';
 
   // Logo identity card
@@ -2560,10 +2651,10 @@ async function dashSelectBrandfetchBrand(brand) {
         const desc = data.description || data.longDescription || '';
         const descFields = document.querySelectorAll('.empresa-field');
 
-        // Pré-preencher descrição (index 4)
+        // Pré-preencher descrição (index 4) — sempre sobrescreve ao selecionar nova empresa
         if (desc) {
           _dashSelectedBrand.description = desc;
-          if (descFields[4] && !descFields[4].value) {
+          if (descFields[4]) {
             descFields[4].value = desc;
           }
         }
@@ -2798,6 +2889,9 @@ function toggleEditPerfil() {
     if (f.type === 'email') return;
     f.disabled = !editingPerfil;
   });
+  // Toggle phone-wrap disabled state
+  const phoneWrap = document.getElementById('perfilPhoneWrap');
+  if (phoneWrap) phoneWrap.classList.toggle('disabled', !editingPerfil);
   actions.style.display = editingPerfil ? 'flex' : 'none';
   btn.style.display = editingPerfil ? 'none' : '';
 }
@@ -2807,7 +2901,9 @@ async function savePerfil() {
   const fields   = document.querySelectorAll('.perfil-field');
   const newName  = fields[0]?.value?.trim() || '';
   const email    = fields[1]?.value?.trim() || '';
-  const telefone = fields[2]?.value?.trim() || '';
+  const dialCode = document.getElementById('perfilPhoneDial')?.textContent || '+55';
+  const telNum   = fields[2]?.value?.trim() || '';
+  const telefone = telNum ? dialCode + ' ' + telNum : '';
   const cargo    = fields[3]?.value?.trim() || '';
 
   setUserInfo(newName, email);
@@ -2832,6 +2928,24 @@ async function savePerfil() {
   toggleEditPerfil();
   showToast('Perfil atualizado com sucesso!', 'success');
 }
+
+// ─── PERFIL PHONE ───
+function togglePerfilPhoneDropdown() {
+  if (document.getElementById('perfilPhoneWrap').classList.contains('disabled')) return;
+  document.getElementById('perfilPhoneDropdown').classList.toggle('open');
+}
+function selectPerfilCountry(event, flag, dial) {
+  event.stopPropagation();
+  document.getElementById('perfilPhoneFlag').textContent = flag;
+  document.getElementById('perfilPhoneDial').textContent = dial;
+  document.getElementById('perfilPhoneDropdown').classList.remove('open');
+  document.getElementById('perfilTelInput').focus();
+}
+// Fecha dropdown ao clicar fora
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('perfilPhoneDropdown');
+  if (dd && !e.target.closest('#perfilPhoneCountry')) dd.classList.remove('open');
+});
 
 // ─── ALTERAR SENHA ───
 function toggleSenhaVisivel(inputId, btn) {
