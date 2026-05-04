@@ -32,7 +32,7 @@ CRÍTICO: Você já respondeu antes. O histórico contém a sua resposta anterio
 
 tipo: enum personalidade|evento|artista|midia
 nome_oportunidade: string
-descricao_curta: string máx300chars — pitch curto e direto para marcas, enxuto
+descricao_curta: string MÁXIMO ABSOLUTO 280 chars — pitch curto e direto para marcas, enxuto. CONTE os caracteres antes de devolver: se passar de 280, reescreva mais curto. Nunca ultrapasse.
 descricao_completa: string — parágrafos detalhados, rico em contexto, cobrindo:
   - quem é / o que é a oportunidade
   - trajetória, conquistas relevantes, marcos
@@ -42,7 +42,7 @@ descricao_completa: string — parágrafos detalhados, rico em contexto, cobrind
   - por que é um ativo de patrocínio interessante
   É o campo mais importante — use tudo que encontrou na pesquisa e no PDF.
 
-busca_marca: string máx500 — perfil ideal do patrocinador:
+busca_marca: string MÁXIMO ABSOLUTO 480 chars — perfil ideal do patrocinador:
   - setores de marcas que fariam match (e por quê)
   - valores/posicionamento que a marca deveria ter
   - tipo de ativação/parceria que faz sentido
