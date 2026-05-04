@@ -1516,6 +1516,26 @@ tbody tr:last-child td { border-bottom: none; }
                     oninput="dashBrandfetchSearch(this.value)">
                 </div>
                 <div id="dashBrandfetchResults" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--gray-2,#E0D8CC);border-radius:var(--radius-base);box-shadow:0 4px 16px rgba(30,22,0,.1);z-index:200;max-height:240px;overflow-y:auto"></div>
+                <button type="button" id="dashManualToggleBtn" onclick="dashToggleManual()" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:12px;color:var(--gold,#B8860B);padding:0;font-family:var(--font-body,'DM Sans'),sans-serif">Ou cadastrar manualmente →</button>
+              </div>
+              <!-- Manual entry mode (empresa) -->
+              <div id="dashManualMode" style="display:none;flex-direction:column;gap:10px;margin-top:4px">
+                <input type="text" id="dashManualNome" placeholder="Nome da empresa..." class="form-input">
+                <div>
+                  <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-4,#5C4C38);margin-bottom:6px">Logo (opcional)</div>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div id="dashLogoPreviewWrap" style="width:48px;height:48px;border-radius:8px;background:var(--gray-1,#F5F0E8);border:1px solid var(--gray-2,#E0D8CC);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+                      <img id="dashLogoPreview" style="width:100%;height:100%;object-fit:contain;display:none">
+                      <svg id="dashLogoPreviewIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;color:var(--gray-3,#A89880)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <input type="file" id="dashLogoFile" accept="image/*" style="display:none" onchange="dashLogoFileChanged(this)">
+                    <button type="button" onclick="document.getElementById('dashLogoFile').click()" style="padding:8px 14px;background:var(--gray-1,#F5F0E8);border:1px solid var(--gray-2,#E0D8CC);border-radius:var(--radius-base);font-size:13px;cursor:pointer;font-family:var(--font-body,'DM Sans'),sans-serif">Escolher imagem</button>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:4px">
+                  <button type="button" onclick="dashConfirmManual()" style="flex:1;padding:9px;background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B));border:none;border-radius:var(--radius-pill,100px);font-size:13px;font-weight:600;color:#fff;cursor:pointer">Confirmar</button>
+                  <button type="button" onclick="dashToggleManual()" style="padding:9px 14px;background:var(--gray-1,#F5F0E8);border:none;border-radius:var(--radius-pill,100px);font-size:13px;cursor:pointer;color:var(--gray-4,#5C4C38)">← Buscar automaticamente</button>
+                </div>
               </div>
               <!-- Card empresa selecionada via Brandfetch no dashboard -->
               <div id="dashSelectedCard" style="display:none;margin-top:8px;padding:12px 16px;border:1.5px solid var(--gray-3,#A89880);border-radius:10px;width:100%;box-sizing:border-box;align-items:center;gap:12px;background:var(--white);">
@@ -2632,6 +2652,8 @@ async function dashFetchBrandfetchSuggestions(query) {
 
 async function dashSelectBrandfetchBrand(brand) {
   _dashSelectedBrand = brand;
+  _dashManualMode = false;
+  _dashManualLogoDataUrl = null;
   const searchWrap = document.getElementById('dashSearchInputWrap');
   const card       = document.getElementById('dashSelectedCard');
   const results    = document.getElementById('dashBrandfetchResults');
@@ -2678,16 +2700,31 @@ async function dashSelectBrandfetchBrand(brand) {
 
 function dashClearCompany() {
   _dashSelectedBrand = null;
+  _dashManualMode = false;
+  _dashManualLogoDataUrl = null;
   const searchWrap  = document.getElementById('dashSearchInputWrap');
   const searchInput = document.getElementById('dashEmpresaSearch');
   const card        = document.getElementById('dashSelectedCard');
   const results     = document.getElementById('dashBrandfetchResults');
+  const manualMode  = document.getElementById('dashManualMode');
+  const manualBtn   = document.getElementById('dashManualToggleBtn');
   if (searchWrap)  { searchWrap.style.display = ''; }
   if (searchInput) { searchInput.value = ''; }
-  card.style.display = 'none';
-  results.style.display = 'none';
+  if (card)        card.style.display = 'none';
+  if (results)     results.style.display = 'none';
+  if (manualMode)  manualMode.style.display = 'none';
+  if (manualBtn)   manualBtn.style.display = '';
   const hint = document.getElementById('empresaNomeChangeHint');
   if (hint) hint.style.display = 'none';
+  // Reset logo preview
+  const prev = document.getElementById('dashLogoPreview');
+  const icon = document.getElementById('dashLogoPreviewIcon');
+  if (prev) { prev.src = ''; prev.style.display = 'none'; }
+  if (icon) icon.style.display = '';
+  const fileInput = document.getElementById('dashLogoFile');
+  if (fileInput) fileInput.value = '';
+  const manualNome = document.getElementById('dashManualNome');
+  if (manualNome) manualNome.value = '';
 }
 
 // Event delegation para clicks no dropdown Brandfetch do dashboard
@@ -2795,6 +2832,62 @@ async function confirmarSolicitacaoMudancaEmpresa() {
   if (editingEmpresa) toggleEditEmpresa();
 }
 
+// ─── DASH MANUAL ENTRY ───
+let _dashManualMode = false;
+let _dashManualLogoDataUrl = null;
+
+function dashToggleManual() {
+  _dashManualMode = !_dashManualMode;
+  const searchWrap = document.getElementById('dashSearchInputWrap');
+  const manualMode = document.getElementById('dashManualMode');
+  const manualBtn  = document.getElementById('dashManualToggleBtn');
+  if (searchWrap) searchWrap.style.display = _dashManualMode ? 'none' : '';
+  if (manualMode) manualMode.style.display = _dashManualMode ? 'flex' : 'none';
+  if (manualBtn)  manualBtn.style.display  = _dashManualMode ? 'none' : '';
+}
+
+function dashLogoFileChanged(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    _dashManualLogoDataUrl = e.target.result;
+    const prev = document.getElementById('dashLogoPreview');
+    const icon = document.getElementById('dashLogoPreviewIcon');
+    if (prev) { prev.src = _dashManualLogoDataUrl; prev.style.display = ''; }
+    if (icon) icon.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function dashConfirmManual() {
+  const nome = document.getElementById('dashManualNome')?.value?.trim();
+  if (!nome) { showToast('Digite o nome da empresa.', 'error'); return; }
+  // Set as selected brand
+  _dashSelectedBrand = { name: nome, domain: '', icon: _dashManualLogoDataUrl || '' };
+  if (_dashManualLogoDataUrl) _dashSelectedBrand.logoDataUrl = _dashManualLogoDataUrl;
+  // Show selected card
+  const card = document.getElementById('dashSelectedCard');
+  const logoIcon = document.getElementById('dashBrandIcon');
+  if (logoIcon) { logoIcon.src = _dashManualLogoDataUrl || ''; logoIcon.style.display = _dashManualLogoDataUrl ? '' : 'none'; }
+  document.getElementById('dashBrandName').textContent = nome;
+  document.getElementById('dashBrandDomain').textContent = '';
+  if (card) card.style.display = 'flex';
+  const hint = document.getElementById('empresaNomeChangeHint');
+  if (hint) hint.style.display = '';
+  // Update empresa name input
+  const empresaFields = document.querySelectorAll('.empresa-field');
+  if (empresaFields[0]) empresaFields[0].value = nome;
+  // Hide manual mode
+  _dashManualMode = false;
+  const searchWrap = document.getElementById('dashSearchInputWrap');
+  const manualMode = document.getElementById('dashManualMode');
+  const manualBtn  = document.getElementById('dashManualToggleBtn');
+  if (searchWrap) searchWrap.style.display = '';
+  if (manualMode) manualMode.style.display = 'none';
+  if (manualBtn)  manualBtn.style.display = '';
+}
+
 // ─── EDIT EMPRESA ───
 let editingEmpresa = false;
 function toggleEditEmpresa() {
@@ -2846,7 +2939,7 @@ async function saveEmpresa() {
       const nomeAtual = fields[0]?.value?.trim() || null;
 
       const empresaDomain = (domainEl && domainEl.dataset.value) ? domainEl.dataset.value : null;
-      const logoUrl       = (imgEl && imgEl.src && imgEl.style.display !== 'none') ? imgEl.src : null;
+      const logoUrl       = (_dashSelectedBrand?.logoDataUrl) || (imgEl && imgEl.src && imgEl.style.display !== 'none' ? imgEl.src : null);
 
       const updates = {
         empresa:        nomeAtual,
