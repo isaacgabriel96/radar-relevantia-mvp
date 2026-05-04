@@ -8500,15 +8500,21 @@ function onTransmissaoToggle(btn) {
   const active = btn.classList.toggle('is-real');
   const badge = document.getElementById('transmissao-badge');
   const platforms = document.getElementById('transmissao-platforms');
-  if (badge) badge.textContent = active ? 'Sim' : 'Não';
+  if (badge) {
+    badge.textContent = active ? 'Sim' : 'Não';
+    badge.classList.toggle('is-real', active);
+  }
   if (platforms) platforms.style.display = active ? '' : 'none';
 }
 
 function _onArtistaShowToggle(btn) {
-  const active = btn.classList.toggle('active');
+  const active = btn.classList.toggle('is-real');
   const badge = document.getElementById('artista-show-badge');
   const wrapper = document.getElementById('artista-show-wrapper');
-  if (badge) { badge.textContent = active ? 'Sim' : 'Não'; }
+  if (badge) {
+    badge.textContent = active ? 'Sim' : 'Não';
+    badge.classList.toggle('is-real', active);
+  }
   if (wrapper) wrapper.style.display = active ? '' : 'none';
 }
 
