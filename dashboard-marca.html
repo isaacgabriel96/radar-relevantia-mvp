@@ -822,14 +822,26 @@ tbody tr:last-child td { border-bottom: none; }
 @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
 
 /* ─── VOZ DO USUÁRIO ─── */
-.voz-cat-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 7px 14px; border-radius: 100px; border: 1.5px solid var(--gray-200);
+.voz-cat-trigger {
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  padding: 8px 14px 8px 12px; border-radius: 100px; border: 1.5px solid var(--gray-200);
   background: var(--white); font-family: var(--font-body); font-size: 13px;
-  font-weight: 500; color: var(--gray-400); cursor: pointer; transition: all 0.15s;
+  font-weight: 500; color: var(--gray-600); cursor: pointer; transition: all 0.15s;
 }
-.voz-cat-btn:hover { border-color: var(--gold); color: var(--black); }
-.voz-cat-btn.active { border-color: var(--gold); background: rgba(184,134,11,0.08); color: var(--black); font-weight: 600; }
+.voz-cat-trigger:hover { border-color: var(--gray-300); background: var(--gray-100); }
+.voz-cat-menu {
+  display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 200;
+  background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(26,18,0,0.1); overflow: hidden; min-width: 180px;
+}
+.voz-cat-option {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  font-family: var(--font-body); font-size: 13px; color: var(--gray-500);
+  cursor: pointer; transition: background 0.1s; border: none; background: none;
+  width: 100%; text-align: left;
+}
+.voz-cat-option:hover { background: var(--gray-100); color: var(--black); }
+.voz-cat-option.active { color: var(--black); font-weight: 600; background: var(--gray-100); }
 .voz-prio-btn {
   padding: 6px 18px; border-radius: 100px; border: 1.5px solid var(--gray-200);
   background: var(--white); font-family: var(--font-body); font-size: 13px;
@@ -1649,28 +1661,35 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
     <div style="padding:24px; display:flex; flex-direction:column; gap:18px">
 
-      <!-- Categoria -->
-      <div id="vozCategories" style="display:flex; flex-wrap:wrap; gap:8px">
-        <button type="button" class="voz-cat-btn active" data-cat="bug" onclick="selectVozCat(this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M12 22c4.97 0 9-4.03 9-9H3c0 4.97 4.03 9 9 9z"/><path d="M6.44 13a5.99 5.99 0 01-.44-2.24C6 7.56 8.69 5 12 5s6 2.56 6 5.76c0 .77-.15 1.52-.44 2.24"/><path d="M9 3L8 1M15 3l1-2M15.26 13H8.74"/></svg>
-          Bug / Erro
+      <!-- Categoria — dropdown -->
+      <div style="position:relative" id="vozCatWrapper">
+        <button type="button" id="vozCatTrigger" class="voz-cat-trigger" onclick="toggleVozCatDropdown(event)">
+          <span id="vozCatDot" style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0"></span>
+          <span id="vozCatLabel">Bug / Erro</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:2px;opacity:0.4"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
-        <button type="button" class="voz-cat-btn" data-cat="melhoria" onclick="selectVozCat(this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Melhoria
-        </button>
-        <button type="button" class="voz-cat-btn" data-cat="nova-feature" onclick="selectVozCat(this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-          Nova feature
-        </button>
-        <button type="button" class="voz-cat-btn" data-cat="duvida" onclick="selectVozCat(this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          Dúvida
-        </button>
-        <button type="button" class="voz-cat-btn" data-cat="outro" onclick="selectVozCat(this)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-          Outro
-        </button>
+        <div id="vozCatMenu" class="voz-cat-menu">
+          <button type="button" class="voz-cat-option active" data-cat="bug" onclick="setVozCat('bug')">
+            <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0"></span> Bug / Erro
+            <svg id="vozCatCheck-bug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black)"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button type="button" class="voz-cat-option" data-cat="melhoria" onclick="setVozCat('melhoria')">
+            <span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;flex-shrink:0"></span> Melhoria
+            <svg id="vozCatCheck-melhoria" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button type="button" class="voz-cat-option" data-cat="nova-feature" onclick="setVozCat('nova-feature')">
+            <span style="width:8px;height:8px;border-radius:50%;background:#B8860B;flex-shrink:0"></span> Nova feature
+            <svg id="vozCatCheck-nova-feature" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button type="button" class="voz-cat-option" data-cat="duvida" onclick="setVozCat('duvida')">
+            <span style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;flex-shrink:0"></span> Dúvida
+            <svg id="vozCatCheck-duvida" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+          <button type="button" class="voz-cat-option" data-cat="outro" onclick="setVozCat('outro')">
+            <span style="width:8px;height:8px;border-radius:50%;background:#6B7280;flex-shrink:0"></span> Outro
+            <svg id="vozCatCheck-outro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
       </div>
 
       <!-- Urgência inline -->
@@ -1705,8 +1724,8 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 
   <!-- Histórico -->
-  <div style="margin-top:32px; max-width:680px">
-    <div class="voz-hist-header">
+  <div class="card" style="max-width:680px; margin-top:24px; padding:0; overflow:hidden">
+    <div style="padding:16px 24px; border-bottom:1px solid var(--gray-200); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap">
       <div style="font-family:var(--font-heading); font-size:14px; font-weight:600; color:var(--black)">Feedbacks enviados</div>
       <div id="vozHistFilter" style="display:flex; gap:6px; flex-wrap:wrap">
         <button class="voz-filter-btn active" data-filter="todos" onclick="filterVozHist(this)">Todos</button>
@@ -1716,7 +1735,7 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="voz-filter-btn" data-filter="duvida" onclick="filterVozHist(this)">Dúvida</button>
       </div>
     </div>
-    <div id="vozHistList"></div>
+    <div id="vozHistList" style="padding:16px 24px"></div>
   </div>
 
 </div>
@@ -3870,11 +3889,35 @@ let _vozCatAtual = 'bug';
 let _vozPrioAtual = 'media';
 let _vozFilterAtual = 'todos';
 
-function selectVozCat(btn) {
-  document.querySelectorAll('.voz-cat-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  _vozCatAtual = btn.dataset.cat;
+function setVozCat(cat) {
+  _vozCatAtual = cat;
+  const cfg = VOZ_CAT_CONFIG[cat];
+  if (!cfg) return;
+  const dot = document.getElementById('vozCatDot');
+  const label = document.getElementById('vozCatLabel');
+  if (dot) dot.style.background = cfg.color;
+  if (label) label.textContent = cfg.label;
+  // active state + checkmarks
+  document.querySelectorAll('.voz-cat-option').forEach(o => {
+    const isActive = o.dataset.cat === cat;
+    o.classList.toggle('active', isActive);
+    const chk = document.getElementById('vozCatCheck-' + o.dataset.cat);
+    if (chk) chk.style.display = isActive ? '' : 'none';
+  });
+  const menu = document.getElementById('vozCatMenu');
+  if (menu) menu.style.display = 'none';
 }
+function selectVozCat(btn) { setVozCat(btn.dataset.cat); } // legado
+function toggleVozCatDropdown(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('vozCatMenu');
+  if (!menu) return;
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function() {
+  const menu = document.getElementById('vozCatMenu');
+  if (menu) menu.style.display = 'none';
+});
 
 function selectVozPrio(btn) {
   document.querySelectorAll('.voz-prio-btn').forEach(b => b.classList.remove('active'));
@@ -3928,9 +3971,8 @@ function submitVozFeedback() {
   document.getElementById('vozMensagem').value = '';
   document.getElementById('vozCharCount').textContent = '0 / 800';
   document.getElementById('vozAnonimo').checked = false;
-  _vozCatAtual = 'bug';
+  setVozCat('bug');
   _vozPrioAtual = 'media';
-  document.querySelectorAll('.voz-cat-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === 'bug'));
   document.querySelectorAll('.voz-prio-btn').forEach(b => b.classList.toggle('active', b.dataset.prio === 'media'));
 
   renderVozHistorico();
