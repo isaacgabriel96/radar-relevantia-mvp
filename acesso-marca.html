@@ -231,6 +231,7 @@ body::after {
 
 .panel-badge {
   display: inline-flex; align-items: center; gap: 8px;
+  align-self: flex-start;
   border: 1px solid rgba(184,134,11,0.28);
   background: rgba(184,134,11,0.08);
   padding: 6px 14px; border-radius: var(--radius-pill);
@@ -436,24 +437,59 @@ body::after {
   .nav { padding: 0 20px; }
   .glass-card { padding: 24px 20px; }
 }
-@media (max-width: 768px) {
-  .tutorial-visual { display: none; }
-}
 @media (max-width: 600px) {
-  /* Tutorial panels fill viewport — no scroll */
-  .tutorial-panel.active { height: calc(100dvh - 70px); overflow: hidden; }
-  .tutorial-layout { height: 100%; }
+  /* Tutorial panel: scrollable, with room for fixed button bar */
+  .tutorial-panel.active { height: calc(100dvh - 70px); overflow-y: auto; padding-bottom: 80px; }
+  .tutorial-layout { flex-direction: column; height: auto; min-height: unset; }
   .tutorial-content {
-    height: 100%; padding: 24px 20px;
-    display: flex; flex-direction: column; justify-content: flex-start; gap: 0;
+    padding: 20px 20px 0;
+    display: flex; flex-direction: column; justify-content: flex-start;
   }
-  .tutorial-content > div:last-child { margin-top: auto; padding-top: 16px; }
-  .panel-badge { margin-bottom: 10px; }
-  .panel-title { font-size: clamp(22px, 6vw, 28px); margin-bottom: 8px; }
-  .panel-sub { font-size: 14px; line-height: 1.55; margin-bottom: 12px; }
-  .panel-bullets { gap: 6px; margin-bottom: 12px; }
+  /* Fixed button bar at screen bottom */
+  .tutorial-content > div:last-child {
+    position: fixed !important;
+    bottom: 0; left: 0; right: 0;
+    display: flex !important; gap: 12px; align-items: center;
+    padding: 12px 20px;
+    background: rgba(10,8,0,0.96);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(184,134,11,0.15);
+    z-index: 20;
+    margin-top: 0 !important;
+  }
+  .tutorial-content > div:last-child .btn-primary { flex: 1; padding: 13px; }
+  /* Phone-style mockup */
+  .tutorial-visual {
+    display: flex !important;
+    align-items: flex-start; justify-content: center;
+    padding: 8px 20px 16px;
+    border: none; background: transparent;
+    min-height: unset; max-height: unset; overflow: visible;
+  }
+  .mockup-frame {
+    max-width: 210px; width: 100%;
+    border-radius: 32px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(184,134,11,0.1);
+  }
+  .mockup-topbar { height: 32px; justify-content: center; padding: 0; }
+  .mockup-dot { display: none; }
+  .mockup-url { display: none; }
+  .mockup-topbar::after {
+    content: '';
+    width: 44px; height: 4px;
+    background: rgba(255,255,255,0.2); border-radius: 2px;
+  }
+  .mockup-body { padding: 10px; min-height: 160px; gap: 8px; }
+  .mock-stats { grid-template-columns: repeat(2,1fr); gap: 5px; margin-bottom: 2px; }
+  .mock-stat-card { padding: 7px 6px; }
+  .mock-table-row { padding: 7px 8px; gap: 7px; }
+  /* Text */
+  .panel-badge { margin-bottom: 8px; }
+  .panel-title { font-size: clamp(22px, 6vw, 28px); margin-bottom: 6px; }
+  .panel-sub { font-size: 14px; line-height: 1.55; margin-bottom: 10px; }
+  .panel-bullets { gap: 5px; margin-bottom: 10px; }
   .panel-bullets li { font-size: 13px; }
-  /* stepPw / stepSuccess: allow internal scroll on very small screens */
+  /* stepPw / stepSuccess */
   #stepPw, #stepSuccess {
     height: calc(100dvh - 70px);
     overflow-y: auto;
@@ -461,7 +497,6 @@ body::after {
     justify-content: flex-start !important;
     padding: 24px 20px 32px !important;
   }
-  .mock-stats { grid-template-columns: repeat(2,1fr); }
 }
 @media (max-width: 480px) {
   .nav-email { display: none; }
@@ -469,7 +504,7 @@ body::after {
   .glass-card { padding: 20px 16px; }
   #stepPw, #stepSuccess { padding: 20px 16px 28px !important; }
   #stepSuccess .btn-primary { max-width: 100% !important; width: 100%; }
-  .tutorial-content { padding: 20px 16px; }
+  .tutorial-content { padding: 16px 16px 0; }
 }
 </style>
 </head>
@@ -618,7 +653,7 @@ body::after {
 
   <nav class="nav">
     <a href="index.html" class="nav-logo">
-      <img src="logos/5.png" alt="Relevantia" style="height:22px;width:auto;">
+      <img src="logos/5.png" alt="Relevantia" style="height:34px;width:auto;">
     </a>
     <div class="nav-right">
       <span class="nav-email" id="navEmail"></span>
