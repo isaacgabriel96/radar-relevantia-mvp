@@ -1221,14 +1221,10 @@ tbody tr:last-child td { border-bottom: none; }
       <span class="nav-badge" id="navBadgeOps">0</span>
     </a>
 
-    <div class="nav-section-label">Minha Conta</div>
-    <a class="nav-item" data-section="empresa" onclick="showSection('empresa')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V7l9-4 9 4v14"/><path d="M9 21v-6h6v6"/></svg>
-      Minha Empresa
-    </a>
-    <a class="nav-item" data-section="perfil" onclick="showSection('perfil')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      Meu Perfil
+    <div class="nav-section-label">Conta</div>
+    <a class="nav-item" data-section="configuracoes" onclick="showSection('configuracoes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Configurações
     </a>
     <a class="nav-item" data-section="voz" onclick="showSection('voz')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
@@ -1237,7 +1233,7 @@ tbody tr:last-child td { border-bottom: none; }
   </nav>
 
   <div class="sidebar-footer">
-    <div class="sidebar-user" onclick="showSection('perfil')">
+    <div class="sidebar-user" onclick="showSection('configuracoes'); setTimeout(() => switchConfigTab('perfil'), 30)">
       <div class="sidebar-user-avatar" id="sidebarAvatar">IG</div>
       <div class="sidebar-user-info">
         <div class="sidebar-user-name" id="sidebarName">Isaac Gabriel</div>
@@ -1477,14 +1473,24 @@ tbody tr:last-child td { border-bottom: none; }
 
     </div>
 
-    <!-- ═══════ SEÇÃO: MINHA EMPRESA ═══════ -->
-    <div class="section" id="sec-empresa">
+    <!-- ═══════ SEÇÃO: CONFIGURAÇÕES ═══════ -->
+    <div class="section" id="sec-configuracoes">
       <div class="page-header">
         <div class="page-header-left">
-          <h1 class="page-title">Minha Empresa</h1>
-          <p class="page-subtitle">Informações da sua organização na plataforma</p>
+          <h1 class="page-title">Configurações</h1>
+          <p class="page-subtitle">Gerencie sua empresa, perfil pessoal e equipe</p>
         </div>
       </div>
+
+      <!-- Tabs -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="cfg-tab-empresa" onclick="switchConfigTab('empresa')">Empresa</button>
+        <button class="sub-tab" id="cfg-tab-perfil" onclick="switchConfigTab('perfil')">Perfil</button>
+        <button class="sub-tab" id="cfg-tab-equipe" onclick="switchConfigTab('equipe')" style="display:none">Equipe</button>
+      </div>
+
+      <!-- Painel: Empresa -->
+      <div id="cfg-panel-empresa">
 
       <!-- Card: Identidade da empresa (logo + domain) -->
       <div class="card" id="cardLogoEmpresa" style="margin-bottom:16px">
@@ -1651,8 +1657,13 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
+      </div><!-- /cfg-panel-empresa -->
+
+      <!-- Painel: Equipe -->
+      <div id="cfg-panel-equipe" style="display:none">
+
       <!-- Equipe (visível apenas para owner e org admin) -->
-      <div class="card" id="cardEquipe" style="display:none">
+      <div class="card" id="cardEquipe">
         <div class="card-header">
           <div>
             <div class="card-title">Equipe</div>
@@ -1674,14 +1685,10 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
     </div>
 
-    <!-- ═══════ SEÇÃO: MEU PERFIL ═══════ -->
-    <div class="section" id="sec-perfil">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h1 class="page-title">Meu Perfil</h1>
-          <p class="page-subtitle">Suas informações pessoais e preferências da conta</p>
-        </div>
-      </div>
+      </div><!-- /cfg-panel-equipe -->
+
+      <!-- Painel: Perfil -->
+      <div id="cfg-panel-perfil" style="display:none">
 
       <div class="card">
         <div class="card-header">
@@ -1787,7 +1794,10 @@ tbody tr:last-child td { border-bottom: none; }
           </div>
         </div>
       </div>
-    </div>
+
+      </div><!-- /cfg-panel-perfil -->
+
+    </div><!-- /sec-configuracoes -->
     <div class="section" id="sec-voz">
   <div class="page-header">
     <div>
@@ -2024,9 +2034,9 @@ tbody tr:last-child td { border-bottom: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     <span>Negociações</span>
   </button>
-  <button class="bottom-nav-item" id="bn-perfil" onclick="showSection('perfil')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-    <span>Perfil</span>
+  <button class="bottom-nav-item" id="bn-configuracoes" onclick="showSection('configuracoes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span>Config</span>
   </button>
 </nav>
 
@@ -2067,8 +2077,7 @@ const SECTION_TITLES = {
   dashboard: 'Dashboard',
   oportunidades: 'Minhas Oportunidades',
   negociacoes: 'Negociações',
-  empresa: 'Minha Empresa',
-  perfil: 'Meu Perfil',
+  configuracoes: 'Configurações',
   voz: 'Fale com o Radar',
   equipe: 'Equipe'
 };
@@ -2439,7 +2448,7 @@ function showSection(sectionId) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Lazy load section data
-  if (sectionId === 'empresa') loadEquipe();
+  if (sectionId === 'configuracoes') loadEquipe();
 }
 
 // ─── NOTIFICAÇÕES ───
@@ -4907,6 +4916,14 @@ function filterVozHist(btn) {
   btn.classList.add('active'); _vozFilterAtual = btn.dataset.filter; renderVozHistorico();
 }
 
+function switchConfigTab(tab) {
+  ['empresa','perfil','equipe'].forEach(t => {
+    document.getElementById('cfg-tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('cfg-panel-' + t).style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'equipe') loadEquipe();
+}
+
 function switchVozTab(tab) {
   document.getElementById('voz-tab-novo').classList.toggle('active', tab === 'novo');
   document.getElementById('voz-tab-hist').classList.toggle('active', tab === 'hist');
@@ -5030,7 +5047,7 @@ async function loadOrgRole() {
     if (tipo === 'detentor') {
       CURRENT_ORG_ROLE = 'owner';
       CURRENT_ORG_ID   = uid;
-      document.getElementById('cardEquipe').style.display = 'block';
+      document.getElementById('cfg-tab-equipe').style.display = '';
       return;
     }
 
@@ -5046,7 +5063,7 @@ async function loadOrgRole() {
       CURRENT_ORG_ID   = membroData[0].org_id;
       // Apenas admin org pode ver e gerenciar equipe
       if (CURRENT_ORG_ROLE === 'admin') {
-        document.getElementById('cardEquipe').style.display = 'block';
+        document.getElementById('cfg-tab-equipe').style.display = '';
       }
     }
   } catch (e) {
