@@ -1661,45 +1661,56 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
     <div style="padding:24px; display:flex; flex-direction:column; gap:18px">
 
-      <!-- Categoria — dropdown -->
-      <div style="position:relative" id="vozCatWrapper">
-        <button type="button" id="vozCatTrigger" class="voz-cat-trigger" onclick="toggleVozCatDropdown(event)">
-          <span id="vozCatDot" style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0"></span>
-          <span id="vozCatLabel">Bug / Erro</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:2px;opacity:0.4"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div id="vozCatMenu" class="voz-cat-menu">
-          <button type="button" class="voz-cat-option active" data-cat="bug" onclick="setVozCat('bug')">
-            <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0"></span> Bug / Erro
-            <svg id="vozCatCheck-bug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black)"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-          <button type="button" class="voz-cat-option" data-cat="melhoria" onclick="setVozCat('melhoria')">
-            <span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;flex-shrink:0"></span> Melhoria
-            <svg id="vozCatCheck-melhoria" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-          <button type="button" class="voz-cat-option" data-cat="nova-feature" onclick="setVozCat('nova-feature')">
-            <span style="width:8px;height:8px;border-radius:50%;background:#B8860B;flex-shrink:0"></span> Nova feature
-            <svg id="vozCatCheck-nova-feature" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-          <button type="button" class="voz-cat-option" data-cat="duvida" onclick="setVozCat('duvida')">
-            <span style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;flex-shrink:0"></span> Dúvida
-            <svg id="vozCatCheck-duvida" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-          <button type="button" class="voz-cat-option" data-cat="outro" onclick="setVozCat('outro')">
-            <span style="width:8px;height:8px;border-radius:50%;background:#6B7280;flex-shrink:0"></span> Outro
-            <svg id="vozCatCheck-outro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
-          </button>
-        </div>
-      </div>
+      <!-- Tipo de Feedback + Urgência — linha única -->
+      <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap">
 
-      <!-- Urgência inline -->
-      <div style="display:flex; align-items:center; gap:10px">
-        <span style="font-size:12px; color:var(--gray-400); white-space:nowrap">Urgência</span>
-        <div id="vozPriority" style="display:flex; gap:6px">
-          <button type="button" class="voz-prio-btn" data-prio="alta" onclick="selectVozPrio(this)">Alta</button>
-          <button type="button" class="voz-prio-btn active" data-prio="media" onclick="selectVozPrio(this)">Média</button>
-          <button type="button" class="voz-prio-btn" data-prio="baixa" onclick="selectVozPrio(this)">Baixa</button>
+        <!-- Tipo de feedback -->
+        <div style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:12px; color:var(--gray-400); white-space:nowrap">Tipo de Feedback</span>
+          <div style="position:relative" id="vozCatWrapper">
+            <button type="button" id="vozCatTrigger" class="voz-cat-trigger" onclick="toggleVozCatDropdown(event)">
+              <span id="vozCatDot" style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0"></span>
+              <span id="vozCatLabel">Bug / Erro</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:2px;opacity:0.4"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div id="vozCatMenu" class="voz-cat-menu">
+              <button type="button" class="voz-cat-option active" data-cat="bug" onclick="setVozCat('bug')">
+                <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0"></span> Bug / Erro
+                <svg id="vozCatCheck-bug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black)"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+              <button type="button" class="voz-cat-option" data-cat="melhoria" onclick="setVozCat('melhoria')">
+                <span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;flex-shrink:0"></span> Melhoria
+                <svg id="vozCatCheck-melhoria" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+              <button type="button" class="voz-cat-option" data-cat="nova-feature" onclick="setVozCat('nova-feature')">
+                <span style="width:8px;height:8px;border-radius:50%;background:#B8860B;flex-shrink:0"></span> Nova feature
+                <svg id="vozCatCheck-nova-feature" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+              <button type="button" class="voz-cat-option" data-cat="duvida" onclick="setVozCat('duvida')">
+                <span style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;flex-shrink:0"></span> Dúvida
+                <svg id="vozCatCheck-duvida" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+              <button type="button" class="voz-cat-option" data-cat="outro" onclick="setVozCat('outro')">
+                <span style="width:8px;height:8px;border-radius:50%;background:#6B7280;flex-shrink:0"></span> Outro
+                <svg id="vozCatCheck-outro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
+
+        <!-- Divisor -->
+        <span style="width:1px; height:18px; background:var(--gray-200); flex-shrink:0"></span>
+
+        <!-- Urgência -->
+        <div style="display:flex; align-items:center; gap:8px">
+          <span style="font-size:12px; color:var(--gray-400); white-space:nowrap">Urgência</span>
+          <div id="vozPriority" style="display:flex; gap:6px">
+            <button type="button" class="voz-prio-btn" data-prio="alta" onclick="selectVozPrio(this)">Alta</button>
+            <button type="button" class="voz-prio-btn active" data-prio="media" onclick="selectVozPrio(this)">Média</button>
+            <button type="button" class="voz-prio-btn" data-prio="baixa" onclick="selectVozPrio(this)">Baixa</button>
+          </div>
+        </div>
+
       </div>
 
       <!-- Textarea -->
