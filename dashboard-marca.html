@@ -1821,26 +1821,35 @@ tbody tr:last-child td { border-bottom: none; }
 
 <!-- Modal: Cadastrar marca manualmente -->
 <div id="modalManualMarca" style="display:none;position:fixed;inset:0;z-index:1001;align-items:center;justify-content:center;background:rgba(0,0,0,.45)">
-  <div style="background:#fff;border-radius:var(--radius-lg,16px);padding:32px;max-width:420px;width:90%;margin:16px;box-shadow:0 16px 48px rgba(30,22,0,.18)">
+  <div style="background:#fff;border-radius:var(--radius-lg,16px);padding:28px;max-width:380px;width:90%;margin:16px;box-shadow:0 16px 48px rgba(30,22,0,.18)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <h3 style="font-family:var(--font-heading,'Poppins'),sans-serif;font-size:17px;font-weight:700;color:var(--black,#1A1200);margin:0">Cadastrar marca manualmente</h3>
       <button onclick="fecharModalManualMarca()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1;padding:2px 6px">×</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Logo (primeiro) -->
+      <div style="text-align:center">
+        <label class="form-label" style="text-align:left;display:block;margin-bottom:8px">Logo (opcional)</label>
+        <input type="file" id="marcaManualLogoFile" accept="image/*" style="display:none" onchange="marcaManualLogoChanged(this)">
+        <div id="marcaManualLogoZone" style="width:150px;height:150px;border-radius:14px;border:2px dashed var(--gray-200,#E0D8CC);background:var(--gray-100,#F5F0E8);display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto;position:relative;transition:border-color .2s">
+          <div id="marcaManualLogoEmpty" onclick="document.getElementById('marcaManualLogoFile').click()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;width:100%;height:100%;justify-content:center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;color:var(--gray-300,#C8BCA8)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:12px;color:var(--gray-400,#A89880);font-family:var(--font-body,'DM Sans'),sans-serif">Clique para enviar</span>
+          </div>
+          <img id="marcaManualLogoPreview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:none;cursor:grab;user-select:none" draggable="false">
+        </div>
+        <div id="marcaManualLogoPost" style="display:none;margin-top:8px;font-size:11px;color:var(--gray-400,#A89880)">
+          Arraste para ajustar ·
+          <button type="button" onclick="document.getElementById('marcaManualLogoFile').click()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--gold,#B8860B);padding:0;font-family:inherit">Trocar</button> ·
+          <button type="button" onclick="marcaManualLogoRemove()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--red,#EF4444);padding:0;font-family:inherit">Remover</button>
+        </div>
+      </div>
+
+      <!-- Nome (segundo) -->
       <div class="form-group">
         <label class="form-label">Nome da marca <span style="color:var(--red)">*</span></label>
         <input type="text" id="marcaManualNomeModal" placeholder="Ex: Minha Marca" class="form-input">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Logo (opcional)</label>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:52px;height:52px;border-radius:8px;background:var(--gray-100);border:1px solid var(--gray-200);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
-            <img id="marcaManualLogoPreview" style="width:100%;height:100%;object-fit:contain;display:none">
-            <svg id="marcaManualLogoIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;color:var(--gray-400)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          </div>
-          <input type="file" id="marcaManualLogoFile" accept="image/*" style="display:none" onchange="marcaManualLogoChanged(this)">
-          <button type="button" onclick="document.getElementById('marcaManualLogoFile').click()" style="padding:9px 16px;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:var(--radius-base,8px);font-size:13px;cursor:pointer;font-family:var(--font-body);color:var(--gray-600)">Escolher imagem</button>
-        </div>
       </div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:24px">
@@ -2908,17 +2917,44 @@ function marcaClearCompany() {
   if (hint) hint.style.display = 'none';
 }
 
+// ─── LOGO DRAG-TO-ADJUST (shared helper) ───
+function _setupLogoDrag(imgEl) {
+  if (!imgEl || imgEl._dragSetup) return;
+  imgEl._dragSetup = true;
+  let active = false, startX, startY, startPX = 50, startPY = 50;
+  function parsePos() {
+    const m = (imgEl.style.objectPosition || '50% 50%').match(/([\d.]+)%\s+([\d.]+)%/);
+    return m ? [parseFloat(m[1]), parseFloat(m[2])] : [50, 50];
+  }
+  imgEl.addEventListener('pointerdown', function(e) {
+    active = true; startX = e.clientX; startY = e.clientY;
+    [startPX, startPY] = parsePos();
+    imgEl.setPointerCapture(e.pointerId);
+    imgEl.style.cursor = 'grabbing'; e.preventDefault();
+  });
+  imgEl.addEventListener('pointermove', function(e) {
+    if (!active) return;
+    const W = imgEl.offsetWidth || 150, H = imgEl.offsetHeight || 150;
+    const newX = Math.max(0, Math.min(100, startPX - (e.clientX - startX) / W * 100));
+    const newY = Math.max(0, Math.min(100, startPY - (e.clientY - startY) / H * 100));
+    imgEl.style.objectPosition = newX + '% ' + newY + '%';
+  });
+  imgEl.addEventListener('pointerup',     function() { active = false; imgEl.style.cursor = 'grab'; });
+  imgEl.addEventListener('pointercancel', function() { active = false; imgEl.style.cursor = 'grab'; });
+}
+
 // ─── MODAL: CADASTRAR MANUALMENTE ───
 function abrirModalManualMarca() {
-  // Reset state
   const nomeInput = document.getElementById('marcaManualNomeModal');
-  const logoPreview = document.getElementById('marcaManualLogoPreview');
-  const logoIcon = document.getElementById('marcaManualLogoIcon');
+  const logoPrev  = document.getElementById('marcaManualLogoPreview');
+  const logoEmpty = document.getElementById('marcaManualLogoEmpty');
+  const logoPost  = document.getElementById('marcaManualLogoPost');
   const fileInput = document.getElementById('marcaManualLogoFile');
-  if (nomeInput) nomeInput.value = '';
-  if (logoPreview) { logoPreview.src = ''; logoPreview.style.display = 'none'; }
-  if (logoIcon) logoIcon.style.display = '';
-  if (fileInput) fileInput.value = '';
+  if (nomeInput)  nomeInput.value = '';
+  if (logoPrev)   { logoPrev.src = ''; logoPrev.style.display = 'none'; logoPrev.style.objectPosition = '50% 50%'; }
+  if (logoEmpty)  logoEmpty.style.display = 'flex';
+  if (logoPost)   logoPost.style.display = 'none';
+  if (fileInput)  fileInput.value = '';
   _marcaManualLogoDataUrl = null;
   document.getElementById('modalManualMarca').style.display = 'flex';
 }
@@ -2933,12 +2969,32 @@ function marcaManualLogoChanged(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     _marcaManualLogoDataUrl = e.target.result;
-    const prev = document.getElementById('marcaManualLogoPreview');
-    const icon = document.getElementById('marcaManualLogoIcon');
-    if (prev) { prev.src = _marcaManualLogoDataUrl; prev.style.display = ''; }
-    if (icon) icon.style.display = 'none';
+    const prev  = document.getElementById('marcaManualLogoPreview');
+    const empty = document.getElementById('marcaManualLogoEmpty');
+    const post  = document.getElementById('marcaManualLogoPost');
+    if (prev) {
+      prev.src = _marcaManualLogoDataUrl;
+      prev.style.display = '';
+      prev.style.objectPosition = '50% 50%';
+      prev.style.cursor = 'grab';
+      _setupLogoDrag(prev);
+    }
+    if (empty) empty.style.display = 'none';
+    if (post)  post.style.display = '';
   };
   reader.readAsDataURL(file);
+}
+
+function marcaManualLogoRemove() {
+  _marcaManualLogoDataUrl = null;
+  const prev  = document.getElementById('marcaManualLogoPreview');
+  const empty = document.getElementById('marcaManualLogoEmpty');
+  const post  = document.getElementById('marcaManualLogoPost');
+  const file  = document.getElementById('marcaManualLogoFile');
+  if (prev)  { prev.src = ''; prev.style.display = 'none'; }
+  if (empty) empty.style.display = 'flex';
+  if (post)  post.style.display = 'none';
+  if (file)  file.value = '';
 }
 
 function confirmarModalManualMarca() {
@@ -2947,22 +3003,27 @@ function confirmarModalManualMarca() {
   fecharModalManualMarca();
   if (!_marcaSelectedBrand) _marcaSelectedBrand = {};
   _marcaSelectedBrand.name = nome;
-  if (_marcaManualLogoDataUrl) _marcaSelectedBrand.logoDataUrl = _marcaManualLogoDataUrl;
   _marcaSelectedBrand.domain = '';
+  if (_marcaManualLogoDataUrl) {
+    _marcaSelectedBrand.logoDataUrl = _marcaManualLogoDataUrl;
+    const prev = document.getElementById('marcaManualLogoPreview');
+    if (prev) _marcaSelectedBrand.logoObjectPosition = prev.style.objectPosition || '50% 50%';
+  }
   // Update nome input
   const nomeInput = document.getElementById('marcaNomeInput');
   if (nomeInput) nomeInput.value = nome;
   // Show selected card
-  const card    = document.getElementById('marcaSelectedCard');
+  const card     = document.getElementById('marcaSelectedCard');
   const logoIcon = document.getElementById('marcaBrandIcon');
   if (logoIcon) {
     logoIcon.src = _marcaSelectedBrand.logoDataUrl || '';
     logoIcon.style.display = _marcaSelectedBrand.logoDataUrl ? '' : 'none';
+    if (_marcaSelectedBrand.logoObjectPosition) logoIcon.style.objectPosition = _marcaSelectedBrand.logoObjectPosition;
   }
   document.getElementById('marcaBrandName').textContent = nome;
   document.getElementById('marcaBrandDomain').textContent = '';
   if (card) card.style.display = 'flex';
-  // Hide search input
+  // Hide search input + manual button
   const searchWrap = document.getElementById('marcaSearchInputWrap');
   if (searchWrap) searchWrap.style.display = 'none';
   const manualBtn = document.querySelector('#marcaSearchMode button[onclick*="abrirModalManualMarca"]');

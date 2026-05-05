@@ -1914,26 +1914,35 @@ tbody tr:last-child td { border-bottom: none; }
 
 <!-- Modal: Cadastrar empresa manualmente -->
 <div id="modalManualDetentor" style="display:none;position:fixed;inset:0;z-index:1001;align-items:center;justify-content:center;background:rgba(0,0,0,.45)">
-  <div style="background:#fff;border-radius:var(--radius-lg,16px);padding:32px;max-width:420px;width:90%;margin:16px;box-shadow:0 16px 48px rgba(30,22,0,.18)">
+  <div style="background:#fff;border-radius:var(--radius-lg,16px);padding:28px;max-width:380px;width:90%;margin:16px;box-shadow:0 16px 48px rgba(30,22,0,.18)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <h3 style="font-family:var(--font-heading,'Poppins'),sans-serif;font-size:17px;font-weight:700;color:var(--black,#1A1200);margin:0">Cadastrar empresa manualmente</h3>
       <button onclick="fecharModalManualDetentor()" style="background:none;border:none;cursor:pointer;color:var(--gray-3,#A89880);font-size:22px;line-height:1;padding:2px 6px">×</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- Logo (primeiro) -->
+      <div style="text-align:center">
+        <label class="form-label" style="text-align:left;display:block;margin-bottom:8px">Logo (opcional)</label>
+        <input type="file" id="dashManualLogoFile" accept="image/*" style="display:none" onchange="dashManualLogoChanged(this)">
+        <div id="dashManualLogoZone" style="width:150px;height:150px;border-radius:14px;border:2px dashed var(--gray-2,#E0D8CC);background:var(--gray-1,#F5F0E8);display:flex;align-items:center;justify-content:center;overflow:hidden;margin:0 auto;position:relative;transition:border-color .2s">
+          <div id="dashManualLogoEmpty" onclick="document.getElementById('dashManualLogoFile').click()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;width:100%;height:100%;justify-content:center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;color:var(--gray-3,#A89880)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span style="font-size:12px;color:var(--gray-3,#A89880);font-family:var(--font-body,'DM Sans'),sans-serif">Clique para enviar</span>
+          </div>
+          <img id="dashManualLogoPreview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%;display:none;cursor:grab;user-select:none" draggable="false">
+        </div>
+        <div id="dashManualLogoPost" style="display:none;margin-top:8px;font-size:11px;color:var(--gray-3,#A89880)">
+          Arraste para ajustar ·
+          <button type="button" onclick="document.getElementById('dashManualLogoFile').click()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--gold,#B8860B);padding:0;font-family:inherit">Trocar</button> ·
+          <button type="button" onclick="dashManualLogoRemove()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--red,#EF4444);padding:0;font-family:inherit">Remover</button>
+        </div>
+      </div>
+
+      <!-- Nome (segundo) -->
       <div class="form-group">
         <label class="form-label">Nome da empresa <span style="color:var(--red,#EF4444)">*</span></label>
         <input type="text" id="dashManualNomeModal" placeholder="Ex: Rock in Rio" class="form-input">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Logo (opcional)</label>
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:52px;height:52px;border-radius:8px;background:var(--gray-1,#F5F0E8);border:1px solid var(--gray-2,#E0D8CC);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
-            <img id="dashManualLogoPreview" style="width:100%;height:100%;object-fit:contain;display:none">
-            <svg id="dashManualLogoIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;color:var(--gray-3,#A89880)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          </div>
-          <input type="file" id="dashManualLogoFile" accept="image/*" style="display:none" onchange="dashManualLogoChanged(this)">
-          <button type="button" onclick="document.getElementById('dashManualLogoFile').click()" style="padding:9px 16px;background:var(--gray-1,#F5F0E8);border:1px solid var(--gray-2,#E0D8CC);border-radius:var(--radius-base,8px);font-size:13px;cursor:pointer;font-family:var(--font-body,'DM Sans'),sans-serif;color:var(--gray-4,#5C4C38)">Escolher imagem</button>
-        </div>
       </div>
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:24px">
@@ -2731,14 +2740,12 @@ async function dashSelectBrandfetchBrand(brand) {
           }
         }
 
-        // Pré-preencher site (index 3) — extrai do array links
+        // Pré-preencher site (index 3) — extrai do array links, sempre sobrescreve
         const websiteLink = (data.links || []).find(l => l.type === 'website');
         const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
         if (websiteUrl) {
           _dashSelectedBrand.website = websiteUrl;
-          if (descFields[3] && !descFields[3].value) {
-            descFields[3].value = websiteUrl;
-          }
+          if (descFields[3]) descFields[3].value = websiteUrl;
         }
       }
     } catch(e) { /* silencioso */ }
@@ -2873,19 +2880,46 @@ async function confirmarSolicitacaoMudancaEmpresa() {
   if (editingEmpresa) toggleEditEmpresa();
 }
 
+// ─── LOGO DRAG-TO-ADJUST (shared helper) ───
+function _setupLogoDrag(imgEl) {
+  if (!imgEl || imgEl._dragSetup) return;
+  imgEl._dragSetup = true;
+  let active = false, startX, startY, startPX = 50, startPY = 50;
+  function parsePos() {
+    const m = (imgEl.style.objectPosition || '50% 50%').match(/([\d.]+)%\s+([\d.]+)%/);
+    return m ? [parseFloat(m[1]), parseFloat(m[2])] : [50, 50];
+  }
+  imgEl.addEventListener('pointerdown', function(e) {
+    active = true; startX = e.clientX; startY = e.clientY;
+    [startPX, startPY] = parsePos();
+    imgEl.setPointerCapture(e.pointerId);
+    imgEl.style.cursor = 'grabbing'; e.preventDefault();
+  });
+  imgEl.addEventListener('pointermove', function(e) {
+    if (!active) return;
+    const W = imgEl.offsetWidth || 150, H = imgEl.offsetHeight || 150;
+    const newX = Math.max(0, Math.min(100, startPX - (e.clientX - startX) / W * 100));
+    const newY = Math.max(0, Math.min(100, startPY - (e.clientY - startY) / H * 100));
+    imgEl.style.objectPosition = newX + '% ' + newY + '%';
+  });
+  imgEl.addEventListener('pointerup',     function() { active = false; imgEl.style.cursor = 'grab'; });
+  imgEl.addEventListener('pointercancel', function() { active = false; imgEl.style.cursor = 'grab'; });
+}
+
 // ─── DASH MANUAL ENTRY (modal) ───
 let _dashManualMode = false;
 let _dashManualLogoDataUrl = null;
 
 function abrirModalManualDetentor() {
-  // Reseta estado do modal
-  const nomeInput   = document.getElementById('dashManualNomeModal');
-  const logoPrev    = document.getElementById('dashManualLogoPreview');
-  const logoIcon    = document.getElementById('dashManualLogoIcon');
-  const fileInput   = document.getElementById('dashManualLogoFile');
+  const nomeInput = document.getElementById('dashManualNomeModal');
+  const logoPrev  = document.getElementById('dashManualLogoPreview');
+  const logoEmpty = document.getElementById('dashManualLogoEmpty');
+  const logoPost  = document.getElementById('dashManualLogoPost');
+  const fileInput = document.getElementById('dashManualLogoFile');
   if (nomeInput)  nomeInput.value = '';
-  if (logoPrev)   { logoPrev.src = ''; logoPrev.style.display = 'none'; }
-  if (logoIcon)   logoIcon.style.display = '';
+  if (logoPrev)   { logoPrev.src = ''; logoPrev.style.display = 'none'; logoPrev.style.objectPosition = '50% 50%'; }
+  if (logoEmpty)  logoEmpty.style.display = 'flex';
+  if (logoPost)   logoPost.style.display = 'none';
   if (fileInput)  fileInput.value = '';
   _dashManualLogoDataUrl = null;
   document.getElementById('modalManualDetentor').style.display = 'flex';
@@ -2901,25 +2935,52 @@ function dashManualLogoChanged(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     _dashManualLogoDataUrl = e.target.result;
-    const prev = document.getElementById('dashManualLogoPreview');
-    const icon = document.getElementById('dashManualLogoIcon');
-    if (prev) { prev.src = _dashManualLogoDataUrl; prev.style.display = ''; }
-    if (icon) icon.style.display = 'none';
+    const prev  = document.getElementById('dashManualLogoPreview');
+    const empty = document.getElementById('dashManualLogoEmpty');
+    const post  = document.getElementById('dashManualLogoPost');
+    if (prev) {
+      prev.src = _dashManualLogoDataUrl;
+      prev.style.display = '';
+      prev.style.objectPosition = '50% 50%';
+      prev.style.cursor = 'grab';
+      _setupLogoDrag(prev);
+    }
+    if (empty) empty.style.display = 'none';
+    if (post)  post.style.display = '';
   };
   reader.readAsDataURL(file);
+}
+
+function dashManualLogoRemove() {
+  _dashManualLogoDataUrl = null;
+  const prev  = document.getElementById('dashManualLogoPreview');
+  const empty = document.getElementById('dashManualLogoEmpty');
+  const post  = document.getElementById('dashManualLogoPost');
+  const file  = document.getElementById('dashManualLogoFile');
+  if (prev)  { prev.src = ''; prev.style.display = 'none'; }
+  if (empty) empty.style.display = 'flex';
+  if (post)  post.style.display = 'none';
+  if (file)  file.value = '';
 }
 
 function confirmarModalManualDetentor() {
   const nome = document.getElementById('dashManualNomeModal')?.value?.trim();
   if (!nome) { showToast('Digite o nome da empresa.', 'error'); return; }
   fecharModalManualDetentor();
-  // Define como empresa selecionada
   _dashSelectedBrand = { name: nome, domain: '', icon: _dashManualLogoDataUrl || '' };
-  if (_dashManualLogoDataUrl) _dashSelectedBrand.logoDataUrl = _dashManualLogoDataUrl;
+  if (_dashManualLogoDataUrl) {
+    _dashSelectedBrand.logoDataUrl = _dashManualLogoDataUrl;
+    const prev = document.getElementById('dashManualLogoPreview');
+    if (prev) _dashSelectedBrand.logoObjectPosition = prev.style.objectPosition || '50% 50%';
+  }
   // Exibe card de seleção
-  const card    = document.getElementById('dashSelectedCard');
+  const card     = document.getElementById('dashSelectedCard');
   const logoIcon = document.getElementById('dashBrandIcon');
-  if (logoIcon) { logoIcon.src = _dashManualLogoDataUrl || ''; logoIcon.style.display = _dashManualLogoDataUrl ? '' : 'none'; }
+  if (logoIcon) {
+    logoIcon.src = _dashManualLogoDataUrl || '';
+    logoIcon.style.display = _dashManualLogoDataUrl ? '' : 'none';
+    if (_dashSelectedBrand.logoObjectPosition) logoIcon.style.objectPosition = _dashSelectedBrand.logoObjectPosition;
+  }
   document.getElementById('dashBrandName').textContent = nome;
   document.getElementById('dashBrandDomain').textContent = '';
   if (card) card.style.display = 'flex';
