@@ -1042,7 +1042,7 @@ tbody tr:last-child td { border-bottom: none; }
     <a class="nav-item" data-section="propostas" onclick="showSection('propostas')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
       Minhas Propostas
-      <span class="nav-badge">4</span>
+      <span class="nav-badge" id="navBadgePropostas" style="display:none">0</span>
     </a>
 
     <div class="nav-section-label">Conta</div>
@@ -4183,7 +4183,17 @@ function _buildPropostaCard(p, catalogMap) {
   </div>`;
 }
 
+function updateNavBadgePropostas() {
+  const badge = document.getElementById('navBadgePropostas');
+  if (!badge) return;
+  // Conta apenas propostas ativas (não finalizadas/aceitas/recusadas)
+  const ativas = (typeof PROPOSTAS !== 'undefined' ? PROPOSTAS : []).filter(p => p.status === 'pendente' || p.status === 'analise').length;
+  badge.textContent = ativas;
+  badge.style.display = ativas > 0 ? '' : 'none';
+}
+
 function renderPropostasTable() {
+  updateNavBadgePropostas();
   const grid = document.getElementById('prop-cards-grid');
   if (!grid) return;
 
