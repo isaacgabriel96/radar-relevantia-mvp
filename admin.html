@@ -1813,6 +1813,24 @@ async function excluirSelecionados(tabela, table) {
   }
 }
 
+async function excluirPorPerfil(perfilId, rowId, nome) {
+  if (!confirm(`Excluir "${nome}" permanentemente? Esta ação não pode ser desfeita.`)) return;
+  try {
+    const res = await sbFetch('/rest/v1/rpc/admin_excluir_por_perfil', {
+      method: 'POST',
+      body: JSON.stringify({ p_perfil_id: perfilId })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const row = document.getElementById(rowId);
+    if (row) row.remove();
+    showToast('Usuário excluído permanentemente', 'success');
+    loadStats();
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao excluir usuário', 'error');
+  }
+}
+
 async function excluirRegistro(tabela, id, rowId, nome) {
   if (!confirm(`Excluir "${nome}" permanentemente? Esta ação não pode ser desfeita.`)) return;
   try {
@@ -2577,6 +2595,7 @@ async function loadMudancasMarca() {
           <div style="display:flex;gap:6px">
             <button class="btn-sm btn-approve" onclick="aprovarMudancaMarca('${r.id}')">✅ Aprovar</button>
             <button class="btn-sm btn-reject"  onclick="rejeitarMudancaMarca('${r.id}')">✕ Rejeitar</button>
+            <button class="btn btn-sm btn-delete" onclick="excluirPorPerfil('${r.id}','mudanca-row-${r.id}','${escapeHtml(r.nome||r.email||'este usuário')}')">Excluir</button>
           </div>
         </td>
       </tr>`;
