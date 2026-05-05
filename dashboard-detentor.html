@@ -442,6 +442,13 @@ tbody tr:last-child td { border-bottom: none; }
 .deal-card-cp-desc::before { content: '–  '; }
 .deal-card-cp-val { font-weight: 500; color: var(--text); white-space: nowrap; }
 .deal-card-taxa { font-size: 11px; color: var(--gray-400); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--gray-200); }
+/* ─── EMPTY STATE — padrão único do design system ─── */
+.ds-empty { text-align: center; padding: 56px 32px; background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--gray-200); }
+.ds-empty-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--gray-100); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+.ds-empty-icon svg { width: 22px; height: 22px; stroke: var(--gray-400); stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ds-empty-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
+.ds-empty-text { font-family: var(--font-body); font-size: 13px; color: var(--gray-400); line-height: 1.6; max-width: 340px; margin: 0 auto; }
+/* legado — mantido por retrocompatibilidade */
 .deal-empty { text-align: center; padding: 48px 24px; color: var(--gray-400); background: var(--white); border-radius: 14px; border: 1px solid var(--gray-200); }
 .deal-empty-icon { font-size: 32px; margin-bottom: 12px; }
 .deal-empty-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
@@ -2035,6 +2042,25 @@ tbody tr:last-child td { border-bottom: none; }
 const MOCK_USER = { nome: 'Usuário', email: '' };
 const MOCK_EMPRESA = { nome: '' };
 
+// ─── EMPTY STATE — helper padrão do design system ───────────────────
+// SVGs disponíveis: 'oportunidades' | 'negociacoes' | 'deals' | 'solicitacoes' | 'padrao'
+const ES_ICONS = {
+  oportunidades: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 9h6M9 13h4"/></svg>',
+  negociacoes:   '<svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>',
+  deals:         '<svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>',
+  solicitacoes:  '<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
+  padrao:        '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',
+};
+function emptyStateHtml(tipo, titulo, texto, extraClass) {
+  const icon = ES_ICONS[tipo] || ES_ICONS.padrao;
+  const cls  = extraClass ? ' ' + extraClass : '';
+  return `<div class="ds-empty${cls}">
+    <div class="ds-empty-icon">${icon}</div>
+    <div class="ds-empty-title">${titulo}</div>
+    <div class="ds-empty-text">${texto}</div>
+  </div>`;
+}
+
 // ─── SECTION NAMES ───
 const SECTION_TITLES = {
   dashboard: 'Dashboard',
@@ -3385,7 +3411,7 @@ function renderPublicadas() {
   if (filtered.length === 0) {
     const labels = { publicada:'publicadas', rascunho:'em rascunho', finalizada:'encerradas', todos:'' };
     const labelStr = labels[_pubFilterAtivo] !== undefined ? labels[_pubFilterAtivo] : '';
-    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--gray-3);font-size:14px">Nenhuma oportunidade${labelStr ? ' ' + labelStr : ''} encontrada.</div>`;
+    container.innerHTML = `<div style="grid-column:1/-1">${emptyStateHtml('oportunidades', 'Nenhuma oportunidade encontrada', labelStr ? 'Nenhuma oportunidade ' + labelStr + ' por aqui.' : 'Suas oportunidades publicadas aparecerão aqui.')}</div>`;
     return;
   }
 
@@ -3574,7 +3600,7 @@ function renderNegOppCards() {
   });
 
   if (Object.keys(groups).length === 0) {
-    container.innerHTML = '<div class="deal-empty"><div class="deal-empty-icon">💬</div><div class="deal-empty-title">Nenhuma negociação</div><div class="deal-empty-text">Quando marcas enviarem propostas, elas aparecerão aqui.</div></div>';
+    container.innerHTML = emptyStateHtml('negociacoes', 'Nenhuma negociação', 'Quando marcas enviarem propostas, elas aparecerão aqui.');
     return;
   }
 
@@ -3658,7 +3684,7 @@ function renderNegCards() {
   if (countEl) countEl.textContent = list.length + ' negociação' + (list.length !== 1 ? 'ões' : '');
 
   if (list.length === 0) {
-    container.innerHTML = '<div class="deal-empty"><div class="deal-empty-icon">💬</div><div class="deal-empty-title">Nenhuma negociação</div><div class="deal-empty-text">Nenhuma negociação com esse status.</div></div>';
+    container.innerHTML = emptyStateHtml('negociacoes', 'Nenhuma negociação', 'Nenhuma negociação com esse status.');
     return;
   }
 
@@ -4494,11 +4520,7 @@ function renderDeals() {
   if (!container) return;
 
   if (deals.length === 0) {
-    container.innerHTML = `<div class="deal-empty">
-      <div class="deal-empty-icon">🤝</div>
-      <div class="deal-empty-title">Nenhum deal fechado ainda</div>
-      <div class="deal-empty-text">Quando uma negociação for concluída com sucesso,<br>ela aparecerá aqui como base para o contrato.</div>
-    </div>`;
+    container.innerHTML = emptyStateHtml('deals', 'Nenhum deal fechado ainda', 'Quando uma negociação for concluída com sucesso, ela aparecerá aqui como base para o contrato.');
     return;
   }
 
@@ -5472,15 +5494,7 @@ function renderSolicitacoes() {
   if (badge) badge.textContent = pendentes.length;
 
   if (_SOLICITACOES.length === 0) {
-    container.innerHTML = [
-      '<div style="padding:48px 24px;text-align:center">',
-        '<div style="width:56px;height:56px;border-radius:50%;background:var(--gray-100);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">',
-          '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>',
-        '</div>',
-        '<div style="font-family:var(--font-heading);font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Nenhuma solicitação</div>',
-        '<div style="font-family:var(--font-body);font-size:14px;color:var(--gray-400)">Quando marcas solicitarem acesso às suas oportunidades por aprovação, elas aparecerão aqui.</div>',
-      '</div>'
-    ].join('');
+    container.innerHTML = emptyStateHtml('solicitacoes', 'Nenhuma solicitação', 'Quando marcas solicitarem acesso às suas oportunidades por aprovação, elas aparecerão aqui.');
     return;
   }
 
