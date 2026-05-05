@@ -839,7 +839,6 @@ tbody tr:last-child td { border-bottom: none; }
 .voz-prio-btn.active[data-prio="alta"] { border-color: #EF4444; background: rgba(239,68,68,0.07); color: #B91C1C; font-weight: 700; }
 .voz-prio-btn.active[data-prio="media"] { border-color: var(--gold); background: rgba(184,134,11,0.08); color: #92670a; font-weight: 700; }
 .voz-prio-btn.active[data-prio="baixa"] { border-color: #22C55E; background: rgba(34,197,94,0.07); color: #166534; font-weight: 700; }
-.voz-guide-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
 .voz-filter-btn {
   padding: 5px 14px; border-radius: 100px; border: 1.5px solid var(--gray-200);
   background: var(--white); font-family: var(--font-body); font-size: 12px;
@@ -863,10 +862,12 @@ tbody tr:last-child td { border-bottom: none; }
 .ds-empty-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
 .ds-empty-text { font-family: var(--font-body); font-size: 13px; color: var(--gray-400); line-height: 1.6; max-width: 340px; margin: 0 auto; }
 
-@media (max-width: 900px) {
-  #sec-voz > div:nth-child(2) { grid-template-columns: 1fr !important; }
-  #sec-voz > div:nth-child(2) > div:last-child { display: none; }
-}
+.voz-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 4px; }
+.voz-anon-label { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+.voz-anon-label span { font-size: 13px; color: var(--gray-500); }
+.voz-hist-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.voz-textarea { width: 100%; min-height: 130px; padding: 14px 16px; border-radius: var(--radius-md); border: 1.5px solid var(--gray-200); background: var(--white); font-family: var(--font-body); font-size: 14px; color: var(--text); resize: vertical; outline: none; transition: border-color 0.2s; box-sizing: border-box; line-height: 1.6; }
+.voz-textarea:focus { border-color: var(--gold); }
 
 /* ─── MOBILE ─── */
 .bottom-nav {
@@ -1634,130 +1635,80 @@ tbody tr:last-child td { border-bottom: none; }
   <div class="page-header">
     <div>
       <h1 class="page-title">Fale com o Radar</h1>
-      <p class="page-subtitle">Compartilhe o que pensa. Cada mensagem alimenta diretamente o roadmap do Radar.</p>
+      <p class="page-subtitle">Cada mensagem é lida pelo time e alimenta o roadmap.</p>
     </div>
   </div>
-  <div style="display:grid; grid-template-columns: 1fr 340px; gap:24px; align-items:start">
 
-    <!-- Formulário principal -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Enviar feedback</div>
-        <div style="font-size:13px; color:var(--gray-400)">Problema, ideia ou sugestão — tudo é bem-vindo</div>
+  <!-- Formulário único -->
+  <div class="card" style="max-width:680px">
+    <div style="padding:20px 24px; border-bottom:1px solid var(--gray-200); display:flex; align-items:center; justify-content:space-between; gap:12px">
+      <div>
+        <div style="font-family:var(--font-heading); font-size:15px; font-weight:600; color:var(--black)">Novo feedback</div>
+        <div style="font-size:12px; color:var(--gray-400); margin-top:2px">Problema, ideia ou sugestão — tudo é bem-vindo</div>
       </div>
-      <div style="padding:24px; display:flex; flex-direction:column; gap:20px">
+    </div>
+    <div style="padding:24px; display:flex; flex-direction:column; gap:18px">
 
-        <!-- Categoria -->
-        <div>
-          <label style="font-size:12px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:8px">Categoria</label>
-          <div style="display:flex; flex-wrap:wrap; gap:8px" id="vozCategories">
-            <button type="button" class="voz-cat-btn active" data-cat="bug" onclick="selectVozCat(this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M12 22c4.97 0 9-4.03 9-9H3c0 4.97 4.03 9 9 9z"/><path d="M6.44 13a5.99 5.99 0 01-.44-2.24C6 7.56 8.69 5 12 5s6 2.56 6 5.76c0 .77-.15 1.52-.44 2.24"/><path d="M9 3L8 1M15 3l1-2M15.26 13H8.74"/></svg>
-              Bug / Erro
-            </button>
-            <button type="button" class="voz-cat-btn" data-cat="melhoria" onclick="selectVozCat(this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-              Melhoria
-            </button>
-            <button type="button" class="voz-cat-btn" data-cat="nova-feature" onclick="selectVozCat(this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-              Nova feature
-            </button>
-            <button type="button" class="voz-cat-btn" data-cat="duvida" onclick="selectVozCat(this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              Dúvida
-            </button>
-            <button type="button" class="voz-cat-btn" data-cat="outro" onclick="selectVozCat(this)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-              Outro
-            </button>
-          </div>
-        </div>
-
-        <!-- Prioridade -->
-        <div>
-          <label style="font-size:12px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:8px">Urgência para você</label>
-          <div style="display:flex; gap:8px" id="vozPriority">
-            <button type="button" class="voz-prio-btn" data-prio="alta" onclick="selectVozPrio(this)">Alta</button>
-            <button type="button" class="voz-prio-btn active" data-prio="media" onclick="selectVozPrio(this)">Média</button>
-            <button type="button" class="voz-prio-btn" data-prio="baixa" onclick="selectVozPrio(this)">Baixa</button>
-          </div>
-        </div>
-
-        <!-- Mensagem -->
-        <div>
-          <label style="font-size:12px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:8px">Sua mensagem</label>
-          <textarea id="vozMensagem" placeholder="Descreva com liberdade. O que aconteceu? O que você esperava? O que o Radar deveria ter?&#10;&#10;Quanto mais contexto, melhor para o time." style="width:100%; min-height:140px; padding:14px 16px; border-radius:var(--radius-md); border:1.5px solid var(--gray-200); background:var(--white); font-family:var(--font-body); font-size:14px; color:var(--text); resize:vertical; outline:none; transition:border-color 0.2s; box-sizing:border-box; line-height:1.6" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--gray-200)'"></textarea>
-          <div style="font-size:12px; color:var(--gray-400); margin-top:6px; text-align:right" id="vozCharCount">0 / 800</div>
-        </div>
-
-        <!-- Anônimo -->
-        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; user-select:none">
-          <input type="checkbox" id="vozAnonimo" style="width:16px; height:16px; accent-color:var(--gold); cursor:pointer">
-          <div>
-            <div style="font-size:13px; font-weight:500; color:var(--text)">Enviar anonimamente</div>
-            <div style="font-size:12px; color:var(--gray-400)">Seu nome não aparecerá no feedback</div>
-          </div>
-        </label>
-
-        <!-- Botão enviar -->
-        <button class="btn btn-gold" style="align-self:flex-start" onclick="submitVozFeedback()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Enviar feedback
+      <!-- Categoria -->
+      <div id="vozCategories" style="display:flex; flex-wrap:wrap; gap:8px">
+        <button type="button" class="voz-cat-btn active" data-cat="bug" onclick="selectVozCat(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M12 22c4.97 0 9-4.03 9-9H3c0 4.97 4.03 9 9 9z"/><path d="M6.44 13a5.99 5.99 0 01-.44-2.24C6 7.56 8.69 5 12 5s6 2.56 6 5.76c0 .77-.15 1.52-.44 2.24"/><path d="M9 3L8 1M15 3l1-2M15.26 13H8.74"/></svg>
+          Bug / Erro
+        </button>
+        <button type="button" class="voz-cat-btn" data-cat="melhoria" onclick="selectVozCat(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Melhoria
+        </button>
+        <button type="button" class="voz-cat-btn" data-cat="nova-feature" onclick="selectVozCat(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Nova feature
+        </button>
+        <button type="button" class="voz-cat-btn" data-cat="duvida" onclick="selectVozCat(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Dúvida
+        </button>
+        <button type="button" class="voz-cat-btn" data-cat="outro" onclick="selectVozCat(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          Outro
         </button>
       </div>
-    </div>
 
-    <!-- Painel lateral -->
-    <div style="display:flex; flex-direction:column; gap:16px">
-
-      <!-- Dica estratégica -->
-      <div style="background:linear-gradient(135deg, rgba(184,134,11,0.07), rgba(200,168,75,0.04)); border:1px solid rgba(184,134,11,0.18); border-radius:var(--radius-lg); padding:20px">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px">
-          <div style="width:32px; height:32px; background:var(--gold-gradient); border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:16px;height:16px"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          </div>
-          <div style="font-size:13px; font-weight:700; color:var(--black)">Seu feedback importa</div>
-        </div>
-        <p style="font-size:13px; color:var(--gray-4); line-height:1.6; margin:0">Cada mensagem é lida pelo time e alimenta diretamente o roadmap do Radar. Você não está falando para o vazio.</p>
-      </div>
-
-      <!-- Categorias explicadas -->
-      <div class="card" style="padding:0; overflow:hidden">
-        <div style="padding:16px 20px; border-bottom:1px solid var(--gray-200)">
-          <div style="font-size:13px; font-weight:700; color:var(--black)">Guia de categorias</div>
-        </div>
-        <div style="padding:16px 20px; display:flex; flex-direction:column; gap:12px">
-          <div style="display:flex; gap:10px; align-items:flex-start">
-            <span class="voz-guide-dot" style="background:#EF4444"></span>
-            <div><div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:2px">Bug / Erro</div><div style="font-size:12px; color:var(--gray-400); line-height:1.5">Algo quebrado, comportamento inesperado ou falha na plataforma</div></div>
-          </div>
-          <div style="display:flex; gap:10px; align-items:flex-start">
-            <span class="voz-guide-dot" style="background:#3B82F6"></span>
-            <div><div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:2px">Melhoria</div><div style="font-size:12px; color:var(--gray-400); line-height:1.5">Algo que funciona, mas poderia ser mais fácil, rápido ou claro</div></div>
-          </div>
-          <div style="display:flex; gap:10px; align-items:flex-start">
-            <span class="voz-guide-dot" style="background:var(--gold)"></span>
-            <div><div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:2px">Nova feature</div><div style="font-size:12px; color:var(--gray-400); line-height:1.5">Funcionalidade que o Radar ainda não tem mas deveria ter</div></div>
-          </div>
-          <div style="display:flex; gap:10px; align-items:flex-start">
-            <span class="voz-guide-dot" style="background:#8B5CF6"></span>
-            <div><div style="font-size:12px; font-weight:700; color:var(--text); margin-bottom:2px">Dúvida</div><div style="font-size:12px; color:var(--gray-400); line-height:1.5">Não entendeu algo ou quer saber como usar um recurso</div></div>
-          </div>
+      <!-- Urgência inline -->
+      <div style="display:flex; align-items:center; gap:10px">
+        <span style="font-size:12px; color:var(--gray-400); white-space:nowrap">Urgência</span>
+        <div id="vozPriority" style="display:flex; gap:6px">
+          <button type="button" class="voz-prio-btn" data-prio="alta" onclick="selectVozPrio(this)">Alta</button>
+          <button type="button" class="voz-prio-btn active" data-prio="media" onclick="selectVozPrio(this)">Média</button>
+          <button type="button" class="voz-prio-btn" data-prio="baixa" onclick="selectVozPrio(this)">Baixa</button>
         </div>
       </div>
-    </div>
 
+      <!-- Textarea -->
+      <textarea id="vozMensagem" class="voz-textarea" placeholder="Descreva com liberdade. O que aconteceu? O que você esperava? O que o Radar deveria ter?"></textarea>
+
+      <!-- Footer: anônimo + count + enviar -->
+      <div class="voz-form-footer">
+        <label class="voz-anon-label">
+          <input type="checkbox" id="vozAnonimo" style="width:15px; height:15px; accent-color:var(--gold); cursor:pointer; flex-shrink:0">
+          <span>Enviar anonimamente</span>
+        </label>
+        <div style="display:flex; align-items:center; gap:14px">
+          <span id="vozCharCount" style="font-size:12px; color:var(--gray-400)">0 / 800</span>
+          <button class="btn btn-gold" onclick="submitVozFeedback()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Enviar
+          </button>
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <!-- Histórico de feedbacks -->
-  <div style="margin-top:24px">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px">
-      <div>
-        <h2 style="font-size:16px; font-weight:700; color:var(--black); margin:0">Seus feedbacks anteriores</h2>
-        <p style="font-size:13px; color:var(--gray-400); margin:4px 0 0">Acompanhe o status de cada mensagem enviada</p>
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap" id="vozHistFilter">
+  <!-- Histórico -->
+  <div style="margin-top:32px; max-width:680px">
+    <div class="voz-hist-header">
+      <div style="font-family:var(--font-heading); font-size:14px; font-weight:600; color:var(--black)">Feedbacks enviados</div>
+      <div id="vozHistFilter" style="display:flex; gap:6px; flex-wrap:wrap">
         <button class="voz-filter-btn active" data-filter="todos" onclick="filterVozHist(this)">Todos</button>
         <button class="voz-filter-btn" data-filter="bug" onclick="filterVozHist(this)">Bug</button>
         <button class="voz-filter-btn" data-filter="melhoria" onclick="filterVozHist(this)">Melhoria</button>
@@ -1765,9 +1716,7 @@ tbody tr:last-child td { border-bottom: none; }
         <button class="voz-filter-btn" data-filter="duvida" onclick="filterVozHist(this)">Dúvida</button>
       </div>
     </div>
-    <div id="vozHistList">
-      <!-- Preenchido por JS -->
-    </div>
+    <div id="vozHistList"></div>
   </div>
 
 </div>
