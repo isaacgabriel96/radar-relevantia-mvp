@@ -212,30 +212,9 @@ body::after {
 }
 .btn-logout:hover { border-color: rgba(255,255,255,0.35); color: var(--white); }
 
-/* Stepper de progresso */
-.stepper-wrap {
-  display: flex; justify-content: center;
-  padding: 14px 24px;
-  border-bottom: 1px solid rgba(184,134,11,0.08);
-  background: rgba(10,8,0,0.5);
-}
-.stepper { display: flex; align-items: center; }
-.step-item { display: flex; align-items: center; }
-.step-circle {
-  width: 28px; height: 28px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700;
-  border: 2px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.25); transition: all 0.3s;
-}
-.step-item.active .step-circle { border-color: var(--gold); background: var(--gold); color: var(--black); }
-.step-item.done .step-circle { border-color: rgba(34,197,94,0.5); background: rgba(34,197,94,0.12); color: #4ade80; }
-.step-line {
-  width: 36px; height: 1px;
-  background: rgba(255,255,255,0.08);
-  margin: 0 8px; flex-shrink: 0; transition: background 0.3s;
-}
-.step-line.done { background: rgba(74,222,128,0.35); }
+/* ── Progress bar ── */
+.progress-bar-wrap { padding: 0; height: 2px; background: rgba(184,134,11,0.1); }
+.progress-bar-fill { height: 100%; background: var(--gold-gradient); transition: width 0.4s ease; }
 
 /* Step panels */
 .step-panel { display: none; width: 100%; max-width: 480px; }
@@ -457,19 +436,22 @@ body::after {
   .nav { padding: 0 20px; }
   .glass-card { padding: 24px 20px; }
 }
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .tutorial-visual { display: none; }
+}
+@media (max-width: 600px) {
   /* Tutorial panels fill viewport — no scroll */
   .tutorial-panel.active { height: calc(100dvh - 70px); overflow: hidden; }
   .tutorial-layout { height: 100%; }
   .tutorial-content {
     height: 100%; padding: 24px 20px;
-    display: flex; flex-direction: column; justify-content: space-between;
+    display: flex; flex-direction: column; justify-content: flex-start; gap: 0;
   }
+  .tutorial-content > div:last-child { margin-top: auto; padding-top: 16px; }
   .panel-badge { margin-bottom: 10px; }
   .panel-title { font-size: clamp(22px, 6vw, 28px); margin-bottom: 8px; }
-  .panel-sub { font-size: 14px; line-height: 1.55; margin-bottom: 14px; }
-  .panel-bullets { gap: 7px; margin-bottom: 14px; }
+  .panel-sub { font-size: 14px; line-height: 1.55; margin-bottom: 12px; }
+  .panel-bullets { gap: 6px; margin-bottom: 12px; }
   .panel-bullets li { font-size: 13px; }
   /* stepPw / stepSuccess: allow internal scroll on very small screens */
   #stepPw, #stepSuccess {
@@ -636,7 +618,7 @@ body::after {
 
   <nav class="nav">
     <a href="index.html" class="nav-logo">
-      <img src="logos/relevantia-wordmark.png" alt="Relevantia" style="height:28px;width:auto;">
+      <img src="logos/5.png" alt="Relevantia" style="height:22px;width:auto;">
     </a>
     <div class="nav-right">
       <span class="nav-email" id="navEmail"></span>
@@ -644,19 +626,9 @@ body::after {
     </div>
   </nav>
 
-  <!-- Stepper de progresso -->
-  <div class="stepper-wrap">
-    <div class="stepper">
-      <div class="step-item" id="si0"><div class="step-circle" id="sc0">1</div></div>
-      <div class="step-line" id="sl0"></div>
-      <div class="step-item" id="si1"><div class="step-circle" id="sc1">2</div></div>
-      <div class="step-line" id="sl1"></div>
-      <div class="step-item" id="si2"><div class="step-circle" id="sc2">3</div></div>
-      <div class="step-line" id="sl2"></div>
-      <div class="step-item" id="si3"><div class="step-circle" id="sc3">4</div></div>
-      <div class="step-line" id="sl3"></div>
-      <div class="step-item" id="si4"><div class="step-circle" id="sc4">5</div></div>
-    </div>
+  <!-- Barra de progresso -->
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -730,7 +702,10 @@ body::after {
           O Radar Relevantia conecta sua marca com detentores de direitos que oferecem oportunidades reais de patrocínio e ativação de alto impacto.
         </p>
         <ul class="panel-bullets">
-          <li>Eventos, canais, influenciadores e projetos culturais</li>
+          <li>Personalidades</li>
+          <li>Eventos</li>
+          <li>Artistas musicais</li>
+          <li>Mídia</li>
           <li>Oportunidades curadas e verificadas pela equipe</li>
         </ul>
         <p class="panel-sub" style="margin-bottom:32px;">
@@ -1084,30 +1059,11 @@ function showSection(id) {
     el.classList.add('active');
   }
 
-  updateStepper(ALL_SECTIONS.indexOf(id));
+  const idx = ALL_SECTIONS.indexOf(id) + 1;
+  const pct = Math.round((idx / ALL_SECTIONS.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function updateStepper(idx) {
-  for (let i = 0; i < 5; i++) {
-    const item = document.getElementById('si' + i);
-    const circ = document.getElementById('sc' + i);
-    const line = document.getElementById('sl' + i);
-    if (!item) continue;
-    item.classList.remove('active', 'done');
-    if (line) line.classList.remove('done');
-    if (i < idx) {
-      item.classList.add('done');
-      circ.textContent = '✓';
-      if (line) line.classList.add('done');
-    } else if (i === idx) {
-      item.classList.add('active');
-      circ.textContent = i + 1;
-    } else {
-      circ.textContent = i + 1;
-    }
-  }
 }
 
 function goToTut(n) {
