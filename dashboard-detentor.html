@@ -1609,6 +1609,8 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="sub-tabs">
         <button class="sub-tab active" id="cfg-tab-empresa" onclick="switchConfigTab('empresa')">Empresa</button>
         <button class="sub-tab" id="cfg-tab-conta" onclick="switchConfigTab('conta')">Conta</button>
+        <button class="sub-tab" id="cfg-tab-juridico" onclick="switchConfigTab('juridico')">Jurídico</button>
+        <button class="sub-tab" id="cfg-tab-financeiro" onclick="switchConfigTab('financeiro')">Financeiro</button>
         <button class="sub-tab" id="cfg-tab-equipe" onclick="switchConfigTab('equipe')" style="display:none">Equipe</button>
       </div>
 
@@ -1899,6 +1901,119 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
 
       </div><!-- /cfg-panel-conta -->
+
+      <!-- Painel: Jurídico -->
+      <div id="cfg-panel-juridico" style="display:none">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Dados jurídicos</div>
+            <button class="btn btn-ghost btn-sm" id="btnEditJuridico" onclick="toggleEditJuridico()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+              Editar
+            </button>
+          </div>
+          <div style="padding:24px">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">CNPJ</label>
+                <input class="form-input juridico-field" id="jur-cnpj" type="text" placeholder="00.000.000/0000-00" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Razão social</label>
+                <input class="form-input juridico-field" id="jur-razao" type="text" placeholder="Razão social completa" disabled>
+              </div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin:20px 0 12px">Endereço</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">CEP</label>
+                <input class="form-input juridico-field" id="jur-cep" type="text" placeholder="00000-000" disabled oninput="buscarCep(this)">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Logradouro</label>
+                <input class="form-input juridico-field" id="jur-logradouro" type="text" placeholder="Rua, Avenida..." disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Número</label>
+                <input class="form-input juridico-field" id="jur-numero" type="text" placeholder="123" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Complemento</label>
+                <input class="form-input juridico-field" id="jur-complemento" type="text" placeholder="Apto, sala..." disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cidade</label>
+                <input class="form-input juridico-field" id="jur-cidade" type="text" placeholder="São Paulo" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Estado</label>
+                <select class="form-input juridico-field" id="jur-estado" disabled style="appearance:auto">
+                  <option value="">Selecione</option>
+                  <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                  <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                  <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                  <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                  <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                  <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                  <option>SP</option><option>SE</option><option>TO</option>
+                </select>
+              </div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin:20px 0 12px">Responsável legal</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Nome completo</label>
+                <input class="form-input juridico-field" id="jur-resp-nome" type="text" placeholder="Nome do responsável legal" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">CPF</label>
+                <input class="form-input juridico-field" id="jur-resp-cpf" type="text" placeholder="000.000.000-00" disabled>
+              </div>
+            </div>
+            <div class="form-actions" id="juridicoActions" style="display:none">
+              <button class="btn btn-gold" onclick="saveJuridico()">Salvar alterações</button>
+              <button class="btn btn-ghost" onclick="toggleEditJuridico()">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /cfg-panel-juridico -->
+
+      <!-- Painel: Financeiro -->
+      <div id="cfg-panel-financeiro" style="display:none">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Cadastro financeiro</div>
+          </div>
+          <div style="padding:24px;display:flex;flex-direction:column;gap:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--gray-50,#f9f9f9);border-radius:10px;border:1px solid var(--gray-200)">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Status do cadastro</div>
+                <div style="font-size:12px;color:var(--gray-400);margin-top:3px">Integração com gateway de pagamentos</div>
+              </div>
+              <span id="fin-status-badge" style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:100px;background:var(--gray-100);color:var(--gray-400)">Não iniciado</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--gray-50,#f9f9f9);border-radius:10px;border:1px solid var(--gray-200)">
+              <div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Taxa da plataforma</div>
+                <div style="font-size:12px;color:var(--gray-400);margin-top:3px">Percentual retido pela Relevantia por negociação</div>
+              </div>
+              <span id="fin-taxa" style="font-size:18px;font-weight:700;color:var(--gold)">—%</span>
+            </div>
+            <div style="padding:16px;background:rgba(184,134,11,0.05);border:1px solid rgba(184,134,11,0.15);border-radius:10px">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Como funciona</div>
+              <div style="font-size:13px;color:var(--gray-400);line-height:1.6">O cadastro financeiro é necessário para receber pagamentos de patrocínio via plataforma. Você será redirecionado para completar seus dados bancários de forma segura.</div>
+            </div>
+            <button class="btn btn-gold" id="btn-stripe-onboarding" onclick="iniciarOnboardingStripe()" style="align-self:flex-start">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
+              Completar cadastro financeiro
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /cfg-panel-financeiro -->
 
     </div><!-- /sec-configuracoes -->
     <div class="section" id="sec-voz">
@@ -2376,10 +2491,10 @@ function toggleSetupGuide() {
 }
 
 function populateDetenorFields(p) {
-  // Não sobrescreve campos enquanto o usuário está editando
   if (editingEmpresa || editingPerfil) return;
   OB_DET.perfil = !!(p.empresa && p.empresa.trim() && p.segmento && p.segmento.trim());
   updateSetupGuide();
+  if (!editingJuridico) populateJuridicoFields(p);
 
   // Empresa fields: [0]=nome empresa, [1]=cnpj, [2]=segmento (select), [3]=telefone, [4]=endereço, [5]=website, [6]=descricao
   const empresaFields = document.querySelectorAll('.empresa-field');
@@ -2444,9 +2559,13 @@ function populateDetenorFields(p) {
       fallback.style.display = 'none';
       img.onerror = setLogoFallback;
     };
-    if (p.empresa_domain) {
-      // Busca URL fresca via Brandfetch search API
-      fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(p.empresa_domain)}?c=${DASH_BF_CLIENT_ID}`)
+    // Deriva domínio do website se empresa_domain não estiver salvo
+    const brandDomain = p.empresa_domain ||
+      (p.website ? p.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0].split('?')[0] : null);
+
+    if (brandDomain) {
+      setLogoFallback(); // placeholder enquanto carrega
+      fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(brandDomain)}?c=${DASH_BF_CLIENT_ID}`)
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           const icon = Array.isArray(data) && data.length > 0 ? data[0].icon : null;
@@ -2458,8 +2577,6 @@ function populateDetenorFields(p) {
           if (p.logo_url) { applyLogoSrc(p.logo_url); }
           else { setLogoFallback(); }
         });
-      // Enquanto carrega, mostra fallback temporariamente
-      setLogoFallback();
     } else if (p.logo_url) {
       applyLogoSrc(p.logo_url);
     } else {
@@ -2495,7 +2612,7 @@ async function loadUserInfoDetentor() {
         // Tentar buscar nome real na tabela perfis
         try {
           const token = session.access_token;
-          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa,email,cnpj,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url&limit=1', {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa,email,cnpj,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url,razao_social,cep,logradouro,numero_endereco,complemento,cidade,estado,responsavel_legal_nome,responsavel_legal_cpf&limit=1', {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
           });
           if (res.ok) {
@@ -5215,11 +5332,156 @@ function filterVozHist(btn) {
 }
 
 function switchConfigTab(tab) {
-  ['empresa','conta','equipe'].forEach(t => {
-    document.getElementById('cfg-tab-' + t).classList.toggle('active', t === tab);
-    document.getElementById('cfg-panel-' + t).style.display = t === tab ? '' : 'none';
+  ['empresa','conta','juridico','financeiro','equipe'].forEach(t => {
+    const btn = document.getElementById('cfg-tab-' + t);
+    const panel = document.getElementById('cfg-panel-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (panel) panel.style.display = t === tab ? '' : 'none';
   });
   if (tab === 'equipe') loadEquipe();
+  if (tab === 'financeiro') loadFinanceiro();
+}
+
+// ─── ABA JURÍDICO ───
+let editingJuridico = false;
+
+function toggleEditJuridico() {
+  editingJuridico = !editingJuridico;
+  document.querySelectorAll('.juridico-field').forEach(el => el.disabled = !editingJuridico);
+  document.getElementById('juridicoActions').style.display = editingJuridico ? '' : 'none';
+  document.getElementById('btnEditJuridico').textContent = editingJuridico ? 'Cancelar' : 'Editar';
+  if (!editingJuridico) loadJuridicoFromPerfil();
+}
+
+async function saveJuridico() {
+  const token = await getValidToken();
+  if (!token) return;
+  const { data: { session } } = await sb.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) return;
+
+  const patch = {
+    cnpj:                  document.getElementById('jur-cnpj')?.value.trim() || null,
+    razao_social:          document.getElementById('jur-razao')?.value.trim() || null,
+    cep:                   document.getElementById('jur-cep')?.value.trim() || null,
+    logradouro:            document.getElementById('jur-logradouro')?.value.trim() || null,
+    numero_endereco:       document.getElementById('jur-numero')?.value.trim() || null,
+    complemento:           document.getElementById('jur-complemento')?.value.trim() || null,
+    cidade:                document.getElementById('jur-cidade')?.value.trim() || null,
+    estado:                document.getElementById('jur-estado')?.value || null,
+    responsavel_legal_nome: document.getElementById('jur-resp-nome')?.value.trim() || null,
+    responsavel_legal_cpf:  document.getElementById('jur-resp-cpf')?.value.trim() || null,
+  };
+
+  const filled = ['cnpj','razao_social','logradouro','cidade','estado','responsavel_legal_nome','responsavel_legal_cpf'];
+  patch.cadastro_juridico_completo = filled.every(k => patch[k]);
+
+  const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId, {
+    method: 'PATCH',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify(patch)
+  });
+
+  if (res.ok) {
+    editingJuridico = false;
+    document.querySelectorAll('.juridico-field').forEach(el => el.disabled = true);
+    document.getElementById('juridicoActions').style.display = 'none';
+    document.getElementById('btnEditJuridico').textContent = 'Editar';
+  }
+}
+
+function populateJuridicoFields(p) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('jur-cnpj',       p.cnpj);
+  set('jur-razao',      p.razao_social);
+  set('jur-cep',        p.cep);
+  set('jur-logradouro', p.logradouro);
+  set('jur-numero',     p.numero_endereco);
+  set('jur-complemento',p.complemento);
+  set('jur-cidade',     p.cidade);
+  set('jur-resp-nome',  p.responsavel_legal_nome);
+  set('jur-resp-cpf',   p.responsavel_legal_cpf);
+  const estadoEl = document.getElementById('jur-estado');
+  if (estadoEl && p.estado) estadoEl.value = p.estado;
+}
+
+async function loadJuridicoFromPerfil() {
+  const token = await getValidToken();
+  if (!token) return;
+  const { data: { session } } = await sb.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) return;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=cnpj,razao_social,cep,logradouro,numero_endereco,complemento,cidade,estado,responsavel_legal_nome,responsavel_legal_cpf&limit=1', {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+  });
+  if (res.ok) { const rows = await res.json(); if (rows[0]) populateJuridicoFields(rows[0]); }
+}
+
+async function buscarCep(input) {
+  const cep = input.value.replace(/\D/g, '');
+  if (cep.length !== 8) return;
+  try {
+    const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const d = await r.json();
+    if (!d.erro) {
+      const set = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
+      set('jur-logradouro', d.logradouro);
+      set('jur-cidade',     d.localidade);
+      const estadoEl = document.getElementById('jur-estado');
+      if (estadoEl && !estadoEl.value) estadoEl.value = d.uf;
+    }
+  } catch (_) {}
+}
+
+// ─── ABA FINANCEIRO ───
+async function loadFinanceiro() {
+  const token = await getValidToken();
+  if (!token) return;
+  const { data: { session } } = await sb.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) return;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=stripe_onboarding_status,taxa_plataforma_percent,cadastro_financeiro_completo&limit=1', {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+  });
+  if (!res.ok) return;
+  const rows = await res.json();
+  const p = rows[0] || {};
+
+  const badge = document.getElementById('fin-status-badge');
+  const btn = document.getElementById('btn-stripe-onboarding');
+  const status = p.stripe_onboarding_status;
+  if (badge) {
+    if (status === 'complete' || p.cadastro_financeiro_completo) {
+      badge.textContent = 'Completo';
+      badge.style.background = '#dcfce7'; badge.style.color = '#16a34a';
+      if (btn) { btn.textContent = 'Gerenciar conta financeira'; }
+    } else if (status === 'pending') {
+      badge.textContent = 'Pendente';
+      badge.style.background = '#fef9c3'; badge.style.color = '#854d0e';
+    } else {
+      badge.textContent = 'Não iniciado';
+      badge.style.background = 'var(--gray-100)'; badge.style.color = 'var(--gray-400)';
+    }
+  }
+
+  const taxaEl = document.getElementById('fin-taxa');
+  if (taxaEl) taxaEl.textContent = p.taxa_plataforma_percent != null ? p.taxa_plataforma_percent + '%' : '—%';
+}
+
+async function iniciarOnboardingStripe() {
+  const btn = document.getElementById('btn-stripe-onboarding');
+  if (btn) { btn.disabled = true; btn.textContent = 'Aguarde...'; }
+  try {
+    const token = await getValidToken();
+    const res = await fetch(SUPABASE_URL + '/functions/v1/create-onboarding-link', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (data.url) { window.location.href = data.url; return; }
+  } catch (_) {}
+  if (btn) { btn.disabled = false; btn.textContent = 'Completar cadastro financeiro'; }
 }
 
 function switchVozTab(tab) {
