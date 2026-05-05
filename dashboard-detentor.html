@@ -1233,7 +1233,7 @@ tbody tr:last-child td { border-bottom: none; }
   </nav>
 
   <div class="sidebar-footer">
-    <div class="sidebar-user" onclick="showSection('configuracoes'); setTimeout(() => switchConfigTab('perfil'), 30)">
+    <div class="sidebar-user" onclick="showSection('configuracoes'); setTimeout(() => switchConfigTab('conta'), 30)">
       <div class="sidebar-user-avatar" id="sidebarAvatar">IG</div>
       <div class="sidebar-user-info">
         <div class="sidebar-user-name" id="sidebarName">Isaac Gabriel</div>
@@ -1485,7 +1485,7 @@ tbody tr:last-child td { border-bottom: none; }
       <!-- Tabs -->
       <div class="sub-tabs">
         <button class="sub-tab active" id="cfg-tab-empresa" onclick="switchConfigTab('empresa')">Empresa</button>
-        <button class="sub-tab" id="cfg-tab-perfil" onclick="switchConfigTab('perfil')">Perfil</button>
+        <button class="sub-tab" id="cfg-tab-conta" onclick="switchConfigTab('conta')">Conta</button>
         <button class="sub-tab" id="cfg-tab-equipe" onclick="switchConfigTab('equipe')" style="display:none">Equipe</button>
       </div>
 
@@ -1688,7 +1688,7 @@ tbody tr:last-child td { border-bottom: none; }
       </div><!-- /cfg-panel-equipe -->
 
       <!-- Painel: Perfil -->
-      <div id="cfg-panel-perfil" style="display:none">
+      <div id="cfg-panel-conta" style="display:none">
 
       <div class="card">
         <div class="card-header">
@@ -1795,7 +1795,7 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
-      </div><!-- /cfg-panel-perfil -->
+      </div><!-- /cfg-panel-conta -->
 
     </div><!-- /sec-configuracoes -->
     <div class="section" id="sec-voz">
@@ -4917,7 +4917,7 @@ function filterVozHist(btn) {
 }
 
 function switchConfigTab(tab) {
-  ['empresa','perfil','equipe'].forEach(t => {
+  ['empresa','conta','equipe'].forEach(t => {
     document.getElementById('cfg-tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('cfg-panel-' + t).style.display = t === tab ? '' : 'none';
   });

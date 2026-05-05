@@ -1344,20 +1344,20 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="section" id="sec-configuracoes">
       <div class="page-header">
         <div class="page-header-left">
-          <h1 class="page-title">Configurações da marca</h1>
-          <p class="page-subtitle">Gerencie as informações da sua marca e conta</p>
+          <h1 class="page-title">Configurações</h1>
+          <p class="page-subtitle">Gerencie sua empresa, conta pessoal e equipe</p>
         </div>
       </div>
 
       <!-- Tabs -->
       <div class="sub-tabs">
-        <button class="sub-tab active" id="cfg-tab-marca" onclick="switchConfigTab('marca')">Marca</button>
+        <button class="sub-tab active" id="cfg-tab-empresa" onclick="switchConfigTab('empresa')">Empresa</button>
         <button class="sub-tab" id="cfg-tab-conta" onclick="switchConfigTab('conta')">Conta</button>
         <button class="sub-tab" id="cfg-tab-equipe" onclick="switchConfigTab('equipe')" style="display:none">Equipe</button>
       </div>
 
       <!-- Painel: Marca -->
-      <div id="cfg-panel-marca">
+      <div id="cfg-panel-empresa">
 
       <!-- Card identidade da marca (logo) -->
       <div class="card" id="cardLogoMarca" style="margin-bottom:16px">
@@ -1503,7 +1503,7 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
-      </div><!-- /cfg-panel-marca -->
+      </div><!-- /cfg-panel-empresa -->
 
       <!-- Painel: Conta -->
       <div id="cfg-panel-conta" style="display:none">
@@ -4012,7 +4012,7 @@ function filterVozHist(btn) {
 }
 
 function switchConfigTab(tab) {
-  ['marca','conta','equipe'].forEach(t => {
+  ['empresa','conta','equipe'].forEach(t => {
     document.getElementById('cfg-tab-' + t).classList.toggle('active', t === tab);
     document.getElementById('cfg-panel-' + t).style.display = t === tab ? '' : 'none';
   });
