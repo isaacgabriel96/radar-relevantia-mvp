@@ -1349,6 +1349,16 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
+      <!-- Tabs -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="cfg-tab-marca" onclick="switchConfigTab('marca')">Marca</button>
+        <button class="sub-tab" id="cfg-tab-conta" onclick="switchConfigTab('conta')">Conta</button>
+        <button class="sub-tab" id="cfg-tab-equipe" onclick="switchConfigTab('equipe')" style="display:none">Equipe</button>
+      </div>
+
+      <!-- Painel: Marca -->
+      <div id="cfg-panel-marca">
+
       <!-- Card identidade da marca (logo) -->
       <div class="card" id="cardLogoMarca" style="margin-bottom:16px">
         <div style="padding:20px 24px;display:flex;align-items:center;gap:20px">
@@ -1493,6 +1503,11 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
+      </div><!-- /cfg-panel-marca -->
+
+      <!-- Painel: Conta -->
+      <div id="cfg-panel-conta" style="display:none">
+
       <!-- Responsável pela conta -->
       <div class="card">
         <div class="card-header">
@@ -1573,48 +1588,6 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
-      <!-- Equipe (visível apenas para owner e org admin) -->
-      <div class="card" id="cardEquipe" style="display:none">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Equipe</div>
-            <div style="font-size:12px;color:var(--gray-3);margin-top:2px">Limite de 2 membros convidados</div>
-          </div>
-          <button id="btnConvidarMembro" class="btn btn-ghost btn-sm" onclick="abrirModalConvite()" style="display:flex;align-items:center;gap:6px">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-            Convidar
-          </button>
-        </div>
-        <div style="padding:0 24px 24px">
-          <div id="equipeLimit" style="display:none;padding:10px 14px;background:var(--gray-1);border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;color:var(--gray-4);margin-bottom:16px">
-            Limite de 2 membros atingido.
-          </div>
-          <div id="equipeMembros">
-            <!-- Placeholder — substituído pelo renderEquipe() após carregar -->
-            <div style="display:flex;flex-direction:column;gap:14px">
-              <div class="form-grid">
-                <div class="form-group">
-                  <label class="form-label">Nome 1</label>
-                  <input class="form-input" type="text" placeholder="Nenhum membro ainda" disabled>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">E-mail 1</label>
-                  <input class="form-input" type="email" placeholder="—" disabled>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Nome 2</label>
-                  <input class="form-input" type="text" placeholder="—" disabled>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">E-mail 2</label>
-                  <input class="form-input" type="email" placeholder="—" disabled>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Segurança -->
       <div class="card">
         <div class="card-header">
@@ -1640,7 +1613,55 @@ tbody tr:last-child td { border-bottom: none; }
           </div>
         </div>
       </div>
-    </div>
+
+      </div><!-- /cfg-panel-conta -->
+
+      <!-- Painel: Equipe -->
+      <div id="cfg-panel-equipe" style="display:none">
+
+      <div class="card" id="cardEquipe">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Equipe</div>
+            <div style="font-size:12px;color:var(--gray-3);margin-top:2px">Limite de 2 membros convidados</div>
+          </div>
+          <button id="btnConvidarMembro" class="btn btn-ghost btn-sm" onclick="abrirModalConvite()" style="display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            Convidar
+          </button>
+        </div>
+        <div style="padding:0 24px 24px">
+          <div id="equipeLimit" style="display:none;padding:10px 14px;background:var(--gray-1);border-radius:var(--radius-md);font-family:var(--font-body);font-size:12px;color:var(--gray-4);margin-bottom:16px">
+            Limite de 2 membros atingido.
+          </div>
+          <div id="equipeMembros">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Nome 1</label>
+                  <input class="form-input" type="text" placeholder="Nenhum membro ainda" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">E-mail 1</label>
+                  <input class="form-input" type="email" placeholder="—" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Nome 2</label>
+                  <input class="form-input" type="text" placeholder="—" disabled>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">E-mail 2</label>
+                  <input class="form-input" type="email" placeholder="—" disabled>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      </div><!-- /cfg-panel-equipe -->
+
+    </div><!-- /sec-configuracoes -->
 
     <!-- Seção: Fale com o Radar -->
     <div class="section" id="sec-voz">
@@ -3990,6 +4011,14 @@ function filterVozHist(btn) {
   renderVozHistorico();
 }
 
+function switchConfigTab(tab) {
+  ['marca','conta','equipe'].forEach(t => {
+    document.getElementById('cfg-tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('cfg-panel-' + t).style.display = t === tab ? '' : 'none';
+  });
+  if (tab === 'equipe') loadEquipe();
+}
+
 function switchVozTab(tab) {
   document.getElementById('voz-tab-novo').classList.toggle('active', tab === 'novo');
   document.getElementById('voz-tab-hist').classList.toggle('active', tab === 'hist');
@@ -4549,7 +4578,7 @@ async function loadOrgRole() {
       if (perfilData.length > 0 || tipo === 'marca') {
         CURRENT_ORG_ROLE = 'owner';
         CURRENT_ORG_ID   = uid;
-        document.getElementById('cardEquipe').style.display = 'block';
+        document.getElementById('cfg-tab-equipe').style.display = '';
         return;
       }
     }
@@ -4564,7 +4593,7 @@ async function loadOrgRole() {
       CURRENT_ORG_ROLE = membroData[0].org_role;
       CURRENT_ORG_ID   = membroData[0].org_id;
       if (CURRENT_ORG_ROLE === 'admin') {
-        document.getElementById('cardEquipe').style.display = 'block';
+        document.getElementById('cfg-tab-equipe').style.display = '';
       }
     }
   } catch (e) { console.error('[loadOrgRole]', e); }
