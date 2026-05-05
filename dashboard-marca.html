@@ -337,6 +337,72 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 .section.active { display: block; animation: fadeUp 0.3s ease; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ─── SETUP GUIDE BUTTON (topbar) ─── */
+.setup-guide-btn {
+  display: none; align-items: center; gap: 7px;
+  padding: 6px 12px 6px 8px; border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.12); background: #fff;
+  font-size: 13px; font-weight: 500; color: var(--text,#1a1200);
+  cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.setup-guide-btn:hover { border-color: rgba(184,134,11,0.4); box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+.setup-guide-btn.active { border-color: rgba(184,134,11,0.5); background: #fffdf5; }
+
+/* ─── SETUP GUIDE PANEL ─── */
+.sgp-overlay { display:none; position:fixed; inset:0; z-index:299; }
+.sgp-overlay.open { display:block; }
+.setup-guide-panel {
+  position: fixed; top: 64px; right: 0; width: 340px;
+  background: #fff; border-left: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid rgba(0,0,0,0.08); border-radius: 0 0 0 12px;
+  box-shadow: -4px 8px 32px rgba(0,0,0,0.12);
+  z-index: 300; transform: translateX(110%);
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  max-height: calc(100vh - 80px); overflow-y: auto;
+}
+.setup-guide-panel.open { transform: translateX(0); }
+.sgp-top-bar { height: 3px; background: linear-gradient(90deg,#C8A428,#E8C84A); border-radius: 0; transition: width 0.4s; }
+.sgp-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 18px 20px 14px; border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.sgp-header-title { font-size: 15px; font-weight: 700; color: #1a1200; margin-bottom: 2px; }
+.sgp-header-sub { font-size: 12px; color: #888; }
+.sgp-close {
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  background: none; border: none; color: #aaa; cursor: pointer; border-radius: 5px; flex-shrink: 0; margin-top: -2px;
+}
+.sgp-close:hover { background: rgba(0,0,0,0.05); color: #555; }
+.sgp-body { padding: 8px 0 16px; }
+.sgp-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 20px; cursor: pointer; transition: background 0.12s;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.sgp-item:last-child { border-bottom: none; }
+.sgp-item:hover { background: #fafafa; }
+.sgp-item.done { opacity: 0.5; cursor: default; pointer-events: none; }
+.sgp-check {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+  border: 1.5px solid #d1c084; display: flex; align-items: center; justify-content: center;
+  background: #fff; transition: all 0.2s;
+}
+.sgp-item.done .sgp-check { background: #dcfce7; border-color: #86efac; }
+.sgp-check-icon { display: none; }
+.sgp-item.done .sgp-check-icon { display: block; }
+.sgp-item-body { flex: 1; min-width: 0; }
+.sgp-item-title { font-size: 13px; font-weight: 600; color: #1a1200; line-height: 1.4; }
+.sgp-item.done .sgp-item-title { text-decoration: line-through; color: #aaa; }
+.sgp-item-desc { font-size: 12px; color: #888; margin-top: 2px; line-height: 1.4; }
+.sgp-item-arrow { color: #ccc; font-size: 15px; margin-top: 2px; flex-shrink: 0; }
+.sgp-item.done .sgp-item-arrow { display: none; }
+@media (max-width: 768px) {
+  .setup-guide-panel { width: 100%; border-radius: 0; top: 64px; }
+  .setup-guide-btn { padding: 6px 8px; border-radius: 8px; }
+  #setupGuideBtnLabel { display: none; }
+}
+
 /* ─── KPI CARDS ─── */
 .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
 .kpi-card {
@@ -1080,6 +1146,16 @@ tbody tr:last-child td { border-bottom: none; }
       Portal Marca <span style="color:var(--gray-300)">›</span> <strong id="topbarSection">Dashboard</strong>
     </div>
     <div class="topbar-right">
+      <button class="setup-guide-btn" id="setupGuideBtn" onclick="toggleSetupGuide()">
+        <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0">
+          <circle cx="9" cy="9" r="7" fill="none" stroke="rgba(184,134,11,0.2)" stroke-width="2"/>
+          <circle cx="9" cy="9" r="7" fill="none" stroke="#B8860B" stroke-width="2"
+            stroke-dasharray="43.98" stroke-dashoffset="43.98"
+            stroke-linecap="round" transform="rotate(-90 9 9)"
+            id="setupGuideRing" style="transition:stroke-dashoffset 0.5s ease"/>
+        </svg>
+        <span id="setupGuideBtnLabel">Guia de início</span>
+      </button>
       <div class="notif-wrapper">
         <button class="notif-btn" id="notifBtn" onclick="toggleNotifPanel()" aria-label="Notificações" title="Notificações">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1093,6 +1169,53 @@ tbody tr:last-child td { border-bottom: none; }
     </div>
   </div>
 </header>
+
+<!-- Setup Guide Panel -->
+<div class="sgp-overlay" id="sgpOverlay" onclick="toggleSetupGuide()"></div>
+<div class="setup-guide-panel" id="setupGuidePanel">
+  <div class="sgp-top-bar" id="sgpTopBar"></div>
+  <div class="sgp-header">
+    <div>
+      <div class="sgp-header-title">Guia de início</div>
+      <div class="sgp-header-sub" id="sgpSubtitle">0 de 3 concluídos</div>
+    </div>
+    <button class="sgp-close" onclick="toggleSetupGuide()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="sgp-body">
+    <div class="sgp-item" id="ob-perfil" onclick="showSection('configuracoes'); toggleSetupGuide()">
+      <div class="sgp-check">
+        <svg class="sgp-check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="#16a34a" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+      </div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Complete o perfil da empresa</div>
+        <div class="sgp-item-desc">Adicione logo, segmento e website</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </div>
+    <div class="sgp-item" id="ob-salvar" onclick="showSection('oportunidades'); toggleSetupGuide()">
+      <div class="sgp-check">
+        <svg class="sgp-check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="#16a34a" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+      </div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Salve uma oportunidade</div>
+        <div class="sgp-item-desc">Explore o catálogo e favorite algo relevante</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </div>
+    <div class="sgp-item" id="ob-proposta" onclick="showSection('oportunidades'); toggleSetupGuide()">
+      <div class="sgp-check">
+        <svg class="sgp-check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="#16a34a" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+      </div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Envie sua primeira proposta</div>
+        <div class="sgp-item-desc">Inicie uma negociação com um detentor</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </div>
+  </div>
+</div>
 
 <!-- Main content -->
 <div class="main" id="mainContent">
@@ -2152,17 +2275,77 @@ async function loadUserInfo() {
 }
 
 function loadInteressesCount() {
-  // Favoritos are tracked in localStorage (table `interesses` is for leads, not user favorites)
   const favs = JSON.parse(localStorage.getItem('rr_favoritos_v1') || '[]');
   document.getElementById('kpi-salvas').textContent = favs.length;
+  OB_MARCA.salvar = favs.length > 0;
+  updateSetupGuide();
 }
 
 function updateDashboardKPIs() {
   const total = PROPOSTAS.length;
   const aceitas = PROPOSTAS.filter(p => p.status === 'aceita').length;
-
   document.getElementById('kpi-enviadas').textContent = total;
   document.getElementById('kpi-aceitas').textContent = aceitas;
+  OB_MARCA.proposta = total > 0;
+  updateSetupGuide();
+}
+
+// ─── SETUP GUIDE ───
+const OB_KEY_MARCA = 'rr_sg_done_marca';
+const OB_MARCA = { perfil: false, salvar: false, proposta: false };
+
+function updateSetupGuide() {
+  if (localStorage.getItem(OB_KEY_MARCA)) return;
+  const items = [
+    { id: 'ob-perfil',   done: OB_MARCA.perfil },
+    { id: 'ob-salvar',   done: OB_MARCA.salvar },
+    { id: 'ob-proposta', done: OB_MARCA.proposta },
+  ];
+  const doneCount = items.filter(i => i.done).length;
+  const total = items.length;
+
+  items.forEach(({ id, done }) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('done', done);
+  });
+
+  const sub = document.getElementById('sgpSubtitle');
+  if (sub) sub.textContent = `${doneCount} de ${total} concluído${doneCount !== 1 ? 's' : ''}`;
+
+  const ring = document.getElementById('setupGuideRing');
+  if (ring) {
+    const circ = 43.98;
+    ring.style.strokeDashoffset = circ - (circ * doneCount / total);
+  }
+
+  const btn = document.getElementById('setupGuideBtn');
+  if (btn) {
+    btn.style.display = 'flex';
+    const lbl = document.getElementById('setupGuideBtnLabel');
+    if (lbl) lbl.textContent = `Guia de início · ${doneCount}/${total}`;
+  }
+
+  if (doneCount === total) {
+    setTimeout(() => {
+      const panel = document.getElementById('setupGuidePanel');
+      const overlay = document.getElementById('sgpOverlay');
+      const btnEl = document.getElementById('setupGuideBtn');
+      if (panel) panel.classList.remove('open');
+      if (overlay) overlay.classList.remove('open');
+      if (btnEl) btnEl.style.display = 'none';
+      localStorage.setItem(OB_KEY_MARCA, '1');
+    }, 1400);
+  }
+}
+
+function toggleSetupGuide() {
+  const panel = document.getElementById('setupGuidePanel');
+  const overlay = document.getElementById('sgpOverlay');
+  const btn = document.getElementById('setupGuideBtn');
+  if (!panel) return;
+  const open = panel.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('open', open);
+  if (btn) btn.classList.toggle('active', open);
 }
 
 function renderDashboardTimeline() {
@@ -2217,8 +2400,9 @@ function setUserInfo(nome, email) {
 }
 
 function populateConfigFields(p) {
-  // Don't overwrite fields while user is actively editing them
   if (editingMarca || editingResp) return;
+  OB_MARCA.perfil = !!(p.empresa && p.empresa.trim() && p.segmento && p.segmento.trim());
+  updateSetupGuide();
 
   // Marca fields: [0]=nome marca, [1]=cnpj, [2]=segmento (select), [3]=website, [4]=descricao
   const marcaFields = document.querySelectorAll('.marca-field');
