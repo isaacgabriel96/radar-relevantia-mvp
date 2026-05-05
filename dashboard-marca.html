@@ -1469,6 +1469,8 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="sub-tabs">
         <button class="sub-tab active" id="cfg-tab-empresa" onclick="switchConfigTab('empresa')">Empresa</button>
         <button class="sub-tab" id="cfg-tab-conta" onclick="switchConfigTab('conta')">Conta</button>
+        <button class="sub-tab" id="cfg-tab-juridico" onclick="switchConfigTab('juridico')">Jurídico</button>
+        <button class="sub-tab" id="cfg-tab-financeiro" onclick="switchConfigTab('financeiro')">Financeiro</button>
         <button class="sub-tab" id="cfg-tab-equipe" onclick="switchConfigTab('equipe')" style="display:none">Equipe</button>
       </div>
 
@@ -1477,7 +1479,7 @@ tbody tr:last-child td { border-bottom: none; }
 
       <!-- Card identidade da marca (logo) -->
       <div class="card" id="cardLogoMarca" style="margin-bottom:16px">
-        <div style="padding:20px 24px;display:flex;align-items:center;gap:20px">
+        <div style="padding:20px 24px;display:flex;align-items:center;gap:16px">
           <div id="marcaLogoWrap" style="width:64px;height:64px;border-radius:var(--radius-md,12px);overflow:hidden;flex-shrink:0;background:var(--gray-100);display:flex;align-items:center;justify-content:center;border:1px solid var(--gray-border,#E5E5E5)">
             <img id="marcaLogoImg" src="" alt="Logo" style="width:100%;height:100%;object-fit:contain;display:none">
             <span id="marcaLogoFallback" style="font-family:var(--font-heading,'Poppins'),sans-serif;font-size:24px;font-weight:700;color:var(--gold)">?</span>
@@ -1485,6 +1487,36 @@ tbody tr:last-child td { border-bottom: none; }
           <div style="flex:1;min-width:0">
             <div id="marcaLogoNome" style="font-family:var(--font-heading,'Poppins'),sans-serif;font-size:16px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
             <div id="marcaLogoDomain" data-value="" style="font-size:12px;color:var(--gray-400);margin-top:3px">—</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btnTrocarMarca" onclick="toggleTrocarMarca()" style="flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+            Trocar
+          </button>
+        </div>
+        <!-- Trocar section: expande ao clicar "Trocar" -->
+        <div id="trocarMarcaSection" style="display:none;border-top:1px solid var(--gray-border,#E5E5E5);padding:16px 24px 20px">
+          <p style="font-size:12px;color:var(--gray-400);margin-bottom:12px">Busque a nova marca pelo nome ou domínio. A mudança será enviada para aprovação do admin.</p>
+          <div id="marcaBrandfetchBox" style="position:relative">
+            <div id="marcaSearchInputWrap" style="position:relative;width:100%">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none;color:#C0C0C0;"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <input type="text" id="marcaEmpresaSearch" placeholder="Buscar marca pelo nome ou domínio..." autocomplete="off" class="form-input" style="padding-left:36px;width:100%" oninput="marcaBrandfetchSearch(this.value)">
+            </div>
+            <div id="marcaBrandfetchResults" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--gray-border,#E5E5E5);border-radius:var(--radius-base,8px);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;max-height:240px;overflow-y:auto;margin-top:4px"></div>
+            <button type="button" onclick="abrirModalManualMarca()" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:12px;color:var(--gold);padding:0;font-family:var(--font-body)">Ou cadastrar manualmente →</button>
+          </div>
+          <!-- Selected card (Brandfetch result) -->
+          <div id="marcaSelectedCard" style="display:none;margin-top:8px;padding:12px 16px;border:1.5px solid var(--gray-400);border-radius:10px;width:100%;box-sizing:border-box;align-items:center;gap:12px;background:#fff">
+            <img id="marcaBrandIcon" src="" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#f5f5f5;flex-shrink:0">
+            <div style="flex:1;min-width:0">
+              <div id="marcaBrandName" style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+              <div id="marcaBrandDomain" style="font-size:12px;color:var(--gray-400);margin-top:1px"></div>
+            </div>
+            <button type="button" onclick="marcaClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1;padding:2px 6px;border-radius:4px" title="Remover">×</button>
+          </div>
+          <div id="marcaNomeChangeHint" style="display:none;margin-top:6px;font-size:11px;color:var(--gray-400)">Marca selecionada. A mudança ficará pendente até aprovação do admin.</div>
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button class="btn btn-gold btn-sm" onclick="solicitarTrocaMarca()">Solicitar mudança</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleTrocarMarca()">Cancelar</button>
           </div>
         </div>
       </div>
@@ -1499,40 +1531,10 @@ tbody tr:last-child td { border-bottom: none; }
           </button>
         </div>
         <div style="padding:24px">
+          <!-- Hidden input to hold nome value (marca-field[0]) — troca via card "Trocar" -->
+          <input class="marca-field" id="marcaNomeInput" type="text" value="" style="display:none" disabled>
           <div class="form-grid">
-            <div class="form-group" id="marcaNomeGroup">
-              <label class="form-label">Nome da marca
-                <span id="marcaNomeLockBadge" style="display:none;margin-left:6px;font-size:10px;font-weight:500;color:var(--gray-400);letter-spacing:.3px">• requer confirmação do admin</span>
-              </label>
-              <input class="form-input marca-field" id="marcaNomeInput" type="text" value="" disabled style="background:var(--gray-100);color:var(--gray-600)">
-              <!-- Edit mode: Brandfetch search + manual -->
-              <div id="marcaBrandfetchBox" style="display:none;margin-top:8px">
-                <!-- Brandfetch search mode -->
-                <div id="marcaSearchMode">
-                  <div id="marcaSearchInputWrap" style="position:relative">
-                    <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none;color:#C0C0C0;"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                    <input type="text" id="marcaEmpresaSearch" placeholder="Buscar marca pelo nome ou domínio..." autocomplete="off" class="form-input" style="padding-left:36px" oninput="marcaBrandfetchSearch(this.value)">
-                  </div>
-                  <div id="marcaBrandfetchResults" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--gray-border,#E5E5E5);border-radius:var(--radius-base,8px);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;max-height:240px;overflow-y:auto;margin-top:4px"></div>
-                  <button type="button" onclick="abrirModalManualMarca()" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:12px;color:var(--gold);padding:0;font-family:var(--font-body)">Ou cadastrar manualmente →</button>
-                </div>
-              </div>
-              <!-- Selected card (Brandfetch result) -->
-              <div id="marcaSelectedCard" style="display:none;margin-top:8px;padding:12px 16px;border:1.5px solid var(--gray-400);border-radius:10px;width:100%;box-sizing:border-box;align-items:center;gap:12px;background:#fff">
-                <img id="marcaBrandIcon" src="" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#f5f5f5;flex-shrink:0">
-                <div style="flex:1;min-width:0">
-                  <div id="marcaBrandName" style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-                  <div id="marcaBrandDomain" style="font-size:12px;color:var(--gray-400);margin-top:1px"></div>
-                </div>
-                <button type="button" onclick="marcaClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1;padding:2px 6px;border-radius:4px" title="Remover">×</button>
-              </div>
-              <div id="marcaNomeChangeHint" style="display:none;margin-top:6px;font-size:11px;color:var(--gray-400)">Marca selecionada. Clique em "Salvar alterações" para confirmar.</div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">CNPJ</label>
-              <input class="form-input marca-field" type="text" value="" disabled>
-            </div>
-            <div class="form-group">
+            <div class="form-group full">
               <label class="form-label">Segmento</label>
               <select class="form-select marca-field" disabled>
                 <option value="">Selecione</option>
@@ -1584,7 +1586,7 @@ tbody tr:last-child td { border-bottom: none; }
                 </optgroup>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group full">
               <label class="form-label">Website</label>
               <input class="form-input marca-field" type="text" value="" placeholder="https://suamarca.com.br" disabled onblur="perfilNormalizarUrl(this)">
             </div>
@@ -1757,6 +1759,105 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
 
       </div><!-- /cfg-panel-equipe -->
+
+      <!-- Painel: Jurídico -->
+      <div id="cfg-panel-juridico" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Dados Jurídicos</div>
+              <div style="font-size:12px;color:var(--gray-400);margin-top:2px">CNPJ, razão social e endereço fiscal</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="btnEditJuridicoMarca" onclick="toggleEditJuridicoMarca()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+              Editar
+            </button>
+          </div>
+          <div style="padding:0 24px 24px">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">CNPJ</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-cnpj" type="text" placeholder="00.000.000/0000-00" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Razão Social</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-razao" type="text" placeholder="Nome jurídico da empresa" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">CEP</label>
+                <div style="display:flex;gap:8px">
+                  <input class="form-input juridico-marca-field" id="jur-marca-cep" type="text" placeholder="00000-000" disabled oninput="buscarCepMarca(this.value)">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Logradouro</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-logradouro" type="text" placeholder="Rua, Av..." disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Número</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-numero" type="text" placeholder="123" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Complemento</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-complemento" type="text" placeholder="Sala, andar..." disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cidade</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-cidade" type="text" placeholder="São Paulo" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Estado</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-estado" type="text" placeholder="SP" maxlength="2" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Responsável Legal — Nome</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-resp-nome" type="text" placeholder="Nome completo" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Responsável Legal — CPF</label>
+                <input class="form-input juridico-marca-field" id="jur-marca-resp-cpf" type="text" placeholder="000.000.000-00" disabled>
+              </div>
+            </div>
+            <div class="form-actions" id="jurMarcaActions" style="display:none">
+              <button class="btn btn-gold" onclick="saveJuridicoMarca()">Salvar dados jurídicos</button>
+              <button class="btn btn-ghost" onclick="toggleEditJuridicoMarca()">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /cfg-panel-juridico -->
+
+      <!-- Painel: Financeiro -->
+      <div id="cfg-panel-financeiro" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Financeiro</div>
+              <div style="font-size:12px;color:var(--gray-400);margin-top:2px">Status e condições da sua conta na plataforma</div>
+            </div>
+          </div>
+          <div style="padding:0 24px 24px">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:16px;background:var(--gray-100,#F5F0E8);border-radius:var(--radius-base,8px)">
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Status da conta</div>
+                <div style="font-size:12px;color:var(--gray-400);margin-top:2px">Acesso ao portal da marca</div>
+              </div>
+              <span id="finMarcaStatusBadge" style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:100px;background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)">Ativo</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--gray-border,#E5E5E5)">
+              <div>
+                <div style="font-size:13px;font-weight:500;color:var(--text)">Taxa de serviço da plataforma</div>
+                <div style="font-size:12px;color:var(--gray-400);margin-top:2px">Aplicada sobre o valor de cada parceria fechada</div>
+              </div>
+              <div id="finMarcaTaxa" style="font-size:15px;font-weight:700;color:var(--gold)">—</div>
+            </div>
+            <div style="margin-top:20px;padding:16px;border:1px solid var(--gray-border,#E5E5E5);border-radius:var(--radius-base,8px)">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Dados para faturamento</div>
+              <div style="font-size:12px;color:var(--gray-400);line-height:1.6">CNPJ e endereço fiscal são gerenciados na aba <strong>Jurídico</strong>. As notas fiscais emitidas pela Relevantia serão enviadas ao e-mail do responsável pela conta.</div>
+              <button class="btn btn-ghost btn-sm" onclick="switchConfigTab('juridico')" style="margin-top:12px">Ver dados jurídicos →</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /cfg-panel-financeiro -->
 
     </div><!-- /sec-configuracoes -->
 
@@ -2242,7 +2343,7 @@ async function loadUserInfo() {
         try {
           const token = await getValidToken();
           if (token) {
-            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,cnpj,segmento,website,descricao,telefone,cargo&id=eq.' + user.id, {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,cnpj,segmento,website,descricao,telefone,cargo,empresa_domain,logo_url,razao_social,cep,logradouro,numero_endereco,complemento,cidade,estado,responsavel_legal_nome,responsavel_legal_cpf&id=eq.' + user.id, {
               headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
             });
             if (res.ok) {
@@ -2404,7 +2505,7 @@ function populateConfigFields(p) {
   OB_MARCA.perfil = !!(p.empresa && p.empresa.trim() && p.segmento && p.segmento.trim());
   updateSetupGuide();
 
-  // Marca fields: [0]=nome marca, [1]=cnpj, [2]=segmento (select), [3]=website, [4]=descricao
+  // Marca fields: [0]=nome hidden, [1]=segmento (select), [2]=website, [3]=descricao
   const marcaFields = document.querySelectorAll('.marca-field');
   if (marcaFields[0]) marcaFields[0].value = p.empresa || '';
   // Identity card
@@ -2414,16 +2515,20 @@ function populateConfigFields(p) {
   if (domainEl3) { domainEl3.textContent = p.empresa_domain || ''; domainEl3.dataset.value = p.empresa_domain || ''; }
   if (p.logo_url) { _applyMarcaLogo(p.logo_url, p.empresa); }
   else if (p.empresa_domain) {
-    fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(p.empresa_domain)}?c=1idE-ar9WXT49s6Qb2f`)
-      .then(r => r.json()).then(d => { if (Array.isArray(d) && d[0]?.icon) _applyMarcaLogo(d[0].icon, p.empresa); }).catch(()=>{});
+    const brandDomain = p.empresa_domain || (p.website ? p.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0].split('?')[0] : null);
+    if (brandDomain) {
+      fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(brandDomain)}?c=1idE-ar9WXT49s6Qb2f`)
+        .then(r => r.json()).then(d => { if (Array.isArray(d) && d[0]?.icon) _applyMarcaLogo(d[0].icon, p.empresa); }).catch(()=>{});
+    }
   }
-  if (marcaFields[1]) marcaFields[1].value = p.cnpj || '';
-  if (marcaFields[2] && p.segmento) {
-    const opt = Array.from(marcaFields[2].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
-    if (opt) marcaFields[2].value = opt.value;
+  if (marcaFields[1] && p.segmento) {
+    const opt = Array.from(marcaFields[1].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
+    if (opt) marcaFields[1].value = opt.value;
   }
-  if (marcaFields[3]) marcaFields[3].value = p.website || '';
-  if (marcaFields[4]) marcaFields[4].value = p.descricao || '';
+  if (marcaFields[2]) marcaFields[2].value = p.website || '';
+  if (marcaFields[3]) marcaFields[3].value = p.descricao || '';
+  // Populate juridico if not editing
+  if (!editingJuridicoMarca) populateJuridicoMarca(p);
 
   // Resp fields: [0]=nome, [1]=email, [2]=phone input (tel), [3]=cargo (select)
   const respFields = document.querySelectorAll('.resp-field');
@@ -2904,43 +3009,49 @@ function filterOpportunities() {
 
 // ─── EDIT MARCA ───
 let editingMarca = false;
+let trocarMarcaOpen = false;
+
+function toggleTrocarMarca() {
+  trocarMarcaOpen = !trocarMarcaOpen;
+  const section = document.getElementById('trocarMarcaSection');
+  if (section) section.style.display = trocarMarcaOpen ? '' : 'none';
+  if (!trocarMarcaOpen) marcaClearCompany();
+  if (trocarMarcaOpen) {
+    setTimeout(() => { const s = document.getElementById('marcaEmpresaSearch'); if (s) s.focus(); }, 60);
+  }
+}
+
+function solicitarTrocaMarca() {
+  if (!_marcaSelectedBrand) {
+    showToast('Selecione uma marca na busca acima.', 'info');
+    return;
+  }
+  abrirModalMudancaMarca();
+}
+
 function toggleEditMarca() {
   editingMarca = !editingMarca;
   const fields = document.querySelectorAll('.marca-field');
   const actions = document.getElementById('marcaActions');
   const btn = document.getElementById('btnEditMarca');
-  const bfBox = document.getElementById('marcaBrandfetchBox');
-  const badge = document.getElementById('marcaNomeLockBadge');
 
-  // All fields except index 0 (nome — always read-only, changed via Brandfetch)
+  // All fields except index 0 (hidden nome)
   fields.forEach((f, i) => {
     if (i === 0) return;
     f.disabled = !editingMarca;
   });
   if (fields[0]) fields[0].disabled = true;
-  if (badge) badge.style.display = editingMarca ? '' : 'none';
-  if (bfBox) bfBox.style.display = editingMarca ? '' : 'none';
-  // If cancelling, clear any pending brand selection
-  if (!editingMarca) marcaClearCompany();
   actions.style.display = editingMarca ? 'flex' : 'none';
   btn.style.display = editingMarca ? 'none' : '';
 }
 
 async function saveMarca() {
+  // Perfil da marca: [0]=nome hidden, [1]=segmento, [2]=website, [3]=descricao
   const fields = document.querySelectorAll('.marca-field');
-
-  // If a brand was selected via Brandfetch or manual → show approval modal first
-  if (_marcaSelectedBrand) {
-    abrirModalMudancaMarca();
-    return;
-  }
-
-  // No brand change — save other fields directly
   const updates = {
-    cnpj:      fields[1]?.value?.trim() || null,
-    segmento:  fields[2]?.value || null,
-    website:   fields[3]?.value?.trim() || null,
-    descricao: fields[4]?.value?.trim() || null
+    segmento:  fields[1]?.value || null,
+    website:   fields[2]?.value?.trim() || null,
+    descricao: fields[3]?.value?.trim() || null
   };
   toggleEditMarca();
   if (!isDemoMode()) {
@@ -3071,7 +3182,7 @@ async function marcaSelectBrandfetchBrand(brand) {
   if (brand.domain) {
     const immediateUrl = `https://${brand.domain}`;
     _marcaSelectedBrand.website = immediateUrl;
-    if (marcaFields[3]) marcaFields[3].value = immediateUrl;
+    if (marcaFields[2]) marcaFields[2].value = immediateUrl;
   }
 
   // Fetch description + official website via brands API
@@ -3085,11 +3196,11 @@ async function marcaSelectBrandfetchBrand(brand) {
         if (desc) {
           gotDesc = true;
           _marcaSelectedBrand.description = desc;
-          if (marcaFields[4]) marcaFields[4].value = desc;
+          if (marcaFields[3]) marcaFields[3].value = desc;
         }
         const websiteLink = (data.links || []).find(l => l.type === 'website');
         const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
-        if (websiteUrl) { _marcaSelectedBrand.website = websiteUrl; if (marcaFields[3]) marcaFields[3].value = websiteUrl; }
+        if (websiteUrl) { _marcaSelectedBrand.website = websiteUrl; if (marcaFields[2]) marcaFields[2].value = websiteUrl; }
       }
     } catch(e) { console.warn('[Brandfetch brands]', e); }
 
@@ -3105,7 +3216,7 @@ async function marcaSelectBrandfetchBrand(brand) {
           const wikiDesc = wikiData.extract || '';
           if (wikiDesc && wikiData.type !== 'disambiguation') {
             _marcaSelectedBrand.description = wikiDesc;
-            if (marcaFields[4]) marcaFields[4].value = wikiDesc;
+            if (marcaFields[3]) marcaFields[3].value = wikiDesc;
           }
         }
       } catch(e) { /* silencioso */ }
@@ -3289,10 +3400,9 @@ async function confirmarSolicitacaoMudancaMarca() {
           requested_at: new Date().toISOString()
         }),
         // Also persist other editable fields in the same upsert
-        cnpj:      fields[1]?.value?.trim() || null,
-        segmento:  fields[2]?.value || null,
-        website:   fields[3]?.value?.trim() || null,
-        descricao: fields[4]?.value?.trim() || null
+        segmento:  fields[1]?.value || null,
+        website:   fields[2]?.value?.trim() || null,
+        descricao: fields[3]?.value?.trim() || null
       };
       try {
         await fetch(SUPABASE_URL + '/rest/v1/perfis', {
@@ -3335,6 +3445,9 @@ async function confirmarSolicitacaoMudancaMarca() {
 
   marcaClearCompany();
   if (editingMarca) toggleEditMarca();
+  trocarMarcaOpen = false;
+  const trocarSec = document.getElementById('trocarMarcaSection');
+  if (trocarSec) trocarSec.style.display = 'none';
 }
 
 // Event delegation for Brandfetch dropdown clicks + modal outside-click
@@ -4400,11 +4513,14 @@ function filterVozHist(btn) {
 }
 
 function switchConfigTab(tab) {
-  ['empresa','conta','equipe'].forEach(t => {
-    document.getElementById('cfg-tab-' + t).classList.toggle('active', t === tab);
-    document.getElementById('cfg-panel-' + t).style.display = t === tab ? '' : 'none';
+  ['empresa','conta','juridico','financeiro','equipe'].forEach(t => {
+    const btn = document.getElementById('cfg-tab-' + t);
+    const panel = document.getElementById('cfg-panel-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (panel) panel.style.display = t === tab ? '' : 'none';
   });
   if (tab === 'equipe') loadEquipe();
+  if (tab === 'financeiro') loadFinanceiroMarca();
 }
 
 function switchVozTab(tab) {
@@ -5818,6 +5934,105 @@ function marcarCardSolicitado(oppId, status) {
       if (s.textContent.trim().indexOf('Por aprov') !== -1) s.remove();
     });
   }
+}
+
+// ─── JURÍDICO MARCA ───
+let editingJuridicoMarca = false;
+function toggleEditJuridicoMarca() {
+  editingJuridicoMarca = !editingJuridicoMarca;
+  document.querySelectorAll('.juridico-marca-field').forEach(f => f.disabled = !editingJuridicoMarca);
+  document.getElementById('jurMarcaActions').style.display = editingJuridicoMarca ? 'flex' : 'none';
+  document.getElementById('btnEditJuridicoMarca').style.display = editingJuridicoMarca ? 'none' : '';
+}
+
+async function saveJuridicoMarca() {
+  const get = id => document.getElementById(id)?.value.trim() || null;
+  const updates = {
+    cnpj:                  get('jur-marca-cnpj'),
+    razao_social:          get('jur-marca-razao'),
+    cep:                   get('jur-marca-cep'),
+    logradouro:            get('jur-marca-logradouro'),
+    numero_endereco:       get('jur-marca-numero'),
+    complemento:           get('jur-marca-complemento'),
+    cidade:                get('jur-marca-cidade'),
+    estado:                get('jur-marca-estado'),
+    responsavel_legal_nome: get('jur-marca-resp-nome'),
+    responsavel_legal_cpf:  get('jur-marca-resp-cpf'),
+  };
+  toggleEditJuridicoMarca();
+  if (!isDemoMode()) {
+    const userId = await getAuthUserId();
+    const token  = await _getWriteToken();
+    if (userId && token) {
+      await fetch(SUPABASE_URL + '/rest/v1/perfis', {
+        method: 'POST', body: JSON.stringify({ id: userId, ...updates }),
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' }
+      });
+    }
+  }
+  showToast('Dados jurídicos salvos com sucesso!', 'success');
+}
+
+function populateJuridicoMarca(p) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('jur-marca-cnpj',       p.cnpj);
+  set('jur-marca-razao',      p.razao_social);
+  set('jur-marca-cep',        p.cep);
+  set('jur-marca-logradouro', p.logradouro);
+  set('jur-marca-numero',     p.numero_endereco);
+  set('jur-marca-complemento',p.complemento);
+  set('jur-marca-cidade',     p.cidade);
+  set('jur-marca-estado',     p.estado);
+  set('jur-marca-resp-nome',  p.responsavel_legal_nome);
+  set('jur-marca-resp-cpf',   p.responsavel_legal_cpf);
+}
+
+async function loadJuridicoMarca() {
+  if (isDemoMode()) return;
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) return;
+  const userId = session.user.id;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=cnpj,razao_social,cep,logradouro,numero_endereco,complemento,cidade,estado,responsavel_legal_nome,responsavel_legal_cpf&limit=1', {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+  });
+  if (res.ok) {
+    const rows = await res.json();
+    if (rows[0]) populateJuridicoMarca(rows[0]);
+  }
+}
+
+async function buscarCepMarca(cep) {
+  const clean = cep.replace(/\D/g, '');
+  if (clean.length !== 8) return;
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${clean}/json/`);
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d.erro) return;
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    set('jur-marca-logradouro', d.logradouro);
+    set('jur-marca-cidade',     d.localidade);
+    set('jur-marca-estado',     d.uf);
+  } catch(e) { /* silencioso */ }
+}
+
+// ─── FINANCEIRO MARCA ───
+async function loadFinanceiroMarca() {
+  if (isDemoMode()) return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session?.user) return;
+    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=taxa_plataforma_percent&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    });
+    if (res.ok) {
+      const rows = await res.json();
+      const p = rows[0] || {};
+      const taxaEl = document.getElementById('finMarcaTaxa');
+      if (taxaEl) taxaEl.textContent = p.taxa_plataforma_percent != null ? p.taxa_plataforma_percent + '%' : '—';
+    }
+  } catch(e) { console.warn('[loadFinanceiroMarca]', e); }
 }
 </script>
 
