@@ -1640,13 +1640,13 @@ tbody tr:last-child td { border-bottom: none; }
         <div id="trocarEmpresaSection" style="display:none;border-top:1px solid var(--gray-2,#E0D8CC);padding:16px 24px 20px">
           <p style="font-size:12px;color:var(--gray-3,#A89880);margin-bottom:12px">Busque a nova empresa pelo nome ou domínio. A mudança será enviada para aprovação do admin.</p>
           <div id="empresaBrandfetchBox" style="position:relative">
-            <div id="dashSearchInputWrap" style="position:relative">
+            <div id="dashSearchInputWrap" style="position:relative;width:100%">
               <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none;color:#C0C0C0;">
                 <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
                 <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
               </svg>
               <input type="text" id="dashEmpresaSearch" placeholder="Buscar empresa pelo nome ou domínio..." autocomplete="off"
-                class="form-input" style="padding-left:36px"
+                class="form-input" style="padding-left:36px;width:100%"
                 oninput="dashBrandfetchSearch(this.value)">
             </div>
             <div id="dashBrandfetchResults" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--gray-2,#E0D8CC);border-radius:var(--radius-base);box-shadow:0 4px 16px rgba(30,22,0,.1);z-index:200;max-height:240px;overflow-y:auto"></div>
