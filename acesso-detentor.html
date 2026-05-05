@@ -705,6 +705,19 @@ body::after {
     <p style="text-align:center;font-size:12px;color:rgba(255,255,255,0.2);margin-top:20px">
       Não recebeu o email? Fale com <a href="mailto:hello@relevantia.com.br" style="color:var(--gold);text-decoration:none">hello@relevantia.com.br</a>
     </p>
+
+    <!-- DEV PREVIEW — só aparece em localhost/file:// -->
+    <div id="devTools" style="display:none;margin-top:24px;border-top:1px solid rgba(184,134,11,0.15);padding-top:20px;">
+      <p style="text-align:center;font-size:10px;letter-spacing:0.12em;color:rgba(184,134,11,0.5);text-transform:uppercase;margin-bottom:12px;font-family:'Inter',sans-serif;">⚡ Dev Preview</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+        <button onclick="previewOnboarding(1)" style="padding:8px 4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:8px;color:rgba(184,134,11,0.8);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;">Criar senha</button>
+        <button onclick="previewOnboarding(2)" style="padding:8px 4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:8px;color:rgba(184,134,11,0.8);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;">Tutorial 1</button>
+        <button onclick="previewOnboarding(3)" style="padding:8px 4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:8px;color:rgba(184,134,11,0.8);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;">Tutorial 2</button>
+        <button onclick="previewOnboarding(4)" style="padding:8px 4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:8px;color:rgba(184,134,11,0.8);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;">Tutorial 3</button>
+        <button onclick="previewOnboarding(5)" style="padding:8px 4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:8px;color:rgba(184,134,11,0.8);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;">Tutorial 4</button>
+        <button onclick="previewOnboarding(6)" style="padding:8px 4px;background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.2);border-radius:8px;color:rgba(184,134,11,0.8);font-size:11px;font-family:'Inter',sans-serif;cursor:pointer;">Sucesso</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1112,6 +1125,23 @@ body::after {
 <script src="js/core.js"></script>
 <script>
 let currentSession = null;
+let previewMode = false;
+
+/* ── DEV PREVIEW (só em localhost / file://) ── */
+(function() {
+  const isLocal = location.protocol === 'file:' || ['localhost','127.0.0.1'].includes(location.hostname);
+  if (isLocal) document.getElementById('devTools').style.display = 'block';
+})();
+
+function previewOnboarding(step) {
+  previewMode = true;
+  currentSession = { access_token: 'preview', user: { email: 'preview@detentor.com', user_metadata: { nome: 'Isaac', senha_provisoria: true } } };
+  document.getElementById('firstName').textContent = 'Isaac';
+  document.getElementById('navEmail').textContent = 'preview@detentor.com';
+  showScreen('onboardingScreen');
+  const sections = ['stepPw','tut1','tut2','tut3','tut4','stepSuccess'];
+  showSection(sections[Math.min((step || 1) - 1, sections.length - 1)]);
+}
 
 /* ── Utilities ── */
 function showToast(msg, type = '') {
@@ -1268,6 +1298,11 @@ function checkStrength() {
 
 /* ── SET PASSWORD ── */
 async function setPassword() {
+  if (previewMode) {
+    showToast('Preview: senha salva!', 'success');
+    setTimeout(() => showSection('tut1'), 600);
+    return;
+  }
   const pw  = document.getElementById('newPassword').value.trim();
   const pw2 = document.getElementById('confirmPassword').value.trim();
 
@@ -1331,6 +1366,7 @@ async function setPassword() {
 
 /* ── DASHBOARD & LOGOUT ── */
 function goToDashboard() {
+  if (previewMode) { showToast('Preview: redirecionaria para o dashboard →', ''); return; }
   window.location.href = '/dashboard-detentor.html';
 }
 
