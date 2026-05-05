@@ -1391,26 +1391,7 @@ tbody tr:last-child td { border-bottom: none; }
                     <input type="text" id="marcaEmpresaSearch" placeholder="Buscar marca pelo nome ou domínio..." autocomplete="off" class="form-input" style="padding-left:36px" oninput="marcaBrandfetchSearch(this.value)">
                   </div>
                   <div id="marcaBrandfetchResults" style="display:none;position:absolute;left:0;right:0;background:#fff;border:1px solid var(--gray-border,#E5E5E5);border-radius:var(--radius-base,8px);box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:200;max-height:240px;overflow-y:auto;margin-top:4px"></div>
-                  <button type="button" onclick="marcaToggleManual()" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:12px;color:var(--gold);padding:0;font-family:var(--font-body)">Ou cadastrar manualmente →</button>
-                </div>
-                <!-- Manual entry mode -->
-                <div id="marcaManualMode" style="display:none;flex-direction:column;gap:10px">
-                  <input type="text" id="marcaManualNome" placeholder="Nome da marca..." class="form-input">
-                  <div>
-                    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray-500);margin-bottom:6px">Logo (opcional)</div>
-                    <div id="marcaLogoUploadArea" style="display:flex;align-items:center;gap:12px">
-                      <div id="marcaLogoPreviewWrap" style="width:48px;height:48px;border-radius:8px;background:var(--gray-100);border:1px solid var(--gray-border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
-                        <img id="marcaLogoPreview" style="width:100%;height:100%;object-fit:contain;display:none">
-                        <svg id="marcaLogoPreviewIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;color:var(--gray-400)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                      </div>
-                      <input type="file" id="marcaLogoFile" accept="image/*" style="display:none" onchange="marcaLogoFileChanged(this)">
-                      <button type="button" onclick="document.getElementById('marcaLogoFile').click()" style="padding:8px 14px;background:var(--gray-100);border:1px solid var(--gray-border);border-radius:var(--radius-base,8px);font-size:13px;cursor:pointer;font-family:var(--font-body)">Escolher imagem</button>
-                    </div>
-                  </div>
-                  <div style="display:flex;gap:8px;margin-top:4px">
-                    <button type="button" onclick="marcaConfirmManual()" style="flex:1;padding:9px;background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B));border:none;border-radius:var(--radius-pill,100px);font-size:13px;font-weight:600;color:#fff;cursor:pointer">Confirmar</button>
-                    <button type="button" onclick="marcaToggleManual()" style="padding:9px 14px;background:var(--gray-100);border:none;border-radius:var(--radius-pill,100px);font-size:13px;cursor:pointer;color:var(--gray-600)">← Buscar automaticamente</button>
-                  </div>
+                  <button type="button" onclick="abrirModalManualMarca()" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:12px;color:var(--gold);padding:0;font-family:var(--font-body)">Ou cadastrar manualmente →</button>
                 </div>
               </div>
               <!-- Selected card (Brandfetch result) -->
@@ -1819,6 +1800,56 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<!-- Modal: Solicitar mudança de marca (aprovação admin) -->
+<div id="modalMudancaMarca" style="display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;background:rgba(0,0,0,.45)">
+  <div style="background:#fff;border-radius:var(--radius-lg,16px);padding:32px;max-width:420px;width:90%;margin:16px;box-shadow:0 16px 48px rgba(30,22,0,.18)">
+    <h3 style="font-family:var(--font-heading,'Poppins'),sans-serif;font-size:17px;font-weight:700;color:var(--black,#1A1200);margin:0 0 8px">Solicitar mudança de marca</h3>
+    <p style="font-size:13px;color:var(--gray-4,#5C4C38);line-height:1.6;margin:0 0 20px">A mudança do nome e identidade da marca precisa ser aprovada por um administrador da plataforma. Sua solicitação será enviada para revisão.</p>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radius-base);background:var(--gray-1,#F5F0E8);margin-bottom:20px">
+      <img id="modalMarcaBrandIcon" src="" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#fff;flex-shrink:0;display:none">
+      <div>
+        <div id="modalMarcaBrandName" style="font-size:14px;font-weight:600;color:var(--black,#1A1200)"></div>
+        <div id="modalMarcaBrandDomain" style="font-size:12px;color:var(--gray-3,#A89880)"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost" onclick="fecharModalMudancaMarca()">Cancelar</button>
+      <button class="btn btn-gold" onclick="confirmarSolicitacaoMudancaMarca()">Enviar solicitação</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Cadastrar marca manualmente -->
+<div id="modalManualMarca" style="display:none;position:fixed;inset:0;z-index:1001;align-items:center;justify-content:center;background:rgba(0,0,0,.45)">
+  <div style="background:#fff;border-radius:var(--radius-lg,16px);padding:32px;max-width:420px;width:90%;margin:16px;box-shadow:0 16px 48px rgba(30,22,0,.18)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="font-family:var(--font-heading,'Poppins'),sans-serif;font-size:17px;font-weight:700;color:var(--black,#1A1200);margin:0">Cadastrar marca manualmente</h3>
+      <button onclick="fecharModalManualMarca()" style="background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:22px;line-height:1;padding:2px 6px">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group">
+        <label class="form-label">Nome da marca <span style="color:var(--red)">*</span></label>
+        <input type="text" id="marcaManualNomeModal" placeholder="Ex: Minha Marca" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Logo (opcional)</label>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:52px;height:52px;border-radius:8px;background:var(--gray-100);border:1px solid var(--gray-200);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+            <img id="marcaManualLogoPreview" style="width:100%;height:100%;object-fit:contain;display:none">
+            <svg id="marcaManualLogoIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:20px;height:20px;color:var(--gray-400)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <input type="file" id="marcaManualLogoFile" accept="image/*" style="display:none" onchange="marcaManualLogoChanged(this)">
+          <button type="button" onclick="document.getElementById('marcaManualLogoFile').click()" style="padding:9px 16px;background:var(--gray-100);border:1px solid var(--gray-200);border-radius:var(--radius-base,8px);font-size:13px;cursor:pointer;font-family:var(--font-body);color:var(--gray-600)">Escolher imagem</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:24px">
+      <button class="btn btn-ghost" onclick="fecharModalManualMarca()">Cancelar</button>
+      <button class="btn btn-gold" onclick="confirmarModalManualMarca()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Alterar Senha -->
 <div id="modalAlterarSenha" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:var(--radius-lg);padding:32px;width:100%;max-width:420px;margin:16px;box-shadow:0 24px 64px rgba(30,22,0,0.2)">
@@ -2177,6 +2208,9 @@ function setUserInfo(nome, email) {
 }
 
 function populateConfigFields(p) {
+  // Don't overwrite fields while user is actively editing them
+  if (editingMarca || editingResp) return;
+
   // Marca fields: [0]=nome marca, [1]=cnpj, [2]=segmento (select), [3]=website, [4]=descricao
   const marcaFields = document.querySelectorAll('.marca-field');
   if (marcaFields[0]) marcaFields[0].value = p.empresa || '';
@@ -2701,33 +2735,24 @@ function toggleEditMarca() {
 
 async function saveMarca() {
   const fields = document.querySelectorAll('.marca-field');
-  // Build updates
+
+  // If a brand was selected via Brandfetch or manual → show approval modal first
+  if (_marcaSelectedBrand) {
+    abrirModalMudancaMarca();
+    return;
+  }
+
+  // No brand change — save other fields directly
   const updates = {
-    empresa:  fields[0]?.value?.trim() || null,
-    cnpj:     fields[1]?.value?.trim() || null,
-    segmento: fields[2]?.value || null,
-    website:  fields[3]?.value?.trim() || null,
+    cnpj:      fields[1]?.value?.trim() || null,
+    segmento:  fields[2]?.value || null,
+    website:   fields[3]?.value?.trim() || null,
     descricao: fields[4]?.value?.trim() || null
   };
-  // If a brand was selected via Brandfetch or manual, include logo + domain
-  if (_marcaSelectedBrand) {
-    if (_marcaSelectedBrand.name) { updates.empresa = _marcaSelectedBrand.name; }
-    if (_marcaSelectedBrand.domain) updates.empresa_domain = _marcaSelectedBrand.domain;
-    if (_marcaSelectedBrand.logoDataUrl || _marcaSelectedBrand.icon) {
-      updates.logo_url = _marcaSelectedBrand.logoDataUrl || _marcaSelectedBrand.icon;
-    }
-    // Update identity card
-    _applyMarcaLogo(updates.logo_url, updates.empresa);
-    if (fields[0]) fields[0].value = updates.empresa || '';
-    const nomeEl = document.getElementById('marcaLogoNome');
-    if (nomeEl) nomeEl.textContent = updates.empresa || '—';
-    const domainEl = document.getElementById('marcaLogoDomain');
-    if (domainEl) { domainEl.textContent = updates.empresa_domain || ''; domainEl.dataset.value = updates.empresa_domain || ''; }
-  }
   toggleEditMarca();
   if (!isDemoMode()) {
     const userId = await getAuthUserId();
-    const token = await _getWriteToken();
+    const token  = await _getWriteToken();
     if (userId && token) {
       await fetch(SUPABASE_URL + '/rest/v1/perfis', {
         method: 'POST', body: JSON.stringify({ id: userId, ...updates }),
@@ -2793,8 +2818,9 @@ async function saveResp() {
 // ─── MARCA BRANDFETCH ───
 let _marcaBfCache2 = [];
 let _marcaBfTimer2 = null;
-let _marcaSelectedBrand = null; // { name, domain, icon, logoDataUrl }
+let _marcaSelectedBrand = null; // { name, domain, icon, logoDataUrl, website, description }
 let _marcaManualMode = false;
+let _marcaManualLogoDataUrl = null;
 
 function _applyMarcaLogo(src, name) {
   const img = document.getElementById('marcaLogoImg');
@@ -2856,7 +2882,7 @@ async function marcaSelectBrandfetchBrand(brand) {
         if (desc) { _marcaSelectedBrand.description = desc; if (marcaFields[4]) marcaFields[4].value = desc; }
         const websiteLink = (data.links || []).find(l => l.type === 'website');
         const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
-        if (websiteUrl && marcaFields[3] && !marcaFields[3].value) marcaFields[3].value = websiteUrl;
+        if (websiteUrl) { _marcaSelectedBrand.website = websiteUrl; if (marcaFields[3]) marcaFields[3].value = websiteUrl; }
       }
     } catch(e) { /* silencioso */ }
   }
@@ -2865,76 +2891,162 @@ async function marcaSelectBrandfetchBrand(brand) {
 function marcaClearCompany() {
   _marcaSelectedBrand = null;
   _marcaManualMode = false;
+  _marcaManualLogoDataUrl = null;
   const searchWrap  = document.getElementById('marcaSearchInputWrap');
   const searchInput = document.getElementById('marcaEmpresaSearch');
   const card        = document.getElementById('marcaSelectedCard');
   const results     = document.getElementById('marcaBrandfetchResults');
-  const manualMode  = document.getElementById('marcaManualMode');
   const searchMode  = document.getElementById('marcaSearchMode');
-  const manualBtn   = document.querySelector('#marcaSearchMode button[onclick*="marcaToggleManual"]');
+  const manualBtn   = document.querySelector('#marcaSearchMode button[onclick*="abrirModalManualMarca"]');
   if (searchWrap)  searchWrap.style.display = '';
   if (manualBtn)   manualBtn.style.display = '';
   if (searchInput) searchInput.value = '';
   if (card)        card.style.display = 'none';
   if (results)     results.style.display = 'none';
-  if (manualMode)  manualMode.style.display = 'none';
   if (searchMode)  searchMode.style.display = '';
   const hint = document.getElementById('marcaNomeChangeHint');
   if (hint) hint.style.display = 'none';
-  // Reset logo preview
-  const prev = document.getElementById('marcaLogoPreview');
-  const icon = document.getElementById('marcaLogoPreviewIcon');
-  if (prev) { prev.src = ''; prev.style.display = 'none'; }
-  if (icon) icon.style.display = '';
-  const fileInput = document.getElementById('marcaLogoFile');
+}
+
+// ─── MODAL: CADASTRAR MANUALMENTE ───
+function abrirModalManualMarca() {
+  // Reset state
+  const nomeInput = document.getElementById('marcaManualNomeModal');
+  const logoPreview = document.getElementById('marcaManualLogoPreview');
+  const logoIcon = document.getElementById('marcaManualLogoIcon');
+  const fileInput = document.getElementById('marcaManualLogoFile');
+  if (nomeInput) nomeInput.value = '';
+  if (logoPreview) { logoPreview.src = ''; logoPreview.style.display = 'none'; }
+  if (logoIcon) logoIcon.style.display = '';
   if (fileInput) fileInput.value = '';
+  _marcaManualLogoDataUrl = null;
+  document.getElementById('modalManualMarca').style.display = 'flex';
 }
 
-function marcaToggleManual() {
-  _marcaManualMode = !_marcaManualMode;
-  const searchMode = document.getElementById('marcaSearchMode');
-  const manualMode = document.getElementById('marcaManualMode');
-  if (searchMode) searchMode.style.display = _marcaManualMode ? 'none' : '';
-  if (manualMode) manualMode.style.display = _marcaManualMode ? 'flex' : 'none';
+function fecharModalManualMarca() {
+  document.getElementById('modalManualMarca').style.display = 'none';
 }
 
-function marcaLogoFileChanged(input) {
+function marcaManualLogoChanged(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    const prev = document.getElementById('marcaLogoPreview');
-    const icon = document.getElementById('marcaLogoPreviewIcon');
-    if (prev) { prev.src = dataUrl; prev.style.display = ''; }
+    _marcaManualLogoDataUrl = e.target.result;
+    const prev = document.getElementById('marcaManualLogoPreview');
+    const icon = document.getElementById('marcaManualLogoIcon');
+    if (prev) { prev.src = _marcaManualLogoDataUrl; prev.style.display = ''; }
     if (icon) icon.style.display = 'none';
-    if (!_marcaSelectedBrand) _marcaSelectedBrand = {};
-    _marcaSelectedBrand.logoDataUrl = dataUrl;
   };
   reader.readAsDataURL(file);
 }
 
-function marcaConfirmManual() {
-  const nome = document.getElementById('marcaManualNome')?.value?.trim();
+function confirmarModalManualMarca() {
+  const nome = document.getElementById('marcaManualNomeModal')?.value?.trim();
   if (!nome) { showToast('Digite o nome da marca.', 'error'); return; }
+  fecharModalManualMarca();
   if (!_marcaSelectedBrand) _marcaSelectedBrand = {};
   _marcaSelectedBrand.name = nome;
+  if (_marcaManualLogoDataUrl) _marcaSelectedBrand.logoDataUrl = _marcaManualLogoDataUrl;
+  _marcaSelectedBrand.domain = '';
+  // Update nome input
   const nomeInput = document.getElementById('marcaNomeInput');
   if (nomeInput) nomeInput.value = nome;
   // Show selected card
-  const card = document.getElementById('marcaSelectedCard');
+  const card    = document.getElementById('marcaSelectedCard');
   const logoIcon = document.getElementById('marcaBrandIcon');
-  if (logoIcon) { logoIcon.src = _marcaSelectedBrand.logoDataUrl || ''; logoIcon.style.display = _marcaSelectedBrand.logoDataUrl ? '' : 'none'; }
+  if (logoIcon) {
+    logoIcon.src = _marcaSelectedBrand.logoDataUrl || '';
+    logoIcon.style.display = _marcaSelectedBrand.logoDataUrl ? '' : 'none';
+  }
   document.getElementById('marcaBrandName').textContent = nome;
   document.getElementById('marcaBrandDomain').textContent = '';
   if (card) card.style.display = 'flex';
+  // Hide search input
+  const searchWrap = document.getElementById('marcaSearchInputWrap');
+  if (searchWrap) searchWrap.style.display = 'none';
+  const manualBtn = document.querySelector('#marcaSearchMode button[onclick*="abrirModalManualMarca"]');
+  if (manualBtn) manualBtn.style.display = 'none';
   const hint = document.getElementById('marcaNomeChangeHint');
   if (hint) hint.style.display = '';
-  marcaToggleManual(); // hide manual mode
-  _marcaManualMode = false;
 }
 
-// Event delegation for Brandfetch dropdown clicks
+// ─── MODAL: APROVAÇÃO ADMIN PARA MUDANÇA DE MARCA ───
+function abrirModalMudancaMarca() {
+  if (!_marcaSelectedBrand) return;
+  const icon   = document.getElementById('modalMarcaBrandIcon');
+  const nome   = document.getElementById('modalMarcaBrandName');
+  const domain = document.getElementById('modalMarcaBrandDomain');
+  if (icon) {
+    const src = _marcaSelectedBrand.logoDataUrl || _marcaSelectedBrand.icon || '';
+    icon.src = src;
+    icon.style.display = src ? '' : 'none';
+  }
+  if (nome)   nome.textContent   = _marcaSelectedBrand.name || _marcaSelectedBrand.domain || '';
+  if (domain) domain.textContent = _marcaSelectedBrand.domain || '';
+  document.getElementById('modalMudancaMarca').style.display = 'flex';
+}
+
+function fecharModalMudancaMarca() {
+  document.getElementById('modalMudancaMarca').style.display = 'none';
+}
+
+async function confirmarSolicitacaoMudancaMarca() {
+  fecharModalMudancaMarca();
+  if (!_marcaSelectedBrand) return;
+
+  const fields = document.querySelectorAll('.marca-field');
+
+  if (!isDemoMode()) {
+    const userId = await getAuthUserId();
+    const token  = await _getWriteToken();
+    if (userId && token) {
+      const payload = {
+        id: userId,
+        empresa_change_pending: JSON.stringify({
+          name:         _marcaSelectedBrand.name        || '',
+          domain:       _marcaSelectedBrand.domain      || '',
+          icon:         _marcaSelectedBrand.icon        || _marcaSelectedBrand.logoDataUrl || '',
+          description:  _marcaSelectedBrand.description || '',
+          website:      _marcaSelectedBrand.website     || '',
+          requested_at: new Date().toISOString()
+        }),
+        // Also persist other editable fields in the same upsert
+        cnpj:      fields[1]?.value?.trim() || null,
+        segmento:  fields[2]?.value || null,
+        website:   fields[3]?.value?.trim() || null,
+        descricao: fields[4]?.value?.trim() || null
+      };
+      try {
+        await fetch(SUPABASE_URL + '/rest/v1/perfis', {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {
+        console.error('Erro ao salvar empresa_change_pending:', e);
+      }
+    }
+  }
+
+  showToast('Solicitação enviada! Um admin vai revisar a mudança em breve.', 'success');
+
+  // Show pending badge in identity card
+  const nomeEl = document.getElementById('marcaLogoNome');
+  if (nomeEl && !document.getElementById('marcaPendenteBadge')) {
+    const badge = document.createElement('span');
+    badge.id = 'marcaPendenteBadge';
+    badge.textContent = 'Aguardando aprovação';
+    badge.style.cssText = 'font-size:10px;font-weight:600;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:100px;padding:2px 8px;margin-left:8px;vertical-align:middle;display:inline-block';
+    nomeEl.parentNode.appendChild(badge);
+  }
+
+  marcaClearCompany();
+  if (editingMarca) toggleEditMarca();
+}
+
+// Event delegation for Brandfetch dropdown clicks + modal outside-click
 document.addEventListener('click', function(e) {
   const item = e.target.closest('[data-marca-bf-index]');
   if (item) {
@@ -2947,6 +3059,16 @@ document.addEventListener('click', function(e) {
   if (box && !box.contains(e.target)) {
     const results = document.getElementById('marcaBrandfetchResults');
     if (results) results.style.display = 'none';
+  }
+  // Close company change modal on backdrop click
+  const modalMudanca = document.getElementById('modalMudancaMarca');
+  if (modalMudanca && modalMudanca.style.display !== 'none' && e.target === modalMudanca) {
+    fecharModalMudancaMarca();
+  }
+  // Close manual entry modal on backdrop click
+  const modalManual = document.getElementById('modalManualMarca');
+  if (modalManual && modalManual.style.display !== 'none' && e.target === modalManual) {
+    fecharModalManualMarca();
   }
 });
 
