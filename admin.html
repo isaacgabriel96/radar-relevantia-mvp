@@ -264,6 +264,8 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
 .btn-approve:hover { background: #DCFCE7; }
 .btn-reject { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
 .btn-reject:hover { background: #FEE2E2; }
+.btn-delete { background: var(--red); color: #fff; border: 1px solid var(--red); }
+.btn-delete:hover { background: #B91C1C; border-color: #B91C1C; }
 .btn-reenviar { background: var(--gold-pale); color: var(--brown-warm); border: 1px solid rgba(184,134,11,0.25); }
 .btn-reenviar:hover { background: #EDD9A3; }
 .btn-copy { background: var(--gray-1); color: var(--gray-4); border: 1px solid var(--gray-2); }
@@ -1724,6 +1726,21 @@ async function toggleEmbaixador(id, ativo) {
   } catch (err) { showToast('Erro ao atualizar status', 'error'); }
 }
 
+async function excluirRegistro(tabela, id, rowId, nome) {
+  if (!confirm(`Excluir "${nome}" permanentemente? Esta ação não pode ser desfeita.`)) return;
+  try {
+    const res = await sbFetch(`/rest/v1/${tabela}?id=eq.${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(await res.text());
+    const row = document.getElementById(rowId);
+    if (row) row.remove();
+    showToast('Registro excluído permanentemente', 'success');
+    loadStats();
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao excluir registro', 'error');
+  }
+}
+
 async function deleteEmbaixador(id, nome) {
   if (!confirm(`Excluir embaixador "${nome}"? Esta ação não pode ser desfeita.`)) return;
   try {
@@ -1862,6 +1879,7 @@ async function loadMarcas() {
           <div class="action-group">
             ${m.status !== 'aprovado'  ? `<button class="btn btn-sm btn-approve" onclick="atualizarStatus('marcas_waitlist','${m.id}','aprovado','row-marca-${m.id}')">Aprovar</button>` : ''}
             ${m.status !== 'rejeitado' ? `<button class="btn btn-sm btn-reject"  onclick="atualizarStatus('marcas_waitlist','${m.id}','rejeitado','row-marca-${m.id}')">Rejeitar</button>` : ''}
+            <button class="btn btn-sm btn-delete" onclick="excluirRegistro('marcas_waitlist','${m.id}','row-marca-${m.id}','${escapeHtml((m.primeiro_nome||'') + ' ' + (m.sobrenome||'')).trim() || m.empresa || 'esta marca'}')">Excluir</button>
           </div>
         </td>
       </tr>`).join('');
@@ -1917,6 +1935,7 @@ async function loadDetentores() {
             ${d.status !== 'aprovado'  ? `<button class="btn btn-sm btn-approve" onclick="atualizarStatus('detentores_waitlist','${d.id}','aprovado','row-det-${d.id}')">Aprovar</button>` : ''}
             ${d.status !== 'rejeitado' ? `<button class="btn btn-sm btn-reject"  onclick="atualizarStatus('detentores_waitlist','${d.id}','rejeitado','row-det-${d.id}')">Rejeitar</button>` : ''}
             ${d.status === 'aprovado'  ? `<button class="btn btn-sm btn-reenviar" onclick="criarContaEEnviarAcesso('detentores_waitlist','${d.id}')">Reenviar acesso</button>` : ''}
+            <button class="btn btn-sm btn-delete" onclick="excluirRegistro('detentores_waitlist','${d.id}','row-det-${d.id}','${escapeHtml(d.nome || d.empresa || 'este detentor')}')">Excluir</button>
           </div>
         </td>
       </tr>`).join('');
@@ -2090,7 +2109,8 @@ function openPerfilMarca(m) {
   actionsEl.innerHTML = `
     <button class="btn btn-outline" onclick="closeModalPerfil()">Fechar</button>
     ${m.status !== 'aprovado'  ? `<button class="btn btn-approve" onclick="atualizarStatus('marcas_waitlist','${m.id}','aprovado','row-marca-${m.id}');closeModalPerfil();">Aprovar</button>` : ''}
-    ${m.status !== 'rejeitado' ? `<button class="btn btn-reject"  onclick="atualizarStatus('marcas_waitlist','${m.id}','rejeitado','row-marca-${m.id}');closeModalPerfil();">Rejeitar</button>` : ''}`;
+    ${m.status !== 'rejeitado' ? `<button class="btn btn-reject"  onclick="atualizarStatus('marcas_waitlist','${m.id}','rejeitado','row-marca-${m.id}');closeModalPerfil();">Rejeitar</button>` : ''}
+    <button class="btn btn-delete" onclick="excluirRegistro('marcas_waitlist','${m.id}','row-marca-${m.id}','${escapeHtml(((m.primeiro_nome||'') + ' ' + (m.sobrenome||'')).trim() || m.empresa || 'esta marca')}');closeModalPerfil();">Excluir</button>`;
 
   document.getElementById('modalPerfil').classList.add('show');
 }
@@ -2133,7 +2153,8 @@ function openPerfilDetentor(d) {
     <button class="btn btn-outline" onclick="closeModalPerfil()">Fechar</button>
     ${d.status !== 'aprovado'  ? `<button class="btn btn-approve" onclick="atualizarStatus('detentores_waitlist','${d.id}','aprovado','row-det-${d.id}');closeModalPerfil();">Aprovar</button>` : ''}
     ${d.status !== 'rejeitado' ? `<button class="btn btn-reject"  onclick="atualizarStatus('detentores_waitlist','${d.id}','rejeitado','row-det-${d.id}');closeModalPerfil();">Rejeitar</button>` : ''}
-    ${d.status === 'aprovado'  ? `<button class="btn btn-reenviar" onclick="criarContaEEnviarAcesso('detentores_waitlist','${d.id}')">Reenviar acesso</button>` : ''}`;
+    ${d.status === 'aprovado'  ? `<button class="btn btn-reenviar" onclick="criarContaEEnviarAcesso('detentores_waitlist','${d.id}')">Reenviar acesso</button>` : ''}
+    <button class="btn btn-delete" onclick="excluirRegistro('detentores_waitlist','${d.id}','row-det-${d.id}','${escapeHtml(d.nome || d.empresa || 'este detentor')}');closeModalPerfil();">Excluir</button>`;
 
   document.getElementById('modalPerfil').classList.add('show');
 }
