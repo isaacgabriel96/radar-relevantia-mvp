@@ -4,38 +4,58 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Acesso — Radar Relevantia</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --gold: #C9A43A; --gold-light: #E8C96A; --gold-pale: #FBF5E6;
-  --black: #0E0E0E; --black-2: #1A1A1A; --white: #FFFFFF;
-  --gray-1: #F7F7F7; --gray-2: #EBEBEB; --gray-3: #DDDDDD;
-  --gray-5: #717171; --red: #EF4444;
+  --gold: #B8860B; --gold-light: #C8A84B; --gold-deep: #8A6608;
+  --gold-pale: #F5E6C8; --gold-muted: rgba(184,134,11,0.12);
+  --gold-gradient: linear-gradient(135deg, #B8860B, #C8A84B);
+  --black: #1A1200; --black-2: #0A0800; --black-3: #2A2008;
+  --white: #FFFFFF; --white-warm: #FFFDF7;
+  --gray-1: #F5F0E8; --gray-2: #E0D8CC; --gray-3: #A89880;
+  --gray-4: #5C4C38; --brown-warm: #7A5C1E;
+  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-italic: 'Playfair Display', serif;
+  --font-ui: 'Inter', sans-serif;
+  --radius-pill: 100px; --radius-lg: 16px; --radius-md: 12px;
+  --radius-base: 10px; --radius-sm: 8px;
+  --shadow-gold: 0 8px 28px rgba(184,134,11,0.30);
+  --shadow-focus: 0 0 0 3px rgba(184,134,11,0.18);
+  --red: #DC2626;
 }
-html, body { min-height: 100vh; font-family: 'DM Sans', sans-serif; background: var(--black); }
+html, body { min-height: 100vh; font-family: var(--font-body); background: var(--black-2); }
 
 body::before {
   content: ''; position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(201,164,58,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201,164,58,0.04) 1px, transparent 1px);
-  background-size: 56px 56px; pointer-events: none; z-index: 0;
+    linear-gradient(rgba(184,134,11,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,134,11,0.045) 1px, transparent 1px);
+  background-size: 48px 48px; pointer-events: none; z-index: 0;
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 900px 700px at -5% -10%, rgba(184,134,11,0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 500px at 110% 110%, rgba(122,92,30,0.12) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
 }
 
 /* ── Loading ── */
 #loadingScreen {
   position: fixed; inset: 0; z-index: 100;
   display: flex; align-items: center; justify-content: center;
-  background: var(--black); flex-direction: column; gap: 20px;
+  background: var(--black-2); flex-direction: column; gap: 20px;
 }
 .loading-spinner {
   width: 32px; height: 32px;
-  border: 2.5px solid rgba(201,164,58,0.2);
+  border: 2.5px solid rgba(184,134,11,0.2);
   border-top-color: var(--gold);
   border-radius: 50%; animation: spin 0.8s linear infinite;
 }
-.loading-text { font-size: 13px; color: rgba(255,255,255,0.35); letter-spacing: 0.06em; }
+.loading-text { font-size: 13px; color: rgba(255,255,255,0.35); letter-spacing: 0.06em; font-family: var(--font-ui); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Screens ── */
@@ -47,49 +67,50 @@ body::before {
 }
 
 /* ── Login card ── */
-.login-card {
-  width: 100%; max-width: 420px;
-}
-.login-logo { text-align: center; margin-bottom: 36px; }
-.login-logo img { height: 40px; }
+.login-card { width: 100%; max-width: 440px; }
+.login-logo { text-align: center; margin-bottom: 40px; }
+.login-logo img { height: 44px; margin: 0 auto; }
 .login-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-size: clamp(26px, 4vw, 32px);
   font-weight: 700; color: var(--white);
-  text-align: center; margin-bottom: 8px;
+  text-align: center; margin-bottom: 10px;
+  letter-spacing: -0.02em;
 }
-.login-title em { font-style: italic; color: var(--gold); }
+.login-title em { font-style: italic; font-family: var(--font-italic); color: var(--gold-light); font-weight: 400; }
 .login-sub {
-  font-size: 14px; color: rgba(255,255,255,0.4);
-  text-align: center; line-height: 1.6; margin-bottom: 32px;
+  font-size: 15px; color: rgba(255,255,255,0.5);
+  text-align: center; line-height: 1.65; margin-bottom: 32px;
 }
 
 .glass-card {
   background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.09);
-  border-radius: 20px; padding: 32px;
+  border: 1px solid rgba(184,134,11,0.15);
+  border-radius: var(--radius-lg); padding: 32px;
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
 .form-group { margin-bottom: 20px; }
 .form-label {
-  display: block; font-size: 12px; font-weight: 600;
-  color: rgba(255,255,255,0.5); letter-spacing: 0.08em;
+  display: block; font-size: 11px; font-weight: 600;
+  font-family: var(--font-ui);
+  color: rgba(255,255,255,0.45); letter-spacing: 0.10em;
   text-transform: uppercase; margin-bottom: 8px;
 }
 .form-input {
   width: 100%; padding: 13px 16px;
   background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px; font-size: 15px;
-  font-family: 'DM Sans', sans-serif;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-base); font-size: 15px;
+  font-family: var(--font-body);
   color: var(--white); outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .form-input:focus {
-  border-color: rgba(201,164,58,0.5);
-  box-shadow: 0 0 0 3px rgba(201,164,58,0.1);
+  border-color: rgba(184,134,11,0.5);
+  box-shadow: var(--shadow-focus);
 }
 .form-input::placeholder { color: rgba(255,255,255,0.2); }
-.form-input.error { border-color: rgba(239,68,68,0.5); }
+.form-input.error { border-color: rgba(220,38,38,0.5); }
 
 .password-wrap { position: relative; }
 .password-wrap .form-input { padding-right: 46px; }
@@ -103,25 +124,26 @@ body::before {
 .btn-toggle-pw:hover { color: rgba(255,255,255,0.7); }
 
 .form-error {
-  font-size: 12px; color: #FCA5A5;
-  margin-top: 6px; display: none;
+  font-size: 12px; color: #fca5a5;
+  margin-top: 6px; display: none; font-family: var(--font-ui);
 }
 
 .btn-primary {
-  width: 100%; padding: 14px;
-  background: var(--gold); color: var(--black);
-  border: none; border-radius: 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px; font-weight: 700;
-  cursor: pointer; transition: all 0.2s;
+  width: 100%; padding: 15px;
+  background: var(--gold-gradient); color: var(--black);
+  border: none; border-radius: var(--radius-pill);
+  font-family: var(--font-heading);
+  font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: all 0.3s;
   display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: var(--shadow-gold); letter-spacing: -0.01em;
 }
-.btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(184,134,11,0.4); }
 .btn-primary:active { transform: translateY(0); }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .btn-spinner {
   width: 18px; height: 18px;
-  border: 2px solid rgba(14,14,14,0.3);
+  border: 2px solid rgba(26,18,0,0.3);
   border-top-color: var(--black);
   border-radius: 50%; animation: spin 0.7s linear infinite;
   display: none;
@@ -133,30 +155,32 @@ body::before {
 .nav {
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 40px; height: 68px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-  background: rgba(14,14,14,0.85); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(184,134,11,0.12);
+  background: rgba(10,8,0,0.88); backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   position: sticky; top: 0; z-index: 10;
 }
-.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
-.nav-logo img { height: 32px; width: auto; }
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
+.nav-logo img { height: 40px; width: auto; }
 .nav-right { display: flex; align-items: center; gap: 12px; }
-.nav-email { font-size: 13px; color: rgba(255,255,255,0.35); }
+.nav-email { font-size: 13px; color: rgba(255,255,255,0.35); font-family: var(--font-ui); }
 .btn-logout {
-  padding: 7px 16px; background: transparent;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px; font-family: 'DM Sans', sans-serif;
-  font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.35);
-  cursor: pointer; transition: all 0.15s;
+  padding: 8px 18px; background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.45);
+  cursor: pointer; transition: all 0.2s;
 }
-.btn-logout:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+.btn-logout:hover { border-color: rgba(255,255,255,0.35); color: var(--white); }
 
-/* ── Progress bar (substitui stepper nos tutoriais) ── */
+/* ── Progress bar ── */
 .progress-bar-wrap {
-  padding: 0; height: 3px;
-  background: rgba(255,255,255,0.06);
+  padding: 0; height: 2px;
+  background: rgba(184,134,11,0.1);
 }
 .progress-bar-fill {
-  height: 100%; background: var(--gold);
+  height: 100%; background: var(--gold-gradient);
   transition: width 0.4s ease;
 }
 
@@ -206,29 +230,31 @@ body::before {
 
 .panel-badge {
   display: inline-flex; align-items: center; gap: 8px;
-  border: 1px solid rgba(201,164,58,0.3);
-  background: rgba(201,164,58,0.08);
-  padding: 5px 14px; border-radius: 100px;
-  font-size: 10px; font-weight: 700;
+  border: 1px solid rgba(184,134,11,0.28);
+  background: rgba(184,134,11,0.08);
+  padding: 6px 14px; border-radius: var(--radius-pill);
+  font-family: var(--font-ui); font-size: 10px; font-weight: 600;
   letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--gold); margin-bottom: 20px;
+  color: var(--gold-light); margin-bottom: 16px;
 }
 .panel-badge-dot {
   width: 5px; height: 5px; border-radius: 50%;
   background: var(--gold); animation: pulse 2s ease infinite;
+  box-shadow: 0 0 6px rgba(184,134,11,0.6);
 }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
 
 .panel-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(26px, 4vw, 34px);
-  font-weight: 700; line-height: 1.2;
-  color: var(--white); margin-bottom: 10px;
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 3.5vw, 34px);
+  font-weight: 700; line-height: 1.15;
+  color: var(--white); margin-bottom: 12px;
+  letter-spacing: -0.02em;
 }
-.panel-title em { font-style: italic; color: var(--gold); }
+.panel-title em { font-style: italic; font-family: var(--font-italic); color: var(--gold-light); font-weight: 400; }
 .panel-sub {
-  font-size: 15px; color: rgba(255,255,255,0.45);
-  line-height: 1.7; margin-bottom: 32px;
+  font-size: 15px; color: rgba(255,255,255,0.52);
+  line-height: 1.65; margin-bottom: 28px;
 }
 
 /* Password strength */
@@ -238,62 +264,59 @@ body::before {
   flex: 1; height: 3px; border-radius: 100px;
   background: rgba(255,255,255,0.08); transition: background 0.3s;
 }
-.pw-bar.weak { background: #EF4444; }
-.pw-bar.medium { background: #F59E0B; }
-.pw-bar.strong { background: #22C55E; }
-.pw-strength-label { font-size: 11px; color: rgba(255,255,255,0.3); }
+.pw-bar.weak { background: #DC2626; }
+.pw-bar.medium { background: #D97706; }
+.pw-bar.strong { background: #16A34A; }
+.pw-strength-label { font-size: 11px; color: rgba(255,255,255,0.3); font-family: var(--font-ui); }
 
 /* ── Tutorial layout fullscreen ── */
 .tutorial-layout {
-  display: flex; min-height: calc(100vh - 71px); width: 100%;
+  display: flex; min-height: calc(100vh - 70px); width: 100%;
 }
 
-/* Lado esquerdo — conteúdo */
 .tutorial-content {
   width: 50%; max-width: 560px;
   display: flex; flex-direction: column; justify-content: center;
   padding: 60px 64px;
 }
 
-/* Lado direito — imagem */
 .tutorial-visual {
   flex: 1;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,0.02);
-  border-left: 1px solid rgba(255,255,255,0.06);
+  background: rgba(184,134,11,0.02);
+  border-left: 1px solid rgba(184,134,11,0.1);
   padding: 48px;
   position: relative; overflow: hidden;
 }
 .tutorial-visual::before {
   content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 60% 40%, rgba(201,164,58,0.06) 0%, transparent 65%);
+  background: radial-gradient(ellipse at 60% 40%, rgba(184,134,11,0.07) 0%, transparent 65%);
   pointer-events: none;
 }
 
-/* Mockup placeholder */
 .mockup-frame {
   width: 100%; max-width: 520px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 16px; overflow: hidden;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(184,134,11,0.12);
+  border-radius: var(--radius-lg); overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(184,134,11,0.06);
   position: relative; z-index: 1;
 }
 .mockup-topbar {
-  height: 40px; background: rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  height: 40px; background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   display: flex; align-items: center; gap: 8px; padding: 0 16px;
 }
 .mockup-dot {
   width: 10px; height: 10px; border-radius: 50%;
   background: rgba(255,255,255,0.1);
 }
-.mockup-dot:nth-child(1) { background: rgba(239,68,68,0.4); }
-.mockup-dot:nth-child(2) { background: rgba(245,158,11,0.4); }
-.mockup-dot:nth-child(3) { background: rgba(34,197,94,0.4); }
+.mockup-dot:nth-child(1) { background: rgba(220,38,38,0.4); }
+.mockup-dot:nth-child(2) { background: rgba(217,119,6,0.4); }
+.mockup-dot:nth-child(3) { background: rgba(22,163,74,0.4); }
 .mockup-url {
   flex: 1; height: 22px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.04);
   border-radius: 6px; margin-left: 8px;
 }
 .mockup-body {
@@ -312,7 +335,7 @@ body::before {
   height: 10px; border-radius: 4px;
   background: rgba(255,255,255,0.12);
 }
-.mock-bar.gold { background: rgba(201,164,58,0.35); }
+.mock-bar.gold { background: rgba(184,134,11,0.35); }
 .mock-bar.short { width: 40%; }
 .mock-bar.medium { width: 65%; }
 .mock-bar.long { width: 90%; }
@@ -329,7 +352,7 @@ body::before {
 }
 .mock-stat-num {
   height: 18px; width: 50%; border-radius: 4px;
-  background: rgba(201,164,58,0.3);
+  background: rgba(184,134,11,0.3);
 }
 .mock-stat-label { height: 7px; border-radius: 3px; background: rgba(255,255,255,0.08); }
 
@@ -341,7 +364,7 @@ body::before {
 }
 .mock-avatar {
   width: 28px; height: 28px; border-radius: 50%;
-  background: rgba(201,164,58,0.2); flex-shrink: 0;
+  background: rgba(184,134,11,0.2); flex-shrink: 0;
 }
 .mock-row-content { flex: 1; display: flex; flex-direction: column; gap: 5px; }
 .mock-badge {
@@ -364,8 +387,8 @@ body::before {
   border: 1px solid rgba(255,255,255,0.1);
 }
 .mock-input.focus {
-  border-color: rgba(201,164,58,0.4);
-  box-shadow: 0 0 0 3px rgba(201,164,58,0.08);
+  border-color: rgba(184,134,11,0.4);
+  box-shadow: 0 0 0 3px rgba(184,134,11,0.08);
 }
 .mock-label { height: 7px; width: 35%; border-radius: 3px; background: rgba(255,255,255,0.15); margin-bottom: 4px; }
 
@@ -381,20 +404,20 @@ body::before {
   height: 26px; border-radius: 6px; background: rgba(255,255,255,0.04);
 }
 .mock-nav-item.active {
-  background: rgba(201,164,58,0.12);
-  border: 1px solid rgba(201,164,58,0.2);
+  background: rgba(184,134,11,0.12);
+  border: 1px solid rgba(184,134,11,0.2);
 }
 .mock-main { flex: 1; display: flex; flex-direction: column; gap: 8px; }
 
 .mock-notification {
   display: flex; align-items: center; gap: 10px;
-  background: rgba(201,164,58,0.08);
-  border: 1px solid rgba(201,164,58,0.2);
+  background: rgba(184,134,11,0.08);
+  border: 1px solid rgba(184,134,11,0.2);
   border-radius: 10px; padding: 10px 14px;
 }
 .mock-notif-icon {
   width: 28px; height: 28px; border-radius: 50%;
-  background: rgba(201,164,58,0.2); flex-shrink: 0;
+  background: rgba(184,134,11,0.2); flex-shrink: 0;
 }
 .mock-notif-content { flex: 1; display: flex; flex-direction: column; gap: 5px; }
 .mock-notif-dot {
@@ -416,7 +439,7 @@ body::before {
   height: 3px; border-radius: 100px; flex: 1;
   background: rgba(255,255,255,0.1); transition: background 0.3s;
 }
-.step-pill.done { background: rgba(201,164,58,0.4); }
+.step-pill.done { background: rgba(184,134,11,0.4); }
 .step-pill.active { background: var(--gold); }
 
 /* Success */
@@ -449,8 +472,8 @@ body::before {
   padding: 14px 20px;
   background: transparent;
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  font-family: 'DM Sans', sans-serif;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
   font-size: 15px; font-weight: 500;
   color: rgba(255,255,255,0.4);
   cursor: pointer; transition: all 0.2s;
@@ -464,9 +487,11 @@ body::before {
 /* Toast */
 .toast {
   position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: rgba(30,30,30,0.95); border: 1px solid rgba(255,255,255,0.1);
-  backdrop-filter: blur(12px); border-radius: 12px;
+  background: rgba(26,18,0,0.96); border: 1px solid rgba(184,134,11,0.18);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--radius-md);
   padding: 12px 20px; font-size: 13.5px; font-weight: 500;
+  font-family: var(--font-ui);
   color: var(--white); white-space: nowrap; z-index: 999;
   opacity: 0; transition: all 0.3s; pointer-events: none;
 }
@@ -474,44 +499,47 @@ body::before {
 .toast.success { border-color: rgba(34,197,94,0.4); color: #4ade80; }
 .toast.error { border-color: rgba(239,68,68,0.4); color: #fca5a5; }
 
+/* ── Responsive ── */
 @media (max-width: 900px) {
-  .tutorial-layout { flex-direction: column-reverse; min-height: unset; }
+  .tutorial-layout { flex-direction: column; min-height: unset; }
   .tutorial-content { width: 100%; padding: 32px 24px 40px; }
-  .tutorial-visual { min-height: 260px; border-left: none; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 28px 20px; }
+  .tutorial-visual { min-height: 220px; max-height: 260px; overflow: hidden; border-left: none; border-top: 1px solid rgba(255,255,255,0.06); padding: 28px 20px; }
   .nav { padding: 0 20px; }
   .steps-container { padding: 28px 16px 48px; }
   .glass-card { padding: 24px 20px; }
 }
 @media (max-width: 600px) {
-  .tutorial-content { padding: 32px 20px 28px; }
+  .tutorial-visual { display: none; }
+  /* Tutorial panels fill viewport — no scroll */
+  .tutorial-panel.active { height: calc(100dvh - 70px); overflow: hidden; }
+  .tutorial-layout { height: 100%; }
+  .tutorial-content {
+    height: 100%; padding: 24px 20px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .panel-badge { margin-bottom: 10px; }
+  .panel-title { font-size: clamp(22px, 6vw, 28px); margin-bottom: 8px; }
+  .panel-sub { font-size: 14px; line-height: 1.55; margin-bottom: 14px; }
+  .panel-bullets { gap: 7px; margin-bottom: 14px; }
+  .panel-bullets li { font-size: 13px; }
+  /* stepPw / stepSuccess: allow internal scroll on very small screens */
+  #stepPw, #stepSuccess {
+    height: calc(100dvh - 70px);
+    overflow-y: auto;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    padding: 24px 20px 32px !important;
+  }
   .mock-stats { grid-template-columns: repeat(2,1fr); }
   .stepper-wrap { padding: 24px 16px 0; overflow-x: auto; }
-  .tutorial-visual { min-height: 200px; }
 }
 @media (max-width: 480px) {
-  /* Nav: esconde email para não transbordar */
   .nav-email { display: none; }
-  /* Login: menos padding lateral */
   #loginScreen { padding: 20px 16px; }
   .glass-card { padding: 20px 16px; }
-  /* Steps com padding reduzido */
-  #stepPw { padding: 28px 16px 40px !important; }
-  #stepSuccess { padding: 28px 16px 40px !important; }
-  /* Botão de acesso ao dashboard ocupa largura total */
+  #stepPw, #stepSuccess { padding: 20px 16px 28px !important; }
   #stepSuccess .btn-primary { max-width: 100% !important; width: 100%; }
-  /* Visual do tutorial mais compacto */
-  .tutorial-visual { min-height: 160px; padding: 20px 16px; }
-  .tutorial-content { padding: 28px 16px 28px; }
-  /* Mockup body menor */
-  .mockup-body { padding: 16px; min-height: unset; }
-}
-@media (max-width: 380px) {
-  .tutorial-visual { min-height: 120px; padding: 14px 12px; }
-  /* Oculta topbar do mockup em telas muito pequenas */
-  .mockup-topbar { display: none; }
-  .mockup-body { padding: 12px; gap: 8px; }
-  .panel-title { font-size: clamp(22px, 6vw, 28px); }
-  .panel-sub { font-size: 14px; margin-bottom: 20px; }
+  .tutorial-content { padding: 20px 16px; }
 }
 </style>
 </head>
@@ -657,7 +685,7 @@ body::before {
     <div class="tutorial-layout">
       <div class="tutorial-content">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px;">
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:var(--gold);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:rgba(255,255,255,0.1);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:rgba(255,255,255,0.1);"></div>
@@ -736,8 +764,8 @@ body::before {
     <div class="tutorial-layout">
       <div class="tutorial-content">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px;">
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:var(--gold);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:rgba(255,255,255,0.1);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:rgba(255,255,255,0.1);"></div>
@@ -770,7 +798,7 @@ body::before {
           <div class="mockup-body">
             <!-- Avatar + nome empresa -->
             <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
-              <div style="width:52px;height:52px;border-radius:12px;background:rgba(201,164,58,0.15);border:1px solid rgba(201,164,58,0.25);flex-shrink:0;"></div>
+              <div style="width:52px;height:52px;border-radius:12px;background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.25);flex-shrink:0;"></div>
               <div style="display:flex;flex-direction:column;gap:7px;flex:1;">
                 <div class="mock-bar gold" style="height:13px;width:60%;"></div>
                 <div class="mock-bar xs" style="width:40%;"></div>
@@ -801,9 +829,9 @@ body::before {
     <div class="tutorial-layout">
       <div class="tutorial-content">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px;">
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:var(--gold);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:rgba(255,255,255,0.1);"></div>
           <span style="font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.06em;white-space:nowrap;margin-left:4px;">4 de 5</span>
@@ -842,7 +870,7 @@ body::before {
             </div>
             <!-- tipo de oportunidade chips -->
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
-              <div style="height:26px;width:70px;border-radius:100px;background:rgba(201,164,58,0.15);border:1px solid rgba(201,164,58,0.3);"></div>
+              <div style="height:26px;width:70px;border-radius:100px;background:rgba(184,134,11,0.15);border:1px solid rgba(184,134,11,0.3);"></div>
               <div style="height:26px;width:80px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);"></div>
               <div style="height:26px;width:65px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);"></div>
               <div style="height:26px;width:75px;border-radius:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);"></div>
@@ -855,7 +883,7 @@ body::before {
             <div class="mock-form-row"><div class="mock-label"></div><div class="mock-input" style="height:48px;"></div></div>
             <div style="display:flex;gap:8px;margin-top:4px;">
               <div style="flex:1;height:34px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);"></div>
-              <div style="width:110px;height:34px;border-radius:8px;background:rgba(201,164,58,0.3);"></div>
+              <div style="width:110px;height:34px;border-radius:8px;background:rgba(184,134,11,0.3);"></div>
             </div>
           </div>
         </div>
@@ -868,10 +896,10 @@ body::before {
     <div class="tutorial-layout">
       <div class="tutorial-content">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px;">
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
-          <div style="height:3px;flex:1;border-radius:100px;background:rgba(201,164,58,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
+          <div style="height:3px;flex:1;border-radius:100px;background:rgba(184,134,11,0.4);"></div>
           <div style="height:3px;flex:1;border-radius:100px;background:var(--gold);"></div>
           <span style="font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.06em;white-space:nowrap;margin-left:4px;">5 de 5</span>
         </div>
@@ -902,7 +930,7 @@ body::before {
           <div class="mockup-body">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
               <div class="mock-bar gold" style="height:13px;width:50%;"></div>
-              <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(201,164,58,0.6);"></div>
+              <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(184,134,11,0.6);"></div>
             </div>
             <!-- notificação destaque -->
             <div class="mock-notification">
