@@ -266,6 +266,14 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
 .btn-reject:hover { background: #FEE2E2; }
 .btn-delete { background: var(--red); color: #fff; border: 1px solid var(--red); }
 .btn-delete:hover { background: #B91C1C; border-color: #B91C1C; }
+
+/* Bulk selection */
+.th-check, .td-check { width: 40px; padding: 0 4px 0 16px !important; }
+input[type="checkbox"].row-cb, input[type="checkbox"].cb-all { width: 15px; height: 15px; accent-color: var(--red); cursor: pointer; border-radius: 3px; }
+tr.row-selected td { background: #FEF2F2; }
+.bulk-bar { display: none; align-items: center; gap: 12px; padding: 10px 22px; background: #FEF2F2; border-bottom: 1px solid #FECACA; }
+.bulk-bar.visible { display: flex; }
+.bulk-count { font-size: 13px; font-weight: 600; color: var(--red); flex: 1; }
 .btn-reenviar { background: var(--gold-pale); color: var(--brown-warm); border: 1px solid rgba(184,134,11,0.25); }
 .btn-reenviar:hover { background: #EDD9A3; }
 .btn-copy { background: var(--gray-1); color: var(--gray-4); border: 1px solid var(--gray-2); }
@@ -662,6 +670,11 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
             <button class="filter-btn" onclick="filterMarcas('rejeitado', this)">Rejeitados</button>
             <button class="filter-btn" onclick="filterMarcas('todos', this)">Todos</button>
           </div>
+          <div id="bulkBar-marcas" class="bulk-bar">
+            <span class="bulk-count" id="bulkCount-marcas"></span>
+            <button class="btn btn-sm btn-delete" onclick="excluirSelecionados('marcas_waitlist','marcas')">Excluir selecionados</button>
+            <button class="btn btn-sm btn-outline" onclick="clearSelection('marcas')">Cancelar</button>
+          </div>
           <div class="table-header" style="border-top:none;">
             <span class="table-title">Lista de Marcas</span>
             <span class="table-count" id="countMarcas">carregando...</span>
@@ -670,6 +683,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
             <table>
               <thead>
                 <tr>
+                  <th class="th-check"><input type="checkbox" class="cb-all" id="checkAllMarcas" onchange="toggleSelectAll('marcas', this.checked)"></th>
                   <th>Nome</th>
                   <th>Empresa</th>
                   <th>Segmento</th>
@@ -681,7 +695,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
                 </tr>
               </thead>
               <tbody id="tbodyMarcas">
-                <tr><td colspan="8"><div class="empty-state"><div class="spinner"></div></td></tr>
+                <tr><td colspan="9"><div class="empty-state"><div class="spinner"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -702,6 +716,11 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
             <button class="filter-btn" onclick="filterDetentores('rejeitado', this)">Rejeitados</button>
             <button class="filter-btn" onclick="filterDetentores('todos', this)">Todos</button>
           </div>
+          <div id="bulkBar-detentores" class="bulk-bar">
+            <span class="bulk-count" id="bulkCount-detentores"></span>
+            <button class="btn btn-sm btn-delete" onclick="excluirSelecionados('detentores_waitlist','detentores')">Excluir selecionados</button>
+            <button class="btn btn-sm btn-outline" onclick="clearSelection('detentores')">Cancelar</button>
+          </div>
           <div class="table-header" style="border-top:none;">
             <span class="table-title">Lista de Detentores</span>
             <span class="table-count" id="countDetentores">carregando...</span>
@@ -710,6 +729,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
             <table>
               <thead>
                 <tr>
+                  <th class="th-check"><input type="checkbox" class="cb-all" id="checkAllDetentores" onchange="toggleSelectAll('detentores', this.checked)"></th>
                   <th>Nome</th>
                   <th>Empresa</th>
                   <th>Segmento</th>
@@ -722,7 +742,7 @@ tbody td { padding: 13px 16px; font-size: 13px; color: var(--text); vertical-ali
                 </tr>
               </thead>
               <tbody id="tbodyDetentores">
-                <tr><td colspan="9"><div class="empty-state"><div class="spinner"></div></td></tr>
+                <tr><td colspan="10"><div class="empty-state"><div class="spinner"></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -1726,6 +1746,70 @@ async function toggleEmbaixador(id, ativo) {
   } catch (err) { showToast('Erro ao atualizar status', 'error'); }
 }
 
+function toggleSelectAll(table, checked) {
+  const cap = table.charAt(0).toUpperCase() + table.slice(1);
+  document.querySelectorAll(`#tbody${cap} .row-cb`).forEach(cb => {
+    cb.checked = checked;
+    cb.closest('tr').classList.toggle('row-selected', checked);
+  });
+  onRowCheck(table);
+}
+
+function onRowCheck(table) {
+  const cap = table.charAt(0).toUpperCase() + table.slice(1);
+  const cbs = [...document.querySelectorAll(`#tbody${cap} .row-cb`)];
+  const checked = cbs.filter(c => c.checked);
+  checked.forEach(c => c.closest('tr').classList.add('row-selected'));
+  cbs.filter(c => !c.checked).forEach(c => c.closest('tr').classList.remove('row-selected'));
+  const bar = document.getElementById(`bulkBar-${table}`);
+  const count = checked.length;
+  if (count > 0) {
+    bar.classList.add('visible');
+    document.getElementById(`bulkCount-${table}`).textContent = `${count} selecionado${count > 1 ? 's' : ''}`;
+  } else {
+    bar.classList.remove('visible');
+  }
+  const allCb = document.getElementById(`checkAll${cap}`);
+  if (allCb) {
+    allCb.checked = count === cbs.length && cbs.length > 0;
+    allCb.indeterminate = count > 0 && count < cbs.length;
+  }
+}
+
+function clearSelection(table) {
+  const cap = table.charAt(0).toUpperCase() + table.slice(1);
+  document.querySelectorAll(`#tbody${cap} .row-cb`).forEach(cb => {
+    cb.checked = false;
+    cb.closest('tr').classList.remove('row-selected');
+  });
+  const allCb = document.getElementById(`checkAll${cap}`);
+  if (allCb) { allCb.checked = false; allCb.indeterminate = false; }
+  const bar = document.getElementById(`bulkBar-${table}`);
+  if (bar) bar.classList.remove('visible');
+}
+
+async function excluirSelecionados(tabela, table) {
+  const cap = table.charAt(0).toUpperCase() + table.slice(1);
+  const ids = [...document.querySelectorAll(`#tbody${cap} .row-cb:checked`)]
+    .map(cb => cb.closest('tr').dataset.id).filter(Boolean);
+  if (!ids.length) return;
+  if (!confirm(`Excluir ${ids.length} registro${ids.length > 1 ? 's' : ''} permanentemente? Esta ação não pode ser desfeita.`)) return;
+  try {
+    const res = await sbFetch(`/rest/v1/${tabela}?id=in.(${ids.join(',')})`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(await res.text());
+    ids.forEach(id => {
+      const row = document.querySelector(`#tbody${cap} tr[data-id="${id}"]`);
+      if (row) row.remove();
+    });
+    clearSelection(table);
+    showToast(`${ids.length} registro${ids.length > 1 ? 's' : ''} excluído${ids.length > 1 ? 's' : ''} permanentemente`, 'success');
+    loadStats();
+  } catch (err) {
+    console.error(err);
+    showToast('Erro ao excluir registros', 'error');
+  }
+}
+
 async function excluirRegistro(tabela, id, rowId, nome) {
   if (!confirm(`Excluir "${nome}" permanentemente? Esta ação não pode ser desfeita.`)) return;
   try {
@@ -1845,7 +1929,8 @@ async function salvarEmbaixador() {
 // ── Marcas ────────────────────────────────────────────────────
 async function loadMarcas() {
   const tbody = document.getElementById('tbodyMarcas');
-  tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="spinner"></div></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="spinner"></div></div></td></tr>';
+  clearSelection('marcas');
 
   try {
     let url = '/rest/v1/marcas_waitlist?select=*&order=created_at.desc';
@@ -1855,7 +1940,7 @@ async function loadMarcas() {
     const rows = await res.json();
 
     if (!Array.isArray(rows) || !rows.length) {
-      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Nenhuma marca ${marcasFilter === 'todos' ? '' : marcasFilter}</div></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🏷️</div><div class="empty-title">Nenhuma marca ${marcasFilter === 'todos' ? '' : marcasFilter}</div></div></td></tr>`;
       document.getElementById('countMarcas').textContent = '0 marcas';
       return;
     }
@@ -1867,7 +1952,10 @@ async function loadMarcas() {
     rows.forEach(m => { window._marcasData[m.id] = m; });
 
     tbody.innerHTML = rows.map(m => `
-      <tr id="row-marca-${m.id}" style="cursor:pointer;" onclick="openPerfilMarca(window._marcasData['${m.id}'])">
+      <tr id="row-marca-${m.id}" data-id="${m.id}" style="cursor:pointer;" onclick="if(!event.target.closest('.td-check'))openPerfilMarca(window._marcasData['${m.id}'])">
+        <td class="td-check" onclick="event.stopPropagation()">
+          <input type="checkbox" class="row-cb" onchange="onRowCheck('marcas')">
+        </td>
         <td class="td-name">${escapeHtml((m.primeiro_nome || '') + ' ' + (m.sobrenome || '')).trim() || '—'}</td>
         <td>${escapeHtml(m.empresa || '—')}</td>
         <td class="td-muted">${escapeHtml(m.segmento || '—')}</td>
@@ -1884,7 +1972,7 @@ async function loadMarcas() {
         </td>
       </tr>`).join('');
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="8"><div class="empty-state"><div class="empty-title">Erro ao carregar marcas</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-title">Erro ao carregar marcas</div></div></td></tr>';
     console.error(err);
   }
 }
@@ -1899,7 +1987,8 @@ function filterMarcas(status, btn) {
 // ── Detentores ────────────────────────────────────────────────
 async function loadDetentores() {
   const tbody = document.getElementById('tbodyDetentores');
-  tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="spinner"></div></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="spinner"></div></div></td></tr>';
+  clearSelection('detentores');
 
   try {
     let url = '/rest/v1/detentores_waitlist?select=*&order=created_at.desc';
@@ -1909,7 +1998,7 @@ async function loadDetentores() {
     const rows = await res.json();
 
     if (!Array.isArray(rows) || !rows.length) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🏟️</div><div class="empty-title">Nenhum detentor ${detentoresFilter === 'todos' ? '' : detentoresFilter}</div></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🏟️</div><div class="empty-title">Nenhum detentor ${detentoresFilter === 'todos' ? '' : detentoresFilter}</div></div></td></tr>`;
       document.getElementById('countDetentores').textContent = '0 detentores';
       return;
     }
@@ -1921,7 +2010,10 @@ async function loadDetentores() {
     rows.forEach(d => { window._detentoresData[d.id] = d; });
 
     tbody.innerHTML = rows.map(d => `
-      <tr id="row-det-${d.id}" style="cursor:pointer;" onclick="openPerfilDetentor(window._detentoresData['${d.id}'])">
+      <tr id="row-det-${d.id}" data-id="${d.id}" style="cursor:pointer;" onclick="if(!event.target.closest('.td-check'))openPerfilDetentor(window._detentoresData['${d.id}'])">
+        <td class="td-check" onclick="event.stopPropagation()">
+          <input type="checkbox" class="row-cb" onchange="onRowCheck('detentores')">
+        </td>
         <td class="td-name">${escapeHtml(d.nome || '—')}</td>
         <td>${escapeHtml(d.empresa || '—')}</td>
         <td class="td-muted">${escapeHtml(d.segmento || '—')}</td>
@@ -1940,7 +2032,7 @@ async function loadDetentores() {
         </td>
       </tr>`).join('');
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-title">Erro ao carregar detentores</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-title">Erro ao carregar detentores</div></div></td></tr>';
     console.error(err);
   }
 }
