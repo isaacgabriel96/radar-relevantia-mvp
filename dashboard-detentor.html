@@ -1677,10 +1677,6 @@ tbody tr:last-child td { border-bottom: none; }
               <div id="empresaNomeChangeHint" style="display:none;margin-top:6px;font-size:11px;color:var(--gray-3,#A89880)">Selecione a nova empresa acima. A mudança ficará pendente até aprovação do admin.</div>
             </div>
             <div class="form-group">
-              <label class="form-label">CNPJ</label>
-              <input class="form-input empresa-field" type="text" value="" disabled>
-            </div>
-            <div class="form-group">
               <label class="form-label">Segmento</label>
               <select class="form-select empresa-field" disabled>
                 <option value="">Selecione</option>
@@ -2496,17 +2492,15 @@ function populateDetenorFields(p) {
   updateSetupGuide();
   if (!editingJuridico) populateJuridicoFields(p);
 
-  // Empresa fields: [0]=nome empresa, [1]=cnpj, [2]=segmento (select), [3]=telefone, [4]=endereço, [5]=website, [6]=descricao
+  // Empresa fields: [0]=nome empresa, [1]=segmento (select), [2]=website, [3]=descricao
   const empresaFields = document.querySelectorAll('.empresa-field');
   if (empresaFields[0]) empresaFields[0].value = p.empresa || '';
-  if (empresaFields[1]) empresaFields[1].value = p.cnpj || '';
-  if (empresaFields[2] && p.segmento) {
-    const opt = Array.from(empresaFields[2].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
-    if (opt) empresaFields[2].value = opt.value;
+  if (empresaFields[1] && p.segmento) {
+    const opt = Array.from(empresaFields[1].options).find(o => o.value === p.segmento || o.textContent === p.segmento);
+    if (opt) empresaFields[1].value = opt.value;
   }
-  // [3]=site, [4]=descricao (telefone e endereço removidos do form)
-  if (empresaFields[3]) empresaFields[3].value = p.website || '';
-  if (empresaFields[4]) empresaFields[4].value = p.descricao || '';
+  if (empresaFields[2]) empresaFields[2].value = p.website || '';
+  if (empresaFields[3]) empresaFields[3].value = p.descricao || '';
 
   // Perfil fields: [0]=nome, [1]=email, [2]=telefone, [3]=cargo
   const perfilFields = document.querySelectorAll('.perfil-field');
@@ -3030,7 +3024,7 @@ async function dashSelectBrandfetchBrand(brand) {
   if (brand.domain) {
     const immediateUrl = `https://${brand.domain}`;
     _dashSelectedBrand.website = immediateUrl;
-    if (descFields[3]) descFields[3].value = immediateUrl;
+    if (descFields[2]) descFields[2].value = immediateUrl;
   }
 
   // Buscar descrição e URL oficial via Brandfetch brands API
@@ -3041,20 +3035,20 @@ async function dashSelectBrandfetchBrand(brand) {
       if (res.ok) {
         const data = await res.json();
 
-        // Pré-preencher descrição (index 4) — tenta múltiplos campos
+        // Pré-preencher descrição (index 3) — tenta múltiplos campos
         const desc = data.description || data.longDescription || data.shortDescription || '';
         if (desc) {
           gotDesc = true;
           _dashSelectedBrand.description = desc;
-          if (descFields[4]) descFields[4].value = desc;
+          if (descFields[3]) descFields[3].value = desc;
         }
 
-        // Pré-preencher site (index 3) — URL oficial sobrescreve o domínio rápido acima
+        // Pré-preencher site (index 2) — URL oficial sobrescreve o domínio rápido acima
         const websiteLink = (data.links || []).find(l => l.type === 'website');
         const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
         if (websiteUrl) {
           _dashSelectedBrand.website = websiteUrl;
-          if (descFields[3]) descFields[3].value = websiteUrl;
+          if (descFields[2]) descFields[2].value = websiteUrl;
         }
       }
     } catch(e) { console.warn('[Brandfetch brands]', e); }
@@ -3071,7 +3065,7 @@ async function dashSelectBrandfetchBrand(brand) {
           const wikiDesc = wikiData.extract || '';
           if (wikiDesc && wikiData.type !== 'disambiguation') {
             _dashSelectedBrand.description = wikiDesc;
-            if (descFields[4]) descFields[4].value = wikiDesc;
+            if (descFields[3]) descFields[3].value = wikiDesc;
           }
         }
       } catch(e) { /* silencioso */ }
@@ -3379,11 +3373,11 @@ async function saveEmpresa() {
   }
 
   toggleEditEmpresa();
-  // Persist to Supabase perfis table — [0]=nome, [1]=cnpj, [2]=segmento, [3]=site, [4]=descricao
+  // Persist to Supabase perfis table — [0]=nome, [1]=segmento, [2]=website, [3]=descricao
   if (!isDemoMode()) {
     const fields = document.querySelectorAll('.empresa-field');
     const userId = await getAuthUserId();
-    if (userId && fields.length >= 3) {
+    if (userId && fields.length >= 2) {
       // empresa_domain e logo_url vêm do identity card (não mudam sem aprovação do admin)
       const domainEl = document.getElementById('empresaLogoDomain');
       const imgEl    = document.getElementById('empresaLogoImg');
@@ -3394,10 +3388,9 @@ async function saveEmpresa() {
 
       const updates = {
         empresa:        nomeAtual,
-        cnpj:           fields[1]?.value?.trim() || null,
-        segmento:       fields[2]?.value || null,
-        website:        fields[3]?.value?.trim() || null,
-        descricao:      fields[4]?.value?.trim() || null,
+        segmento:       fields[1]?.value || null,
+        website:        fields[2]?.value?.trim() || null,
+        descricao:      fields[3]?.value?.trim() || null,
         empresa_domain: empresaDomain,
         logo_url:       logoUrl
       };
