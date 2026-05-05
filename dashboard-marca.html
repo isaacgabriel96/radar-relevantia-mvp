@@ -1716,6 +1716,25 @@ tbody tr:last-child td { border-bottom: none; }
       <!-- Textarea -->
       <textarea id="vozMensagem" class="voz-textarea" placeholder="Descreva com liberdade. O que aconteceu? O que você esperava? O que o Radar deveria ter?"></textarea>
 
+      <!-- Anexo de imagem -->
+      <input type="file" id="vozImageInput" accept="image/*" style="display:none" onchange="vozHandleImage(this)">
+      <div style="display:flex; align-items:flex-start; gap:12px; flex-wrap:wrap">
+        <button type="button" onclick="document.getElementById('vozImageInput').click()"
+          style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:100px; border:1.5px solid var(--gray-200); background:var(--white); font-family:var(--font-body); font-size:12px; color:var(--gray-500); cursor:pointer; transition:all 0.15s"
+          onmouseover="this.style.borderColor='var(--gray-300)';this.style.color='var(--black)'"
+          onmouseout="this.style.borderColor='var(--gray-200)';this.style.color='var(--gray-500)'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:13px;height:13px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Anexar foto
+        </button>
+        <div id="vozImagePreview" style="display:none; align-items:center; gap:8px">
+          <img id="vozImageThumb" src="" alt="preview" style="width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--gray-200)">
+          <button type="button" onclick="vozRemoveImage()"
+            style="width:20px; height:20px; border-radius:50%; border:1.5px solid var(--gray-300); background:var(--white); font-size:13px; line-height:1; color:var(--gray-500); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:11px;height:11px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
       <!-- Footer: anônimo + count + enviar -->
       <div class="voz-form-footer">
         <label class="voz-anon-label">
@@ -3899,6 +3918,32 @@ const VOZ_STATUS_CONFIG = {
 let _vozCatAtual = 'bug';
 let _vozPrioAtual = 'media';
 let _vozFilterAtual = 'todos';
+let _vozImagem = null;
+
+function vozHandleImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showToast('Imagem muito grande. Máximo 5 MB.', 'error'); input.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    _vozImagem = e.target.result;
+    const preview = document.getElementById('vozImagePreview');
+    const thumb = document.getElementById('vozImageThumb');
+    if (thumb) thumb.src = _vozImagem;
+    if (preview) preview.style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function vozRemoveImage() {
+  _vozImagem = null;
+  const input = document.getElementById('vozImageInput');
+  const preview = document.getElementById('vozImagePreview');
+  const thumb = document.getElementById('vozImageThumb');
+  if (input) input.value = '';
+  if (thumb) thumb.src = '';
+  if (preview) preview.style.display = 'none';
+}
 
 function setVozCat(cat) {
   _vozCatAtual = cat;
@@ -3966,6 +4011,7 @@ function submitVozFeedback() {
     categoria: _vozCatAtual,
     prioridade: _vozPrioAtual,
     mensagem: texto,
+    imagem: _vozImagem || null,
     anonimo,
     autor: anonimo ? 'Anônimo' : (nomeEl ? nomeEl.textContent : 'Usuário'),
     email: anonimo ? null : (emailEl ? emailEl.textContent : null),
@@ -3985,6 +4031,7 @@ function submitVozFeedback() {
   setVozCat('bug');
   _vozPrioAtual = 'media';
   document.querySelectorAll('.voz-prio-btn').forEach(b => b.classList.toggle('active', b.dataset.prio === 'media'));
+  vozRemoveImage();
 
   renderVozHistorico();
   showToast('Feedback enviado! Obrigado pela sua voz.', 'success');
@@ -4018,6 +4065,7 @@ function renderVozHistorico() {
           ${f.anonimo ? '<span style="font-size:11px;color:var(--gray-400);font-style:italic">anônimo</span>' : ''}
         </div>
         <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px">${escapeHtml(f.mensagem)}</div>
+        ${f.imagem ? `<img src="${f.imagem}" alt="anexo" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--gray-200);margin-bottom:10px;display:block;cursor:pointer" onclick="this.style.width=this.style.width==='80px'?'100%':'80px';this.style.height=this.style.height==='80px'?'auto':'80px'">` : ''}
         <span class="voz-status-badge" style="background:${status.bg};color:${status.color}">
           <span style="width:6px;height:6px;border-radius:50%;background:${status.color};flex-shrink:0"></span>
           ${status.label}
