@@ -2892,17 +2892,40 @@ async function marcaSelectBrandfetchBrand(brand) {
 
   // Fetch description + official website via brands API
   if (brand.domain) {
+    let gotDesc = false;
     try {
       const res = await fetch(`https://api.brandfetch.io/v2/brands/${encodeURIComponent(brand.domain)}?c=1idE-ar9WXT49s6Qb2f`);
       if (res.ok) {
         const data = await res.json();
         const desc = data.description || data.longDescription || data.shortDescription || '';
-        if (desc) { _marcaSelectedBrand.description = desc; if (marcaFields[4]) marcaFields[4].value = desc; }
+        if (desc) {
+          gotDesc = true;
+          _marcaSelectedBrand.description = desc;
+          if (marcaFields[4]) marcaFields[4].value = desc;
+        }
         const websiteLink = (data.links || []).find(l => l.type === 'website');
         const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
         if (websiteUrl) { _marcaSelectedBrand.website = websiteUrl; if (marcaFields[3]) marcaFields[3].value = websiteUrl; }
       }
     } catch(e) { console.warn('[Brandfetch brands]', e); }
+
+    // Fallback: Wikipedia summary se Brandfetch não retornou descrição
+    if (!gotDesc && brand.name) {
+      try {
+        const wikiRes = await fetch(
+          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(brand.name)}`,
+          { headers: { 'Accept': 'application/json' } }
+        );
+        if (wikiRes.ok) {
+          const wikiData = await wikiRes.json();
+          const wikiDesc = wikiData.extract || '';
+          if (wikiDesc && wikiData.type !== 'disambiguation') {
+            _marcaSelectedBrand.description = wikiDesc;
+            if (marcaFields[4]) marcaFields[4].value = wikiDesc;
+          }
+        }
+      } catch(e) { /* silencioso */ }
+    }
   }
 }
 

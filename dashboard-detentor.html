@@ -2737,6 +2737,7 @@ async function dashSelectBrandfetchBrand(brand) {
 
   // Buscar descrição e URL oficial via Brandfetch brands API
   if (brand.domain) {
+    let gotDesc = false;
     try {
       const res = await fetch(`https://api.brandfetch.io/v2/brands/${encodeURIComponent(brand.domain)}?c=${DASH_BF_CLIENT_ID}`);
       if (res.ok) {
@@ -2745,6 +2746,7 @@ async function dashSelectBrandfetchBrand(brand) {
         // Pré-preencher descrição (index 4) — tenta múltiplos campos
         const desc = data.description || data.longDescription || data.shortDescription || '';
         if (desc) {
+          gotDesc = true;
           _dashSelectedBrand.description = desc;
           if (descFields[4]) descFields[4].value = desc;
         }
@@ -2758,6 +2760,24 @@ async function dashSelectBrandfetchBrand(brand) {
         }
       }
     } catch(e) { console.warn('[Brandfetch brands]', e); }
+
+    // Fallback: Wikipedia summary se Brandfetch não retornou descrição
+    if (!gotDesc && brand.name) {
+      try {
+        const wikiRes = await fetch(
+          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(brand.name)}`,
+          { headers: { 'Accept': 'application/json' } }
+        );
+        if (wikiRes.ok) {
+          const wikiData = await wikiRes.json();
+          const wikiDesc = wikiData.extract || '';
+          if (wikiDesc && wikiData.type !== 'disambiguation') {
+            _dashSelectedBrand.description = wikiDesc;
+            if (descFields[4]) descFields[4].value = wikiDesc;
+          }
+        }
+      } catch(e) { /* silencioso */ }
+    }
   }
 }
 
