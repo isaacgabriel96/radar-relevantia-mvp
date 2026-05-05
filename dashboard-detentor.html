@@ -1619,7 +1619,7 @@ tbody tr:last-child td { border-bottom: none; }
 
       <!-- Card: Identidade da empresa (logo + domain) -->
       <div class="card" id="cardLogoEmpresa" style="margin-bottom:16px">
-        <div style="padding:20px 24px;display:flex;align-items:center;gap:20px">
+        <div style="padding:20px 24px;display:flex;align-items:center;gap:16px">
           <!-- Logo -->
           <div id="empresaLogoWrap" style="width:64px;height:64px;border-radius:var(--radius-md);overflow:hidden;flex-shrink:0;background:var(--gray-1,#F5F0E8);display:flex;align-items:center;justify-content:center;border:1px solid var(--gray-2,#E0D8CC)">
             <img id="empresaLogoImg" src="" alt="Logo" style="width:100%;height:100%;object-fit:contain;display:none">
@@ -1629,6 +1629,42 @@ tbody tr:last-child td { border-bottom: none; }
           <div style="flex:1;min-width:0">
             <div id="empresaLogoNome" style="font-family:var(--font-heading,'Poppins'),sans-serif;font-size:16px;font-weight:600;color:var(--black,#1A1200);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
             <div id="empresaLogoDomain" style="font-size:12px;color:var(--gray-3,#A89880);margin-top:3px">—</div>
+          </div>
+          <!-- Trocar button -->
+          <button class="btn btn-ghost btn-sm" id="btnTrocarEmpresa" onclick="toggleTrocarEmpresa()" style="flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+            Trocar
+          </button>
+        </div>
+        <!-- Trocar section: expande ao clicar "Trocar" -->
+        <div id="trocarEmpresaSection" style="display:none;border-top:1px solid var(--gray-2,#E0D8CC);padding:16px 24px 20px">
+          <p style="font-size:12px;color:var(--gray-3,#A89880);margin-bottom:12px">Busque a nova empresa pelo nome ou domínio. A mudança será enviada para aprovação do admin.</p>
+          <div id="empresaBrandfetchBox" style="position:relative">
+            <div id="dashSearchInputWrap" style="position:relative">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none;color:#C0C0C0;">
+                <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <input type="text" id="dashEmpresaSearch" placeholder="Buscar empresa pelo nome ou domínio..." autocomplete="off"
+                class="form-input" style="padding-left:36px"
+                oninput="dashBrandfetchSearch(this.value)">
+            </div>
+            <div id="dashBrandfetchResults" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--gray-2,#E0D8CC);border-radius:var(--radius-base);box-shadow:0 4px 16px rgba(30,22,0,.1);z-index:200;max-height:240px;overflow-y:auto"></div>
+            <button type="button" id="dashManualToggleBtn" onclick="abrirModalManualDetentor()" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:12px;color:var(--gold,#B8860B);padding:0;font-family:var(--font-body,'DM Sans'),sans-serif">Ou cadastrar manualmente →</button>
+          </div>
+          <!-- Card empresa selecionada via Brandfetch -->
+          <div id="dashSelectedCard" style="display:none;margin-top:8px;padding:12px 16px;border:1.5px solid var(--gray-3,#A89880);border-radius:10px;width:100%;box-sizing:border-box;align-items:center;gap:12px;background:var(--white);">
+            <img id="dashBrandIcon" src="" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#f5f5f5;flex-shrink:0;">
+            <div style="flex:1;min-width:0;">
+              <div id="dashBrandName" style="font-size:14px;font-weight:600;color:var(--black,#1A1200);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+              <div id="dashBrandDomain" style="font-size:12px;color:var(--gray-4,#5C4C38);margin-top:1px;"></div>
+            </div>
+            <button type="button" onclick="dashClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-4,#5C4C38);font-size:22px;line-height:1;padding:2px 6px;border-radius:4px;" title="Remover">×</button>
+          </div>
+          <div id="empresaNomeChangeHint" style="display:none;margin-top:6px;font-size:11px;color:var(--gray-3,#A89880)">Selecione a nova empresa acima. A mudança ficará pendente até aprovação do admin.</div>
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button class="btn btn-gold btn-sm" onclick="solicitarTrocaEmpresa()">Solicitar mudança</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleTrocarEmpresa()">Cancelar</button>
           </div>
         </div>
       </div>
@@ -1642,40 +1678,9 @@ tbody tr:last-child td { border-bottom: none; }
           </button>
         </div>
         <div style="padding:24px">
+          <!-- Hidden input to hold nome value (empresa-field[0]) — troca via card "Trocar" -->
+          <input class="empresa-field" id="empresaNomeInput" type="text" value="" style="display:none" disabled>
           <div class="form-grid">
-            <!-- Nome da empresa: sempre read-only, troca via Brandfetch -->
-            <div class="form-group" id="empresaNomeGroup">
-              <label class="form-label">
-                Nome da empresa
-                <span id="empresaNomeLockBadge" style="display:none;margin-left:6px;font-size:10px;font-weight:500;color:var(--gray-3,#A89880);letter-spacing:.3px">• requer confirmação do admin</span>
-              </label>
-              <!-- View mode: input read-only (empresa-field index 0) -->
-              <input class="form-input empresa-field" id="empresaNomeInput" type="text" value="" disabled style="background:var(--gray-1,#F5F0E8)">
-              <!-- Edit mode: Brandfetch search (aparece ao editar) -->
-              <div id="empresaBrandfetchBox" style="display:none;position:relative;margin-top:8px">
-                <div id="dashSearchInputWrap" style="position:relative">
-                  <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none;color:#C0C0C0;">
-                    <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                  </svg>
-                  <input type="text" id="dashEmpresaSearch" placeholder="Buscar nova empresa pelo nome ou domínio..." autocomplete="off"
-                    class="form-input" style="padding-left:36px"
-                    oninput="dashBrandfetchSearch(this.value)">
-                </div>
-                <div id="dashBrandfetchResults" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--gray-2,#E0D8CC);border-radius:var(--radius-base);box-shadow:0 4px 16px rgba(30,22,0,.1);z-index:200;max-height:240px;overflow-y:auto"></div>
-                <button type="button" id="dashManualToggleBtn" onclick="abrirModalManualDetentor()" style="margin-top:8px;background:none;border:none;cursor:pointer;font-size:12px;color:var(--gold,#B8860B);padding:0;font-family:var(--font-body,'DM Sans'),sans-serif">Ou cadastrar manualmente →</button>
-              </div>
-              <!-- Card empresa selecionada via Brandfetch no dashboard -->
-              <div id="dashSelectedCard" style="display:none;margin-top:8px;padding:12px 16px;border:1.5px solid var(--gray-3,#A89880);border-radius:10px;width:100%;box-sizing:border-box;align-items:center;gap:12px;background:var(--white);">
-                <img id="dashBrandIcon" src="" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:contain;background:#f5f5f5;flex-shrink:0;">
-                <div style="flex:1;min-width:0;">
-                  <div id="dashBrandName" style="font-size:14px;font-weight:600;color:var(--black,#1A1200);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-                  <div id="dashBrandDomain" style="font-size:12px;color:var(--gray-4,#5C4C38);margin-top:1px;"></div>
-                </div>
-                <button type="button" onclick="dashClearCompany()" style="background:none;border:none;cursor:pointer;color:var(--gray-4,#5C4C38);font-size:22px;line-height:1;padding:2px 6px;border-radius:4px;" title="Remover">×</button>
-              </div>
-              <div id="empresaNomeChangeHint" style="display:none;margin-top:6px;font-size:11px;color:var(--gray-3,#A89880)">Selecione a nova empresa acima. A mudança ficará pendente até aprovação do admin.</div>
-            </div>
             <div class="form-group">
               <label class="form-label">Segmento</label>
               <select class="form-select empresa-field" disabled>
@@ -3213,6 +3218,10 @@ async function confirmarSolicitacaoMudancaEmpresa() {
     if (empresaFields[0]) empresaFields[0].value = _dashSelectedBrand.name || '';
   }
 
+  // Fecha seção trocar no card
+  trocarEmpresaOpen = false;
+  const trocarSection = document.getElementById('trocarEmpresaSection');
+  if (trocarSection) trocarSection.style.display = 'none';
   dashClearCompany();
   if (editingEmpresa) toggleEditEmpresa();
 }
@@ -3335,64 +3344,56 @@ function confirmarModalManualDetentor() {
 
 // ─── EDIT EMPRESA ───
 let editingEmpresa = false;
+let trocarEmpresaOpen = false;
+
+function toggleTrocarEmpresa() {
+  trocarEmpresaOpen = !trocarEmpresaOpen;
+  const section = document.getElementById('trocarEmpresaSection');
+  if (section) section.style.display = trocarEmpresaOpen ? '' : 'none';
+  if (!trocarEmpresaOpen) dashClearCompany();
+  // Garante foco no campo de busca ao abrir
+  if (trocarEmpresaOpen) {
+    setTimeout(() => { const s = document.getElementById('dashEmpresaSearch'); if (s) s.focus(); }, 60);
+  }
+}
+
+function solicitarTrocaEmpresa() {
+  if (!_dashSelectedBrand) {
+    showToast('Selecione uma empresa na busca acima.', 'info');
+    return;
+  }
+  abrirModalMudancaEmpresa();
+}
+
 function toggleEditEmpresa() {
   editingEmpresa = !editingEmpresa;
   const fields  = document.querySelectorAll('.empresa-field');
   const actions = document.getElementById('empresaActions');
   const btn     = document.getElementById('btnEditEmpresa');
-  const bfBox   = document.getElementById('empresaBrandfetchBox');
-  const badge   = document.getElementById('empresaNomeLockBadge');
-  const hint    = document.getElementById('empresaNomeChangeHint');
 
-  // Todos os campos EXCETO o primeiro (nome empresa, que é sempre read-only)
+  // Todos os campos EXCETO o primeiro (hidden nome — nunca editável diretamente)
   fields.forEach((f, i) => {
-    if (i === 0) return; // nome empresa — nunca editável diretamente
+    if (i === 0) return;
     f.disabled = !editingEmpresa;
   });
-
-  // Campo nome: sempre disabled, mas mostra aviso + search no edit mode
   if (fields[0]) fields[0].disabled = true;
-  if (badge) badge.style.display = editingEmpresa ? '' : 'none';
-  if (bfBox) bfBox.style.display = editingEmpresa ? '' : 'none';
-  if (hint && !_dashSelectedBrand) hint.style.display = 'none';
-
-  // Se cancelar, limpa o Brandfetch search
-  if (!editingEmpresa) {
-    dashClearCompany();
-  }
 
   actions.style.display = editingEmpresa ? 'flex' : 'none';
   btn.style.display = editingEmpresa ? 'none' : '';
 }
 
 async function saveEmpresa() {
-  // Se selecionou nova empresa via Brandfetch → abre modal de confirmação (não salva direto)
-  if (_dashSelectedBrand) {
-    abrirModalMudancaEmpresa();
-    return;
-  }
-
   toggleEditEmpresa();
-  // Persist to Supabase perfis table — [0]=nome, [1]=segmento, [2]=website, [3]=descricao
+  // Persist to Supabase perfis table — segmento, website, descricao
+  // (nome/empresa_domain/logo_url só mudam via fluxo "Trocar" no card de identidade)
   if (!isDemoMode()) {
     const fields = document.querySelectorAll('.empresa-field');
     const userId = await getAuthUserId();
     if (userId && fields.length >= 2) {
-      // empresa_domain e logo_url vêm do identity card (não mudam sem aprovação do admin)
-      const domainEl = document.getElementById('empresaLogoDomain');
-      const imgEl    = document.getElementById('empresaLogoImg');
-      const nomeAtual = fields[0]?.value?.trim() || null;
-
-      const empresaDomain = (domainEl && domainEl.dataset.value) ? domainEl.dataset.value : null;
-      const logoUrl       = (_dashSelectedBrand?.logoDataUrl) || (imgEl && imgEl.src && imgEl.style.display !== 'none' ? imgEl.src : null);
-
       const updates = {
-        empresa:        nomeAtual,
-        segmento:       fields[1]?.value || null,
-        website:        fields[2]?.value?.trim() || null,
-        descricao:      fields[3]?.value?.trim() || null,
-        empresa_domain: empresaDomain,
-        logo_url:       logoUrl
+        segmento:  fields[1]?.value || null,
+        website:   fields[2]?.value?.trim() || null,
+        descricao: fields[3]?.value?.trim() || null,
       };
       const token = await _getWriteToken();
       if (token) {
@@ -3403,13 +3404,6 @@ async function saveEmpresa() {
             'Content-Type': 'application/json',
             'Prefer': 'resolution=merge-duplicates,return=minimal' }
         });
-      }
-      // Sincroniza identity card
-      const nomeEl = document.getElementById('empresaLogoNome');
-      if (nomeEl && nomeAtual) nomeEl.textContent = nomeAtual;
-      const fallbackEl = document.getElementById('empresaLogoFallback');
-      if (fallbackEl && imgEl && imgEl.style.display === 'none') {
-        fallbackEl.textContent = nomeAtual ? nomeAtual.charAt(0).toUpperCase() : '?';
       }
     }
   }
