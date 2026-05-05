@@ -2880,20 +2880,29 @@ async function marcaSelectBrandfetchBrand(brand) {
   if (hint) hint.style.display = '';
   const nomeInput = document.getElementById('marcaNomeInput');
   if (nomeInput) nomeInput.value = brand.name || '';
-  // Fetch description + website via brands API
+
+  const marcaFields = document.querySelectorAll('.marca-field');
+
+  // Pré-preencher site imediatamente do domínio (antes da chamada async)
+  if (brand.domain) {
+    const immediateUrl = `https://${brand.domain}`;
+    _marcaSelectedBrand.website = immediateUrl;
+    if (marcaFields[3]) marcaFields[3].value = immediateUrl;
+  }
+
+  // Fetch description + official website via brands API
   if (brand.domain) {
     try {
       const res = await fetch(`https://api.brandfetch.io/v2/brands/${encodeURIComponent(brand.domain)}?c=1idE-ar9WXT49s6Qb2f`);
       if (res.ok) {
         const data = await res.json();
-        const marcaFields = document.querySelectorAll('.marca-field');
-        const desc = data.description || data.longDescription || '';
+        const desc = data.description || data.longDescription || data.shortDescription || '';
         if (desc) { _marcaSelectedBrand.description = desc; if (marcaFields[4]) marcaFields[4].value = desc; }
         const websiteLink = (data.links || []).find(l => l.type === 'website');
         const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
         if (websiteUrl) { _marcaSelectedBrand.website = websiteUrl; if (marcaFields[3]) marcaFields[3].value = websiteUrl; }
       }
-    } catch(e) { /* silencioso */ }
+    } catch(e) { console.warn('[Brandfetch brands]', e); }
   }
 }
 
@@ -3093,15 +3102,29 @@ async function confirmarSolicitacaoMudancaMarca() {
 
   showToast('Solicitação enviada! Um admin vai revisar a mudança em breve.', 'success');
 
-  // Show pending badge in identity card
-  const nomeEl = document.getElementById('marcaLogoNome');
-  if (nomeEl && !document.getElementById('marcaPendenteBadge')) {
-    const badge = document.createElement('span');
-    badge.id = 'marcaPendenteBadge';
-    badge.textContent = 'Aguardando aprovação';
-    badge.style.cssText = 'font-size:10px;font-weight:600;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:100px;padding:2px 8px;margin-left:8px;vertical-align:middle;display:inline-block';
-    nomeEl.parentNode.appendChild(badge);
+  // Atualiza identity card com a logo + nome pendentes
+  const logoSrc = _marcaSelectedBrand.icon || _marcaSelectedBrand.logoDataUrl || '';
+  _applyMarcaLogo(logoSrc, _marcaSelectedBrand.name);
+
+  const nomeEl   = document.getElementById('marcaLogoNome');
+  const domainEl = document.getElementById('marcaLogoDomain');
+  if (nomeEl) {
+    nomeEl.textContent = _marcaSelectedBrand.name || nomeEl.textContent;
+    if (!document.getElementById('marcaPendenteBadge')) {
+      const badge = document.createElement('span');
+      badge.id = 'marcaPendenteBadge';
+      badge.textContent = 'Aguardando aprovação';
+      badge.style.cssText = 'font-size:10px;font-weight:600;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:100px;padding:2px 8px;margin-left:8px;vertical-align:middle;display:inline-block';
+      nomeEl.parentNode.appendChild(badge);
+    }
   }
+  if (domainEl) {
+    domainEl.textContent = _marcaSelectedBrand.domain || domainEl.textContent;
+    domainEl.dataset.value = _marcaSelectedBrand.domain || domainEl.dataset.value;
+  }
+  // Atualiza o campo nome visível no form
+  const marcaFields = document.querySelectorAll('.marca-field');
+  if (marcaFields[0]) marcaFields[0].value = _marcaSelectedBrand.name || '';
 
   marcaClearCompany();
   if (editingMarca) toggleEditMarca();

@@ -2195,6 +2195,9 @@ function setUserInfo(nome, email) {
 }
 
 function populateDetenorFields(p) {
+  // Não sobrescreve campos enquanto o usuário está editando
+  if (editingEmpresa || editingPerfil) return;
+
   // Empresa fields: [0]=nome empresa, [1]=cnpj, [2]=segmento (select), [3]=telefone, [4]=endereço, [5]=website, [6]=descricao
   const empresaFields = document.querySelectorAll('.empresa-field');
   if (empresaFields[0]) empresaFields[0].value = p.empresa || '';
@@ -2723,24 +2726,30 @@ async function dashSelectBrandfetchBrand(brand) {
   const hint = document.getElementById('empresaNomeChangeHint');
   if (hint) hint.style.display = '';
 
-  // Buscar descrição da empresa via Brandfetch brands API
+  const descFields = document.querySelectorAll('.empresa-field');
+
+  // Pré-preencher site imediatamente do domínio (antes da chamada async)
+  if (brand.domain) {
+    const immediateUrl = `https://${brand.domain}`;
+    _dashSelectedBrand.website = immediateUrl;
+    if (descFields[3]) descFields[3].value = immediateUrl;
+  }
+
+  // Buscar descrição e URL oficial via Brandfetch brands API
   if (brand.domain) {
     try {
       const res = await fetch(`https://api.brandfetch.io/v2/brands/${encodeURIComponent(brand.domain)}?c=${DASH_BF_CLIENT_ID}`);
       if (res.ok) {
         const data = await res.json();
-        const desc = data.description || data.longDescription || '';
-        const descFields = document.querySelectorAll('.empresa-field');
 
-        // Pré-preencher descrição (index 4) — sempre sobrescreve ao selecionar nova empresa
+        // Pré-preencher descrição (index 4) — tenta múltiplos campos
+        const desc = data.description || data.longDescription || data.shortDescription || '';
         if (desc) {
           _dashSelectedBrand.description = desc;
-          if (descFields[4]) {
-            descFields[4].value = desc;
-          }
+          if (descFields[4]) descFields[4].value = desc;
         }
 
-        // Pré-preencher site (index 3) — extrai do array links, sempre sobrescreve
+        // Pré-preencher site (index 3) — URL oficial sobrescreve o domínio rápido acima
         const websiteLink = (data.links || []).find(l => l.type === 'website');
         const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
         if (websiteUrl) {
@@ -2748,7 +2757,7 @@ async function dashSelectBrandfetchBrand(brand) {
           if (descFields[3]) descFields[3].value = websiteUrl;
         }
       }
-    } catch(e) { /* silencioso */ }
+    } catch(e) { console.warn('[Brandfetch brands]', e); }
   }
 }
 
@@ -2852,10 +2861,26 @@ async function confirmarSolicitacaoMudancaEmpresa() {
 
   showToast('Solicitação enviada! Um admin vai revisar a mudança em breve.', 'success');
 
-  // Mostra os dados pendentes na UI com badge "Aguardando aprovação"
+  // Atualiza identity card com os dados pendentes + badge "Aguardando aprovação"
   if (_dashSelectedBrand) {
-    const nomeEl   = document.getElementById('empresaLogoNome');
-    const domainEl = document.getElementById('empresaLogoDomain');
+    const nomeEl     = document.getElementById('empresaLogoNome');
+    const domainEl   = document.getElementById('empresaLogoDomain');
+    const logoImg    = document.getElementById('empresaLogoImg');
+    const logoFb     = document.getElementById('empresaLogoFallback');
+
+    // Atualiza logo no card de identidade
+    const logoSrc = _dashSelectedBrand.icon || _dashSelectedBrand.logoDataUrl || '';
+    if (logoImg) {
+      if (logoSrc) {
+        logoImg.src = logoSrc;
+        logoImg.style.display = '';
+        if (logoFb) logoFb.style.display = 'none';
+      } else {
+        logoImg.style.display = 'none';
+        if (logoFb) { logoFb.style.display = ''; logoFb.textContent = (_dashSelectedBrand.name || '?').charAt(0).toUpperCase(); }
+      }
+    }
+
     if (nomeEl) {
       nomeEl.textContent = _dashSelectedBrand.name || nomeEl.textContent;
       // Adiciona badge de pendente ao lado do nome, se não existir
@@ -2863,7 +2888,7 @@ async function confirmarSolicitacaoMudancaEmpresa() {
         const badge = document.createElement('span');
         badge.id = 'empresaPendenteBadge';
         badge.textContent = 'Aguardando aprovação';
-        badge.style.cssText = 'font-size:10px;font-weight:600;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:100px;padding:2px 8px;margin-left:8px;vertical-align:middle';
+        badge.style.cssText = 'font-size:10px;font-weight:600;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:100px;padding:2px 8px;margin-left:8px;vertical-align:middle;display:inline-block';
         nomeEl.parentNode.appendChild(badge);
       }
     }
