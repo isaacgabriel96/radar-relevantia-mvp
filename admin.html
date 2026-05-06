@@ -538,6 +538,10 @@ tr.row-selected td { background: #FEF2F2; }
       </div>
       <div class="sidebar-section">
         <div class="sidebar-label">Operações</div>
+        <div class="sidebar-item" onclick="showSection('oportunidades', this)">
+          <span class="sidebar-item-icon">📋</span>
+          Oportunidades
+        </div>
         <div class="sidebar-item" onclick="showSection('deals', this)">
           <span class="sidebar-item-icon">💰</span>
           Deals
@@ -1111,6 +1115,46 @@ tr.row-selected td { background: #FEF2F2; }
       </div><!-- /section-paginas -->
 
       <!-- DEALS -->
+      <!-- OPORTUNIDADES -->
+      <div id="section-oportunidades" class="section">
+        <div class="page-header">
+          <h1 class="page-title">Oportunidades</h1>
+          <p class="page-sub">Gerencie todas as oportunidades cadastradas na plataforma</p>
+        </div>
+
+        <div class="filter-bar" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-sm btn-filter active" onclick="renderOportunidades('todos', this)">Todas</button>
+          <button class="btn btn-sm btn-filter" onclick="renderOportunidades('publicado', this)">✓ Publicadas</button>
+          <button class="btn btn-sm btn-filter" onclick="renderOportunidades('rascunho', this)">📝 Rascunhos</button>
+          <input id="opp-search" type="text" placeholder="Buscar por nome ou detentor…"
+            style="margin-left:auto;padding:6px 12px;border:1px solid var(--gray-2);border-radius:8px;font-size:13px;width:220px"
+            oninput="renderOportunidades(window._oppFilter||'todos')">
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            <span class="table-title" id="countOportunidades">Carregando...</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Tipo</th>
+                  <th>Detentor</th>
+                  <th>Status</th>
+                  <th>Criado em</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyOportunidades">
+                <tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /section-oportunidades -->
+
       <div id="section-deals" class="section">
         <div class="page-header">
           <h1 class="page-title">Deals</h1>
@@ -1600,6 +1644,7 @@ function showSection(name, el) {
   if (name === 'embaixadores')    loadEmbaixadores();
   if (name === 'marcas')          loadMarcas();
   if (name === 'detentores')      loadDetentores();
+  if (name === 'oportunidades')   loadOportunidades();
   if (name === 'deals')           loadDeals();
   if (name === 'mudancas-marca')  loadMudancasMarca();
   if (name === 'impersonation')   loadImpersonationDetentores();
@@ -2307,6 +2352,104 @@ function openPerfilDetentor(d) {
 }
 
 // (updatePreviewCodigo removido — código gerado automaticamente via gerarCodigoRR)
+
+// ── Oportunidades ─────────────────────────────────────────────
+let _allOportunidades = [];
+window._oppFilter = 'todos';
+
+async function loadOportunidades() {
+  try {
+    const res = await sbFetch(
+      '/rest/v1/oportunidades?select=id,titulo,categoria,status,created_at,detentor_id,' +
+      'perfil_detentor:detentor_id(nome,empresa)' +
+      '&order=created_at.desc&limit=200'
+    );
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    _allOportunidades = await res.json();
+    renderOportunidades(window._oppFilter || 'todos');
+  } catch (e) {
+    console.error('[loadOportunidades]', e);
+    document.getElementById('tbodyOportunidades').innerHTML =
+      '<tr><td colspan="6" style="color:var(--red);padding:16px">Erro ao carregar oportunidades.</td></tr>';
+  }
+}
+
+function renderOportunidades(filter, btn) {
+  window._oppFilter = filter;
+  if (btn) {
+    document.querySelectorAll('#section-oportunidades .btn-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  const q = (document.getElementById('opp-search')?.value || '').toLowerCase();
+  const rows = _allOportunidades.filter(o => {
+    if (filter !== 'todos' && o.status !== filter) return false;
+    if (q) {
+      const nome = (o.titulo || '').toLowerCase();
+      const detentor = (o.perfil_detentor?.nome || o.perfil_detentor?.empresa || '').toLowerCase();
+      if (!nome.includes(q) && !detentor.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const count = document.getElementById('countOportunidades');
+  if (count) count.textContent = `${rows.length} oportunidade${rows.length !== 1 ? 's' : ''}`;
+
+  const tbody = document.getElementById('tbodyOportunidades');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state" style="padding:24px;text-align:center;color:var(--gray-5)">Nenhuma oportunidade encontrada</div></td></tr>';
+    return;
+  }
+
+  const statusLabel = { publicado: '✓ Publicado', rascunho: '📝 Rascunho', pendente: '⏳ Pendente', arquivado: '📦 Arquivado' };
+  const statusColor = { publicado: '#15803D', rascunho: '#92400E', pendente: '#1D4ED8', arquivado: '#6B7280' };
+  const tipoLabel   = { evento: 'Evento', personalidade: 'Personalidade', artista: 'Artista', midia: 'Mídia' };
+
+  tbody.innerHTML = rows.map(o => {
+    const detentor = o.perfil_detentor?.nome || o.perfil_detentor?.empresa || o.detentor_id?.slice(0,8) || '—';
+    const status = o.status || 'rascunho';
+    const data = o.created_at ? new Date(o.created_at).toLocaleDateString('pt-BR') : '—';
+    const cor = statusColor[status] || '#6B7280';
+    const sl  = statusLabel[status] || status;
+    const tl  = tipoLabel[o.categoria] || o.categoria || '—';
+    return `<tr>
+      <td style="font-weight:500;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(o.titulo||'')}">
+        ${escapeHtml(o.titulo || '(sem título)')}
+      </td>
+      <td>${tl}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(detentor)}</td>
+      <td><span style="color:${cor};font-weight:600;font-size:12px">${sl}</span></td>
+      <td style="color:var(--gray-5);font-size:13px">${data}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <a href="criar-oportunidade.html?edit=${o.id}" target="_blank"
+             style="padding:4px 10px;border-radius:6px;border:1px solid var(--gray-2);font-size:12px;color:var(--black);text-decoration:none;background:var(--white)">
+            ✏️ Editar
+          </a>
+          <button class="btn btn-sm btn-delete" style="padding:4px 10px;font-size:12px"
+            onclick="deleteOportunidade('${o.id}', ${JSON.stringify(escapeHtml(o.titulo||'(sem título)'))})">
+            🗑 Apagar
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteOportunidade(id, titulo) {
+  if (!confirm(`Tem certeza que deseja apagar a oportunidade:\n\n"${titulo}"\n\nEssa ação não pode ser desfeita.`)) return;
+
+  try {
+    const res = await sbFetch(`/rest/v1/oportunidades?id=eq.${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    _allOportunidades = _allOportunidades.filter(o => o.id !== id);
+    renderOportunidades(window._oppFilter || 'todos');
+    showToast('Oportunidade apagada.', 'success');
+  } catch (e) {
+    console.error('[deleteOportunidade]', e);
+    showToast('Erro ao apagar oportunidade.', 'error');
+  }
+}
 
 // ── Deals ─────────────────────────────────────────────────────
 let allDeals = [];
