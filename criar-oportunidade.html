@@ -1920,6 +1920,61 @@ input[type=number] { -moz-appearance: textfield; }
 #cotas-list.grid-view .cota-card.preview-mode .opp-card-h-preview-img { width: 100%; height: 160px; }
 @media (max-width: 640px) { #cotas-list.grid-view { grid-template-columns: 1fr; } }
 
+/* ── Modais informativos (Como funciona) ── */
+.info-modal-overlay {
+  position: fixed; inset: 0; background: rgba(26,18,0,0.55);
+  z-index: 8000; display: flex; align-items: center; justify-content: center;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s; padding: 20px;
+}
+.info-modal-overlay.open { opacity: 1; visibility: visible; pointer-events: auto; }
+.info-modal {
+  background: var(--white); border-radius: 20px;
+  width: 100%; max-width: 540px; max-height: 88vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(30,22,0,0.18);
+  transform: translateY(12px) scale(0.98); transition: transform 0.2s ease;
+}
+.info-modal-overlay.open .info-modal { transform: translateY(0) scale(1); }
+.info-modal-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 28px 28px 0; gap: 12px;
+}
+.info-modal-title { font-family: var(--font-heading); font-size: 22px; color: var(--text-dark); line-height: 1.2; }
+.info-modal-close {
+  flex-shrink: 0; background: none; border: none; cursor: pointer;
+  color: var(--gray-3); font-size: 22px; line-height: 1; padding: 2px;
+  margin-top: 2px; transition: color .15s;
+}
+.info-modal-close:hover { color: var(--gray-4); }
+.info-modal-body { padding: 16px 28px 28px; }
+.info-modal-lead { font-size: 14px; color: var(--gray-3); line-height: 1.6; margin-bottom: 20px; }
+.info-modal-section { margin-bottom: 18px; }
+.info-modal-section:last-child { margin-bottom: 0; }
+.info-modal-section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--brown-warm); margin-bottom: 8px;
+}
+.info-modal-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.info-modal-list li {
+  display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px;
+  color: var(--text-dark); line-height: 1.5;
+}
+.info-modal-list li::before { content: ''; flex-shrink: 0; }
+.info-modal-list li .im-icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+.info-modal-divider { border: none; border-top: 1px solid var(--gray-1); margin: 18px 0; }
+.info-modal-tag {
+  display: inline-flex; padding: 3px 10px; background: rgba(184,134,11,0.08);
+  border: 1px solid rgba(184,134,11,0.22); border-radius: 100px;
+  font-size: 12px; color: var(--brown-warm); font-weight: 500;
+}
+.info-modal-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.info-how-link {
+  background: none; border: none; cursor: pointer; font-size: 13px;
+  color: var(--gray-3); text-decoration: underline; text-underline-offset: 3px;
+  padding: 0; transition: color .15s; font-family: var(--font-body);
+}
+.info-how-link:hover { color: var(--brown-warm); }
+
 /* ── Modal overlay de detalhe de cota ── */
 .cota-modal-overlay {
   position: fixed; inset: 0; background: rgba(26,18,0,0.78);
@@ -3079,7 +3134,7 @@ input[type=number] { -moz-appearance: textfield; }
       <div class="form-card">
         <div class="card-header">
           <div class="card-title">Qual é o seu tipo de oportunidade?</div>
-          <div class="card-desc">Escolha a categoria que melhor representa o que você está ofertando às marcas.</div>
+          <div class="card-desc">Escolha a categoria que melhor representa o que você está ofertando às marcas. <button type="button" class="info-how-link" onclick="openInfoModal('oportunidade')">Como funciona?</button></div>
         </div>
 
         <div class="template-grid">
@@ -3189,7 +3244,7 @@ input[type=number] { -moz-appearance: textfield; }
       <div class="agent-header">
         <h2>✦ Assistente de Cadastro</h2>
         <p>Descreva a oportunidade, cole links ou envie um PDF — o agente vai extrair tudo e te dar uma visão completa antes de preencher.</p>
-        <p style="margin-top:6px;font-size:12px;color:var(--gray-3)">📎 PDFs aceitos até 20 MB · O agente preenche nome, descrições, segmentos e campos específicos do tipo — canais e cotas são preenchidos manualmente.</p>
+        <p style="margin-top:6px;font-size:12px;color:var(--gray-3)">📎 PDFs aceitos até 20 MB · <button type="button" class="info-how-link" style="font-size:12px" onclick="openInfoModal('agente')">O que o agente preenche?</button></p>
       </div>
 
       <!-- Chat card (tela cheia desde o início) -->
@@ -12260,6 +12315,113 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
   <button type="button" class="cota-modal-nav cota-modal-next" onclick="navCotaModal(1)">›</button>
   <div class="cota-modal-counter" id="cotaModalCounter"></div>
 </div>
+
+<!-- ════ Modal: Como funciona — Oportunidade ════ -->
+<div class="info-modal-overlay" id="infoModalOportunidade" onclick="if(event.target===this)closeInfoModal('oportunidade')">
+  <div class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoTitleOpp">
+    <div class="info-modal-head">
+      <div class="info-modal-title" id="infoTitleOpp">O que é uma Oportunidade no Radar?</div>
+      <button type="button" class="info-modal-close" onclick="closeInfoModal('oportunidade')" aria-label="Fechar">✕</button>
+    </div>
+    <div class="info-modal-body">
+      <p class="info-modal-lead">O Radar Relevantia conecta marcas a oportunidades de patrocínio. Uma oportunidade é qualquer ativo que você oferece para associação de marca — e existem quatro tipos:</p>
+
+      <div class="info-modal-section">
+        <div class="info-modal-section-title">Tipos de oportunidade</div>
+        <ul class="info-modal-list">
+          <li><span class="im-icon">🙋</span><div><strong>Personalidade</strong> — Influenciador, atleta, celebridade ou criador de conteúdo com audiência própria.</div></li>
+          <li><span class="im-icon">📅</span><div><strong>Evento</strong> — Festival, congresso, torneio, show ou qualquer acontecimento com data e público definidos.</div></li>
+          <li><span class="im-icon">🎵</span><div><strong>Artista Musical</strong> — Cantor, banda, DJ ou produtor com fanbase e presença em shows/streaming.</div></li>
+          <li><span class="im-icon">📡</span><div><strong>Mídia</strong> — Portal, podcast, canal, rádio ou newsletter com audiência qualificada.</div></li>
+        </ul>
+      </div>
+
+      <hr class="info-modal-divider">
+
+      <div class="info-modal-section">
+        <div class="info-modal-section-title">Como funciona o cadastro</div>
+        <ul class="info-modal-list">
+          <li><span class="im-icon">1️⃣</span><div><strong>Sobre</strong> — Escolha o tipo, use o Assistente IA para extrair os dados e preencha os detalhes específicos.</div></li>
+          <li><span class="im-icon">2️⃣</span><div><strong>Informações Gerais</strong> — Nome, descrições, localização, busca de marca ideal e segmentos de interesse.</div></li>
+          <li><span class="im-icon">3️⃣</span><div><strong>Publicar</strong> — Adicione canais digitais, configure cotas de patrocínio e publique no Radar.</div></li>
+        </ul>
+      </div>
+
+      <hr class="info-modal-divider">
+
+      <div class="info-modal-section">
+        <div class="info-modal-section-title">O que as marcas veem</div>
+        <p style="font-size:13.5px;color:var(--gray-3);line-height:1.6;margin:0">Sua oportunidade aparece como um card no Radar com nome, descrição curta, segmentos e localização. Marcas podem clicar para ver a descrição completa, cotas disponíveis e manifestar interesse diretamente.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ Modal: Como funciona — Agente IA ════ -->
+<div class="info-modal-overlay" id="infoModalAgente" onclick="if(event.target===this)closeInfoModal('agente')">
+  <div class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoTitleAgent">
+    <div class="info-modal-head">
+      <div class="info-modal-title" id="infoTitleAgent">O que o Assistente de IA faz?</div>
+      <button type="button" class="info-modal-close" onclick="closeInfoModal('agente')" aria-label="Fechar">✕</button>
+    </div>
+    <div class="info-modal-body">
+      <p class="info-modal-lead">O Assistente analisa o que você envia — texto, link ou PDF — e extrai as informações mais importantes para preencher o formulário automaticamente. Você revisa e ajusta o que quiser antes de salvar.</p>
+
+      <div class="info-modal-section">
+        <div class="info-modal-section-title">✅ O que o agente preenche</div>
+        <ul class="info-modal-list">
+          <li><span class="im-icon">📝</span><div><strong>Nome</strong> e <strong>descrição curta</strong> (pitch de até 280 caracteres para marcas)</div></li>
+          <li><span class="im-icon">📄</span><div><strong>Descrição completa</strong> — contexto rico sobre a oportunidade, público e por que é um bom ativo</div></li>
+          <li><span class="im-icon">🎯</span><div><strong>Perfil de marca ideal</strong> — setores, valores e tipo de ativação que faz sentido</div></li>
+          <li><span class="im-icon">📍</span><div><strong>Localização</strong> (país, estado, cidade)</div></li>
+          <li><span class="im-icon">🏷️</span><div><strong>Segmentos de mercado</strong> — categorias de marca com maior fit</div></li>
+          <li><span class="im-icon">⚙️</span><div><strong>Campos específicos do tipo</strong> — ex: tipo de evento, edição, formato, estilo musical, tipo de veículo</div></li>
+        </ul>
+      </div>
+
+      <hr class="info-modal-divider">
+
+      <div class="info-modal-section">
+        <div class="info-modal-section-title">❌ O que você preenche manualmente</div>
+        <ul class="info-modal-list">
+          <li><span class="im-icon">📱</span><div><strong>Canais e redes sociais</strong> — usernames, seguidores e métricas são inseridos por você</div></li>
+          <li><span class="im-icon">💰</span><div><strong>Cotas de patrocínio</strong> — valores, benefícios e pacotes são definidos por você</div></li>
+          <li><span class="im-icon">📅</span><div><strong>Datas e locais do evento</strong> — cada data/venue é adicionado manualmente</div></li>
+        </ul>
+      </div>
+
+      <hr class="info-modal-divider">
+
+      <div class="info-modal-section">
+        <div class="info-modal-section-title">📎 Sobre os arquivos</div>
+        <ul class="info-modal-list">
+          <li><span class="im-icon">•</span><div>PDFs e apresentações aceitos até <strong>20 MB</strong></div></li>
+          <li><span class="im-icon">•</span><div>Você também pode colar um link ou descrever a oportunidade em texto</div></li>
+          <li><span class="im-icon">•</span><div>O agente fará perguntas para completar o que não encontrou — basta responder no chat</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function openInfoModal(type) {
+  const id = type === 'agente' ? 'infoModalAgente' : 'infoModalOportunidade';
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeInfoModal(type) {
+  const id = type === 'agente' ? 'infoModalAgente' : 'infoModalOportunidade';
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeInfoModal('oportunidade');
+    closeInfoModal('agente');
+  }
+});
+</script>
 
 </body>
 </html>
