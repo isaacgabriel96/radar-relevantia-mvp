@@ -3017,20 +3017,11 @@ async function dashSelectBrandfetchBrand(brand) {
 
   // Buscar descrição e URL oficial via Brandfetch brands API
   if (brand.domain) {
-    let gotDesc = false;
+    // Busca site via Brandfetch (descrição ignorada — sempre em inglês)
     try {
       const res = await fetch(`https://api.brandfetch.io/v2/brands/${encodeURIComponent(brand.domain)}?c=${DASH_BF_CLIENT_ID}`);
       if (res.ok) {
         const data = await res.json();
-
-        // Pré-preencher descrição (index 3) — tenta múltiplos campos
-        const desc = data.description || data.longDescription || data.shortDescription || '';
-        if (desc) {
-          gotDesc = true;
-          _dashSelectedBrand.description = desc;
-          if (descFields[3]) descFields[3].value = desc;
-        }
-
         // Pré-preencher site (index 2) — URL oficial sobrescreve o domínio rápido acima
         const websiteLink = (data.links || []).find(l => l.type === 'website');
         const websiteUrl  = websiteLink?.url || (data.domain ? `https://${data.domain}` : '');
@@ -3041,21 +3032,24 @@ async function dashSelectBrandfetchBrand(brand) {
       }
     } catch(e) { console.warn('[Brandfetch brands]', e); }
 
-    // Fallback: Wikipedia summary se Brandfetch não retornou descrição
-    if (!gotDesc && brand.name) {
+    // Descrição: Wikipedia PT primeiro, EN como fallback
+    if (brand.name) {
       try {
-        const wikiRes = await fetch(
-          `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(brand.name)}`,
-          { headers: { 'Accept': 'application/json' } }
-        );
-        if (wikiRes.ok) {
-          const wikiData = await wikiRes.json();
-          const wikiDesc = wikiData.extract || '';
-          if (wikiDesc && wikiData.type !== 'disambiguation') {
-            _dashSelectedBrand.description = wikiDesc;
-            if (descFields[3]) descFields[3].value = wikiDesc;
-          }
-        }
+        const setDesc = (text) => {
+          _dashSelectedBrand.description = text;
+          if (descFields[3]) descFields[3].value = text;
+        };
+        const tryWiki = async (lang) => {
+          const r = await fetch(
+            `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(brand.name)}`,
+            { headers: { 'Accept': 'application/json' } }
+          );
+          if (!r.ok) return false;
+          const d = await r.json();
+          if (d.extract && d.type !== 'disambiguation') { setDesc(d.extract); return true; }
+          return false;
+        };
+        if (!(await tryWiki('pt'))) await tryWiki('en');
       } catch(e) { /* silencioso */ }
     }
   }
