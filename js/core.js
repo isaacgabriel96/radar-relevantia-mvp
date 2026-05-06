@@ -377,6 +377,7 @@ function rowToNegociacao(row) {
     contrato_validado: row.contrato_validado || false,
     contrato_validado_em: row.contrato_validado_em || null,
     admin_comentario: row.admin_comentario || null,
+    campanha_id: row.campanha_id || null,
     _supaId: row.id
   };
 }
@@ -386,7 +387,7 @@ var _negSelectQuery = 'id,oportunidade_id,marca_id,detentor_id,cota,assunto,valo
   'valor_deal_proposto_por,valor_deal_status,' +
   'contrato_url,contrato_enviado_por,contrato_enviado_em,' +
   'contrato_validado,contrato_validado_em,contrato_validado_por,admin_comentario,' +
-  'status,status_label,status_hint,aceita_novas_propostas,created_at,' +
+  'status,status_label,status_hint,aceita_novas_propostas,created_at,campanha_id,' +
   'marca:marca_id(nome,empresa),' +
   'oportunidade:oportunidade_id(titulo,categoria),' +
   'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por),' +
