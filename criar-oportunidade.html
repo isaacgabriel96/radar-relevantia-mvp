@@ -11994,10 +11994,10 @@ window.agEnviarResposta = async function() {
     agAddMsg('agent', '', true);
 
     try {
-      // google_search é incompatível com fileData (PDF) no Gemini 2.5 Flash — retorna 400.
-      // Usa search apenas quando não há PDFs; se houver PDF, o contexto vem do próprio arquivo.
-      const hasPdfs = typeof firstMsg === 'object' && firstMsg.files?.length > 0;
-      const raw = await agCallGemini(window._agState.history, { useSearch: !hasPdfs });
+      // O servidor agora gerencia o conflito PDF + google_search com orquestração
+      // em 2 etapas: extrai texto do PDF primeiro, depois chama o agente com search.
+      // O frontend sempre pede search — o backend decide como executar.
+      const raw = await agCallGemini(window._agState.history, { useSearch: true });
       window._agState.history.push({ role: 'assistant', content: raw });
       agRemoveTyping();
       const parsed = agParseResponse(raw);
