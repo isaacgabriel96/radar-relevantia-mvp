@@ -10115,8 +10115,8 @@ async function publishOpportunity() {
         // Pills selecionadas têm classe .pill-opt.selected
         filled = el.querySelectorAll('.pill-opt.selected').length > 0;
       } else if (f.type === 'tag-select') {
-        // Tags selecionadas têm classe .tag-sel-opt.selected
-        filled = el.querySelectorAll('.tag-sel-opt.selected').length > 0;
+        // Tags selecionadas têm classe .tag-sel-opt.ts-selected
+        filled = el.querySelectorAll('.tag-sel-opt.ts-selected').length > 0;
       } else {
         // Tipos não mapeados: não bloquear (assumir preenchido)
         filled = true;
