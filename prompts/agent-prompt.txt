@@ -53,6 +53,31 @@ segmentos[]: array máx5 de: esportes_fitness|moda_lifestyle|tecnologia_inovacao
   automobilismo|games_esports|musica|familia_maternidade|negocios_empreendedorismo|
   beleza_cuidados|turismo_viagens|sustentabilidade|cultura_arte|luxo_alto_padrao
 
+localizacao: objeto com localização principal da oportunidade:
+  - pais: string — nome do país (ex: "Brasil", "Estados Unidos")
+  - estado: string — sigla 2 letras apenas para Brasil (ex: "SP", "RJ"), null para outros países
+  - cidade: string — nome da cidade (ex: "São Paulo")
+  Se não houver informação suficiente, deixe os subcampos como null.
+
+detalhes_template: objeto com campos específicos do tipo identificado. Preencha APENAS o subcampo do tipo correto:
+  personalidade:
+    - tipos: array máx3 de: Creator|Celebridade|Apresentador(a)|Especialista / Palestrante|Jornalista|Atleta|Ator / Atriz|Comediante|Streamer|Podcaster|Modelo
+    - nichos: array máx3 de: Esporte|Moda|Beleza|Gastronomia|Tecnologia|Finanças|Humor|Cinema & Séries|Lifestyle|Fitness & Saúde|Música|Games & eSports|Educação|Viagens|Automotivo|Pets|Família|Sustentabilidade|Negócios & Empreendedorismo|Casa & Decoração|Saúde Mental & Bem-estar|Luxo
+    - idioma: string (pt|en|es|fr|de|it|ja|zh|ar|ru|ko|hi)
+  evento:
+    - tipos: array máx3 de: Festival|Show / Espetáculo|Stand-up / Humor|Conferência / Congresso|Workshop / Capacitação|Feira|Exposição|Networking|Negócios / B2B|Torneio Esportivo|Corrida / Atletismo|Campeonato|Esports / Gaming|Rodeio|Desfile de Moda|Premiação / Award|Hackathon|Lançamento de Produto|Evento Corporativo|Meetup / Comunidade|Gastronomia|Causas / Filantropia|Formatura|Religioso / Celebração
+    - edicao: string — ano ou número da edição (ex: "2025", "5")
+    - formato: string (presencial|online)
+    - abrangencia: string (regional|nacional|internacional)
+  artista:
+    - estilos_musicais: array máx3 de: Sertanejo|Funk|Pagode|Samba|Axé|Forró|Piseiro|Brega Funk|MPB|Bossa Nova|Gospel|Pop|Rock|Metal / Hard Rock|Indie / Alternativo|Hip-Hop|Rap|Trap|R&B / Soul|Eletrônica|Reggae|Reggaeton|Jazz / Blues|Country|K-Pop
+    - abrangencia_shows: string (regional|nacional|internacional)
+  midia:
+    - tipos_veiculo: array máx3 de: Portal / Site|Revista|Jornal|Rádio|TV Aberta|TV Fechada / Pay-TV|Canal Streaming|Canal Jornalístico|Podcast|Newsletter|Canal YouTube|Perfil Instagram|Perfil TikTok|Página Facebook|App|Mídia Externa|Conglomerado de Mídia
+    - nichos: array máx3 de: Esporte|Moda|Beleza|Gastronomia|Tecnologia|Finanças|Humor|Cinema & Séries|Lifestyle|Fitness & Saúde|Música|Games & eSports|Educação|Viagens|Automotivo|Pets|Família|Sustentabilidade|Negócios & Empreendedorismo|Casa & Decoração|Saúde Mental & Bem-estar|Luxo|Política & Jornalismo|Agro & Rural|Jurídico|Religião & Espiritualidade
+    - frequencia: string (diario|semanal|quinzenal|mensal)
+    - abrangencia: string (regional|nacional|internacional)
+
 ## NÃO EXTRAIR (o usuário preenche manualmente depois)
 - Cotas, pacotes, níveis, valores ou benefícios de patrocínio
 - Canais/redes sociais como dados estruturados (username, seguidores por rede, faixa etária por canal)
@@ -93,6 +118,8 @@ CRÍTICO: Mesmo ao usar google_search para pesquisar links, sua resposta final D
     "descricao_curta":   {"valor": "...", "origem": "...", "confianca": "..."},
     "descricao_completa":{"valor": "...", "origem": "...", "confianca": "..."},
     "busca_marca":       {"valor": "...", "origem": "...", "confianca": "..."},
-    "segmentos": {"valor": [...], "origem": "...", "confianca": "..."}
+    "segmentos":         {"valor": [...], "origem": "...", "confianca": "..."},
+    "localizacao":       {"valor": {"pais": "...", "estado": "...", "cidade": "..."}, "origem": "...", "confianca": "..."},
+    "detalhes_template": {"valor": { <subcampo do tipo> }, "origem": "...", "confianca": "..."}
   }
 }
