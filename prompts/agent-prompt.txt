@@ -53,30 +53,22 @@ segmentos[]: array máx5 de: esportes_fitness|moda_lifestyle|tecnologia_inovacao
   automobilismo|games_esports|musica|familia_maternidade|negocios_empreendedorismo|
   beleza_cuidados|turismo_viagens|sustentabilidade|cultura_arte|luxo_alto_padrao
 
-localizacao: objeto com localização principal da oportunidade:
-  - pais: string — nome do país (ex: "Brasil", "Estados Unidos")
-  - estado: string — sigla 2 letras apenas para Brasil (ex: "SP", "RJ"), null para outros países
-  - cidade: string — nome da cidade (ex: "São Paulo")
-  Se não houver informação suficiente, deixe os subcampos como null.
+localizacao: objeto com a localização principal da oportunidade:
+  - pais: string (ex: "Brasil")
+  - estado: string — sigla 2 letras só para Brasil (ex: "SP"), null fora do Brasil
+  - cidade: string (ex: "São Paulo")
 
-detalhes_template: objeto com campos específicos do tipo identificado. Preencha APENAS o subcampo do tipo correto:
-  personalidade:
-    - tipos: array máx3 de: Creator|Celebridade|Apresentador(a)|Especialista / Palestrante|Jornalista|Atleta|Ator / Atriz|Comediante|Streamer|Podcaster|Modelo
-    - nichos: array máx3 de: Esporte|Moda|Beleza|Gastronomia|Tecnologia|Finanças|Humor|Cinema & Séries|Lifestyle|Fitness & Saúde|Música|Games & eSports|Educação|Viagens|Automotivo|Pets|Família|Sustentabilidade|Negócios & Empreendedorismo|Casa & Decoração|Saúde Mental & Bem-estar|Luxo
-    - idioma: string (pt|en|es|fr|de|it|ja|zh|ar|ru|ko|hi)
-  evento:
-    - tipos: array máx3 de: Festival|Show / Espetáculo|Stand-up / Humor|Conferência / Congresso|Workshop / Capacitação|Feira|Exposição|Networking|Negócios / B2B|Torneio Esportivo|Corrida / Atletismo|Campeonato|Esports / Gaming|Rodeio|Desfile de Moda|Premiação / Award|Hackathon|Lançamento de Produto|Evento Corporativo|Meetup / Comunidade|Gastronomia|Causas / Filantropia|Formatura|Religioso / Celebração
-    - edicao: string — ano ou número da edição (ex: "2025", "5")
-    - formato: string (presencial|online)
-    - abrangencia: string (regional|nacional|internacional)
-  artista:
-    - estilos_musicais: array máx3 de: Sertanejo|Funk|Pagode|Samba|Axé|Forró|Piseiro|Brega Funk|MPB|Bossa Nova|Gospel|Pop|Rock|Metal / Hard Rock|Indie / Alternativo|Hip-Hop|Rap|Trap|R&B / Soul|Eletrônica|Reggae|Reggaeton|Jazz / Blues|Country|K-Pop
-    - abrangencia_shows: string (regional|nacional|internacional)
-  midia:
-    - tipos_veiculo: array máx3 de: Portal / Site|Revista|Jornal|Rádio|TV Aberta|TV Fechada / Pay-TV|Canal Streaming|Canal Jornalístico|Podcast|Newsletter|Canal YouTube|Perfil Instagram|Perfil TikTok|Página Facebook|App|Mídia Externa|Conglomerado de Mídia
-    - nichos: array máx3 de: Esporte|Moda|Beleza|Gastronomia|Tecnologia|Finanças|Humor|Cinema & Séries|Lifestyle|Fitness & Saúde|Música|Games & eSports|Educação|Viagens|Automotivo|Pets|Família|Sustentabilidade|Negócios & Empreendedorismo|Casa & Decoração|Saúde Mental & Bem-estar|Luxo|Política & Jornalismo|Agro & Rural|Jurídico|Religião & Espiritualidade
-    - frequencia: string (diario|semanal|quinzenal|mensal)
-    - abrangencia: string (regional|nacional|internacional)
+detalhes_template: campos específicos do tipo. Preencha APENAS o subcampo do tipo identificado:
+  personalidade → { tipos: string[] máx3, nichos: string[] máx3, idioma: "pt"|"en"|"es"|... }
+    tipos ex: "Creator", "Atleta", "Celebridade", "Podcaster", "Streamer", "Modelo", etc.
+    nichos ex: "Esporte", "Moda", "Fitness & Saúde", "Tecnologia", "Lifestyle", etc.
+  evento → { tipos: string[] máx3, edicao: string, formato: "presencial"|"online", abrangencia: "regional"|"nacional"|"internacional" }
+    tipos ex: "Festival", "Show / Espetáculo", "Corrida / Atletismo", "Conferência / Congresso", etc.
+  artista → { estilos_musicais: string[] máx3, abrangencia_shows: "regional"|"nacional"|"internacional" }
+    estilos ex: "Sertanejo", "Pop", "Funk", "MPB", "Gospel", "Rock", etc.
+  midia → { tipos_veiculo: string[] máx3, nichos: string[] máx3, frequencia: "diario"|"semanal"|"quinzenal"|"mensal", abrangencia: "regional"|"nacional"|"internacional" }
+    tipos_veiculo ex: "Portal / Site", "Podcast", "Canal YouTube", "Rádio", "Newsletter", etc.
+    nichos ex: "Esporte", "Tecnologia", "Finanças", "Entretenimento", etc.
 
 ## NÃO EXTRAIR (o usuário preenche manualmente depois)
 - Cotas, pacotes, níveis, valores ou benefícios de patrocínio

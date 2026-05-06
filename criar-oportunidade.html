@@ -11518,8 +11518,28 @@ function agParseResponse(raw) {
   try {
     return JSON.parse(clean);
   } catch {
-    // If the JSON is truncated, provide a useful message
-    throw new Error('A IA retornou um formato inesperado. Tente novamente ou simplifique a entrada.');
+    // Tenta recuperar JSON truncado: fecha chaves/colchetes pendentes
+    try {
+      let fixed = clean;
+      // Corta na última vírgula de nível alto para evitar valor incompleto
+      const lastComma = fixed.lastIndexOf(',"');
+      if (lastComma > fixed.length * 0.5) fixed = fixed.slice(0, lastComma);
+      // Conta e fecha chaves/colchetes não fechados
+      let opens = 0, openBrackets = 0;
+      for (const ch of fixed) {
+        if (ch === '{') opens++;
+        else if (ch === '}') opens--;
+        else if (ch === '[') openBrackets++;
+        else if (ch === ']') openBrackets--;
+      }
+      fixed += ']'.repeat(Math.max(0, openBrackets)) + '}'.repeat(Math.max(0, opens));
+      const recovered = JSON.parse(fixed);
+      console.warn('[agParseResponse] JSON truncado — recuperado parcialmente');
+      return recovered;
+    } catch {
+      console.error('[agParseResponse] falha ao parsear:', clean.slice(0, 300));
+      throw new Error('A IA retornou um formato inesperado. Tente novamente ou simplifique a entrada.');
+    }
   }
 }
 
