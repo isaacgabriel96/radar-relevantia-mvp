@@ -2089,20 +2089,34 @@ input[type=number] { -moz-appearance: textfield; }
 .sk-cotas { display: flex; flex-direction: column; gap: 6px; }
 .sk-cota-row { display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: var(--radius-base); padding: 8px 10px; border: 1px solid var(--gray-2); }
 .sk-cota-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-/* Items list */
-.hf-items { display: flex; flex-direction: column; gap: 6px; }
-.hf-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  font-size: 13px; color: var(--gray-4); line-height: 1.5;
-  padding: 8px 11px; background: rgba(184,134,11,0.04);
-  border-radius: var(--radius-base); border: 1px solid rgba(184,134,11,0.12);
+/* Mock label inside mockup */
+.hf-mock-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--gray-3); margin-bottom:7px; }
+/* Fields list */
+.hf-fields { display: flex; flex-direction: column; gap: 7px; }
+.hf-field {
+  padding: 10px 13px; background: var(--gray-1);
+  border-radius: var(--radius-base); border: 1px solid var(--gray-2);
 }
-.hf-item-dot { flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--brown-warm); margin-top: 5px; }
-.hf-item strong { color: var(--text-dark); font-weight: 600; }
-.hf-item-note { font-size: 12px; color: var(--gray-3); background: var(--gray-1); border-color: transparent; }
-.hf-subtypes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 0; }
-.hf-subtype { font-size: 12px; color: var(--gray-3); padding: 8px 10px; background: var(--gray-1); border-radius: var(--radius-base); }
+.hf-field-name { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.hf-field-desc { font-size: 12.5px; color: var(--gray-3); line-height: 1.6; }
+.hf-req { font-size: 11px; font-weight: 700; color: #C83232; }
+.hf-tag-optional { font-size: 10px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; color: var(--gray-3); background: var(--gray-2); border-radius: 100px; padding: 1px 7px; font-family: var(--font-body); }
+.hf-code { font-family: monospace; font-size: 12px; background: var(--gray-2); border-radius: 4px; padding: 1px 5px; color: var(--text-dark); }
+/* Visibility list inside field */
+.hf-vis-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.hf-vis-row { display: flex; align-items: flex-start; gap: 9px; font-size: 12.5px; color: var(--gray-4); line-height: 1.5; }
+.hf-vis-dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; }
+.hf-vis-row strong { color: var(--text-dark); font-weight: 600; }
+/* Subtypes grid (inside hf-field) */
+.hf-subtypes { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.hf-subtype { font-size: 12px; color: var(--gray-3); padding: 7px 10px; background: var(--white); border-radius: var(--radius-base); border: 1px solid var(--gray-2); }
 .hf-subtype strong { display: block; font-size: 12.5px; color: var(--text-dark); margin-bottom: 2px; }
+/* Publish note */
+.hf-publish-note {
+  margin-top: 14px; font-size: 12.5px; color: #16A34A; line-height: 1.5;
+  padding: 10px 13px; background: rgba(34,197,94,0.06);
+  border-radius: var(--radius-base); border: 1px solid rgba(34,197,94,0.2);
+}
 @media (max-width: 600px) {
   /* Modal vira bottom-sheet */
   .hf-modal-overlay {
@@ -2132,8 +2146,10 @@ input[type=number] { -moz-appearance: textfield; }
   .hf-mock-row .sk-field-sm { flex: 1 1 100%; }
   /* Subtypes 1 coluna */
   .hf-subtypes { grid-template-columns: 1fr; }
-  /* Items */
-  .hf-item { font-size: 12.5px; }
+  /* Fields */
+  .hf-field { padding: 9px 11px; }
+  .hf-field-desc { font-size: 12px; }
+  .hf-vis-row { font-size: 12px; }
 }
 
 /* ── Modal overlay de detalhe de cota ── */
@@ -3303,7 +3319,7 @@ input[type=number] { -moz-appearance: textfield; }
       <div class="form-card">
         <div class="card-header">
           <div class="card-title">Qual é o seu tipo de oportunidade?</div>
-          <div class="card-desc">Escolha a categoria que melhor representa o que você está ofertando às marcas. <button type="button" class="info-how-link" onclick="openInfoModal('oportunidade')">Como funciona?</button></div>
+          <div class="card-desc">Escolha a categoria que melhor representa o que você está ofertando às marcas.</div>
         </div>
 
         <div class="template-grid">
@@ -3415,7 +3431,6 @@ input[type=number] { -moz-appearance: textfield; }
         <p>Descreva a oportunidade, cole links ou envie um PDF — o agente vai extrair tudo e te dar uma visão completa antes de preencher.</p>
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
           <span class="info-modal-pdf-badge">📎 PDF até 20 MB</span>
-          <button type="button" class="info-how-link" onclick="openInfoModal('agente')">O que o agente preenche?</button>
         </div>
       </div>
 
@@ -12497,46 +12512,47 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
     </div>
     <div class="hf-modal-body">
 
-      <!-- PASSO 1 — SOBRE -->
+      <!-- PASSO 1 — TIPO E IA -->
       <div class="hf-step">
         <div class="hf-step-head">
           <div class="hf-step-num">1</div>
           <div>
-            <div class="hf-step-title">Sobre a oportunidade</div>
-            <div class="hf-step-sub">Tipo, Assistente IA e detalhes específicos</div>
+            <div class="hf-step-title">Tipo e Assistente IA</div>
+            <div class="hf-step-sub">Categoria da oportunidade e preenchimento automático</div>
           </div>
         </div>
 
-        <!-- Mockup: tipo selection -->
         <div class="hf-mockup">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-3);margin-bottom:8px">Tipo de oportunidade</div>
+          <div class="hf-mock-label">Tipo de oportunidade</div>
           <div class="hf-mock-row">
             <div class="sk-card"><div class="sk-icon"></div><div class="sk" style="height:7px;width:70%;border-radius:4px"></div><div class="sk" style="height:6px;width:55%;border-radius:4px;opacity:.6"></div></div>
-            <div class="sk-card sel"><div class="sk-icon"></div><div class="sk" style="height:7px;width:70%;border-radius:4px;background:rgba(184,134,11,0.3)"></div><div class="sk" style="height:6px;width:55%;border-radius:4px;background:rgba(184,134,11,0.2)"></div><div class="sk-tag"></div></div>
+            <div class="sk-card sel"><div class="sk-icon" style="background:rgba(184,134,11,0.2)"></div><div class="sk" style="height:7px;width:70%;border-radius:4px;background:rgba(184,134,11,0.3)"></div><div class="sk" style="height:6px;width:55%;border-radius:4px;background:rgba(184,134,11,0.2)"></div><div class="sk-tag"></div></div>
             <div class="sk-card"><div class="sk-icon"></div><div class="sk" style="height:7px;width:70%;border-radius:4px"></div></div>
             <div class="sk-card"><div class="sk-icon"></div><div class="sk" style="height:7px;width:70%;border-radius:4px"></div></div>
           </div>
-          <!-- Mockup: agente IA chat -->
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-3);margin:10px 0 6px">✦ Assistente de Cadastro</div>
+          <div class="hf-mock-label" style="margin-top:10px">✦ Assistente de Cadastro</div>
           <div class="sk-chat">
-            <div class="sk-chat-bubble"><div class="sk sk-line" style="width:80%"></div><div class="sk sk-line" style="width:60%;margin-top:4px"></div></div>
-            <div class="sk-chat-bubble user"><div class="sk sk-line" style="width:70%"></div></div>
+            <div class="sk-chat-bubble"><div class="sk sk-line" style="width:88%"></div><div class="sk sk-line" style="width:65%;margin-top:4px"></div></div>
+            <div class="sk-chat-bubble user"><div class="sk sk-line" style="width:72%"></div></div>
             <div class="sk-chat-bubble" style="margin-bottom:0"><div class="sk sk-line" style="width:90%"></div><div class="sk sk-line" style="width:40%;margin-top:4px"></div></div>
           </div>
         </div>
 
-        <div class="hf-items">
-          <div class="hf-item"><div class="hf-item-dot"></div><div>Escolha entre <strong>Personalidade, Evento, Artista Musical</strong> ou <strong>Mídia</strong> — cada tipo tem campos específicos</div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div>O <strong>Assistente IA</strong> lê seu PDF, link ou texto e preenche nome, descrições, segmentos e campos do tipo automaticamente</div></div>
-        </div>
-
-        <!-- Detalhes específicos por tipo -->
-        <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-3);margin:14px 0 8px">Campos específicos por tipo</div>
-        <div class="hf-subtypes">
-          <div class="hf-subtype"><strong>Personalidade</strong>Tipo de creator, nichos de conteúdo, idioma principal</div>
-          <div class="hf-subtype"><strong>Evento</strong>Tipo, edição/ano, formato (presencial/online), abrangência, datas e locais, público esperado</div>
-          <div class="hf-subtype"><strong>Artista Musical</strong>Estilos musicais, abrangência dos shows</div>
-          <div class="hf-subtype"><strong>Mídia</strong>Tipo de veículo, nicho editorial, frequência de publicação, abrangência</div>
+        <div class="hf-fields">
+          <div class="hf-field">
+            <div class="hf-field-name">Tipo de oportunidade</div>
+            <div class="hf-field-desc">Define a categoria e quais campos específicos aparecem no formulário. Escolha uma vez — não pode ser alterado após publicar.</div>
+            <div class="hf-subtypes" style="margin-top:8px">
+              <div class="hf-subtype"><strong>Personalidade</strong>Tipo de creator, nichos de conteúdo, idioma principal</div>
+              <div class="hf-subtype"><strong>Evento</strong>Tipo, edição/ano, formato (presencial · online · híbrido), abrangência, datas, local, público esperado</div>
+              <div class="hf-subtype"><strong>Artista Musical</strong>Estilos musicais, abrangência dos shows</div>
+              <div class="hf-subtype"><strong>Mídia</strong>Tipo de veículo, nicho editorial, frequência, abrangência</div>
+            </div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">✦ Assistente de Cadastro <span class="hf-tag-optional">opcional</span></div>
+            <div class="hf-field-desc">Descreva a oportunidade em texto livre, cole um link ou envie um PDF (até 20 MB). O agente faz perguntas, extrai as informações e preenche automaticamente: nome, descrição curta, descrição completa, segmentos, perfil de marca ideal e os campos específicos do tipo escolhido.</div>
+          </div>
         </div>
       </div>
 
@@ -12546,42 +12562,64 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
           <div class="hf-step-num">2</div>
           <div>
             <div class="hf-step-title">Informações Gerais</div>
-            <div class="hf-step-sub">Descrições, segmentos e perfil de marca</div>
+            <div class="hf-step-sub">Nome, descrições, canais, segmentos e localização</div>
           </div>
         </div>
 
-        <!-- Mockup: campos -->
         <div class="hf-mockup">
           <div class="hf-mock-row" style="align-items:center;margin-bottom:6px">
-            <div class="sk sk-label"></div>
-            <div class="sk-badge" style="margin-left:auto"></div>
+            <div class="sk sk-label"></div><div class="sk-badge" style="margin-left:auto"></div>
           </div>
-          <div class="sk sk-field" style="width:100%;margin-bottom:10px"></div>
-          <div class="sk sk-label" style="margin-bottom:6px"></div>
-          <div class="sk sk-field-sm" style="width:100%;margin-bottom:10px"></div>
+          <div class="sk sk-field" style="width:100%;margin-bottom:8px"></div>
           <div class="sk sk-label" style="margin-bottom:6px"></div>
           <div class="sk-quill">
-            <div class="sk sk-line" style="width:95%"></div>
-            <div class="sk sk-line" style="width:82%"></div>
-            <div class="sk sk-line" style="width:88%"></div>
-            <div class="sk sk-line" style="width:60%"></div>
+            <div class="sk sk-line" style="width:95%"></div><div class="sk sk-line" style="width:80%"></div><div class="sk sk-line" style="width:70%"></div>
           </div>
-          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
-            <div class="sk-pill sel" style="width:80px"></div>
-            <div class="sk-pill sel" style="width:64px"></div>
-            <div class="sk-pill" style="width:72px"></div>
-            <div class="sk-pill" style="width:56px"></div>
-            <div class="sk-pill" style="width:88px"></div>
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+            <div class="sk-pill sel" style="width:76px"></div>
+            <div class="sk-pill sel" style="width:60px"></div>
+            <div class="sk-pill" style="width:68px"></div>
+            <div class="sk-pill" style="width:52px"></div>
           </div>
         </div>
 
-        <div class="hf-items">
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Nome</strong> da oportunidade e <strong>foto de capa</strong></div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Descrição curta</strong> — pitch de até 280 caracteres exibido no card para marcas</div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Descrição completa</strong> — editor de texto rico com contexto detalhado: trajetória, público, alcance e diferenciais</div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Perfil de marca ideal</strong> — setores, valores e tipo de ativação que faz sentido para sua oportunidade</div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Segmentos de mercado</strong> — selecione as categorias de marca com maior afinidade (até 5)</div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Localização</strong> — país, estado e cidade da oportunidade</div></div>
+        <div class="hf-fields">
+          <div class="hf-field">
+            <div class="hf-field-name">Nome <span class="hf-req">*</span></div>
+            <div class="hf-field-desc">Nome público da oportunidade. Aparece em todos os cards de busca, no perfil público e na URL gerada automaticamente.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Foto de capa</div>
+            <div class="hf-field-desc">Imagem de destaque exibida nos cards do Radar e no topo da página da oportunidade. Proporção 16:9 recomendada, mínimo 800×450 px.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Descrição curta <span class="hf-req">*</span></div>
+            <div class="hf-field-desc">Pitch de até 280 caracteres exibido no card de busca. É a primeira coisa que a marca lê — precisa ser direto e atrativo.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Descrição completa</div>
+            <div class="hf-field-desc">Editor de texto rico com todo o contexto: trajetória, audiência, alcance, diferenciais e o que a marca ganha ao se associar à oportunidade. Quanto mais completo, maior a chance de interesse.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Detalhes específicos do tipo</div>
+            <div class="hf-field-desc">Campos que variam conforme o tipo escolhido no Passo 1. Para Evento: edição, formato e público esperado. Para Personalidade: nichos e idioma. Para Artista: estilos musicais. Para Mídia: veículo e frequência.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Canais digitais</div>
+            <div class="hf-field-desc">Adicione Instagram, YouTube, TikTok, LinkedIn, Spotify, Twitch e outros com número de seguidores/inscritos. Esses dados aparecem no perfil público e influenciam o match com marcas.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Segmentos de mercado</div>
+            <div class="hf-field-desc">Selecione até 5 categorias de marca com maior afinidade (ex: Esportes, Beleza, Tecnologia, Alimentação). Afeta o ranqueamento nas buscas do Radar e quais marcas recebem sugestões da sua oportunidade.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Perfil de marca ideal</div>
+            <div class="hf-field-desc">Descreva os setores, valores e tipo de ativação que fazem sentido para a sua oportunidade. Ajuda a marca a entender rapidamente se é o fit certo antes de demonstrar interesse.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Localização</div>
+            <div class="hf-field-desc">País, estado e cidade onde a oportunidade está sediada ou onde o evento acontece. Usado nos filtros de busca e exibido no perfil público.</div>
+          </div>
         </div>
       </div>
 
@@ -12591,142 +12629,76 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
           <div class="hf-step-num">3</div>
           <div>
             <div class="hf-step-title">Publicar</div>
-            <div class="hf-step-sub">Canais, cotas, incentivo fiscal e visibilidade</div>
+            <div class="hf-step-sub">Cotas, incentivo fiscal, link público e visibilidade</div>
           </div>
         </div>
 
-        <!-- Mockup: canais + cotas -->
         <div class="hf-mockup">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-3);margin-bottom:7px">Canais digitais</div>
-          <div class="hf-mock-row" style="margin-bottom:10px">
-            <div class="sk sk-field-sm" style="flex:1"></div>
-            <div class="sk sk-field-sm" style="flex:1"></div>
-            <div class="sk sk-field-sm" style="width:80px"></div>
-          </div>
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-3);margin-bottom:7px">Cotas de patrocínio</div>
+          <div class="hf-mock-label">Cotas de patrocínio</div>
           <div class="sk-cotas">
             <div class="sk-cota-row"><div class="sk-cota-dot" style="background:#C9A227"></div><div class="sk sk-line" style="width:50px"></div><div class="sk sk-line" style="width:36px;margin-left:auto;background:rgba(184,134,11,0.25)"></div></div>
             <div class="sk-cota-row"><div class="sk-cota-dot" style="background:#A0A0A0"></div><div class="sk sk-line" style="width:40px"></div><div class="sk sk-line" style="width:36px;margin-left:auto;opacity:.6"></div></div>
             <div class="sk-cota-row" style="border-style:dashed;background:none;justify-content:center"><div class="sk sk-line" style="width:80px;opacity:.4"></div></div>
           </div>
+          <div class="hf-mock-label" style="margin-top:10px">Link público</div>
+          <div style="display:flex;align-items:center;gap:0;border:1px solid var(--gray-2);border-radius:var(--radius-base);overflow:hidden">
+            <div style="padding:5px 8px;background:var(--gray-1);border-right:1px solid var(--gray-2)"><div class="sk sk-line" style="width:90px;opacity:.6"></div></div>
+            <div style="padding:5px 8px;flex:1"><div class="sk sk-line" style="width:70px"></div></div>
+          </div>
+          <div class="hf-mock-label" style="margin-top:10px">Visibilidade</div>
+          <div style="display:flex;gap:6px">
+            <div style="flex:1;padding:8px;border:1.5px solid var(--gold-border);border-radius:var(--radius-base);background:rgba(184,134,11,0.04)"><div class="sk sk-line" style="width:80%;background:rgba(184,134,11,0.3)"></div><div class="sk sk-line" style="width:60%;margin-top:4px;opacity:.5"></div></div>
+            <div style="flex:1;padding:8px;border:1px solid var(--gray-2);border-radius:var(--radius-base)"><div class="sk sk-line" style="width:80%"></div><div class="sk sk-line" style="width:60%;margin-top:4px;opacity:.4"></div></div>
+            <div style="flex:1;padding:8px;border:1px solid var(--gray-2);border-radius:var(--radius-base)"><div class="sk sk-line" style="width:80%"></div><div class="sk sk-line" style="width:60%;margin-top:4px;opacity:.4"></div></div>
+          </div>
         </div>
 
-        <div class="hf-items">
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Canais e redes sociais</strong> — adicione Instagram, YouTube, TikTok, LinkedIn, Spotify etc. com número de seguidores e métricas</div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Cotas de patrocínio</strong> — crie pacotes (Master, Gold, Silver…) com valores, vagas disponíveis e lista de benefícios incluídos</div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Lei de incentivo fiscal</strong> — se o projeto tem aprovação (Rouanet, Lei do Esporte, Paulo Gustavo, ISS, ICMS etc.), informe a lei, categoria e valor aprovado — marcas podem usar o incentivo fiscal para patrocinar</div></div>
-          <div class="hf-item"><div class="hf-item-dot"></div><div><strong>Apresentação / Mídia Kit</strong> — anexe um PDF para marcas baixarem</div></div>
-          <div class="hf-item" style="background:rgba(34,197,94,0.06);border-color:rgba(34,197,94,0.2)"><div class="hf-item-dot" style="background:#22C55E"></div><div>Ao publicar, sua oportunidade fica visível no Radar e marcas podem <strong>manifestar interesse</strong> e negociar diretamente com você</div></div>
+        <div class="hf-fields">
+          <div class="hf-field">
+            <div class="hf-field-name">Cotas de patrocínio</div>
+            <div class="hf-field-desc">Crie pacotes com nome (Master, Gold, Silver…), valor em reais, número de vagas disponíveis e lista de benefícios incluídos. Marcas escolhem a cota ao demonstrar interesse.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Lei de incentivo fiscal</div>
+            <div class="hf-field-desc">Se o projeto tem aprovação em lei de incentivo (Rouanet, Lei do Esporte, Paulo Gustavo, ISS Cultural, ICMS Cultura etc.), informe a lei, a categoria e o valor aprovado. Marcas podem usar o benefício fiscal para viabilizar o patrocínio — isso amplia muito o pool de patrocinadores.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Mídia Kit / PDF</div>
+            <div class="hf-field-desc">Anexe sua apresentação em PDF. Marcas interessadas podem baixar diretamente no perfil público. Não é obrigatório para publicar, mas aumenta a credibilidade.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Link público (slug)</div>
+            <div class="hf-field-desc">Endereço único da sua oportunidade no Radar: <span class="hf-code">radar.relevantia.com/@perfil/slug</span>. Gerado automaticamente a partir do nome, mas pode ser personalizado. Use letras minúsculas, números e hífens. Não pode repetir outro slug já cadastrado.</div>
+          </div>
+          <div class="hf-field">
+            <div class="hf-field-name">Visibilidade</div>
+            <div class="hf-field-desc">Controla quem consegue ver e acessar sua oportunidade no Radar.</div>
+            <div class="hf-vis-list">
+              <div class="hf-vis-row"><div class="hf-vis-dot" style="background:#22C55E"></div><div><strong>Pública no Radar</strong> — Qualquer marca vê todos os detalhes e pode demonstrar interesse imediatamente. Máxima exposição.</div></div>
+              <div class="hf-vis-row"><div class="hf-vis-dot" style="background:var(--brown-warm)"></div><div><strong>Por aprovação</strong> — Aparece nas buscas, mas a marca só acessa os detalhes completos após você aprovar o interesse dela. Bom para controlar quem entra em contato.</div></div>
+              <div class="hf-vis-row"><div class="hf-vis-dot" style="background:var(--gray-3)"></div><div><strong>Somente convidadas</strong> — Não aparece em buscas públicas. Apenas marcas que você convidar por link ou e-mail têm acesso. Ideal para propostas exclusivas.</div></div>
+            </div>
+          </div>
         </div>
+
+        <div class="hf-publish-note">Ao publicar, sua oportunidade fica ativa no Radar e marcas podem encontrá-la, demonstrar interesse e negociar diretamente com você.</div>
       </div>
 
-    </div>
-  </div>
-</div>
-
-<!-- ════ Modal: Como funciona — Oportunidade ════ -->
-<div class="info-modal-overlay" id="infoModalOportunidade" onclick="if(event.target===this)closeInfoModal('oportunidade')">
-  <div class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoTitleOpp">
-    <div class="info-modal-head">
-      <div class="info-modal-title" id="infoTitleOpp">O que é uma Oportunidade?</div>
-      <button type="button" class="info-modal-close" onclick="closeInfoModal('oportunidade')" aria-label="Fechar">✕</button>
-    </div>
-    <div class="info-modal-body">
-      <p class="info-modal-lead">O Radar conecta marcas a oportunidades de patrocínio. Uma oportunidade é qualquer ativo que você oferece para associação de marca.</p>
-
-      <div class="info-modal-block">
-        <div class="info-modal-block-label">
-          <span class="iml-dot iml-dot-gold"></span>Tipos disponíveis
-        </div>
-        <div class="info-modal-items">
-          <div class="info-modal-item"><span class="im-dot im-dot-gold"></span><div><strong>Personalidade</strong> <span>— Influenciador, atleta, celebridade ou criador de conteúdo com audiência própria</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-gold"></span><div><strong>Evento</strong> <span>— Festival, congresso, torneio ou show com data e público definidos</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-gold"></span><div><strong>Artista Musical</strong> <span>— Cantor, banda, DJ ou produtor com fanbase e presença em shows</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-gold"></span><div><strong>Mídia</strong> <span>— Portal, podcast, canal, rádio ou newsletter com audiência qualificada</span></div></div>
-        </div>
-      </div>
-
-      <hr class="info-modal-divider">
-
-      <div class="info-modal-block">
-        <div class="info-modal-block-label">
-          <span class="iml-dot iml-dot-gold"></span>Fluxo de cadastro
-        </div>
-        <div class="info-modal-items">
-          <div class="info-modal-item"><span class="im-dot im-dot-gold"></span><div><strong>1 · Sobre</strong> <span>— Tipo da oportunidade e detalhes específicos, com apoio do Assistente IA</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-gold"></span><div><strong>2 · Informações Gerais</strong> <span>— Nome, descrições, perfil de marca e segmentos de interesse</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-gold"></span><div><strong>3 · Publicar</strong> <span>— Canais digitais, cotas de patrocínio e publicação no Radar</span></div></div>
-        </div>
-      </div>
-
-      <div class="info-modal-note">Sua oportunidade aparece como card no Radar com nome, descrição curta e segmentos. Marcas manifestam interesse e negociam cotas diretamente com você.</div>
-    </div>
-  </div>
-</div>
-
-<!-- ════ Modal: Como funciona — Agente IA ════ -->
-<div class="info-modal-overlay" id="infoModalAgente" onclick="if(event.target===this)closeInfoModal('agente')">
-  <div class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoTitleAgent">
-    <div class="info-modal-head">
-      <div class="info-modal-title" id="infoTitleAgent">O que o Assistente preenche?</div>
-      <button type="button" class="info-modal-close" onclick="closeInfoModal('agente')" aria-label="Fechar">✕</button>
-    </div>
-    <div class="info-modal-body">
-      <p class="info-modal-lead">Envie um texto, link ou PDF — o Assistente extrai o que encontrar e preenche os campos automaticamente. Você revisa e ajusta antes de salvar.</p>
-
-      <div class="info-modal-block">
-        <div class="info-modal-block-label">
-          <span class="iml-dot iml-dot-fill"></span>Preenchido automaticamente
-        </div>
-        <div class="info-modal-items">
-          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Nome</strong> <span>e</span> <strong>descrição curta</strong> <span>— pitch de até 280 caracteres</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Descrição completa</strong> <span>— contexto rico, perfil de público e relevância para marcas</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Perfil de marca ideal</strong> <span>— setores, valores e tipo de ativação que faz sentido</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Segmentos de mercado</strong> <span>— categorias de marca com maior fit</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Campos do tipo</strong> <span>— ex: tipo de evento, edição, formato, estilo musical</span></div></div>
-        </div>
-      </div>
-
-      <hr class="info-modal-divider">
-
-      <div class="info-modal-block">
-        <div class="info-modal-block-label">
-          <span class="iml-dot iml-dot-manual"></span>Preenchido por você
-        </div>
-        <div class="info-modal-items">
-          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Canais e redes sociais</strong> <span>— usernames, seguidores e métricas</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Cotas de patrocínio</strong> <span>— valores, benefícios e pacotes</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Datas e locais</strong> <span>— cada data e venue adicionados individualmente</span></div></div>
-        </div>
-      </div>
-
-      <div class="info-modal-note">PDFs aceitos até <strong>20 MB</strong>. O Assistente também fará perguntas para completar o que não encontrou automaticamente.</div>
     </div>
   </div>
 </div>
 
 <script>
 function openInfoModal(type) {
-  const id = type === 'agente' ? 'infoModalAgente'
-           : type === 'comofunciona' ? 'infoModalComoFunciona'
-           : 'infoModalOportunidade';
-  document.getElementById(id).classList.add('open');
+  document.getElementById('infoModalComoFunciona').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeInfoModal(type) {
-  const id = type === 'agente' ? 'infoModalAgente'
-           : type === 'comofunciona' ? 'infoModalComoFunciona'
-           : 'infoModalOportunidade';
-  document.getElementById(id).classList.remove('open');
+  document.getElementById('infoModalComoFunciona').classList.remove('open');
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    closeInfoModal('oportunidade');
-    closeInfoModal('agente');
-    closeInfoModal('comofunciona');
-  }
-});
+  if (e.key === 'Escape') closeInfoModal();
 </script>
 
 </body>
