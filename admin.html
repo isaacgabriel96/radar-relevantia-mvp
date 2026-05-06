@@ -2359,13 +2359,9 @@ window._oppFilter = 'todos';
 
 async function loadOportunidades() {
   try {
-    const res = await sbFetch(
-      '/rest/v1/oportunidades?select=id,titulo,categoria,status,created_at,detentor_id,' +
-      'perfil_detentor:detentor_id(nome,empresa)' +
-      '&order=created_at.desc&limit=200'
-    );
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    _allOportunidades = await res.json();
+    // Usa Edge Function com service role key — bypassa RLS e só admins chegam aqui
+    const result = await adminAction('list-oportunidades');
+    _allOportunidades = result?.oportunidades ?? [];
     renderOportunidades(window._oppFilter || 'todos');
   } catch (e) {
     console.error('[loadOportunidades]', e);
@@ -2440,8 +2436,8 @@ async function deleteOportunidade(id, titulo) {
   if (!confirm(`Tem certeza que deseja apagar a oportunidade:\n\n"${titulo}"\n\nEssa ação não pode ser desfeita.`)) return;
 
   try {
-    const res = await sbFetch(`/rest/v1/oportunidades?id=eq.${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    // Usa Edge Function com service role key — bypassa RLS e só admins chegam aqui
+    await adminAction('delete-oportunidade', { opp_id: id });
     _allOportunidades = _allOportunidades.filter(o => o.id !== id);
     renderOportunidades(window._oppFilter || 'todos');
     showToast('Oportunidade apagada.', 'success');
