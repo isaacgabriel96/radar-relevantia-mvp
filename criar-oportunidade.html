@@ -2571,6 +2571,50 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 /* ══════════════════════════════════════════════
+   BADGES ✦IA POR CAMPO + BANNER POR STEP
+════════════════════════════════════════════════ */
+.ag-field-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 6px 1px 5px; border-radius: 100px;
+  font-size: 10px; font-weight: 600; line-height: 1.6;
+  background: rgba(184,134,11,0.08); border: 1px solid rgba(184,134,11,0.28);
+  color: #7A5C1E; white-space: nowrap; vertical-align: middle;
+  font-family: var(--font-body); margin-left: 6px;
+  cursor: default;
+}
+.ag-field-badge-clear {
+  background: none; border: none; cursor: pointer;
+  color: #B89860; font-size: 11px; padding: 0 0 0 2px; line-height: 1;
+  transition: color .15s; display: inline-flex; align-items: center;
+}
+.ag-field-badge-clear:hover { color: #DC2626; }
+
+.ag-step-banner {
+  display: none; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  background: rgba(184,134,11,0.05);
+  border: 1px solid rgba(184,134,11,0.18);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  font-size: 13px; color: #5C4C38;
+  font-family: var(--font-body);
+}
+.ag-step-banner-text { flex: 1; font-weight: 500; }
+.ag-step-banner-clear {
+  font-size: 12px; font-weight: 600; color: #A89880;
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-family: var(--font-body); transition: color .15s;
+  text-decoration: underline; white-space: nowrap;
+}
+.ag-step-banner-clear:hover { color: #DC2626; }
+.ag-step-banner-dismiss {
+  background: none; border: none; cursor: pointer;
+  color: #B8A888; font-size: 15px; padding: 0; line-height: 1;
+  flex-shrink: 0; transition: color .15s;
+}
+.ag-step-banner-dismiss:hover { color: var(--gray-4); }
+
+/* ══════════════════════════════════════════════
    PAINEL AGENTE DE CADASTRO (embedded)
 ════════════════════════════════════════════════ */
 #panel-agent {
@@ -3192,6 +3236,13 @@ input[type=number] { -moz-appearance: textfield; }
          PASSO 2 — INFORMAÇÕES BÁSICAS
     ════════════════════════════════════════════ -->
     <div id="panel-2" style="display:none">
+
+      <div id="ag-banner-panel-2" class="ag-step-banner">
+        <span class="ag-step-banner-text"></span>
+        <button type="button" class="ag-step-banner-clear" onclick="agClearStepFields('panel-2')">Limpar tudo</button>
+        <button type="button" class="ag-step-banner-dismiss" title="Dispensar" onclick="agDismissBanner('panel-2')">✕</button>
+      </div>
+
       <div class="step2-layout">
 
       <!-- ═══ COLUNA ESQUERDA: Formulário ═══ -->
@@ -3297,6 +3348,12 @@ input[type=number] { -moz-appearance: textfield; }
          PASSO 3 — PREVIEW DA PÁGINA DE DETALHE
     ════════════════════════════════════════════ -->
     <div id="panel-3" style="display:none">
+
+      <div id="ag-banner-panel-3" class="ag-step-banner">
+        <span class="ag-step-banner-text"></span>
+        <button type="button" class="ag-step-banner-clear" onclick="agClearStepFields('panel-3')">Limpar tudo</button>
+        <button type="button" class="ag-step-banner-dismiss" title="Dispensar" onclick="agDismissBanner('panel-3')">✕</button>
+      </div>
 
       <!-- Preview da página de detalhe -->
       <div class="detail-preview-wrap">
@@ -3702,6 +3759,12 @@ input[type=number] { -moz-appearance: textfield; }
 
       <!-- Campo oculto — mantido para o Quill inicializar sem erros e collectOppData funcionar -->
       <div style="display:none"><div id="opp-objetivos-editor"></div></div>
+
+      <div id="ag-banner-panel-5" class="ag-step-banner">
+        <span class="ag-step-banner-text"></span>
+        <button type="button" class="ag-step-banner-clear" onclick="agClearStepFields('panel-5')">Limpar tudo</button>
+        <button type="button" class="ag-step-banner-dismiss" title="Dispensar" onclick="agDismissBanner('panel-5')">✕</button>
+      </div>
 
       <div class="form-card">
         <div class="card-header">
@@ -5740,6 +5803,15 @@ function _applyPendingDetalhes(tplKey) {
               pill.classList.add('selected');
             }
           });
+        } else if (f.type === 'tag-select') {
+          const valArr = Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map(s => s.trim()) : []);
+          const sel = document.getElementById(f.id);
+          if (sel && valArr.length > 0) {
+            valArr.forEach(v => {
+              const opt = sel.querySelector('.tag-sel-opt[data-val="' + v + '"]');
+              if (opt && !opt.classList.contains('ts-selected')) _tagSelSelect(opt);
+            });
+          }
         } else if (f.type === 'event-dates') {
           const valArr = Array.isArray(val) ? val : [];
           const list = document.getElementById('event-entries-list');
@@ -10856,6 +10928,94 @@ init();
 ════════════════════════════════════════════════ */
 
 // ── Estado do agente ────────────────────────────────────────────
+/* ══════════════════════════════════════════════
+   SISTEMA DE BADGES ✦IA POR CAMPO
+══════════════════════════════════════════════ */
+
+// Mapa de campos marcados pela IA: fieldId → { panelId, clearFn }
+window._agFilledFields = {};
+
+function agMarkField(fieldId, panelId, clearFn) {
+  window._agFilledFields[fieldId] = { panelId, clearFn };
+  _agAddBadge(fieldId);
+  _agUpdateBanner(panelId);
+}
+
+window.agClearField = function(fieldId) {
+  const entry = window._agFilledFields[fieldId];
+  if (!entry) return;
+  try { entry.clearFn(); } catch(e) {}
+  delete window._agFilledFields[fieldId];
+  _agRemoveBadge(fieldId);
+  _agUpdateBanner(entry.panelId);
+};
+
+window.agClearStepFields = function(panelId) {
+  Object.keys(window._agFilledFields).forEach(fid => {
+    if (window._agFilledFields[fid] && window._agFilledFields[fid].panelId === panelId) {
+      window.agClearField(fid);
+    }
+  });
+};
+
+window.agDismissBanner = function(panelId) {
+  const el = document.getElementById('ag-banner-' + panelId);
+  if (el) el.style.display = 'none';
+};
+
+function _agAddBadge(fieldId) {
+  _agRemoveBadge(fieldId);
+  const el = document.getElementById(fieldId);
+  if (!el) return;
+  const fg = el.closest('.form-group');
+  if (!fg) return;
+  const label = fg.querySelector('label');
+  if (!label) return;
+  const badge = document.createElement('span');
+  badge.className = 'ag-field-badge';
+  badge.dataset.agFieldId = fieldId;
+  badge.innerHTML = '✦ IA <button type="button" class="ag-field-badge-clear" title="Limpar campo preenchido pela IA" onclick="event.stopPropagation();agClearField(\'' + fieldId + '\')">✕</button>';
+  label.appendChild(badge);
+}
+
+function _agRemoveBadge(fieldId) {
+  const badge = document.querySelector('.ag-field-badge[data-ag-field-id="' + fieldId + '"]');
+  if (badge) badge.remove();
+}
+
+function _agUpdateBanner(panelId) {
+  const bannerEl = document.getElementById('ag-banner-' + panelId);
+  if (!bannerEl) return;
+  const count = Object.values(window._agFilledFields).filter(f => f.panelId === panelId).length;
+  if (count === 0) {
+    bannerEl.style.display = 'none';
+    return;
+  }
+  const text = bannerEl.querySelector('.ag-step-banner-text');
+  if (text) text.textContent = '✦ Radar preencheu ' + count + (count === 1 ? ' campo' : ' campos') + ' neste passo — revise e edite se precisar';
+  bannerEl.style.display = 'flex';
+}
+
+// Badge especial para grupos sem id de elemento direto (pills, tag-select, quill, segmentos)
+function agMarkGroup(groupId, panelId, labelText, clearFn) {
+  const key = '__group__' + groupId;
+  window._agFilledFields[key] = { panelId, clearFn };
+  _agRemoveBadge(key);
+  const el = document.getElementById(groupId);
+  if (!el) { _agUpdateBanner(panelId); return; }
+  // Tenta encontrar label no form-group pai
+  const fg = el.closest('.form-group');
+  const label = fg ? fg.querySelector('label') : null;
+  if (label) {
+    const badge = document.createElement('span');
+    badge.className = 'ag-field-badge';
+    badge.dataset.agFieldId = key;
+    badge.innerHTML = '✦ IA <button type="button" class="ag-field-badge-clear" title="Limpar" onclick="event.stopPropagation();agClearField(\'' + key + '\')">✕</button>';
+    label.appendChild(badge);
+  }
+  _agUpdateBanner(panelId);
+}
+
 window._agState = {
   attachments: [],   // { type: 'pdf'|'link', label, content, ready }
   history: [],       // { role, content }
@@ -11340,6 +11500,7 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
       throw new Error('A IA retornou uma resposta vazia. Tente novamente ou simplifique a entrada.');
     }
 
+    console.log('[agCallGemini] raw response (primeiros 500 chars):', data.text.slice(0, 500));
     return data.text;
   } finally {
     if (searchHintTimer) clearTimeout(searchHintTimer);
@@ -11358,8 +11519,28 @@ function agParseResponse(raw) {
   try {
     return JSON.parse(clean);
   } catch {
-    // If the JSON is truncated, provide a useful message
-    throw new Error('A IA retornou um formato inesperado. Tente novamente ou simplifique a entrada.');
+    // Tenta recuperar JSON truncado: fecha chaves/colchetes pendentes
+    try {
+      let fixed = clean;
+      // Corta na última vírgula de nível alto para evitar valor incompleto
+      const lastComma = fixed.lastIndexOf(',"');
+      if (lastComma > fixed.length * 0.5) fixed = fixed.slice(0, lastComma);
+      // Conta e fecha chaves/colchetes não fechados
+      let opens = 0, openBrackets = 0;
+      for (const ch of fixed) {
+        if (ch === '{') opens++;
+        else if (ch === '}') opens--;
+        else if (ch === '[') openBrackets++;
+        else if (ch === ']') openBrackets--;
+      }
+      fixed += ']'.repeat(Math.max(0, openBrackets)) + '}'.repeat(Math.max(0, opens));
+      const recovered = JSON.parse(fixed);
+      console.warn('[agParseResponse] JSON truncado — recuperado parcialmente');
+      return recovered;
+    } catch {
+      console.error('[agParseResponse] falha ao parsear:', clean.slice(0, 300));
+      throw new Error('A IA retornou um formato inesperado. Tente novamente ou simplifique a entrada.');
+    }
   }
 }
 
@@ -11636,6 +11817,10 @@ function agToFormData(result) {
   const segmentosRaw = v('segmentos') || [];
   const tags = segmentosRaw.map(s => AG_SEGMENTO_MAP[s] || s);
 
+  // Novos campos
+  const localizacaoRaw = v('localizacao') || {};
+  const detalhesTemplateRaw = v('detalhes_template') || {};
+
   return {
     categoria: TIPO_MAP[tipo] || (formState && formState.selectedTemplate) || 'evento',
     titulo:    v('nome_oportunidade') || '',
@@ -11648,6 +11833,8 @@ function agToFormData(result) {
     projeto_incentivado: projetoIncentivado,
     incentivo_data: incentivoData,
     tags,
+    localizacao_ai: localizacaoRaw,
+    detalhes_template_ai: detalhesTemplateRaw,
   };
 }
 
@@ -11657,6 +11844,9 @@ window.agPreencher = function() {
   if (!result) return;
 
   const formData = agToFormData(result);
+
+  // Reseta badges anteriores
+  window._agFilledFields = {};
 
   // Salva no sessionStorage no formato que maybePreFillEdit() lê
   sessionStorage.setItem('autofill_opp', JSON.stringify(formData));
@@ -11669,22 +11859,244 @@ window.agPreencher = function() {
   maybePreFillEdit(true);
 
   // Garante que template-specific-fields (panel-5) estejam renderizados com os dados do agente
-  if (formState.selectedTemplate) {
+  const tplKey = formState.selectedTemplate;
+  if (tplKey) {
     const tplContainer = document.getElementById('template-specific-fields');
     if (tplContainer) {
       if (tplContainer.children.length === 0) {
-        renderTemplateFields(formState.selectedTemplate);
+        renderTemplateFields(tplKey);
       } else {
-        _applyPendingDetalhes(formState.selectedTemplate);
+        _applyPendingDetalhes(tplKey);
       }
     }
   }
 
-  // Vai direto para Detalhes Específicos (panel-5 / step 2) — template já selecionado,
-  // campos pré-preenchidos no DOM. O usuário revisa a partir do primeiro campo do form.
+  // Marca campos padrão preenchidos com badge
+  agMarkStandardFields(formData);
+
+  // Aplica e marca localização (após renderTemplateFields para não ter conflito)
+  agApplyLocalizacao(formData.localizacao_ai || {});
+
+  // Aplica e marca campos específicos do template (DOM já existe após renderTemplateFields)
+  console.log('[agPreencher] localizacao_ai:', JSON.stringify(formData.localizacao_ai));
+  console.log('[agPreencher] detalhes_template_ai:', JSON.stringify(formData.detalhes_template_ai));
+  if (tplKey && formData.detalhes_template_ai) {
+    agApplyTemplateDetalhes(tplKey, formData.detalhes_template_ai);
+  }
+
+  // Vai direto para Detalhes Específicos (panel-5 / step 2)
   currentStep = 1;
-  nextStep(2); // nextStep(2) com prev=1 → mostra panel-5 corretamente
+  nextStep(2);
 };
+
+// ── Marcar campos padrão preenchidos ─────────────────────────────
+function agMarkStandardFields(formData) {
+  if (formData.titulo) {
+    agMarkField('opp-nome', 'panel-2', () => {
+      const el = document.getElementById('opp-nome');
+      if (el) { el.value = ''; el.dispatchEvent(new Event('input')); }
+    });
+  }
+  if (formData.descricao) {
+    agMarkField('opp-desc', 'panel-2', () => {
+      const el = document.getElementById('opp-desc');
+      if (el) { el.value = ''; updateChar(el, 'descCount', 300); }
+    });
+  }
+  if (formData.detalhes && formData.detalhes.busca_marca) {
+    agMarkField('opp-busca-marca', 'panel-3', () => {
+      const el = document.getElementById('opp-busca-marca');
+      if (el) { el.value = ''; updateChar(el, 'buscaCount', 500); }
+    });
+  }
+  if (formData.descricao_completa) {
+    // Quill não tem label acessível — registra no banner de panel-3 sem badge de campo
+    window._agFilledFields['__desc_completa__'] = {
+      panelId: 'panel-3',
+      clearFn: () => {
+        if (typeof s3AlwaysOnQuill !== 'undefined' && s3AlwaysOnQuill) {
+          s3AlwaysOnQuill.setContents([]);
+        }
+        step3Data.descCompleta = '';
+        step3Data.descCompletaText = '';
+      }
+    };
+    _agUpdateBanner('panel-3');
+  }
+  if (formData.tags && formData.tags.length > 0) {
+    agMarkGroup('segmentPillGrid', 'panel-5', 'Segmentos', () => {
+      document.querySelectorAll('#segmentPillGrid .segment-pill.selected').forEach(p => p.classList.remove('selected'));
+    });
+  }
+}
+
+// ── Aplicar e marcar localização ─────────────────────────────────
+function agApplyLocalizacao(loc) {
+  if (!loc || !loc.pais) return;
+  const paisEl = document.getElementById('opp-pais');
+  if (!paisEl) return;
+
+  // Tenta match exato ou parcial no select de país
+  const paisOpt = Array.from(paisEl.options).find(o =>
+    o.value === loc.pais || o.text.includes(loc.pais) || loc.pais.includes(o.value)
+  );
+  if (paisOpt) {
+    paisEl.value = paisOpt.value;
+    paisEl.dispatchEvent(new Event('change'));
+    agMarkField('opp-pais', 'panel-5', () => {
+      const el = document.getElementById('opp-pais');
+      if (el) { el.value = 'Brasil'; el.dispatchEvent(new Event('change')); }
+    });
+  }
+
+  // Brasil: preenche estado + cidade via selects
+  if (loc.pais === 'Brasil' && loc.estado) {
+    setTimeout(() => {
+      const estadoEl = document.getElementById('opp-estado');
+      if (estadoEl && loc.estado) {
+        estadoEl.value = loc.estado;
+        estadoEl.dispatchEvent(new Event('change'));
+        agMarkField('opp-estado', 'panel-5', () => {
+          const el = document.getElementById('opp-estado');
+          if (el) { el.value = ''; el.dispatchEvent(new Event('change')); }
+        });
+      }
+      // Cidade via select (preenchida após updateOppCidades)
+      if (loc.cidade) {
+        setTimeout(() => {
+          const cidadeEl = document.getElementById('opp-cidade');
+          if (cidadeEl) {
+            const opt = Array.from(cidadeEl.options).find(o =>
+              o.text.toLowerCase() === loc.cidade.toLowerCase()
+            );
+            if (opt) {
+              cidadeEl.value = opt.value;
+              agMarkField('opp-cidade', 'panel-5', () => {
+                const el = document.getElementById('opp-cidade');
+                if (el) el.value = '';
+              });
+            } else {
+              // Fallback: campo texto internacional
+              const intlEl = document.getElementById('opp-cidade-intl');
+              if (intlEl) {
+                intlEl.value = loc.cidade;
+                agMarkField('opp-cidade-intl', 'panel-5', () => {
+                  const el = document.getElementById('opp-cidade-intl');
+                  if (el) el.value = '';
+                });
+              }
+            }
+          }
+        }, 300);
+      }
+    }, 100);
+  } else if (loc.cidade) {
+    // País internacional: campo texto
+    const intlEl = document.getElementById('opp-cidade-intl');
+    if (intlEl) {
+      intlEl.value = loc.cidade;
+      agMarkField('opp-cidade-intl', 'panel-5', () => {
+        const el = document.getElementById('opp-cidade-intl');
+        if (el) el.value = '';
+      });
+    }
+  }
+}
+
+// ── Aplicar e marcar campos específicos do template ───────────────
+function agApplyTemplateDetalhes(tplKey, detalhes) {
+  if (!detalhes || typeof detalhes !== 'object') return;
+
+  // Modelo pode retornar aninhado sob a chave do tipo: { "evento": { tipos: [...] } }
+  // ou diretamente: { tipos: [...] }. Trata os dois.
+  const d = (detalhes[tplKey] && typeof detalhes[tplKey] === 'object')
+    ? detalhes[tplKey]
+    : detalhes;
+  detalhes = d;
+  console.log('[agApplyTemplateDetalhes] tplKey:', tplKey, '| detalhes:', JSON.stringify(detalhes));
+
+  // Mapeamento: chave no JSON do agente → { fieldId, type, options }
+  const fieldMap = {
+    personalidade: [
+      { key: 'tipos',  fieldId: 'tipo-personalidade', type: 'multiselect-pills' },
+      { key: 'nichos', fieldId: 'nicho',              type: 'multiselect-pills' },
+      { key: 'idioma', fieldId: 'idioma-conteudo',    type: 'select' },
+    ],
+    evento: [
+      { key: 'tipos',       fieldId: 'tipo-evento',        type: 'tag-select' },
+      { key: 'edicao',      fieldId: 'edicao-evento',       type: 'text' },
+      { key: 'formato',     fieldId: 'formato-evento',      type: 'select' },
+      { key: 'abrangencia', fieldId: 'abrangencia-evento',  type: 'select' },
+    ],
+    artista: [
+      { key: 'estilos_musicais',  fieldId: 'genero-musical',     type: 'tag-select' },
+      { key: 'abrangencia_shows', fieldId: 'abrangencia-shows',  type: 'select' },
+    ],
+    midia: [
+      { key: 'tipos_veiculo', fieldId: 'tipo-veiculo',     type: 'tag-select' },
+      { key: 'nichos',        fieldId: 'nicho-midia',       type: 'tag-select' },
+      { key: 'frequencia',    fieldId: 'frequencia-midia',  type: 'select' },
+      { key: 'abrangencia',   fieldId: 'abrangencia-midia', type: 'select' },
+    ],
+  };
+
+  const fields = fieldMap[tplKey] || [];
+  fields.forEach(({ key, fieldId, type }) => {
+    const val = detalhes[key];
+    if (!val || (Array.isArray(val) && val.length === 0)) return;
+
+    const el = document.getElementById(fieldId);
+    if (!el) return;
+
+    if (type === 'select') {
+      const strVal = String(val);
+      const opt = Array.from(el.options).find(o =>
+        o.value === strVal || o.text.toLowerCase() === strVal.toLowerCase()
+      );
+      if (opt) {
+        el.value = opt.value;
+        agMarkField(fieldId, 'panel-5', () => {
+          const e = document.getElementById(fieldId);
+          if (e) e.value = '';
+        });
+      }
+    } else if (type === 'text') {
+      el.value = String(val);
+      agMarkField(fieldId, 'panel-5', () => {
+        const e = document.getElementById(fieldId);
+        if (e) e.value = '';
+      });
+    } else if (type === 'multiselect-pills') {
+      const vals = Array.isArray(val) ? val : [val];
+      el.querySelectorAll('.pill-opt').forEach(pill => {
+        if (vals.some(v => v.toLowerCase() === pill.textContent.trim().toLowerCase())) {
+          pill.classList.add('selected');
+        }
+      });
+      if (vals.length > 0) {
+        agMarkGroup(fieldId, 'panel-5', key, () => {
+          document.querySelectorAll('#' + fieldId + ' .pill-opt.selected').forEach(p => p.classList.remove('selected'));
+        });
+      }
+    } else if (type === 'tag-select') {
+      const vals = Array.isArray(val) ? val : [val];
+      vals.forEach(v => {
+        const opt = el.querySelector('.tag-sel-opt[data-val="' + v + '"]');
+        if (opt && !opt.classList.contains('ts-selected')) {
+          _tagSelSelect(opt);
+        }
+      });
+      if (el.querySelectorAll('.tag-sel-opt.ts-selected').length > 0) {
+        agMarkGroup(fieldId, 'panel-5', key, () => {
+          const e = document.getElementById(fieldId);
+          if (!e) return;
+          e.querySelectorAll('.tag-sel-opt.ts-selected').forEach(o => o.classList.remove('ts-selected'));
+          _tagSelSync(e);
+        });
+      }
+    }
+  });
+}
 
 /* ══════════════════════════════════════════════
    MODO IMPERSONATION (Admin criando como cliente)
