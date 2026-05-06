@@ -1197,6 +1197,15 @@ tbody tr:last-child td { border-bottom: none; }
 </head>
 <body>
 
+<!-- Admin View Banner (visível apenas quando admin abre como cliente) -->
+<div id="adminViewBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:10001;background:linear-gradient(90deg,#B8860B,#C8A84B);padding:10px 24px;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(184,134,11,0.4);font-family:'DM Sans',sans-serif">
+  <span style="font-size:16px">👁️</span>
+  <span style="font-size:13px;font-weight:600;color:#1A1200">Modo Admin — Visualizando como:</span>
+  <span id="adminViewBannerName" style="font-size:13px;color:#1A1200">cliente</span>
+  <span style="font-size:12px;color:rgba(26,18,0,0.6);margin-left:4px">— Apenas leitura, dados do cliente</span>
+  <button onclick="window.close()" style="margin-left:auto;background:rgba(26,18,0,0.15);border:1px solid rgba(26,18,0,0.25);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:#1A1200;cursor:pointer;font-family:inherit">✕ Fechar</button>
+</div>
+
 <!-- Demo Banner (hidden by default) -->
 <div id="demoBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:10000;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#1A1200;padding:10px 20px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;align-items:center;justify-content:center;gap:12px;box-shadow:0 2px 8px rgba(30,22,0,0.15)">
   <span style="background:#1A1200;color:#C8A84B;padding:2px 10px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:0.08em">DEMO</span>
@@ -2307,6 +2316,37 @@ tbody tr:last-child td { border-bottom: none; }
    Sem Supabase (dados mockados)
    ═══════════════════════════════════════ */
 
+// ─── ADMIN VIEW MODE (admin abrindo dashboard de cliente) ──────────────────
+;(function() {
+  try {
+    const raw = localStorage.getItem('sb_impersonate_ctx');
+    if (!raw) return;
+    const ctx = JSON.parse(raw);
+    if (!ctx || !ctx.target_user_id || !ctx.admin_token) return;
+    if (ctx.expires_at && ctx.expires_at < Math.floor(Date.now() / 1000)) {
+      localStorage.removeItem('sb_impersonate_ctx');
+      return;
+    }
+    // Ativa modo admin view
+    window._adminViewCtx = ctx;
+    // Monkey-patch getAuthUserId e getValidToken (de core.js) para usar o cliente
+    const _origGetAuthUserId = window.getAuthUserId;
+    const _origGetValidToken = window.getValidToken;
+    window.getAuthUserId = async function() { return window._adminViewCtx ? window._adminViewCtx.target_user_id : (_origGetAuthUserId ? _origGetAuthUserId() : null); };
+    window.getValidToken  = async function() { return window._adminViewCtx ? window._adminViewCtx.admin_token  : (_origGetValidToken  ? _origGetValidToken()  : null); };
+    // Mostra banner
+    document.addEventListener('DOMContentLoaded', function() {
+      const banner = document.getElementById('adminViewBanner');
+      const nameEl = document.getElementById('adminViewBannerName');
+      if (banner) banner.style.display = 'flex';
+      if (nameEl) nameEl.textContent = ctx.target_nome || ctx.target_email || 'cliente';
+      // Padding-top no layout para compensar banner
+      const app = document.querySelector('.app-layout, body');
+      if (app) app.style.paddingTop = '44px';
+    });
+  } catch(_) {}
+})();
+
 // ─── DATA ───
 const MOCK_USER = { nome: 'Usuário', email: '' };
 const MOCK_EMPRESA = { nome: '' };
@@ -2363,20 +2403,23 @@ function showSectionTab(sectionId, subTab) {
 
 // ─── INIT ───
 async function init() {
-  // Verificação server-side: rejeita imediatamente usuários deletados
-  if (typeof sb !== 'undefined' && sb) {
-    try {
-      const { data: { user }, error } = await sb.auth.getUser();
-      if (error || !user) {
-        localStorage.removeItem('sb_marca_session');
+  // Em modo admin view: pula verificação de sessão (usa token do admin)
+  if (!window._adminViewCtx) {
+    // Verificação server-side: rejeita imediatamente usuários deletados
+    if (typeof sb !== 'undefined' && sb) {
+      try {
+        const { data: { user }, error } = await sb.auth.getUser();
+        if (error || !user) {
+          localStorage.removeItem('sb_marca_session');
+          localStorage.removeItem('sb_detentor_session');
+          window.location.href = '/index.html';
+          return;
+        }
+      } catch (_) {
         localStorage.removeItem('sb_detentor_session');
         window.location.href = '/index.html';
         return;
       }
-    } catch (_) {
-      localStorage.removeItem('sb_detentor_session');
-      window.location.href = '/index.html';
-      return;
     }
   }
 
@@ -2660,6 +2703,27 @@ function populateDetenorFields(p) {
 
 // ─── LOAD USER INFO (SDK → localStorage → MOCK fallback) ───
 async function loadUserInfoDetentor() {
+  // 0. Em modo admin view: carrega perfil do cliente com admin_token
+  if (window._adminViewCtx) {
+    try {
+      const ctx = window._adminViewCtx;
+      const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + ctx.target_user_id +
+        '&select=nome,empresa,email,cnpj,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url,razao_social,cep,logradouro,numero_endereco,complemento,cidade,estado,responsavel_legal_nome,responsavel_legal_cpf&limit=1', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + ctx.admin_token }
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        if (rows.length > 0) {
+          const nome = rows[0].nome || rows[0].empresa || ctx.target_nome || ctx.target_email;
+          populateDetenorFields(rows[0]);
+          setUserInfo(nome, rows[0].email || ctx.target_email || '');
+          return;
+        }
+      }
+    } catch(_) {}
+    setUserInfo(ctx.target_nome || ctx.target_email || 'Cliente', ctx.target_email || '');
+    return;
+  }
   // 1. PRIORITY: Forçar SDK a usar sessão do detentor
   //    (evita contaminação por sessão de marca/admin ainda no SDK)
   const stored = localStorage.getItem('sb_detentor_session');

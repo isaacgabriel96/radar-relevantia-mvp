@@ -2958,26 +2958,25 @@ function openOportunidadesDoDetentor() {
     return;
   }
 
-  // Navega para a seção Oportunidades e filtra pelo nome/empresa do detentor
-  showSection('oportunidades');
-  const searchTerm = _impersonateSelected.empresa || _impersonateSelected.nome || '';
-  const searchEl = document.getElementById('opp-search');
-  if (searchEl) {
-    searchEl.value = searchTerm;
+  const session = currentSession;
+  if (!session?.access_token) {
+    showToast('Sessão admin expirada. Faça login novamente.', 'error');
+    return;
   }
 
-  // Aguarda loadOportunidades() terminar e então aplica o filtro
-  const applyFilter = () => {
-    if (_allOportunidades.length > 0) {
-      renderOportunidades('todos');
-    } else {
-      // Ainda carregando — tenta novamente
-      setTimeout(applyFilter, 200);
-    }
+  // Salva contexto de impersonation (mesmo que openFormAsClient)
+  const ctx = {
+    target_user_id: _impersonateSelected.id,
+    target_nome:    _impersonateSelected.nome,
+    target_email:   _impersonateSelected.email,
+    admin_token:    session.access_token,
+    expires_at:     Math.floor(Date.now() / 1000) + 7200, // 2h
   };
-  setTimeout(applyFilter, 150);
+  localStorage.setItem('sb_impersonate_ctx', JSON.stringify(ctx));
 
-  showToast(`Mostrando oportunidades de ${_impersonateSelected.nome}`, 'success');
+  // Abre o dashboard do detentor na aba de oportunidades
+  window.open('dashboard-detentor.html#oportunidades', '_blank');
+  showToast(`Abrindo oportunidades de ${_impersonateSelected.nome}`, 'success');
 }
 
 /* ═══════════════════════════════════════════════════════════════
