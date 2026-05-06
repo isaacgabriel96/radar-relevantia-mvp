@@ -76,7 +76,7 @@ body::after {
 
 /* Login radar com chips */
 .login-radar-wrap {
-  position: relative; width: 240px; height: 240px; margin: 0 auto;
+  position: relative; width: 200px; height: 200px; margin: 0 auto;
 }
 .login-radar-wrap > svg { width: 100%; height: 100%; display: block; }
 .login-radar-chips { position: absolute; inset: 0; pointer-events: none; }
@@ -99,7 +99,7 @@ body::after {
 
 /* ── Login page ── */
 #loginPage {
-  display: none; min-height: 100vh;
+  display: none; min-height: 100dvh;
   position: relative; z-index: 1;
   align-items: center; justify-content: center;
   padding: 40px 24px;
@@ -110,22 +110,38 @@ body::after {
 .login-logo { text-align: center; margin-bottom: 20px; overflow: visible; }
 .login-title {
   font-family: var(--font-heading);
-  font-size: clamp(26px, 4vw, 32px);
+  font-size: clamp(22px, 4vw, 28px);
   font-weight: 700; color: var(--white);
-  text-align: center; margin-bottom: 10px;
+  text-align: center; margin-bottom: 8px;
   letter-spacing: -0.02em;
 }
 .login-title em { font-style: italic; font-family: var(--font-italic); color: var(--gold-light); font-weight: 400; }
 .login-sub {
-  font-size: 15px; color: rgba(255,255,255,0.5);
-  text-align: center; line-height: 1.65; margin-bottom: 32px;
+  font-size: 14px; color: rgba(255,255,255,0.5);
+  text-align: center; line-height: 1.6; margin-bottom: 20px;
 }
 
 .glass-card {
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(184,134,11,0.15);
-  border-radius: var(--radius-lg); padding: 32px;
+  border-radius: var(--radius-lg); padding: 24px;
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Desktop: comprime espaçamentos para caber sem scroll ── */
+@media (min-width: 861px) {
+  #loginPage { padding: 20px 24px; }
+  .login-radar-wrap { width: 200px; height: 200px; }
+  .login-logo { margin-bottom: 12px; }
+  .login-sub { margin-bottom: 16px; }
+  .glass-card { padding: 24px; }
+}
+@media (min-width: 861px) and (max-height: 700px) {
+  #loginPage { padding: 12px 24px; }
+  .login-radar-wrap { width: 160px; height: 160px; }
+  .login-logo { margin-bottom: 8px; }
+  .login-sub { margin-bottom: 10px; font-size: 13px; }
+  .glass-card { padding: 18px 20px; }
 }
 .form-group { margin-bottom: 20px; }
 .form-label {
@@ -217,10 +233,10 @@ body::after {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Responsive ── */
+/* ── Responsive mobile ── */
 @media (max-width: 480px) {
   #loginPage { padding: 20px 16px; }
-  .glass-card { padding: 24px 20px; }
+  .glass-card { padding: 20px 16px; }
 }
 </style>
 </head>
