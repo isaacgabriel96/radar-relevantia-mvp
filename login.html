@@ -5,27 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login — Radar Relevantia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --gold: #C9A43A;
-  --gold-light: #E8C96A;
-  --gold-pale: #FBF5E6;
-  --black: #0E0E0E;
-  --black-2: #1A1A1A;
+  --gold: #B8860B;
+  --gold-light: #C8A84B;
+  --gold-pale: #F5E6C8;
+  --gold-gradient: linear-gradient(135deg, #B8860B, #C8A84B);
+  --black: #1A1200;
+  --black-2: #0A0800;
+  --black-3: #2A2008;
   --white: #FFFFFF;
-  --gray-1: #F7F7F7;
-  --gray-2: #EBEBEB;
-  --gray-3: #DDDDDD;
-  --gray-5: #717171;
-  --red: #EF4444;
+  --white-warm: #FFFDF7;
+  --gray-1: #F5F0E8;
+  --gray-2: #E0D8CC;
+  --gray-3: #A89880;
+  --gray-4: #5C4C38;
+  --brown-warm: #7A5C1E;
+  --font-heading: 'Poppins', sans-serif;
+  --font-italic: 'Playfair Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-ui: 'Inter', sans-serif;
+  --radius-pill: 100px;
+  --radius-lg: 16px;
+  --radius-base: 10px;
+  --red: #DC2626;
 }
 
 html, body {
   min-height: 100vh;
-  font-family: 'DM Sans', sans-serif;
-  background: var(--black);
+  font-family: var(--font-body);
+  background: var(--black-2);
   color: var(--white);
 }
 
@@ -34,9 +45,16 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(201,164,58,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201,164,58,0.04) 1px, transparent 1px);
-  background-size: 56px 56px;
+    linear-gradient(rgba(184,134,11,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,134,11,0.045) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 900px 700px at -5% -10%, rgba(184,134,11,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 600px 500px at 110% 110%, rgba(122,92,30,0.10) 0%, transparent 60%);
   pointer-events: none; z-index: 0;
 }
 
@@ -44,11 +62,11 @@ body::before {
 #loadingScreen {
   position: fixed; inset: 0; z-index: 100;
   display: flex; align-items: center; justify-content: center;
-  background: var(--black); flex-direction: column; gap: 20px;
+  background: var(--black-2); flex-direction: column; gap: 20px;
 }
 .loading-spinner {
   width: 32px; height: 32px;
-  border: 2.5px solid rgba(201,164,58,0.2);
+  border: 2.5px solid rgba(184,134,11,0.2);
   border-top-color: var(--gold);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -57,7 +75,47 @@ body::before {
   font-size: 13px;
   color: rgba(255,255,255,0.35);
   letter-spacing: 0.06em;
+  font-family: var(--font-ui);
 }
+
+/* ── Radar logo animation ── */
+@keyframes radarSweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes radarDotReveal {
+  0% { opacity: 0; transform: scale(0.5); }
+  10% { opacity: 1; transform: scale(1.4); }
+  20% { opacity: 1; transform: scale(1); }
+  60% { opacity: 1; }
+  100% { opacity: 0.3; transform: scale(0.8); }
+}
+@keyframes radarFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.radar-anim-wrap { display:inline-flex; align-items:center; justify-content:center; }
+.radar-sweep-el { transform-origin:140px 140px; animation:radarSweep 5s linear infinite; }
+.radar-dot1-el { animation:radarDotReveal 5s ease-out infinite; animation-delay:0.4s; opacity:0; }
+.radar-dot2-el { animation:radarDotReveal 5s ease-out infinite; animation-delay:1.8s; opacity:0; }
+.radar-dot3-el { animation:radarDotReveal 5s ease-out infinite; animation-delay:3.2s; opacity:0; }
+
+/* Radar com chips no painel esquerdo */
+.login-radar-wrap {
+  position: relative; width: 260px; height: 260px; margin: 0 auto 32px;
+}
+.login-radar-wrap > svg { width: 100%; height: 100%; display: block; }
+.login-radar-chips { position: absolute; inset: 0; pointer-events: none; }
+.login-radar-chip {
+  position: absolute;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  padding: 6px 11px; border-radius: var(--radius-pill);
+  font-family: var(--font-ui); font-size: 11px; font-weight: 500;
+  color: var(--white); display: flex; align-items: center; gap: 5px;
+  white-space: nowrap; animation: radarFloat 4s ease-in-out infinite;
+  pointer-events: auto;
+}
+.login-radar-chip svg { width: 12px; height: 12px; color: var(--gold-light); flex-shrink: 0; }
+.login-radar-chips .login-radar-chip:nth-child(1) { top: 6%;    right: -22%; animation-delay: 0s; }
+.login-radar-chips .login-radar-chip:nth-child(2) { top: 40%;   left: -28%;  animation-delay: 1s; }
+.login-radar-chips .login-radar-chip:nth-child(3) { bottom: 18%; right: -16%; animation-delay: 2s; }
+.login-radar-chips .login-radar-chip:nth-child(4) { bottom: -2%; left: 8%;   animation-delay: 3s; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Layout split ── */
@@ -75,21 +133,21 @@ body::before {
 
 /* ── Lado esquerdo — decorativo ── */
 .login-left {
-  background: var(--black-2);
-  border-right: 1px solid rgba(255,255,255,0.06);
+  background: var(--black);
+  border-right: 1px solid rgba(184,134,11,0.12);
   display: flex; flex-direction: column;
   justify-content: space-between;
-  padding: 48px 56px;
+  padding: 56px 56px 56px;
   position: relative; overflow: hidden;
 }
 
-/* Orb decorativo */
+/* Orb decorativo warm */
 .login-left::before {
   content: '';
   position: absolute;
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, rgba(201,164,58,0.1) 0%, transparent 65%);
-  top: 50%; left: 50%;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(184,134,11,0.10) 0%, transparent 65%);
+  top: 30%; left: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
@@ -99,28 +157,38 @@ body::before {
   content: '';
   position: absolute; inset: 0;
   background-image:
-    linear-gradient(rgba(201,164,58,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201,164,58,0.03) 1px, transparent 1px);
+    linear-gradient(rgba(184,134,11,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184,134,11,0.03) 1px, transparent 1px);
   background-size: 48px 48px;
   pointer-events: none;
 }
 
-.left-top { position: relative; z-index: 1; }
-.left-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; margin-bottom: 20px; }
-.left-logo img { height: 43px; width: auto; }
+.left-top {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
+}
+.left-logo {
+  display: block; text-decoration: none; margin-bottom: 0;
+  overflow: visible;
+}
+
+.left-bottom { position: relative; z-index: 1; }
 
 .left-headline {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(32px, 3.5vw, 52px);
+  font-family: var(--font-heading);
+  font-size: clamp(28px, 3vw, 46px);
   font-weight: 600;
-  line-height: 1.12;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--white);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .left-headline em {
   font-style: italic;
-  color: var(--gold);
+  font-family: var(--font-italic);
+  color: var(--gold-light);
+  font-weight: 400;
 }
 
 .left-sub {
@@ -130,32 +198,13 @@ body::before {
   max-width: 380px;
 }
 
-.left-bottom { position: relative; z-index: 1; }
-.left-quote {
-  border-left: 2px solid rgba(201,164,58,0.4);
-  padding-left: 20px;
-}
-.left-quote-text {
-  font-size: 14px;
-  color: rgba(255,255,255,0.35);
-  line-height: 1.7;
-  font-style: italic;
-  margin-bottom: 10px;
-}
-.left-quote-author {
-  font-size: 12px;
-  color: var(--gold);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
 /* ── Lado direito — formulário ── */
 .login-right {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px 56px;
+  background: var(--black-2);
 }
 
 .login-form-wrap {
@@ -178,14 +227,15 @@ body::before {
 .back-link svg { flex-shrink: 0; }
 
 .form-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(26px, 3vw, 34px);
-  font-weight: 600;
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 700;
   color: var(--white);
   line-height: 1.2;
   margin-bottom: 8px;
+  letter-spacing: -0.02em;
 }
-.form-title em { font-style: italic; color: var(--gold); }
+.form-title em { font-style: italic; font-family: var(--font-italic); color: var(--gold-light); font-weight: 400; }
 .form-subtitle {
   font-size: 14px;
   color: rgba(255,255,255,0.35);
@@ -227,8 +277,8 @@ body::before {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .form-input:focus {
-  border-color: rgba(201,164,58,0.5);
-  box-shadow: 0 0 0 3px rgba(201,164,58,0.1);
+  border-color: rgba(184,134,11,0.5);
+  box-shadow: 0 0 0 3px rgba(184,134,11,0.12);
 }
 .form-input::placeholder { color: rgba(255,255,255,0.2); }
 .form-input.error { border-color: rgba(239,68,68,0.6); }
@@ -268,32 +318,33 @@ body::before {
 .btn-primary {
   width: 100%;
   padding: 15px;
-  background: var(--gold);
+  background: var(--gold-gradient);
   color: var(--black);
   border: none;
-  border-radius: 10px;
-  font-family: 'DM Sans', sans-serif;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-heading);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 24px;
+  box-shadow: 0 8px 28px rgba(184,134,11,0.28);
+  letter-spacing: -0.01em;
 }
 .btn-primary:hover {
-  background: var(--gold-light);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(201,164,58,0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(184,134,11,0.40);
 }
 .btn-primary:active { transform: translateY(0); box-shadow: none; }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .btn-spinner {
   width: 18px; height: 18px;
-  border: 2px solid rgba(14,14,14,0.25);
+  border: 2px solid rgba(26,18,0,0.25);
   border-top-color: var(--black);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -354,20 +405,22 @@ body::before {
 @media (max-width: 860px) {
   .login-layout { grid-template-columns: 1fr; }
   .login-left { display: none; }
-  .login-right { padding: 40px 24px; align-items: flex-start; padding-top: 48px; }
+  .login-right { padding: 40px 24px; align-items: flex-start; padding-top: 40px; background: var(--black-2); }
   .login-form-wrap { max-width: 100%; }
-  /* Logo compacta no mobile */
-  .mobile-logo {
+  /* Radar mobile acima do form */
+  .mobile-radar {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-    text-decoration: none;
+    justify-content: center;
+    margin-bottom: 24px;
   }
-  .mobile-logo img { height: 38px; }
+  .mobile-radar-wrap {
+    position: relative;
+    width: 140px; height: 140px;
+  }
+  .mobile-radar-wrap > svg { width: 100%; height: 100%; display: block; }
 }
 @media (min-width: 861px) {
-  .mobile-logo { display: none; }
+  .mobile-radar { display: none; }
 }
 
 @keyframes fadeUp {
@@ -383,8 +436,40 @@ body::before {
 
 <!-- ── Loading ── -->
 <div id="loadingScreen">
-  <img src="1.png" alt="Relevantia" style="height:48px;width:auto;opacity:0.6">
-  <div class="loading-spinner"></div>
+  <div class="radar-anim-wrap" style="width:72px;height:72px;">
+    <svg width="100%" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="rBl" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#6b5a14"/><stop offset="20%" stop-color="#504510"/><stop offset="40%" stop-color="#3a340c"/><stop offset="60%" stop-color="#282208"/><stop offset="80%" stop-color="#181404"/><stop offset="100%" stop-color="#0a0802"/></radialGradient>
+        <linearGradient id="rSl" x1="0.5" y1="0" x2="0" y2="0.5"><stop offset="0%" stop-color="#c8a428" stop-opacity="0.28"/><stop offset="100%" stop-color="#c8a428" stop-opacity="0"/></linearGradient>
+        <clipPath id="rDl"><circle cx="140" cy="140" r="118"/></clipPath>
+      </defs>
+      <circle cx="140" cy="140" r="121" fill="#060502"/>
+      <circle cx="140" cy="140" r="118" fill="url(#rBl)"/>
+      <g clip-path="url(#rDl)">
+        <circle cx="140" cy="140" r="116" fill="none" stroke="#9a8828" stroke-width="0.5" opacity="0.55"/>
+        <circle cx="140" cy="140" r="100" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.50"/>
+        <circle cx="140" cy="140" r="84"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.54"/>
+        <circle cx="140" cy="140" r="68"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.60"/>
+        <circle cx="140" cy="140" r="52"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.64"/>
+        <circle cx="140" cy="140" r="36"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.70"/>
+        <circle cx="140" cy="140" r="20"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.74"/>
+      </g>
+      <circle cx="140" cy="140" r="118" fill="none" stroke="#b89824" stroke-width="1.6" opacity="0.65"/>
+      <circle cx="140" cy="140" r="80"  fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.50"/>
+      <line x1="140" y1="22" x2="140" y2="258" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+      <line x1="22" y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+      <g clip-path="url(#rDl)">
+        <g class="radar-sweep-el">
+          <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#rSl)"/>
+          <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
+        </g>
+      </g>
+      <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6" opacity="0.7"/>
+      <circle cx="190" cy="72"  r="5" fill="#d8c890" class="radar-dot1-el"/>
+      <circle cx="82"  cy="170" r="5" fill="#d8c890" class="radar-dot2-el"/>
+      <circle cx="222" cy="195" r="5" fill="#d8c890" class="radar-dot3-el"/>
+    </svg>
+  </div>
   <div class="loading-text">Carregando...</div>
 </div>
 
@@ -398,8 +483,48 @@ body::before {
     <div class="login-left">
       <div class="left-top">
         <a href="index.html" class="left-logo">
-          <img src="1.png" alt="Radar Relevantia">
+          <div class="login-radar-wrap">
+            <svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="rBc" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#6b5a14"/><stop offset="20%" stop-color="#504510"/><stop offset="40%" stop-color="#3a340c"/><stop offset="60%" stop-color="#282208"/><stop offset="80%" stop-color="#181404"/><stop offset="100%" stop-color="#0a0802"/></radialGradient>
+                <linearGradient id="rSc" x1="0.5" y1="0" x2="0" y2="0.5"><stop offset="0%" stop-color="#c8a428" stop-opacity="0.28"/><stop offset="100%" stop-color="#c8a428" stop-opacity="0"/></linearGradient>
+                <clipPath id="rDc"><circle cx="140" cy="140" r="118"/></clipPath>
+              </defs>
+              <circle cx="140" cy="140" r="121" fill="#060502"/>
+              <circle cx="140" cy="140" r="118" fill="url(#rBc)"/>
+              <g clip-path="url(#rDc)">
+                <circle cx="140" cy="140" r="116" fill="none" stroke="#9a8828" stroke-width="0.5" opacity="0.5"/>
+                <circle cx="140" cy="140" r="100" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.4"/>
+                <circle cx="140" cy="140" r="80"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.5"/>
+                <circle cx="140" cy="140" r="55"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.6"/>
+                <circle cx="140" cy="140" r="29"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.7"/>
+              </g>
+              <circle cx="140" cy="140" r="118" fill="none" stroke="#b89824" stroke-width="1.6" opacity="0.6"/>
+              <circle cx="140" cy="140" r="80"  fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.45"/>
+              <line x1="140" y1="22" x2="140" y2="258" stroke="#b89824" stroke-width="0.8" opacity="0.5"/>
+              <line x1="22"  y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.5"/>
+              <g clip-path="url(#rDc)">
+                <g class="radar-sweep-el">
+                  <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#rSc)"/>
+                  <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
+                </g>
+              </g>
+              <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6"/>
+              <circle cx="190" cy="72"  r="5" fill="#d8c890" class="radar-dot1-el"/>
+              <circle cx="82"  cy="170" r="5" fill="#d8c890" class="radar-dot2-el"/>
+              <circle cx="222" cy="195" r="5" fill="#d8c890" class="radar-dot3-el"/>
+            </svg>
+            <div class="login-radar-chips">
+              <span class="login-radar-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M5 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/></svg>Personalidade</span>
+              <span class="login-radar-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Evento</span>
+              <span class="login-radar-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Artista musical</span>
+              <span class="login-radar-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M7 12h10"/></svg>Mídia</span>
+            </div>
+          </div>
         </a>
+      </div>
+
+      <div class="left-bottom">
         <h2 class="left-headline">
           O marketplace de<br>
           <em>patrocínios</em><br>
@@ -409,15 +534,6 @@ body::before {
           Conectando marcas a ativos de alto impacto — com curadoria, dados e propósito.
         </p>
       </div>
-
-      <div class="left-bottom">
-        <div class="left-quote">
-          <p class="left-quote-text">
-            "O Radar mudou a forma como eu encontro parceiros de patrocínio. Tudo em um só lugar, com curadoria de verdade."
-          </p>
-          <span class="left-quote-author">Usuário do Radar Relevantia</span>
-        </div>
-      </div>
     </div>
 
     <!-- ════════════════════════════
@@ -426,10 +542,41 @@ body::before {
     <div class="login-right">
       <div class="login-form-wrap fade-in">
 
-        <!-- Logo mobile -->
-        <a href="index.html" class="mobile-logo">
-          <img src="1.png" alt="Radar Relevantia">
-        </a>
+        <!-- Radar mobile -->
+        <div class="mobile-radar">
+          <a href="index.html" class="mobile-radar-wrap">
+            <svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="rBm" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#6b5a14"/><stop offset="20%" stop-color="#504510"/><stop offset="40%" stop-color="#3a340c"/><stop offset="60%" stop-color="#282208"/><stop offset="80%" stop-color="#181404"/><stop offset="100%" stop-color="#0a0802"/></radialGradient>
+                <linearGradient id="rSm" x1="0.5" y1="0" x2="0" y2="0.5"><stop offset="0%" stop-color="#c8a428" stop-opacity="0.28"/><stop offset="100%" stop-color="#c8a428" stop-opacity="0"/></linearGradient>
+                <clipPath id="rDm"><circle cx="140" cy="140" r="118"/></clipPath>
+              </defs>
+              <circle cx="140" cy="140" r="121" fill="#060502"/>
+              <circle cx="140" cy="140" r="118" fill="url(#rBm)"/>
+              <g clip-path="url(#rDm)">
+                <circle cx="140" cy="140" r="116" fill="none" stroke="#9a8828" stroke-width="0.5" opacity="0.5"/>
+                <circle cx="140" cy="140" r="100" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.4"/>
+                <circle cx="140" cy="140" r="80"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.5"/>
+                <circle cx="140" cy="140" r="55"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.6"/>
+                <circle cx="140" cy="140" r="29"  fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.7"/>
+              </g>
+              <circle cx="140" cy="140" r="118" fill="none" stroke="#b89824" stroke-width="1.6" opacity="0.6"/>
+              <circle cx="140" cy="140" r="80"  fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.45"/>
+              <line x1="140" y1="22" x2="140" y2="258" stroke="#b89824" stroke-width="0.8" opacity="0.5"/>
+              <line x1="22"  y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.5"/>
+              <g clip-path="url(#rDm)">
+                <g class="radar-sweep-el">
+                  <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#rSm)"/>
+                  <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
+                </g>
+              </g>
+              <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6"/>
+              <circle cx="190" cy="72"  r="5" fill="#d8c890" class="radar-dot1-el"/>
+              <circle cx="82"  cy="170" r="5" fill="#d8c890" class="radar-dot2-el"/>
+              <circle cx="222" cy="195" r="5" fill="#d8c890" class="radar-dot3-el"/>
+            </svg>
+          </a>
+        </div>
 
         <!-- Voltar -->
         <a href="index.html" class="back-link">
