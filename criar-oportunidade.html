@@ -1782,16 +1782,37 @@ input[type=number] { -moz-appearance: textfield; }
   background: none; border: none; cursor: pointer;
   color: var(--gray-3); font-size: 15px; flex-shrink: 0;
 }
-.cota-beneficio-item { margin-bottom: 8px; }
-.cota-beneficio-item .cota-beneficio-row { margin-bottom: 0; }
+.cota-beneficio-item {
+  border: 1.5px solid var(--gray-1); border-radius: 12px;
+  overflow: hidden; margin-bottom: 8px; background: var(--white);
+  transition: border-left-width 0.15s, border-left-color 0.15s;
+}
+.cota-beneficio-item.has-desc { border-left: 3px solid var(--gold); }
+.cota-beneficio-item .cota-beneficio-row { display: flex; gap: 0; align-items: stretch; margin-bottom: 0; }
+.cota-beneficio-item .cota-ben-titulo {
+  border: none !important; border-radius: 0 !important;
+  box-shadow: none !important; background: transparent !important; flex: 1;
+}
+.cota-beneficio-item .cota-beneficio-remove {
+  border-left: 1px solid var(--gray-1); border-radius: 0;
+  padding: 0 14px; display: flex; align-items: center;
+}
+.cota-beneficio-desc-wrap { display: none; border-top: 1px solid var(--gray-1); padding: 10px 14px; }
+.cota-beneficio-desc-wrap.open { display: block; }
+.cota-beneficio-desc-wrap textarea {
+  border: none !important; box-shadow: none !important;
+  resize: vertical; min-height: 52px; padding: 0;
+  font-size: 13px; background: transparent; width: 100%;
+}
+.cota-beneficio-footer {
+  border-top: 1px solid var(--gray-1); padding: 6px 14px;
+  background: var(--gray-0, #faf8f4);
+}
 .cota-beneficio-desc-toggle {
   display: inline-block; font-size: 11px; color: var(--gold);
-  cursor: pointer; padding: 3px 0 2px; user-select: none; opacity: 0.8;
+  cursor: pointer; user-select: none; opacity: 0.8;
 }
 .cota-beneficio-desc-toggle:hover { opacity: 1; }
-.cota-beneficio-desc-wrap { display: none; padding-top: 4px; }
-.cota-beneficio-desc-wrap.open { display: block; }
-.cota-beneficio-desc-wrap textarea { font-size: 12px; resize: vertical; min-height: 52px; }
 
 /* ── Cotas List (lista vertical, cards horizontais) ── */
 #cotas-list { display: flex; flex-direction: column; gap: 12px; }
@@ -9067,9 +9088,11 @@ function addBeneficio(beneficiosList, titulo, descricao) {
       <input type="text" class="form-control cota-ben-titulo" placeholder="Ex: Logo no banner principal">
       <button type="button" class="cota-beneficio-remove" onclick="this.closest('.cota-beneficio-item').remove()" title="Remover">✕</button>
     </div>
-    <span class="cota-beneficio-desc-toggle" onclick="toggleBenDesc(this)">+ adicionar descrição</span>
     <div class="cota-beneficio-desc-wrap">
       <textarea class="form-control cota-ben-descricao" rows="2" placeholder="Detalhe esta entrega (opcional)…"></textarea>
+    </div>
+    <div class="cota-beneficio-footer">
+      <span class="cota-beneficio-desc-toggle" onclick="toggleBenDesc(this)">+ adicionar descrição</span>
     </div>
   `;
   beneficiosList.appendChild(item);
@@ -9082,8 +9105,10 @@ function addBeneficio(beneficiosList, titulo, descricao) {
 }
 
 function toggleBenDesc(btn) {
-  var wrap = btn.nextElementSibling;
+  var item = btn.closest('.cota-beneficio-item');
+  var wrap = item.querySelector('.cota-beneficio-desc-wrap');
   var open = wrap.classList.toggle('open');
+  item.classList.toggle('has-desc', open);
   btn.textContent = open ? '− remover descrição' : '+ adicionar descrição';
   if (open) wrap.querySelector('textarea').focus();
 }
