@@ -9474,7 +9474,8 @@ function collectOppData() {
   const tpl = TEMPLATES[tplKey] || {};
   const nome = document.getElementById('opp-nome')?.value?.trim() || '';
   const desc = document.getElementById('opp-desc')?.value?.trim() || '';
-  const objetivos = (quillObjetivos && quillObjetivos.root.innerHTML !== '<p><br></p>') ? quillObjetivos.root.innerHTML : '';
+  // Lê do step3Data (editor visível s3AlwaysOnQuill) — quillObjetivos é oculto e nunca atualizado
+  const objetivos = step3Data.descCompleta || '';
   const buscaMarca = document.getElementById('opp-busca-marca')?.value?.trim() || '';
   const paisReview = document.getElementById('opp-pais')?.value || 'Brasil';
   const cidadeVal = document.getElementById('opp-cidade-intl')?.value.trim() || '';
@@ -9484,8 +9485,9 @@ function collectOppData() {
   const abrangenciaEl = document.getElementById('opp-abrangencia');
   const alcance = abrangenciaEl?.options[abrangenciaEl.selectedIndex]?.text || '';
   let alcance_clean = (alcance === 'Selecione…') ? '' : alcance;
+  // Lê de ambos os grids: Inline (fluxo normal step 7) e panel-5 (fluxo alternativo)
   const segmentos = Array.from(
-    document.querySelectorAll('#segmentPillGrid .segment-pill.selected')
+    document.querySelectorAll('#segmentPillGridInline .segment-pill.selected, #segmentPillGrid .segment-pill.selected')
   ).map(p => p.textContent.trim());
 
   const gradients = {
@@ -9617,10 +9619,15 @@ function collectOppData() {
       } else if (f.type === 'multiselect-pills') {
         const pills = document.querySelectorAll('#' + f.id + ' .pill-opt.selected');
         val = Array.from(pills).map(p => p.textContent.trim());
+      } else if (f.type === 'tag-select') {
+        const tags = document.querySelectorAll('#' + f.id + ' .tag-sel-opt.ts-selected');
+        val = Array.from(tags).map(o => o.dataset.val || o.textContent.trim());
+      } else if (f.type === 'year-input' || f.type === 'number-formatted') {
+        val = document.getElementById(f.id)?.value?.trim() || '';
       } else if (f.type === 'event-dates') {
         val = _collectEventEntries();
       }
-      if (val && (typeof val === 'string' ? val.length > 0 : true)) detalhes[f.label] = val;
+      if (val !== '' && val !== null && !(Array.isArray(val) && val.length === 0)) detalhes[f.label] = val;
     });
   }
 
@@ -10072,7 +10079,14 @@ async function publishOpportunity() {
   // ── Validações obrigatórias ──
   if (!data.titulo) { showToast('Preencha o nome da oportunidade.', 'error'); return; }
   if (!data.descricao_curta) { showToast('Preencha a descrição da oportunidade.', 'error'); return; }
-  if (!data.localizacao) { showToast('Selecione o estado e cidade da oportunidade.', 'error'); return; }
+  // Localização: evento não precisa de cidade global (usa datas com locais), mas outros templates sim
+  const isEvento = (formState.selectedTemplate === 'evento');
+  if (!isEvento && !data.localizacao) { showToast('Selecione o país e cidade da oportunidade.', 'error'); return; }
+  if (!isEvento && data.localizacao) {
+    // Garante que não é só o país sem cidade
+    const semCidade = data.localizacao === 'Brasil' || data.localizacao === (document.getElementById('opp-pais')?.value || '');
+    if (semCidade) { showToast('Selecione também a cidade da oportunidade.', 'error'); return; }
+  }
   const hasPhotos = lpUploadedPhotos.length > 0;
   if (!hasPhotos) { showToast('Adicione pelo menos uma foto.', 'error'); return; }
   if (data.cotas_habilitadas && (!data.cotas_data || data.cotas_data.length === 0)) {
@@ -10170,7 +10184,7 @@ async function publishOpportunity() {
       console.log('[Publish] Opportunity updated:', oppId);
     } else if (window._impersonateCtx) {
       // Modo impersonation — cria via Edge Function com detentor_id do cliente
-      oppId = await _impersonateCreateOportunidade(data, 'publicado');
+      oppId = await _impersonateCreateOportunidade(data, 'publicada');
       if (oppId) {
         formState.editId = oppId;
         console.log('[Publish/Impersonate] Opportunity created as client:', oppId);
