@@ -2664,7 +2664,21 @@ input[type=number] { -moz-appearance: textfield; }
   border-radius: 16px; overflow: hidden;
   box-shadow: 0 1px 4px rgba(30,22,0,0.06);
   display: none;
+  position: relative;
 }
+/* Drag & drop overlay */
+.ag-drop-overlay {
+  position: absolute; inset: 0; z-index: 20;
+  background: rgba(184,134,11,0.06);
+  border: 2px dashed #B8860B;
+  border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; pointer-events: none;
+  opacity: 0; transition: opacity 0.18s;
+  font-size: 14px; font-weight: 600; color: #B8860B;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+}
+.ag-chat-card.ag-drag-active .ag-drop-overlay { opacity: 1; }
 .ag-chat-card.visible { display: block; }
 /* Full-chat mode: altura fixa, layout flex para thread ocupar espaço restante */
 .ag-chat-card.ag-chat-full {
@@ -3095,6 +3109,11 @@ input[type=number] { -moz-appearance: textfield; }
 
       <!-- Chat card (tela cheia desde o início) -->
       <div class="ag-chat-card ag-chat-full" id="agChatCard">
+        <!-- Overlay visual de drag & drop -->
+        <div class="ag-drop-overlay">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B8860B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Solte o arquivo aqui
+        </div>
         <div class="ag-chat-thread" id="agChatThread"></div>
 
         <!-- Chips de attachments (PDF/link) acima do input -->
@@ -3104,10 +3123,10 @@ input[type=number] { -moz-appearance: textfield; }
 
         <div class="ag-chat-input-row">
           <!-- Botão PDF -->
-          <button class="ag-attach-btn" title="Anexar PDF" onclick="document.getElementById('agPdfInput').click()">
+          <button class="ag-attach-btn" title="Anexar PDF ou DOCX" onclick="document.getElementById('agPdfInput').click()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </button>
-          <input type="file" accept="application/pdf" id="agPdfInput" style="display:none" onchange="agHandlePdfUpload(this)">
+          <input type="file" accept="application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" id="agPdfInput" style="display:none" multiple onchange="agHandleFileUpload(this)">
 
           <textarea class="ag-chat-input" id="agChatInput" rows="1"
             placeholder="Descreva a oportunidade, cole um link ou envie um PDF…"
@@ -10757,6 +10776,7 @@ window.abrirPainelAgente = function() {
   document.getElementById('panel-agent').style.display = 'block';
   const inner = document.getElementById('panel-agent-inner');
   if (inner) inner.style.display = 'block';
+  agInitDragDrop(); // ativa drag & drop (idempotente)
 
   // Boas-vindas automáticas (só na primeira vez que o painel abre)
   const thread = document.getElementById('agChatThread');
@@ -10789,10 +10809,8 @@ window.agPular = function() {
 };
 
 // ── PDF handling ─────────────────────────────────────────────────
-window.agHandlePdfUpload = function(input) {
-  Array.from(input.files).forEach(agProcessPdf);
-  input.value = '';
-};
+// agHandlePdfUpload mantido como alias para compatibilidade
+window.agHandlePdfUpload = function(input) { agHandleFileUpload(input); };
 
 async function agProcessPdf(file) {
   if (file.type !== 'application/pdf') return;
@@ -10922,7 +10940,7 @@ function agRenderChips() {
   if (!row) return;
   row.innerHTML = window._agState.attachments.map(a => {
     const shortLabel = agEsc(a.label.length > 32 ? a.label.slice(0,32)+'…' : a.label);
-    const icon = a.type === 'pdf' ? '📄' : '🔗';
+    const icon = a.type === 'docx' ? '📝' : a.type === 'pdf' ? '📄' : '🔗';
     const sizeHtml = a.size ? ` <span class="ag-chip-size">· ${agFormatBytes(a.size)}</span>` : '';
 
     // Determina o estado visual do chip
@@ -10962,6 +10980,103 @@ window.agRetryPdfUpload = function(label) {
   agProcessPdf(att._file);
 };
 
+// ── Handler unificado para o <input type="file"> ──────────────────
+function agHandleFileUpload(input) {
+  Array.from(input.files).forEach(agDispatchFile);
+  input.value = '';
+}
+
+// ── Roteador de arquivo: PDF → agProcessPdf, DOCX → agProcessDocx ─
+function agDispatchFile(file) {
+  const name = file.name || '';
+  const type = file.type || '';
+  const isDocx = type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    || name.toLowerCase().endsWith('.docx');
+  if (type === 'application/pdf' || name.toLowerCase().endsWith('.pdf')) {
+    agProcessPdf(file);
+  } else if (isDocx) {
+    agProcessDocx(file);
+  } else {
+    agShowError(`Formato não suportado: "${name}". Use PDF ou DOCX.`);
+  }
+}
+
+// ── Processa DOCX: extrai texto no browser via mammoth.js ─────────
+async function agProcessDocx(file) {
+  const label = file.name;
+  agAddChip('docx', label, null, true, file.size);
+
+  try {
+    // Carrega mammoth.js lazy (só quando necessário)
+    if (typeof mammoth === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Falha ao carregar leitor de DOCX.'));
+        document.head.appendChild(s);
+      });
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    const text = result.value?.trim() || '';
+
+    if (!text) throw new Error('O documento está vazio ou protegido por senha.');
+
+    const idx = window._agState.attachments.findIndex(a => a.label === label && a.type === 'docx');
+    if (idx !== -1) {
+      window._agState.attachments[idx].text  = text;
+      window._agState.attachments[idx].ready = true;
+    }
+    agRenderChips();
+
+  } catch (err) {
+    const idx = window._agState.attachments.findIndex(a => a.label === label && a.type === 'docx');
+    if (idx !== -1) {
+      window._agState.attachments[idx].error = true;
+      window._agState.attachments[idx].ready = false;
+    }
+    agRenderChips();
+    agShowError(`Erro ao ler "${label}": ${err.message}`);
+  }
+}
+
+// ── Drag & drop no chat card ──────────────────────────────────────
+function agInitDragDrop() {
+  const card = document.getElementById('agChatCard');
+  if (!card || card._dragInited) return;
+  card._dragInited = true; // evita duplo registro
+
+  let dragCounter = 0; // evita flickering no dragleave
+
+  card.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    dragCounter++;
+    card.classList.add('ag-drag-active');
+  });
+
+  card.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+
+  card.addEventListener('dragleave', () => {
+    dragCounter--;
+    if (dragCounter <= 0) {
+      dragCounter = 0;
+      card.classList.remove('ag-drag-active');
+    }
+  });
+
+  card.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dragCounter = 0;
+    card.classList.remove('ag-drag-active');
+    Array.from(e.dataTransfer.files).forEach(agDispatchFile);
+  });
+}
+
 // agToggleLinkInput / agAddLink removidos — links são colados direto no chat input
 
 // ── Montar primeira mensagem ─────────────────────────────────────
@@ -10984,11 +11099,17 @@ function agBuildFirstMessage() {
     textParts.push(`[Descrição do usuário]\n${desc.trim()}`);
   }
 
-  // PDFs com fileUri são enviados como file parts (Gemini Files API)
-  // PDFs com content (fallback texto) são embutidos como texto
+  // PDFs com fileUri → file parts (Gemini Files API)
   const fileParts = window._agState.attachments
     .filter(a => a.type === 'pdf' && a.fileUri)
     .map(a => ({ fileUri: a.fileUri, mimeType: a.mimeType || 'application/pdf', label: a.label }));
+
+  // DOCX → texto extraído embutido na mensagem (Gemini não suporta .docx nativamente)
+  window._agState.attachments
+    .filter(a => a.type === 'docx' && a.text && a.ready)
+    .forEach(a => {
+      textParts.push(`[Documento Word: ${a.label}]\n${a.text}`);
+    });
 
   const textContent = textParts.join('\n\n---\n\n');
 
