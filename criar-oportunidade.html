@@ -4247,6 +4247,32 @@ async function loadOrgForLivePreview() {
     }
   }
 
+  // Em modo impersonation: carrega o perfil do cliente, não do admin logado
+  if (window._impersonateCtx) {
+    try {
+      var ctx = window._impersonateCtx;
+      var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + ctx.target_user_id + '&select=empresa,logo_url&limit=1', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + ctx.admin_token }
+      });
+      var rows = res.ok ? await res.json() : [];
+      var perfil = rows[0] || {};
+      var empresa = perfil.empresa || ctx.target_nome || ctx.target_email || 'Detentor';
+      if (orgNameEl) orgNameEl.textContent = empresa;
+      var logoWrap = document.getElementById('lpOrgLogo');
+      if (perfil.logo_url && logoImg && logoInitials) {
+        logoImg.src = perfil.logo_url;
+        logoImg.style.display = 'block';
+        logoInitials.style.display = 'none';
+        if (logoWrap) { logoWrap.style.background = 'var(--gray-1)'; logoWrap.style.border = '1px solid rgba(26,18,0,0.07)'; }
+      } else {
+        setFallback(empresa);
+      }
+    } catch (e) {
+      setFallback(window._impersonateCtx.target_nome || null);
+    }
+    return;
+  }
+
   var session = null;
   if (typeof sb !== 'undefined' && sb) {
     var stored = localStorage.getItem('sb_detentor_session');
