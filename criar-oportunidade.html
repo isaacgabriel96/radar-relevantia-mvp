@@ -11994,8 +11994,10 @@ window.agEnviarResposta = async function() {
     agAddMsg('agent', '', true);
 
     try {
-      // Sempre usa google_search na primeira mensagem — pesquisa redes sociais e contexto
-      const raw = await agCallGemini(window._agState.history, { useSearch: true });
+      // google_search é incompatível com fileData (PDF) no Gemini 2.5 Flash — retorna 400.
+      // Usa search apenas quando não há PDFs; se houver PDF, o contexto vem do próprio arquivo.
+      const hasPdfs = typeof firstMsg === 'object' && firstMsg.files?.length > 0;
+      const raw = await agCallGemini(window._agState.history, { useSearch: !hasPdfs });
       window._agState.history.push({ role: 'assistant', content: raw });
       agRemoveTyping();
       const parsed = agParseResponse(raw);
