@@ -9765,7 +9765,15 @@ async function saveDraft() {
     }
 
     showToast('Rascunho salvo!', 'success');
-    setTimeout(() => { window.location.href = 'dashboard-detentor.html#oportunidades'; }, 1200);
+    setTimeout(() => {
+      if (window._impersonateCtx && oppId) {
+        // Em modo impersonation: fica no formulário com ?edit=<id> para permitir
+        // continuar editando o rascunho sem perder o contexto de impersonation
+        window.location.href = 'criar-oportunidade.html?edit=' + oppId;
+      } else {
+        window.location.href = 'dashboard-detentor.html#oportunidades';
+      }
+    }, 1200);
   } catch (err) {
     console.error('[SaveDraft] Failed:', err);
     showToast('Erro ao salvar rascunho. Tente novamente.', 'error');
