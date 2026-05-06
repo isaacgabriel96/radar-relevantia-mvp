@@ -1797,6 +1797,12 @@ input[type=number] { -moz-appearance: textfield; }
   border-left: 1px solid var(--gray-1); border-radius: 0;
   padding: 0 14px; display: flex; align-items: center;
 }
+.cota-beneficio-desc-preview {
+  display: none; font-size: 12px; color: var(--gray-3);
+  padding: 4px 14px 8px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; line-height: 1.4;
+}
+.cota-beneficio-desc-preview.visible { display: block; }
 .cota-beneficio-desc-wrap { display: none; border-top: 1px solid var(--gray-1); padding: 10px 14px; }
 .cota-beneficio-desc-wrap.open { display: block; }
 .cota-beneficio-desc-wrap textarea {
@@ -9039,7 +9045,10 @@ function addBeneficio(beneficiosList, titulo, descricao) {
       wrap.classList.remove('open');
       var it = wrap.closest('.cota-beneficio-item');
       if (it) {
-        it.classList.remove('has-desc');
+        var val = wrap.querySelector('textarea').value.trim();
+        var preview = it.querySelector('.cota-beneficio-desc-preview');
+        if (preview) { preview.textContent = val; preview.classList.toggle('visible', !!val); }
+        it.classList.toggle('has-desc', !!val);
         var tog = it.querySelector('.cota-beneficio-desc-toggle');
         if (tog) tog.textContent = '+ adicionar descrição';
       }
@@ -9052,6 +9061,7 @@ function addBeneficio(beneficiosList, titulo, descricao) {
       <input type="text" class="form-control cota-ben-titulo" placeholder="Ex: Logo no banner principal">
       <button type="button" class="cota-beneficio-remove" onclick="this.closest('.cota-beneficio-item').remove()" title="Remover">✕</button>
     </div>
+    <div class="cota-beneficio-desc-preview"></div>
     <div class="cota-beneficio-desc-wrap">
       <textarea class="form-control cota-ben-descricao" rows="2" placeholder="Detalhe esta entrega (opcional)…"></textarea>
     </div>
@@ -9071,10 +9081,18 @@ function addBeneficio(beneficiosList, titulo, descricao) {
 function toggleBenDesc(btn) {
   var item = btn.closest('.cota-beneficio-item');
   var wrap = item.querySelector('.cota-beneficio-desc-wrap');
+  var preview = item.querySelector('.cota-beneficio-desc-preview');
   var open = wrap.classList.toggle('open');
-  item.classList.toggle('has-desc', open);
   btn.textContent = open ? '− remover descrição' : '+ adicionar descrição';
-  if (open) wrap.querySelector('textarea').focus();
+  if (open) {
+    if (preview) preview.classList.remove('visible');
+    item.classList.add('has-desc');
+    wrap.querySelector('textarea').focus();
+  } else {
+    var val = wrap.querySelector('textarea').value.trim();
+    if (preview) { preview.textContent = val; preview.classList.toggle('visible', !!val); }
+    item.classList.toggle('has-desc', !!val);
+  }
 }
 
 function renumerarCotas() {
