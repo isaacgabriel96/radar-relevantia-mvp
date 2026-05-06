@@ -3431,7 +3431,7 @@ input[type=number] { -moz-appearance: textfield; }
         <p>Descreva a oportunidade, cole links ou envie um PDF — o agente vai extrair tudo e te dar uma visão completa antes de preencher.</p>
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
           <span class="info-modal-pdf-badge">📎 PDF até 20 MB</span>
-          <button type="button" class="info-how-link" onclick="openInfoModal('comofunciona')">O que o agente preenche?</button>
+          <button type="button" class="info-how-link" onclick="openInfoModal('agente')">O que o agente preenche?</button>
         </div>
       </div>
 
@@ -12689,17 +12689,65 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
   </div>
 </div>
 
+<!-- ════ Modal: Agente IA ════ -->
+<div class="info-modal-overlay" id="infoModalAgente" onclick="if(event.target===this)closeInfoModal('agente')">
+  <div class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoTitleAgent">
+    <div class="info-modal-head">
+      <div class="info-modal-title" id="infoTitleAgent">O que o Assistente preenche?</div>
+      <button type="button" class="info-modal-close" onclick="closeInfoModal('agente')" aria-label="Fechar">✕</button>
+    </div>
+    <div class="info-modal-body">
+      <p class="info-modal-lead">Envie um texto, link ou PDF — o Assistente extrai o que encontrar e preenche os campos automaticamente. Você revisa e ajusta antes de salvar.</p>
+
+      <div class="info-modal-block">
+        <div class="info-modal-block-label">
+          <span class="iml-dot iml-dot-fill"></span>Preenchido automaticamente
+        </div>
+        <div class="info-modal-items">
+          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Nome</strong> <span>e</span> <strong>descrição curta</strong> <span>— pitch de até 280 caracteres</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Descrição completa</strong> <span>— contexto rico, perfil de público e relevância para marcas</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Perfil de marca ideal</strong> <span>— setores, valores e tipo de ativação que faz sentido</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Segmentos de mercado</strong> <span>— categorias de marca com maior fit</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Campos do tipo</strong> <span>— ex: tipo de evento, edição, formato, estilo musical</span></div></div>
+        </div>
+      </div>
+
+      <hr class="info-modal-divider">
+
+      <div class="info-modal-block">
+        <div class="info-modal-block-label">
+          <span class="iml-dot iml-dot-manual"></span>Preenchido por você
+        </div>
+        <div class="info-modal-items">
+          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Canais e redes sociais</strong> <span>— usernames, seguidores e métricas</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Cotas de patrocínio</strong> <span>— valores, benefícios e pacotes</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Datas e locais</strong> <span>— cada data e venue adicionados individualmente</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Foto de capa</strong> <span>— upload manual de imagem</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Link público e visibilidade</strong> <span>— definidos na etapa de publicação</span></div></div>
+        </div>
+      </div>
+
+      <div class="info-modal-note">PDFs aceitos até <strong>20 MB</strong>. O Assistente também fará perguntas para completar o que não encontrou automaticamente.</div>
+    </div>
+  </div>
+</div>
+
 <script>
 function openInfoModal(type) {
-  document.getElementById('infoModalComoFunciona').classList.add('open');
+  const id = type === 'agente' ? 'infoModalAgente' : 'infoModalComoFunciona';
+  document.getElementById(id).classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 function closeInfoModal(type) {
-  document.getElementById('infoModalComoFunciona').classList.remove('open');
+  const id = type === 'agente' ? 'infoModalAgente' : 'infoModalComoFunciona';
+  document.getElementById(id).classList.remove('open');
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeInfoModal();
+  if (e.key === 'Escape') {
+    closeInfoModal('agente');
+    closeInfoModal('comofunciona');
+  }
 });
 </script>
 
