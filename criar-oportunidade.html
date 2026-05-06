@@ -11890,22 +11890,25 @@ window.agPreencher = function() {
     }
   }
 
-  // Marca campos padrão preenchidos com badge
+  // Marca campos padrão preenchidos com badge (panel-2 e panel-3 — não afetados pelo nextStep)
   agMarkStandardFields(formData);
 
-  // Aplica e marca localização (após renderTemplateFields para não ter conflito)
-  agApplyLocalizacao(formData.localizacao_ai || {});
-
-  // Aplica e marca campos específicos do template (DOM já existe após renderTemplateFields)
-  console.log('[agPreencher] localizacao_ai:', JSON.stringify(formData.localizacao_ai));
-  console.log('[agPreencher] detalhes_template_ai:', JSON.stringify(formData.detalhes_template_ai));
-  if (tplKey && formData.detalhes_template_ai) {
-    agApplyTemplateDetalhes(tplKey, formData.detalhes_template_ai);
-  }
-
-  // Vai direto para Detalhes Específicos (panel-5 / step 2)
+  // Vai para Detalhes Específicos (panel-5 / step 2).
+  // IMPORTANTE: nextStep(2) sempre chama renderTemplateFields(), re-renderizando os campos
+  // em branco. Por isso, localização e detalhes_template só podem ser aplicados DEPOIS,
+  // via setTimeout, garantindo que o DOM final já está estável.
   currentStep = 1;
   nextStep(2);
+
+  // Aguarda o renderTemplateFields() do nextStep(2) terminar, depois aplica os dados do agente
+  const _locAi = formData.localizacao_ai || {};
+  const _detAi = formData.detalhes_template_ai || null;
+  setTimeout(() => {
+    agApplyLocalizacao(_locAi);
+    if (tplKey && _detAi) {
+      agApplyTemplateDetalhes(tplKey, _detAi);
+    }
+  }, 50);
 };
 
 // ── Marcar campos padrão preenchidos ─────────────────────────────
