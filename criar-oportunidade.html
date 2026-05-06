@@ -9033,6 +9033,18 @@ document.addEventListener('keydown', function(e) {
 
 function addBeneficio(beneficiosList, titulo, descricao) {
   if (!beneficiosList) return;
+  // Collapse open descriptions when user manually adds a new benefit
+  if (!titulo) {
+    beneficiosList.querySelectorAll('.cota-beneficio-desc-wrap.open').forEach(function(wrap) {
+      wrap.classList.remove('open');
+      var it = wrap.closest('.cota-beneficio-item');
+      if (it) {
+        it.classList.remove('has-desc');
+        var tog = it.querySelector('.cota-beneficio-desc-toggle');
+        if (tog) tog.textContent = '+ adicionar descrição';
+      }
+    });
+  }
   const item = document.createElement('div');
   item.className = 'cota-beneficio-item';
   item.innerHTML = `
