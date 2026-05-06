@@ -102,6 +102,10 @@ export default async function handler(req, res) {
     system_instruction: { parts: [{ text: systemPrompt }] },
     generationConfig: {
       max_output_tokens: 32768,
+      // Force JSON output — previne aspas não-escapadas e texto fora do JSON
+      // (causa raiz do erro "formato inesperado"). Gemini 2.5 Flash suporta
+      // responseMimeType junto com google_search.
+      responseMimeType: 'application/json',
       // Desabilita o "thinking mode" do Gemini 2.5 Flash. Com thinking ativo
       // + PDF + google_search, o modelo às vezes gasta todo o orçamento
       // raciocinando (thought parts) e devolve a resposta final VAZIA.
