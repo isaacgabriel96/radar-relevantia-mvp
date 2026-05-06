@@ -2303,6 +2303,24 @@ const SECTION_TITLES = {
 // ─── INIT ───
 async function init() {
   try {
+    // Verificação server-side: rejeita imediatamente usuários deletados
+    // getUser() faz chamada real ao Supabase — não lê só o cache local
+    if (typeof sb !== 'undefined' && sb) {
+      try {
+        const { data: { user }, error } = await sb.auth.getUser();
+        if (error || !user) {
+          localStorage.removeItem('sb_marca_session');
+          localStorage.removeItem('sb_detentor_session');
+          window.location.href = '/acesso-marca.html';
+          return;
+        }
+      } catch (_) {
+        localStorage.removeItem('sb_marca_session');
+        window.location.href = '/acesso-marca.html';
+        return;
+      }
+    }
+
     // Demo mode banner
     showDemoBannerIfActive();
 

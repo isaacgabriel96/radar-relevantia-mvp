@@ -2363,6 +2363,23 @@ function showSectionTab(sectionId, subTab) {
 
 // ─── INIT ───
 async function init() {
+  // Verificação server-side: rejeita imediatamente usuários deletados
+  if (typeof sb !== 'undefined' && sb) {
+    try {
+      const { data: { user }, error } = await sb.auth.getUser();
+      if (error || !user) {
+        localStorage.removeItem('sb_marca_session');
+        localStorage.removeItem('sb_detentor_session');
+        window.location.href = '/acesso-detentor.html';
+        return;
+      }
+    } catch (_) {
+      localStorage.removeItem('sb_detentor_session');
+      window.location.href = '/acesso-detentor.html';
+      return;
+    }
+  }
+
   // Oculta loading imediatamente + renderiza timeline vazia (evita skeleton preso quando DNS falha)
   setTimeout(() => {
     const ls = document.getElementById('loadingScreen');
