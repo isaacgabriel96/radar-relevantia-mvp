@@ -2311,12 +2311,12 @@ async function init() {
         if (error || !user) {
           localStorage.removeItem('sb_marca_session');
           localStorage.removeItem('sb_detentor_session');
-          window.location.href = '/acesso-marca.html';
+          window.location.href = '/index.html';
           return;
         }
       } catch (_) {
         localStorage.removeItem('sb_marca_session');
-        window.location.href = '/acesso-marca.html';
+        window.location.href = '/index.html';
         return;
       }
     }
