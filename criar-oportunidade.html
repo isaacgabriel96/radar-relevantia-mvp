@@ -11707,7 +11707,17 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
     || (await getSessionAsync('rightsholder'))?.access_token
     || (await getSessionAsync('brand'))?.access_token;
 
-  // Após 15s sem resposta, atualiza o typing indicator com aviso de pesquisa na web
+  // AbortController — cancela a requisição após 150s para evitar loading eterno
+  // (Vercel tem maxDuration=120s; 150s dá margem para overhead de rede)
+  const controller = new AbortController();
+  const abortTimer = setTimeout(() => controller.abort(), 150000);
+
+  // Detecta se há PDF na primeira mensagem — altera a mensagem de hint e o prazo
+  const hasPdfInMessages = messages.some(
+    m => typeof m.content === 'object' && Array.isArray(m.content.files) && m.content.files.length > 0
+  );
+
+  // Após 15s sem resposta, atualiza o typing indicator com aviso contextual
   let searchHintTimer = null;
   if (useSearch) {
     searchHintTimer = setTimeout(() => {
@@ -11715,7 +11725,9 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
       if (typingEl) {
         const bubble = typingEl.querySelector('.ag-msg-bubble');
         if (bubble) {
-          bubble.innerHTML = '<span style="opacity:0.7;font-size:13px">🔍 Pesquisando na web… pode levar até 30 segundos</span>';
+          bubble.innerHTML = hasPdfInMessages
+            ? '<span style="opacity:0.7;font-size:13px">📄 Lendo o PDF e pesquisando na web… pode levar até 1 minuto</span>'
+            : '<span style="opacity:0.7;font-size:13px">🔍 Pesquisando na web… pode levar até 30 segundos</span>';
         }
       }
     }, 15000);
@@ -11724,6 +11736,7 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
   try {
     const response = await fetch('/api/gemini-agent', {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -11746,7 +11759,13 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
 
     console.log('[agCallGemini] raw response (primeiros 500 chars):', data.text.slice(0, 500));
     return data.text;
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('A IA demorou demais para responder (>2 min). Tente novamente ou simplifique a entrada.');
+    }
+    throw err;
   } finally {
+    clearTimeout(abortTimer);
     if (searchHintTimer) clearTimeout(searchHintTimer);
   }
 }
@@ -12024,7 +12043,19 @@ window.agEnviarResposta = async function() {
 
     try {
       const hasLinks = /https?:\/\//.test(text.trim());
-      const raw = await agCallGemini(window._agState.history, { useSearch: hasLinks });
+
+      // Nas mensagens seguintes, strip fileData do histórico — o PDF já foi
+      // processado na primeira mensagem e o conteúdo está no JSON da resposta [1].
+      // Evita re-extração custosa a cada turno e mantém chamada única ao Gemini.
+      const messagesForApi = window._agState.history.map((m) => {
+        if (typeof m.content === 'object' && Array.isArray(m.content.files) && m.content.files.length > 0) {
+          // Preserva o texto descritivo; remove fileData (já processado)
+          return { ...m, content: m.content.text?.trim() || '[PDF processado na primeira mensagem]' };
+        }
+        return m;
+      });
+
+      const raw = await agCallGemini(messagesForApi, { useSearch: hasLinks });
       window._agState.history.push({ role: 'assistant', content: raw });
       agRemoveTyping();
       const parsed = agParseResponse(raw);
@@ -12049,54 +12080,26 @@ function agToFormData(result) {
   const TIPO_MAP = { personalidade: 'personalidade', evento: 'evento', artista: 'artista', midia: 'midia' };
   const tipo = v('tipo');
 
-  const redesSociais = {};
-  const canais = v('canais') || [];
-  canais.forEach(canal => {
-    const rede = canal.rede?.valor ?? canal.rede;
-    const user = canal.username?.valor ?? canal.username;
-    if (!rede || !user) return;
-    if (!redesSociais[rede]) redesSociais[rede] = [];
-    redesSociais[rede].push(user);
-  });
-
-  const cotasRaw = v('cotas') || [];
-  const cotasHabilitadas = cotasRaw.length > 0;
-  const cotasData = cotasRaw.map(cota => ({
-    nome:       cota.nome?.valor      ?? cota.nome       ?? '',
-    valor:      cota.valor?.valor     ?? cota.valor      ?? null,
-    moeda:      cota.moeda?.valor     ?? cota.moeda      ?? 'BRL',
-    vagas:      cota.vagas?.valor     ?? cota.vagas      ?? null,
-    descricao:  cota.descricao?.valor ?? cota.descricao  ?? '',
-    beneficios: cota.beneficios?.valor ?? cota.beneficios ?? [],
-  }));
-
-  const incRaw = v('incentivo') || {};
-  const projetoIncentivado = (incRaw.tem_incentivo?.valor ?? incRaw.tem_incentivo) === true;
-  const incentivoData = projetoIncentivado ? {
-    lei:              incRaw.lei?.valor              ?? incRaw.lei              ?? '',
-    categoria:        incRaw.categoria?.valor        ?? incRaw.categoria        ?? '',
-    valor_aprovado:   incRaw.valor_aprovado?.valor   ?? incRaw.valor_aprovado   ?? null,
-    status_incentivo: incRaw.status_incentivo?.valor ?? incRaw.status_incentivo ?? '',
-  } : null;
+  // Nota: canais, cotas e incentivo NÃO são extraídos pelo agente (prompt proíbe).
+  // O usuário preenche essas seções manualmente no formulário.
 
   const segmentosRaw = v('segmentos') || [];
   const tags = segmentosRaw.map(s => AG_SEGMENTO_MAP[s] || s);
 
-  // Novos campos
   const localizacaoRaw = v('localizacao') || {};
   const detalhesTemplateRaw = v('detalhes_template') || {};
 
   return {
     categoria: TIPO_MAP[tipo] || (formState && formState.selectedTemplate) || 'evento',
     titulo:    v('nome_oportunidade') || '',
-    descricao: (v('descricao_curta') || '').substring(0, 300),
+    descricao: (v('descricao_curta') || '').substring(0, 280),
     descricao_completa: v('descricao_completa') || '',
-    detalhes: { busca_marca: (v('busca_marca') || '').substring(0, 500) },
-    redes_sociais: redesSociais,
-    cotas_habilitadas: cotasHabilitadas,
-    cotas_data: cotasData.length > 0 ? cotasData : null,
-    projeto_incentivado: projetoIncentivado,
-    incentivo_data: incentivoData,
+    detalhes: { busca_marca: (v('busca_marca') || '').substring(0, 480) },
+    redes_sociais: {},
+    cotas_habilitadas: false,
+    cotas_data: null,
+    projeto_incentivado: false,
+    incentivo_data: null,
     tags,
     localizacao_ai: localizacaoRaw,
     detalhes_template_ai: detalhesTemplateRaw,
@@ -12223,7 +12226,7 @@ function agApplyLocalizacao(loc) {
     paisEl.dispatchEvent(new Event('change'));
     agMarkField('opp-pais', 'panel-5', () => {
       const el = document.getElementById('opp-pais');
-      if (el) { el.value = 'Brasil'; el.dispatchEvent(new Event('change')); }
+      if (el) { el.value = ''; el.dispatchEvent(new Event('change')); }
     });
   }
 
