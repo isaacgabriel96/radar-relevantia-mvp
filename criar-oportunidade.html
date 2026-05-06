@@ -9858,7 +9858,13 @@ async function silentSaveDraft() {
       }
     } else if (window._impersonateCtx) {
       oppId = await _impersonateCreateOportunidade(data, 'rascunho');
-      if (oppId) formState.editId = oppId;
+      if (oppId) {
+        formState.editId = oppId;
+        // Inicia intervalo periódico após primeira criação (igual ao fluxo normal)
+        if (!_autoSaveInterval) {
+          _autoSaveInterval = setInterval(silentSaveDraft, 60000);
+        }
+      }
     } else {
       // POST
       const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades', {
