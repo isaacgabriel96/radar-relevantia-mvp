@@ -1782,6 +1782,16 @@ input[type=number] { -moz-appearance: textfield; }
   background: none; border: none; cursor: pointer;
   color: var(--gray-3); font-size: 15px; flex-shrink: 0;
 }
+.cota-beneficio-item { margin-bottom: 8px; }
+.cota-beneficio-item .cota-beneficio-row { margin-bottom: 0; }
+.cota-beneficio-desc-toggle {
+  display: inline-block; font-size: 11px; color: var(--gold);
+  cursor: pointer; padding: 3px 0 2px; user-select: none; opacity: 0.8;
+}
+.cota-beneficio-desc-toggle:hover { opacity: 1; }
+.cota-beneficio-desc-wrap { display: none; padding-top: 4px; }
+.cota-beneficio-desc-wrap.open { display: block; }
+.cota-beneficio-desc-wrap textarea { font-size: 12px; resize: vertical; min-height: 52px; }
 
 /* ── Cotas List (lista vertical, cards horizontais) ── */
 #cotas-list { display: flex; flex-direction: column; gap: 12px; }
@@ -5696,11 +5706,10 @@ function _applyPendingDetalhes(tplKey) {
           const benefList = card.querySelector('.cota-beneficios-list');
           if (benefList && Array.isArray(cota.beneficios) && cota.beneficios.length > 0) {
             benefList.innerHTML = ''; // Remove o benefício default
-            cota.beneficios.forEach(bText => {
-              addBeneficio(benefList);
-              const inputs = benefList.querySelectorAll('input');
-              const lastInput = inputs[inputs.length - 1];
-              if (lastInput) lastInput.value = bText;
+            cota.beneficios.forEach(b => {
+              const titulo = typeof b === 'string' ? b : (b?.titulo || '');
+              const descricao = typeof b === 'string' ? '' : (b?.descricao || '');
+              addBeneficio(benefList, titulo, descricao);
             });
           }
           // Exibir preview card (dados já preenchidos)
@@ -6141,8 +6150,9 @@ function collectFormData() {
       const nome = card.querySelector('.cota-nome')?.value || `Cota ${i+1}`;
       const valor = card.querySelector('.cota-valor')?.value || '';
       const vagas = card.querySelector('.cota-vagas')?.value || '';
-      const bens = Array.from(card.querySelectorAll('.cota-beneficios-list input'))
-        .map(el => el.value).filter(Boolean);
+      const bens = Array.from(card.querySelectorAll('.cota-beneficios-list .cota-beneficio-item'))
+        .map(item => ({ titulo: item.querySelector('.cota-ben-titulo')?.value || '', descricao: item.querySelector('.cota-ben-descricao')?.value || '' }))
+        .filter(b => b.titulo);
       data.cotas.push({ nome, valor, vagas, beneficios: bens });
     });
   }
@@ -8782,9 +8792,9 @@ function _cotaSalvar(card) {
 
   // Benefícios
   const bens = [];
-  card.querySelectorAll('.cota-beneficio-row input').forEach(inp => {
-    const v = inp.value.trim();
-    if (v) bens.push(v);
+  card.querySelectorAll('.cota-beneficio-item').forEach(item => {
+    const titulo = (item.querySelector('.cota-ben-titulo')?.value || '').trim();
+    if (titulo) bens.push({ titulo, descricao: (item.querySelector('.cota-ben-descricao')?.value || '').trim() });
   });
 
   // Fotos — pegar src das previews já inseridas
@@ -8809,7 +8819,7 @@ function _cotaSalvar(card) {
   let pillsHtml = '';
   if (bens.length > 0) {
     pillsHtml = '<div class="opp-card-h-preview-pills">';
-    bens.slice(0, maxPills).forEach(b => { pillsHtml += `<span class="opp-card-h-preview-pill">✦ ${b}</span>`; });
+    bens.slice(0, maxPills).forEach(b => { var t = typeof b === 'string' ? b : (b?.titulo || ''); pillsHtml += `<span class="opp-card-h-preview-pill">✦ ${t}</span>`; });
     if (bens.length > maxPills) pillsHtml += `<span class="opp-card-h-preview-pill more">+${bens.length - maxPills}</span>`;
     pillsHtml += '</div>';
   }
@@ -8894,9 +8904,10 @@ function _readCotaData(card) {
   var mostrar = card.querySelector('.cota-mostrar-valor')?.checked !== false;
   var vagas   = card.querySelector('.cota-vagas')?.value.trim() || '';
   var desc    = card.querySelector('.cota-descricao')?.value.trim() || '';
-  var bens    = [];
-  card.querySelectorAll('.cota-beneficio-row input').forEach(function(inp) {
-    var v = inp.value.trim(); if (v) bens.push(v);
+  var bens = [];
+  card.querySelectorAll('.cota-beneficio-item').forEach(function(item) {
+    var titulo = (item.querySelector('.cota-ben-titulo')?.value || '').trim();
+    if (titulo) bens.push({ titulo: titulo, descricao: (item.querySelector('.cota-ben-descricao')?.value || '').trim() });
   });
   var fotos = [];
   card.querySelectorAll('.cota-photos-grid img').forEach(function(img) { fotos.push(img.src); });
@@ -8926,7 +8937,13 @@ function _renderCotaModal(idx) {
   var bensHtml = '';
   if (d.bens.length > 0) {
     bensHtml = '<p class="cota-modal-bens-title">Benefícios incluídos</p><ul class="cota-modal-bens-list">';
-    d.bens.forEach(function(b) { bensHtml += '<li>' + b + '</li>'; });
+    d.bens.forEach(function(b) {
+      var titulo = typeof b === 'string' ? b : (b?.titulo || '');
+      var desc   = typeof b === 'string' ? '' : (b?.descricao || '');
+      bensHtml += '<li><div>' + escapeHtml(titulo);
+      if (desc) bensHtml += '<div style="font-size:11px;color:var(--gray-3);margin-top:2px;line-height:1.4">' + escapeHtml(desc) + '</div>';
+      bensHtml += '</div></li>';
+    });
     bensHtml += '</ul>';
   }
 
@@ -8993,16 +9010,34 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'ArrowRight') navCotaModal(1);
 });
 
-function addBeneficio(beneficiosList) {
+function addBeneficio(beneficiosList, titulo, descricao) {
   if (!beneficiosList) return;
-  const row = document.createElement('div');
-  row.className = 'cota-beneficio-row';
-  row.innerHTML = `
-    <input type="text" class="form-control" placeholder="Ex: Logo no banner principal">
-    <button type="button" class="cota-beneficio-remove" onclick="this.parentElement.remove()" title="Remover">✕</button>
+  const item = document.createElement('div');
+  item.className = 'cota-beneficio-item';
+  item.innerHTML = `
+    <div class="cota-beneficio-row">
+      <input type="text" class="form-control cota-ben-titulo" placeholder="Ex: Logo no banner principal">
+      <button type="button" class="cota-beneficio-remove" onclick="this.closest('.cota-beneficio-item').remove()" title="Remover">✕</button>
+    </div>
+    <span class="cota-beneficio-desc-toggle" onclick="toggleBenDesc(this)">+ adicionar descrição</span>
+    <div class="cota-beneficio-desc-wrap">
+      <textarea class="form-control cota-ben-descricao" rows="2" placeholder="Detalhe esta entrega (opcional)…"></textarea>
+    </div>
   `;
-  beneficiosList.appendChild(row);
-  row.querySelector('input').focus();
+  beneficiosList.appendChild(item);
+  if (titulo) item.querySelector('.cota-ben-titulo').value = titulo;
+  if (descricao) {
+    item.querySelector('.cota-ben-descricao').value = descricao;
+    toggleBenDesc(item.querySelector('.cota-beneficio-desc-toggle'));
+  }
+  if (!titulo) item.querySelector('.cota-ben-titulo').focus();
+}
+
+function toggleBenDesc(btn) {
+  var wrap = btn.nextElementSibling;
+  var open = wrap.classList.toggle('open');
+  btn.textContent = open ? '− remover descrição' : '+ adicionar descrição';
+  if (open) wrap.querySelector('textarea').focus();
 }
 
 function renumerarCotas() {
@@ -9518,7 +9553,7 @@ function collectOppData() {
         mostrar_valor: card.querySelector('.cota-mostrar-valor')?.checked !== false,
         vagas: card.querySelector('.cota-vagas')?.value || '',
         descricao: card.querySelector('.cota-descricao')?.value || '',
-        beneficios: Array.from(card.querySelectorAll('.cota-beneficios-list input')).map(el => el.value).filter(Boolean),
+        beneficios: Array.from(card.querySelectorAll('.cota-beneficios-list .cota-beneficio-item')).map(item => ({ titulo: item.querySelector('.cota-ben-titulo')?.value || '', descricao: item.querySelector('.cota-ben-descricao')?.value || '' })).filter(b => b.titulo),
         imagens: [] // populated after upload via uploadCotaPhotos()
       });
     });
@@ -10563,14 +10598,14 @@ function loadMockData() {
           if (valorInput) valorInput.value = '150000';
           const vagasInput = cota1.querySelector('.cota-vagas');
           if (vagasInput) vagasInput.value = '2';
-          const benInput = cota1.querySelector('.cota-beneficios-list input');
+          const benInput = cota1.querySelector('.cota-beneficios-list .cota-ben-titulo');
           if (benInput) benInput.value = 'Naming rights — "Copa [Marca] de Surf"';
           // Adicionar mais benefícios
           const benList = cota1.querySelector('.cota-beneficios-list');
           if (benList) {
             addBeneficio(benList);
             addBeneficio(benList);
-            const benInputs = benList.querySelectorAll('input');
+            const benInputs = benList.querySelectorAll('.cota-ben-titulo');
             if (benInputs[1]) benInputs[1].value = 'Logo principal no backdrop, pódio e camisetas';
             if (benInputs[2]) benInputs[2].value = 'Espaço exclusivo 50m² para ativação de marca';
           }
@@ -10588,12 +10623,12 @@ function loadMockData() {
             if (valorInput) valorInput.value = '75000';
             const vagasInput = cota2.querySelector('.cota-vagas');
             if (vagasInput) vagasInput.value = '4';
-            const benInput = cota2.querySelector('.cota-beneficios-list input');
+            const benInput = cota2.querySelector('.cota-beneficios-list .cota-ben-titulo');
             if (benInput) benInput.value = 'Logo no backdrop e materiais impressos';
             const benList = cota2.querySelector('.cota-beneficios-list');
             if (benList) {
               addBeneficio(benList);
-              const benInputs = benList.querySelectorAll('input');
+              const benInputs = benList.querySelectorAll('.cota-ben-titulo');
               if (benInputs[1]) benInputs[1].value = 'Estande 25m² na área de experiências';
             }
           }
@@ -10610,7 +10645,7 @@ function loadMockData() {
               if (valorInput) valorInput.value = '30000';
               const vagasInput = cota3.querySelector('.cota-vagas');
               if (vagasInput) vagasInput.value = '8';
-              const benInput = cota3.querySelector('.cota-beneficios-list input');
+              const benInput = cota3.querySelector('.cota-beneficios-list .cota-ben-titulo');
               if (benInput) benInput.value = 'Logo nos materiais digitais e redes sociais';
             }
 
