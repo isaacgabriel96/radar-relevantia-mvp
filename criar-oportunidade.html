@@ -12081,7 +12081,13 @@ function agApplyTemplateDetalhes(tplKey, detalhes) {
     } else if (type === 'tag-select') {
       const vals = Array.isArray(val) ? val : [val];
       vals.forEach(v => {
-        const opt = el.querySelector('.tag-sel-opt[data-val="' + v + '"]');
+        // Tenta match exato; se não achar, tenta case-insensitive
+        let opt = el.querySelector('.tag-sel-opt[data-val="' + v + '"]');
+        if (!opt) {
+          opt = [...el.querySelectorAll('.tag-sel-opt')].find(o =>
+            o.dataset.val.toLowerCase() === String(v).toLowerCase()
+          );
+        }
         if (opt && !opt.classList.contains('ts-selected')) {
           _tagSelSelect(opt);
         }
