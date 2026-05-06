@@ -3189,6 +3189,7 @@ input[type=number] { -moz-appearance: textfield; }
       <div class="agent-header">
         <h2>✦ Assistente de Cadastro</h2>
         <p>Descreva a oportunidade, cole links ou envie um PDF — o agente vai extrair tudo e te dar uma visão completa antes de preencher.</p>
+        <p style="margin-top:6px;font-size:12px;color:var(--gray-3)">📎 PDFs aceitos até 20 MB · O agente preenche nome, descrições, segmentos e campos específicos do tipo — canais e cotas são preenchidos manualmente.</p>
       </div>
 
       <!-- Chat card (tela cheia desde o início) -->
@@ -11932,17 +11933,27 @@ function agMarkStandardFields(formData) {
     });
   }
   if (formData.descricao_completa) {
-    // Quill não tem label acessível — registra no banner de panel-3 sem badge de campo
-    window._agFilledFields['__desc_completa__'] = {
-      panelId: 'panel-3',
-      clearFn: () => {
-        if (typeof s3AlwaysOnQuill !== 'undefined' && s3AlwaysOnQuill) {
-          s3AlwaysOnQuill.setContents([]);
-        }
-        step3Data.descCompleta = '';
-        step3Data.descCompletaText = '';
+    const descKey = '__desc_completa__';
+    const clearDescFn = () => {
+      if (typeof s3AlwaysOnQuill !== 'undefined' && s3AlwaysOnQuill) {
+        s3AlwaysOnQuill.setContents([]);
       }
+      step3Data.descCompleta = '';
+      step3Data.descCompletaText = '';
+      // Remove badge do h3
+      const b = document.querySelector('.ag-field-badge[data-ag-field-id="' + descKey + '"]');
+      if (b) b.remove();
     };
+    window._agFilledFields[descKey] = { panelId: 'panel-3', clearFn: clearDescFn };
+    // Adiciona badge ao h3 da seção Quill (não tem label, mas tem detail-section-title)
+    const h3 = document.querySelector('#s3Section_descCompleta .detail-section-title');
+    if (h3 && !h3.querySelector('[data-ag-field-id]')) {
+      const badge = document.createElement('span');
+      badge.className = 'ag-field-badge';
+      badge.dataset.agFieldId = descKey;
+      badge.innerHTML = '✦ IA <button type="button" class="ag-field-badge-clear" title="Limpar descrição preenchida pela IA" onclick="event.stopPropagation();agClearField(\'' + descKey + '\')">✕</button>';
+      h3.appendChild(badge);
+    }
     _agUpdateBanner('panel-3');
   }
   if (formData.tags && formData.tags.length > 0) {
