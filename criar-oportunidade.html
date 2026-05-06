@@ -10182,14 +10182,18 @@ async function initSession() {
     return;
   }
 
-  const name = user.user_metadata?.full_name || user.user_metadata?.nome || user.email || 'Usuário';
-  const initials = name.split(' ').filter(w => w.length > 0).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '??';
-  const avatarEl = document.getElementById('avatarInitials');
-  const nameEl   = document.getElementById('sidebarUserName');
-  const emailEl  = document.getElementById('sidebarEmail');
-  if (avatarEl) avatarEl.textContent = initials;
-  if (nameEl)   nameEl.textContent   = name;
-  if (emailEl)  emailEl.textContent  = user.email || '';
+  // Em modo impersonation, o sidebar já foi preenchido com os dados do cliente
+  // em initImpersonateMode() — não sobrescrever com os dados do admin
+  if (!window._impersonateCtx) {
+    const name = user.user_metadata?.full_name || user.user_metadata?.nome || user.email || 'Usuário';
+    const initials = name.split(' ').filter(w => w.length > 0).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '??';
+    const avatarEl = document.getElementById('avatarInitials');
+    const nameEl   = document.getElementById('sidebarUserName');
+    const emailEl  = document.getElementById('sidebarEmail');
+    if (avatarEl) avatarEl.textContent = initials;
+    if (nameEl)   nameEl.textContent   = name;
+    if (emailEl)  emailEl.textContent  = user.email || '';
+  }
 }
 
 async function doLogout() {
