@@ -3431,6 +3431,7 @@ input[type=number] { -moz-appearance: textfield; }
         <p>Descreva a oportunidade, cole links ou envie um PDF — o agente vai extrair tudo e te dar uma visão completa antes de preencher.</p>
         <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
           <span class="info-modal-pdf-badge">📎 PDF até 20 MB</span>
+          <button type="button" class="info-how-link" onclick="openInfoModal('comofunciona')">O que o agente preenche?</button>
         </div>
       </div>
 
@@ -12699,6 +12700,7 @@ function closeInfoModal(type) {
 }
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeInfoModal();
+});
 </script>
 
 </body>
