@@ -3135,10 +3135,25 @@ function toggleEditMarca() {
 async function saveMarca() {
   // Perfil da marca: [0]=nome hidden, [1]=segmento, [2]=website, [3]=descricao
   const fields = document.querySelectorAll('.marca-field');
+  const segmento = fields[1]?.value || '';
+  const descricao = fields[3]?.value?.trim() || '';
+
+  // Validate required fields before closing edit mode
+  if (!segmento) {
+    showToast('Selecione o segmento da empresa.', 'error');
+    _sgHighlightFields('.marca-field', [1]);
+    return;
+  }
+  if (!descricao) {
+    showToast('A descrição da empresa é obrigatória.', 'error');
+    _sgHighlightFields('.marca-field', [3]);
+    return;
+  }
+
   const updates = {
-    segmento:  fields[1]?.value || null,
+    segmento,
     website:   fields[2]?.value?.trim() || null,
-    descricao: fields[3]?.value?.trim() || null
+    descricao,
   };
   toggleEditMarca();
   if (!isDemoMode()) {
@@ -3152,6 +3167,8 @@ async function saveMarca() {
       });
     }
   }
+  OB_MARCA.perfil = true;
+  updateSetupGuide();
   showToast('Perfil da marca salvo com sucesso!', 'success');
 }
 
@@ -5140,6 +5157,25 @@ function renderDealsPropostas() {
 document.addEventListener('DOMContentLoaded', () => {
   renderDealsPropostas();
   _updateFavCount();
+
+  // ── Live Setup Guide updates ──────────────────────────────────
+  // Marca fields: recalc OB_MARCA.perfil as user types
+  ['input', 'change'].forEach(ev => {
+    document.addEventListener(ev, e => {
+      if (e.target.matches('.marca-field')) {
+        const f = document.querySelectorAll('.marca-field');
+        OB_MARCA.perfil = !!(f[0]?.value?.trim()) && !!(f[1]?.value) && !!(f[3]?.value?.trim());
+        updateSetupGuide();
+      }
+      if (e.target.matches('.juridico-marca-field')) {
+        const cnpj  = document.getElementById('jur-marca-cnpj')?.value.trim();
+        const razao = document.getElementById('jur-marca-razao')?.value.trim();
+        OB_MARCA.juridico = !!(cnpj && razao);
+        updateSetupGuide();
+      }
+    });
+  });
+
   const ta = document.getElementById('vozMensagem');
   if (ta) {
     ta.addEventListener('input', () => {
@@ -6063,6 +6099,8 @@ async function saveJuridicoMarca() {
       });
     }
   }
+  OB_MARCA.juridico = !!(updates.cnpj && updates.razao_social);
+  updateSetupGuide();
   showToast('Dados jurídicos salvos com sucesso!', 'success');
 }
 

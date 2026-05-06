@@ -3434,17 +3434,32 @@ function toggleEditEmpresa() {
 }
 
 async function saveEmpresa() {
+  const fields = document.querySelectorAll('.empresa-field');
+  const segmento = fields[1]?.value || '';
+  const descricao = fields[3]?.value?.trim() || '';
+
+  // Validate required fields before closing edit mode
+  if (!segmento) {
+    showToast('Selecione o segmento da empresa.', 'error');
+    _sgHighlightFields('.empresa-field', [1]);
+    return;
+  }
+  if (!descricao) {
+    showToast('A descrição da empresa é obrigatória.', 'error');
+    _sgHighlightFields('.empresa-field', [3]);
+    return;
+  }
+
   toggleEditEmpresa();
   // Persist to Supabase perfis table — segmento, website, descricao
   // (nome/empresa_domain/logo_url só mudam via fluxo "Trocar" no card de identidade)
   if (!isDemoMode()) {
-    const fields = document.querySelectorAll('.empresa-field');
     const userId = await getAuthUserId();
     if (userId && fields.length >= 2) {
       const updates = {
-        segmento:  fields[1]?.value || null,
+        segmento,
         website:   fields[2]?.value?.trim() || null,
-        descricao: fields[3]?.value?.trim() || null,
+        descricao,
       };
       const token = await _getWriteToken();
       if (token) {
@@ -3458,6 +3473,8 @@ async function saveEmpresa() {
       }
     }
   }
+  OB_DET.perfil = true;
+  updateSetupGuide();
   showToast('Dados da empresa salvos com sucesso!', 'success');
 }
 
@@ -5302,6 +5319,25 @@ function _buildDealsFilterOptions() { /* legado */ }
 // Init on load
 document.addEventListener('DOMContentLoaded', function() {
   // Note: renderPublicadas, renderNegociacoes, renderDeals all called from init() after async loads
+
+  // ── Live Setup Guide updates ──────────────────────────────────
+  // Empresa fields: recalc OB_DET.perfil as user types
+  ['input', 'change'].forEach(ev => {
+    document.addEventListener(ev, e => {
+      if (e.target.matches('.empresa-field')) {
+        const f = document.querySelectorAll('.empresa-field');
+        OB_DET.perfil = !!(f[0]?.value?.trim()) && !!(f[1]?.value) && !!(f[3]?.value?.trim());
+        updateSetupGuide();
+      }
+      if (e.target.matches('.juridico-field')) {
+        const cnpj  = document.getElementById('jur-cnpj')?.value.trim();
+        const razao = document.getElementById('jur-razao')?.value.trim();
+        OB_DET.juridico = !!(cnpj && razao);
+        updateSetupGuide();
+      }
+    });
+  });
+
   updateVozBadge();
   const ta = document.getElementById('vozMensagem');
   if (ta) {
@@ -5425,6 +5461,8 @@ async function saveJuridico() {
     document.querySelectorAll('.juridico-field').forEach(el => el.disabled = true);
     document.getElementById('juridicoActions').style.display = 'none';
     document.getElementById('btnEditJuridico').textContent = 'Editar';
+    OB_DET.juridico = !!(patch.cnpj && patch.razao_social);
+    updateSetupGuide();
   }
 }
 
