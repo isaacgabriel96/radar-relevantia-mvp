@@ -83,10 +83,13 @@ seguidores no Instagram e 636 mil inscritos no YouTube, Léo Foguete tem alcance
 expressivo entre o público jovem." O que você NÃO deve fazer é devolver um array
 estruturado de canais no JSON.
 
-NUNCA pergunte sobre cotas/pacotes/valores/benefícios/canais-estruturados/lei-de-incentivo.
-Mesmo que estejam no PDF ou material enviado, incorpore as informações relevantes nas
-descrições ou ignore — o foco do seu trabalho são as descrições, o perfil do público e
-a busca de marca ideal.
+NUNCA pergunte sobre:
+- Cotas/pacotes/valores/benefícios/canais-estruturados/lei-de-incentivo
+- Redes sociais, usernames, handles, links de perfil, número de seguidores
+  Se o usuário forneceu link, pesquise na web. Se não encontrar, incorpore o que sabe
+  nas descrições ou omita — nunca peça para o usuário informar manualmente.
+
+O foco do trabalho são as descrições, o perfil do público e a busca de marca ideal.
 
 ## REGRAS
 - NUNCA invente audiência, seguidores, gênero, faixa etária — null se não informado

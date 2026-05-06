@@ -11878,6 +11878,8 @@ window.agPreencher = function() {
   agApplyLocalizacao(formData.localizacao_ai || {});
 
   // Aplica e marca campos específicos do template (DOM já existe após renderTemplateFields)
+  console.log('[agPreencher] localizacao_ai:', JSON.stringify(formData.localizacao_ai));
+  console.log('[agPreencher] detalhes_template_ai:', JSON.stringify(formData.detalhes_template_ai));
   if (tplKey && formData.detalhes_template_ai) {
     agApplyTemplateDetalhes(tplKey, formData.detalhes_template_ai);
   }
@@ -12004,6 +12006,14 @@ function agApplyLocalizacao(loc) {
 // ── Aplicar e marcar campos específicos do template ───────────────
 function agApplyTemplateDetalhes(tplKey, detalhes) {
   if (!detalhes || typeof detalhes !== 'object') return;
+
+  // Modelo pode retornar aninhado sob a chave do tipo: { "evento": { tipos: [...] } }
+  // ou diretamente: { tipos: [...] }. Trata os dois.
+  const d = (detalhes[tplKey] && typeof detalhes[tplKey] === 'object')
+    ? detalhes[tplKey]
+    : detalhes;
+  detalhes = d;
+  console.log('[agApplyTemplateDetalhes] tplKey:', tplKey, '| detalhes:', JSON.stringify(detalhes));
 
   // Mapeamento: chave no JSON do agente → { fieldId, type, options }
   const fieldMap = {
