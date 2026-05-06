@@ -152,6 +152,9 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
   cursor: pointer; transition: all .15s; font-family: var(--font-body);
 }
 .btn-draft:hover { border-color: var(--gold-border); color: var(--brown-warm); }
+.btn-howto { display: inline-flex; align-items: center; gap: 5px; }
+.btn-howto-icon { display: none; flex-shrink: 0; }
+.btn-howto-text { display: inline; }
 #incentivo-delete-btn { display: none; align-items: center; gap: 6px; }
 #incentivo-delete-btn:hover { border-color: rgba(200,50,50,0.5) !important; color: #C83232 !important; background: rgba(200,50,50,0.04); }
 
@@ -1997,6 +2000,24 @@ input[type=number] { -moz-appearance: textfield; }
   border: 1px solid var(--gray-2); white-space: nowrap;
 }
 
+/* ── info-modal mobile ── */
+@media (max-width: 600px) {
+  .info-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .info-modal {
+    max-width: 100%;
+    max-height: 90dvh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(100%);
+  }
+  .info-modal-overlay.open .info-modal { transform: translateY(0); }
+  .info-modal-head { padding: 20px 20px 16px; }
+  .info-modal-title { font-size: 18px; }
+  .info-modal-body { padding: 18px 20px 28px; }
+}
+
 /* ── Modal "Como funciona" — guia completo ── */
 .hf-modal-overlay {
   position: fixed; inset: 0; background: rgba(26,18,0,0.52);
@@ -2082,10 +2103,37 @@ input[type=number] { -moz-appearance: textfield; }
 .hf-subtypes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 0; }
 .hf-subtype { font-size: 12px; color: var(--gray-3); padding: 8px 10px; background: var(--gray-1); border-radius: var(--radius-base); }
 .hf-subtype strong { display: block; font-size: 12.5px; color: var(--text-dark); margin-bottom: 2px; }
-@media (max-width: 480px) {
-  .hf-modal { max-height: 92vh; }
-  .hf-modal-head, .hf-modal-body { padding-left: 18px; padding-right: 18px; }
+@media (max-width: 600px) {
+  /* Modal vira bottom-sheet */
+  .hf-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .hf-modal {
+    max-width: 100%;
+    max-height: 92dvh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transform: translateY(100%);
+  }
+  .hf-modal-overlay.open .hf-modal { transform: translateY(0); }
+  /* Header e body menores */
+  .hf-modal-head { padding: 18px 20px; }
+  .hf-modal-title { font-size: 17px; }
+  .hf-modal-body { padding: 0 20px 32px; }
+  /* Steps */
+  .hf-step { padding: 18px 0; }
+  .hf-step-title { font-size: 15px; }
+  /* Mockup */
+  .hf-mockup { padding: 10px; }
+  /* 4 cards em 2×2 no mobile */
+  .hf-mock-row { flex-wrap: wrap; }
+  .hf-mock-row .sk-card { flex: 0 0 calc(50% - 4px); }
+  /* Mock rows com 3 sk-field-sm (canais) — empilham */
+  .hf-mock-row .sk-field-sm { flex: 1 1 100%; }
+  /* Subtypes 1 coluna */
   .hf-subtypes { grid-template-columns: 1fr; }
+  /* Items */
+  .hf-item { font-size: 12.5px; }
 }
 
 /* ── Modal overlay de detalhe de cota ── */
@@ -2175,6 +2223,10 @@ input[type=number] { -moz-appearance: textfield; }
   .topbar-title { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
   .topbar-right { flex-shrink: 0; }
   .btn-draft { padding: 6px 12px; font-size: 12px; }
+  /* "Como funciona?" — só ícone em mobile */
+  .btn-howto { padding: 6px 8px !important; }
+  .btn-howto-text { display: none; }
+  .btn-howto-icon { display: block; }
   .main { margin-left: 0; }
   .main-inner { padding: 20px 16px; }
   .step-label { display: none; }
@@ -3191,7 +3243,10 @@ input[type=number] { -moz-appearance: textfield; }
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
       Excluir incentivo
     </button>
-    <button type="button" class="btn-draft" style="color:var(--gray-3);border-color:transparent;background:none" onclick="openInfoModal('comofunciona')">Como funciona?</button>
+    <button type="button" class="btn-draft btn-howto" style="color:var(--gray-3);border-color:transparent;background:none" onclick="openInfoModal('comofunciona')">
+      <svg class="btn-howto-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="btn-howto-text">Como funciona?</span>
+    </button>
     <button class="btn-draft" onclick="saveDraft()">Salvar rascunho</button>
     <span id="autoSaveStatus" style="display:none;"></span>
   </div>
