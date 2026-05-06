@@ -610,7 +610,22 @@ async function doLogin() {
         } else if (msg.toLowerCase().includes('after') && msg.toLowerCase().includes('seconds')) {
           errEl.textContent = 'Muitas tentativas. Aguarde alguns segundos e tente novamente.';
         } else {
-          errEl.textContent = 'Email ou senha incorretos.';
+          try {
+            const chk = await fetch(`${SUPABASE_URL}/rest/v1/rpc/email_registrado`, {
+              method: 'POST',
+              headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ p_email: email })
+            });
+            const existe = await chk.json();
+            if (!existe) {
+              errEl.textContent = 'Não encontramos cadastro para este email na plataforma.';
+              document.getElementById('inputEmail').classList.add('error');
+            } else {
+              errEl.textContent = 'Senha incorreta. Esqueceu sua senha?';
+            }
+          } catch (_) {
+            errEl.textContent = 'Email ou senha incorretos.';
+          }
         }
         errEl.style.display = 'block';
         document.getElementById('inputPassword').classList.add('error');
@@ -642,7 +657,22 @@ async function doLogin() {
         } else if (msg.toLowerCase().includes('after') && msg.toLowerCase().includes('seconds')) {
           errEl.textContent = 'Muitas tentativas. Aguarde alguns segundos e tente novamente.';
         } else {
-          errEl.textContent = 'Email ou senha incorretos.';
+          try {
+            const chk = await fetch(`${SUPABASE_URL}/rest/v1/rpc/email_registrado`, {
+              method: 'POST',
+              headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ p_email: email })
+            });
+            const existe = await chk.json();
+            if (!existe) {
+              errEl.textContent = 'Não encontramos cadastro para este email na plataforma.';
+              document.getElementById('inputEmail').classList.add('error');
+            } else {
+              errEl.textContent = 'Senha incorreta. Esqueceu sua senha?';
+            }
+          } catch (_) {
+            errEl.textContent = 'Email ou senha incorretos.';
+          }
         }
         errEl.style.display = 'block';
         document.getElementById('inputPassword').classList.add('error');
