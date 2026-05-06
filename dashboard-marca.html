@@ -383,6 +383,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 .sgp-item:last-child { border-bottom: none; }
 .sgp-item:hover { background: #fafafa; }
 .sgp-item.done { opacity: 0.5; cursor: default; pointer-events: none; }
+@keyframes sgHighlight {
+  0%,100% { border-color: var(--gold,#B8860B); box-shadow: 0 0 0 0 rgba(184,134,11,.25); }
+  50%      { border-color: var(--gold,#B8860B); box-shadow: 0 0 0 4px rgba(184,134,11,.12); }
+}
+.sg-highlight { border-color: var(--gold,#B8860B) !important; animation: sgHighlight 1.3s ease-in-out 3; }
+.sg-highlight:focus, .sg-highlight:focus-within { animation: none; border-color: var(--gold,#B8860B) !important; }
 .sgp-check {
   width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
   border: 1.5px solid #d1c084; display: flex; align-items: center; justify-content: center;
@@ -1184,20 +1190,32 @@ tbody tr:last-child td { border-bottom: none; }
     </button>
   </div>
   <div class="sgp-body">
-    <div class="sgp-item" id="ob-perfil" onclick="showSection('configuracoes'); toggleSetupGuide()">
-      <div class="sgp-check">
-        <svg class="sgp-check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="#16a34a" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-      </div>
+    <div class="sgp-item" id="ob-perfil" onclick="irParaPerfilMarca()">
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="sgp-item-body">
         <div class="sgp-item-title">Complete o perfil da empresa</div>
-        <div class="sgp-item-desc">Adicione logo, segmento e website</div>
+        <div class="sgp-item-desc">Adicione segmento e descrição da marca</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </div>
+    <div class="sgp-item" id="ob-juridico" onclick="irParaJuridicoMarca()">
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Preencha os dados jurídicos</div>
+        <div class="sgp-item-desc">CNPJ e razão social da empresa</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </div>
+    <div class="sgp-item" id="ob-equipe" onclick="irParaEquipeMarca()">
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Monte sua equipe</div>
+        <div class="sgp-item-desc">Convide membros para acessar a plataforma</div>
       </div>
       <span class="sgp-item-arrow">→</span>
     </div>
     <div class="sgp-item" id="ob-salvar" onclick="showSection('oportunidades'); toggleSetupGuide()">
-      <div class="sgp-check">
-        <svg class="sgp-check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="#16a34a" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-      </div>
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="sgp-item-body">
         <div class="sgp-item-title">Salve uma oportunidade</div>
         <div class="sgp-item-desc">Explore o catálogo e favorite algo relevante</div>
@@ -1205,9 +1223,7 @@ tbody tr:last-child td { border-bottom: none; }
       <span class="sgp-item-arrow">→</span>
     </div>
     <div class="sgp-item" id="ob-proposta" onclick="showSection('oportunidades'); toggleSetupGuide()">
-      <div class="sgp-check">
-        <svg class="sgp-check-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="#16a34a" style="width:11px;height:11px"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-      </div>
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <div class="sgp-item-body">
         <div class="sgp-item-title">Envie sua primeira proposta</div>
         <div class="sgp-item-desc">Inicie uma negociação com um detentor</div>
@@ -2400,12 +2416,14 @@ function updateDashboardKPIs() {
 
 // ─── SETUP GUIDE ───
 const OB_KEY_MARCA = 'rr_sg_done_marca';
-const OB_MARCA = { perfil: false, salvar: false, proposta: false };
+const OB_MARCA = { perfil: false, juridico: false, equipe: false, salvar: false, proposta: false };
 
 function updateSetupGuide() {
   if (localStorage.getItem(OB_KEY_MARCA)) return;
   const items = [
     { id: 'ob-perfil',   done: OB_MARCA.perfil },
+    { id: 'ob-juridico', done: OB_MARCA.juridico },
+    { id: 'ob-equipe',   done: OB_MARCA.equipe },
     { id: 'ob-salvar',   done: OB_MARCA.salvar },
     { id: 'ob-proposta', done: OB_MARCA.proposta },
   ];
@@ -2454,6 +2472,62 @@ function toggleSetupGuide() {
   const open = panel.classList.toggle('open');
   if (overlay) overlay.classList.toggle('open', open);
   if (btn) btn.classList.toggle('active', open);
+}
+
+function _sgHighlightFields(selector, indices) {
+  const fields = document.querySelectorAll(selector);
+  let firstEmpty = null;
+  indices.forEach(i => {
+    const f = fields[i];
+    if (!f) return;
+    const empty = f.tagName === 'SELECT' ? !f.value : !f.value.trim();
+    if (empty) {
+      f.classList.add('sg-highlight');
+      if (!firstEmpty) firstEmpty = f;
+      const clear = () => { f.classList.remove('sg-highlight'); };
+      f.addEventListener('focus', clear, { once: true });
+      f.addEventListener('input', clear, { once: true });
+    }
+  });
+  if (firstEmpty) firstEmpty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function irParaPerfilMarca() {
+  toggleSetupGuide();
+  showSection('configuracoes');
+  setTimeout(() => {
+    switchConfigTab('empresa');
+    if (!editingMarca) toggleEditMarca();
+    setTimeout(() => _sgHighlightFields('.marca-field', [1, 3]), 150); // segmento, descricao
+  }, 60);
+}
+
+function irParaJuridicoMarca() {
+  toggleSetupGuide();
+  showSection('configuracoes');
+  setTimeout(() => {
+    switchConfigTab('juridico');
+    if (!editingJuridicoMarca) toggleEditJuridicoMarca();
+    setTimeout(() => {
+      const ids = ['jur-marca-cnpj','jur-marca-razao','jur-marca-logradouro','jur-marca-cidade','jur-marca-estado'];
+      let firstEmpty = null;
+      ids.forEach(id => {
+        const f = document.getElementById(id);
+        if (!f || f.value.trim()) return;
+        f.classList.add('sg-highlight');
+        if (!firstEmpty) firstEmpty = f;
+        f.addEventListener('focus', () => f.classList.remove('sg-highlight'), { once: true });
+        f.addEventListener('input', () => f.classList.remove('sg-highlight'), { once: true });
+      });
+      if (firstEmpty) firstEmpty.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+  }, 60);
+}
+
+function irParaEquipeMarca() {
+  toggleSetupGuide();
+  showSection('configuracoes');
+  setTimeout(() => switchConfigTab('equipe'), 60);
 }
 
 function renderDashboardTimeline() {
@@ -2509,7 +2583,8 @@ function setUserInfo(nome, email) {
 
 function populateConfigFields(p) {
   if (editingMarca || editingResp) return;
-  OB_MARCA.perfil = !!(p.empresa && p.empresa.trim() && p.segmento && p.segmento.trim());
+  OB_MARCA.perfil   = !!(p.empresa && p.empresa.trim() && p.segmento && p.segmento.trim() && p.descricao && p.descricao.trim());
+  OB_MARCA.juridico = !!(p.cnpj && p.cnpj.trim() && p.razao_social && p.razao_social.trim());
   updateSetupGuide();
 
   // Marca fields: [0]=nome hidden, [1]=segmento (select), [2]=website, [3]=descricao
@@ -5157,6 +5232,8 @@ async function loadEquipe() {
       members.forEach(m => { m._perfil = perfilMap[m.user_id] || {}; });
     }
 
+    OB_MARCA.equipe = members.length > 0;
+    updateSetupGuide();
     renderEquipe(members);
 
     const btnConvidar = document.getElementById('btnConvidarMembro');
