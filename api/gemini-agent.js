@@ -101,7 +101,7 @@ export default async function handler(req, res) {
   const body = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     generationConfig: {
-      max_output_tokens: 16384,
+      max_output_tokens: 32768,
       // Desabilita o "thinking mode" do Gemini 2.5 Flash. Com thinking ativo
       // + PDF + google_search, o modelo às vezes gasta todo o orçamento
       // raciocinando (thought parts) e devolve a resposta final VAZIA.

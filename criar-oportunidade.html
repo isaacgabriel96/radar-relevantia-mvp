@@ -11513,27 +11513,46 @@ function agParseResponse(raw) {
   }
   // Remove markdown code fence if present
   let clean = raw.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
-  // Extract the first JSON object found
-  const m = clean.match(/\{[\s\S]*\}/);
-  if (m) clean = m[0];
+
+  // Extrai bloco JSON: prefere match com fechamento, mas aceita truncado (sem })
+  const mFull = clean.match(/\{[\s\S]*\}/);
+  const mOpen = clean.match(/\{[\s\S]*/);
+  if (mFull) clean = mFull[0];
+  else if (mOpen) clean = mOpen[0];
+
   try {
     return JSON.parse(clean);
   } catch {
-    // Tenta recuperar JSON truncado: fecha chaves/colchetes pendentes
+    // Tenta recuperar JSON truncado
     try {
       let fixed = clean;
-      // Corta na última vírgula de nível alto para evitar valor incompleto
+
+      // Corta na última chave completa para evitar valor incompleto
       const lastComma = fixed.lastIndexOf(',"');
-      if (lastComma > fixed.length * 0.5) fixed = fixed.slice(0, lastComma);
-      // Conta e fecha chaves/colchetes não fechados
+      if (lastComma > fixed.length * 0.3) fixed = fixed.slice(0, lastComma);
+
+      // Fecha string aberta: conta aspas não-escapadas — se ímpar, fecha
+      let inStr = false;
+      for (let i = 0; i < fixed.length; i++) {
+        if (fixed[i] === '"' && (i === 0 || fixed[i - 1] !== '\\')) inStr = !inStr;
+      }
+      if (inStr) fixed += '"';
+
+      // Conta e fecha chaves/colchetes pendentes (respeitando strings)
       let opens = 0, openBrackets = 0;
-      for (const ch of fixed) {
-        if (ch === '{') opens++;
-        else if (ch === '}') opens--;
-        else if (ch === '[') openBrackets++;
-        else if (ch === ']') openBrackets--;
+      inStr = false;
+      for (let i = 0; i < fixed.length; i++) {
+        const ch = fixed[i];
+        if (ch === '"' && (i === 0 || fixed[i - 1] !== '\\')) inStr = !inStr;
+        if (!inStr) {
+          if (ch === '{') opens++;
+          else if (ch === '}') opens--;
+          else if (ch === '[') openBrackets++;
+          else if (ch === ']') openBrackets--;
+        }
       }
       fixed += ']'.repeat(Math.max(0, openBrackets)) + '}'.repeat(Math.max(0, opens));
+
       const recovered = JSON.parse(fixed);
       console.warn('[agParseResponse] JSON truncado — recuperado parcialmente');
       return recovered;
