@@ -11500,6 +11500,7 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
       throw new Error('A IA retornou uma resposta vazia. Tente novamente ou simplifique a entrada.');
     }
 
+    console.log('[agCallGemini] raw response (primeiros 500 chars):', data.text.slice(0, 500));
     return data.text;
   } finally {
     if (searchHintTimer) clearTimeout(searchHintTimer);
