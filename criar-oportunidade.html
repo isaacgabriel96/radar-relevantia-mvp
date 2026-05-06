@@ -10818,8 +10818,10 @@ async function agProcessPdf(file) {
     //             leitura da resposta no browser — ignoramos esse erro.
     //   Etapa 3 — POST → nosso servidor → consulta Google server-to-server
     //             (sem CORS) → retorna o fileUri que o browser não conseguiu ler
-    const session = (await getSessionAsync('rightsholder')) || (await getSessionAsync('brand'));
-    const token = session?.access_token;
+    // Em modo impersonation usa o token do admin; caso contrário busca a sessão normal
+    const token = window._impersonateCtx?.admin_token
+      || (await getSessionAsync('rightsholder'))?.access_token
+      || (await getSessionAsync('brand'))?.access_token;
     const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
 
     // ── Etapa 1: inicia upload resumível → obtém uploadUrl ──────────────────
@@ -11029,8 +11031,10 @@ function agMsgHtml(text) {
 
 // ── Chamada ao proxy seguro /api/gemini-agent ────────────────────
 async function agCallGemini(messages, { useSearch = false } = {}) {
-  const session = (await getSessionAsync('rightsholder')) || (await getSessionAsync('brand'));
-  const token = session?.access_token;
+  // Em modo impersonation usa o token do admin; caso contrário busca a sessão normal
+  const token = window._impersonateCtx?.admin_token
+    || (await getSessionAsync('rightsholder'))?.access_token
+    || (await getSessionAsync('brand'))?.access_token;
 
   // Após 15s sem resposta, atualiza o typing indicator com aviso de pesquisa na web
   let searchHintTimer = null;
