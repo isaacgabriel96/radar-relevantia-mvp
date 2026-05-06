@@ -3517,8 +3517,8 @@ input[type=number] { -moz-appearance: textfield; }
 
         <div class="form-group">
           <label>Descrição curta <span class="required">*</span></label>
-          <textarea class="form-control" id="opp-desc" maxlength="300" rows="3" placeholder="Descreva brevemente o que a marca irá patrocinar ou se associar…" oninput="updateChar(this,'descCount',300)"></textarea>
-          <div class="char-count"><span id="descCount">0</span>/300</div>
+          <textarea class="form-control" id="opp-desc" maxlength="280" rows="3" placeholder="Descreva brevemente o que a marca irá patrocinar ou se associar…" oninput="updateChar(this,'descCount',280)"></textarea>
+          <div class="char-count"><span id="descCount">0</span>/280</div>
         </div>
 
       </div>
@@ -3734,10 +3734,10 @@ input[type=number] { -moz-appearance: textfield; }
                 <div id="s3MarcaWrap" style="display:none">
                   <div class="form-group">
                     <label>O que buscamos em uma marca parceira</label>
-                    <textarea class="form-control" id="opp-busca-marca" maxlength="500" rows="5"
+                    <textarea class="form-control" id="opp-busca-marca" maxlength="480" rows="5"
                       placeholder="Descreva o perfil ideal de patrocinador, o que você espera desta parceria…"
-                      oninput="updateChar(this,'buscaCount',500)"></textarea>
-                    <div class="char-count"><span id="buscaCount">0</span>/500</div>
+                      oninput="updateChar(this,'buscaCount',480)"></textarea>
+                    <div class="char-count"><span id="buscaCount">0</span>/480</div>
                   </div>
                 </div><!-- /s3MarcaWrap -->
 
@@ -10720,7 +10720,7 @@ function maybePreFillEdit(forceRun = false) {
   const descValue = opp.descricao || opp.descricao_curta || '';
   if (descEl && descValue) {
     descEl.value = descValue;
-    updateChar(descEl, 'descCount', 300);
+    updateChar(descEl, 'descCount', 280);
     descEl.dispatchEvent(new Event('input'));
   }
 
@@ -10744,7 +10744,7 @@ function maybePreFillEdit(forceRun = false) {
   var buscaEl = document.getElementById('opp-busca-marca');
   if (buscaEl && opp.detalhes && opp.detalhes.busca_marca) {
     buscaEl.value = opp.detalhes.busca_marca;
-    updateChar(buscaEl, 'buscaCount', 500);
+    updateChar(buscaEl, 'buscaCount', 480);
   }
 
   // Cidade: extrai o nome da cidade da string de localização
@@ -10953,7 +10953,7 @@ function loadMockData() {
   const descEl = document.getElementById('opp-desc');
   if (descEl) {
     descEl.value = 'A maior competição de surf do litoral paulista reúne 64 atletas profissionais e amadores em 3 dias de competição na Praia de Maresias. O evento conta com área de experiências para o público, palco de shows, praça de alimentação e espaço exclusivo para marcas patrocinadoras.';
-    updateChar(descEl, 'descCount', 300);
+    updateChar(descEl, 'descCount', 280);
   }
 
   // Cidade
@@ -12171,13 +12171,13 @@ function agMarkStandardFields(formData) {
   if (formData.descricao) {
     agMarkField('opp-desc', 'panel-2', () => {
       const el = document.getElementById('opp-desc');
-      if (el) { el.value = ''; updateChar(el, 'descCount', 300); }
+      if (el) { el.value = ''; updateChar(el, 'descCount', 280); }
     });
   }
   if (formData.detalhes && formData.detalhes.busca_marca) {
     agMarkField('opp-busca-marca', 'panel-3', () => {
       const el = document.getElementById('opp-busca-marca');
-      if (el) { el.value = ''; updateChar(el, 'buscaCount', 500); }
+      if (el) { el.value = ''; updateChar(el, 'buscaCount', 480); }
     });
   }
   if (formData.descricao_completa) {
