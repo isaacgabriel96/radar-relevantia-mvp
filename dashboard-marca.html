@@ -3189,8 +3189,7 @@ async function marcaSelectBrandfetchBrand(brand) {
   const card       = document.getElementById('marcaSelectedCard');
   const results    = document.getElementById('marcaBrandfetchResults');
   if (searchWrap) searchWrap.style.display = 'none';
-  document.querySelector('#marcaSearchMode button[onclick*="marcaToggleManual"]').style.display = 'none';
-  results.style.display = 'none';
+  if (results) results.style.display = 'none';
   document.getElementById('marcaBrandIcon').src = brand.icon || '';
   document.getElementById('marcaBrandIcon').style.display = brand.icon ? '' : 'none';
   document.getElementById('marcaBrandName').textContent = brand.name || brand.domain || '';
@@ -3257,14 +3256,10 @@ function marcaClearCompany() {
   const searchInput = document.getElementById('marcaEmpresaSearch');
   const card        = document.getElementById('marcaSelectedCard');
   const results     = document.getElementById('marcaBrandfetchResults');
-  const searchMode  = document.getElementById('marcaSearchMode');
-  const manualBtn   = document.querySelector('#marcaSearchMode button[onclick*="abrirModalManualMarca"]');
   if (searchWrap)  searchWrap.style.display = '';
-  if (manualBtn)   manualBtn.style.display = '';
   if (searchInput) searchInput.value = '';
   if (card)        card.style.display = 'none';
   if (results)     results.style.display = 'none';
-  if (searchMode)  searchMode.style.display = '';
   const hint = document.getElementById('marcaNomeChangeHint');
   if (hint) hint.style.display = 'none';
 }
@@ -3378,8 +3373,6 @@ function confirmarModalManualMarca() {
   // Hide search input + manual button
   const searchWrap = document.getElementById('marcaSearchInputWrap');
   if (searchWrap) searchWrap.style.display = 'none';
-  const manualBtn = document.querySelector('#marcaSearchMode button[onclick*="abrirModalManualMarca"]');
-  if (manualBtn) manualBtn.style.display = 'none';
   const hint = document.getElementById('marcaNomeChangeHint');
   if (hint) hint.style.display = '';
 }
