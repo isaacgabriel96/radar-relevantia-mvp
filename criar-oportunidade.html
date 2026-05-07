@@ -12392,13 +12392,22 @@ function agApplyTemplateDetalhes(tplKey, detalhes) {
 /** Inicializa o modo impersonation se houver contexto válido no localStorage */
 function initImpersonateMode() {
   try {
-    const raw = localStorage.getItem('sb_impersonate_ctx');
+    // sessionStorage é por-aba; consumimos do localStorage uma única vez e movemos
+    // para sessionStorage para evitar contaminação de outras abas abertas normalmente.
+    let raw = sessionStorage.getItem('sb_impersonate_ctx');
+    if (!raw) {
+      raw = localStorage.getItem('sb_impersonate_ctx');
+      if (raw) {
+        sessionStorage.setItem('sb_impersonate_ctx', raw);
+        localStorage.removeItem('sb_impersonate_ctx');
+      }
+    }
     if (!raw) return;
     const ctx = JSON.parse(raw);
     // Valida expiração (2h)
     if (!ctx.target_user_id || !ctx.admin_token || !ctx.expires_at) return;
     if (Math.floor(Date.now() / 1000) > ctx.expires_at) {
-      localStorage.removeItem('sb_impersonate_ctx');
+      sessionStorage.removeItem('sb_impersonate_ctx');
       console.warn('[Impersonate] Contexto expirado, removido.');
       return;
     }
@@ -12431,7 +12440,8 @@ function initImpersonateMode() {
 
 /** Sai do modo impersonation: limpa contexto e fecha a aba */
 function exitImpersonateMode() {
-  localStorage.removeItem('sb_impersonate_ctx');
+  sessionStorage.removeItem('sb_impersonate_ctx');
+  localStorage.removeItem('sb_impersonate_ctx'); // limpa resíduos antigos
   window._impersonateCtx = null;
   const banner = document.getElementById('impersonate-banner');
   if (banner) banner.style.display = 'none';

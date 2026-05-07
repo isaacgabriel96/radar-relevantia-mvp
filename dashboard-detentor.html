@@ -2319,12 +2319,22 @@ tbody tr:last-child td { border-bottom: none; }
 // ─── ADMIN VIEW MODE (admin abrindo dashboard de cliente) ──────────────────
 ;(function() {
   try {
-    const raw = localStorage.getItem('sb_impersonate_ctx');
+    // sessionStorage é por-aba; localStorage é compartilhado entre todas as abas.
+    // Lemos de localStorage uma única vez e movemos para sessionStorage imediatamente
+    // para evitar que outras abas abertas normalmente herdem o contexto de impersonation.
+    let raw = sessionStorage.getItem('sb_impersonate_ctx');
+    if (!raw) {
+      raw = localStorage.getItem('sb_impersonate_ctx');
+      if (raw) {
+        sessionStorage.setItem('sb_impersonate_ctx', raw);
+        localStorage.removeItem('sb_impersonate_ctx');
+      }
+    }
     if (!raw) return;
     const ctx = JSON.parse(raw);
     if (!ctx || !ctx.target_user_id || !ctx.admin_token) return;
     if (ctx.expires_at && ctx.expires_at < Math.floor(Date.now() / 1000)) {
-      localStorage.removeItem('sb_impersonate_ctx');
+      sessionStorage.removeItem('sb_impersonate_ctx');
       return;
     }
     // Ativa modo admin view
