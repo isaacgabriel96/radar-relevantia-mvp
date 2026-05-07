@@ -16,7 +16,7 @@
  *   GEMINI_API_KEY = AIza...  (só para autorizar a consulta de status)
  */
 
-export const maxDuration = 30;
+export const maxDuration = 45;
 
 export default async function handler(req, res) {
   // CORS
@@ -113,22 +113,28 @@ export default async function handler(req, res) {
   // ── Polling de state=ACTIVE ────────────────────────────────────────────
   // Mesmo com uploadStatus=final, o Google fica alguns segundos com o arquivo
   // em state=PROCESSING. Se o agente tentar usar o fileUri antes de ACTIVE,
-  // o Gemini retorna resposta vazia. Aguardamos até ACTIVE aqui.
+  // o Gemini retorna HTTP 400 "File is in state PROCESSING". Aguardamos ACTIVE.
   const apiKey = process.env.GEMINI_API_KEY;
+  let isActive = false;
+
   if (apiKey) {
     // Extrai o nome do arquivo do fileUri (ex: "files/abc123")
     const fileNameMatch = fileUri.match(/\/files\/([^/?]+)/);
     const fileName = fileNameMatch ? `files/${fileNameMatch[1]}` : null;
 
     if (fileName) {
-      for (let attempt = 1; attempt <= 10; attempt++) {
+      for (let attempt = 1; attempt <= 12; attempt++) {
+        // Backoff progressivo: 1s, 1s, 2s, 2s, 2s, 2s, 2s, 2s, 2s, 2s, 2s, 2s
+        // Máx ~21s + tempo de fetch = seguro dentro de maxDuration=45s
+        const delay = attempt <= 2 ? 1000 : 2000;
+        await new Promise(r => setTimeout(r, delay));
+
         try {
           const stateRes = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${apiKey}`,
           );
           if (!stateRes.ok) {
             console.warn(`gemini-finalize: status check HTTP ${stateRes.status} (tentativa ${attempt})`);
-            await new Promise(r => setTimeout(r, 1000));
             continue;
           }
           const stateData = await stateRes.json().catch(() => ({}));
@@ -136,6 +142,7 @@ export default async function handler(req, res) {
 
           if (state === 'ACTIVE') {
             console.log(`gemini-finalize: arquivo ACTIVE após ${attempt} check(s).`);
+            isActive = true;
             break;
           }
           if (state === 'FAILED') {
@@ -144,12 +151,20 @@ export default async function handler(req, res) {
               error: 'Google não conseguiu processar o PDF. Tente com outro arquivo.',
             });
           }
-          // state === 'PROCESSING' → aguarda e tenta de novo
-          await new Promise(r => setTimeout(r, 1000));
+          // state === 'PROCESSING' → aguarda próxima tentativa
+          console.log(`gemini-finalize: arquivo ainda PROCESSING (tentativa ${attempt})`);
         } catch (err) {
           console.warn(`gemini-finalize: erro no status check (tentativa ${attempt}):`, err.message);
-          await new Promise(r => setTimeout(r, 1000));
         }
+      }
+
+      if (!isActive) {
+        // Após 12 tentativas (~22s), o arquivo ainda não ficou ACTIVE.
+        // Retorna erro em vez de um fileUri inutilizável.
+        console.error('gemini-finalize: arquivo nunca ficou ACTIVE após 12 tentativas:', fileUri);
+        return res.status(502).json({
+          error: 'O Google demorou demais para processar o PDF. Tente novamente ou use um PDF menor.',
+        });
       }
     }
   }

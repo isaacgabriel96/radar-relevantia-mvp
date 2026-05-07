@@ -107,11 +107,10 @@ export default async function handler(req, res) {
       // (causa raiz do erro "formato inesperado"). Gemini 2.5 Flash suporta
       // responseMimeType junto com google_search.
       responseMimeType: 'application/json',
-      // Desabilita o "thinking mode" do Gemini 2.5 Flash. Com thinking ativo
-      // + PDF + google_search, o modelo às vezes gasta todo o orçamento
-      // raciocinando (thought parts) e devolve a resposta final VAZIA.
-      // Para esta tarefa (extrair JSON estruturado) thinking não agrega valor.
-      thinkingConfig: { thinkingBudget: 0 },
+      // NOTA: thinkingConfig (thinkingBudget: 0) foi removido das chamadas com
+      // google_search. O Gemini 2.5 Flash retorna HTTP 400 quando thinking=0
+      // é combinado com Google Search grounding. As "thought parts" são filtradas
+      // abaixo (parts.filter(p => !p.thought)), então thinking não afeta o JSON final.
     },
     contents: messages.map(m => ({
       role: m.role === 'assistant' ? 'model' : 'user',
@@ -280,7 +279,8 @@ export default async function handler(req, res) {
       generationConfig: {
         max_output_tokens: 32768,
         responseMimeType: 'application/json',
-        thinkingConfig: { thinkingBudget: 0 },
+        // thinkingBudget omitido: Gemini 2.5 Flash requer thinking habilitado
+        // quando usa google_search (thinkingBudget:0 + search → HTTP 400).
       },
       tools: [{ google_search: {} }],
       contents: messagesNoPdf.map(m => ({
@@ -305,6 +305,13 @@ export default async function handler(req, res) {
       return 'O conteúdo é grande demais para processar em uma única chamada. Tente simplificar a descrição ou enviar um PDF menor.';
     }
     if (httpStatus === 400) {
+      // Mensagem específica para erros comuns de 400
+      if (originalMessage?.includes('PROCESSING')) {
+        return 'O PDF ainda está sendo processado pelo Google. Aguarde alguns segundos e tente novamente.';
+      }
+      if (originalMessage?.includes('thinking') || originalMessage?.includes('Thinking')) {
+        return 'Erro de configuração da IA (thinking+search). Reporte ao suporte.';
+      }
       return 'A IA não entendeu o conteúdo enviado. Reformule a descrição ou tente um PDF diferente.';
     }
     if (httpStatus >= 500 && httpStatus < 600) {
