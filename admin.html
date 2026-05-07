@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Radar Relevantia</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23C9A961'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Poppins,sans-serif' font-weight='700' font-size='18' fill='%23fff'%3ER%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1678,7 +1679,7 @@ async function loadStats() {
       sbFetch('/rest/v1/detentores_waitlist?select=id&status=eq.pendente'),
       sbFetch('/rest/v1/marcas_waitlist?select=id&status=eq.aprovado'),
       sbFetch('/rest/v1/detentores_waitlist?select=id&status=eq.aprovado'),
-      sbFetch('/rest/v1/negociacoes?select=id&contrato_url=not.is.null&contrato_validado=eq.false')
+      sbFetch('/rest/v1/contratos?select=id&completo_em=is.null')
     ]);
 
     const [emb, mPend, dPend, mAprov, dAprov, dealsPend] = await Promise.all([
@@ -2465,14 +2466,15 @@ async function loadDeals() {
     const res = await sbFetch(
       '/rest/v1/negociacoes?select=' +
       'id,oportunidade_id,marca_id,detentor_id,valor_deal,valor_proposto,status,' +
-      'contrato_url,contrato_enviado_por,contrato_enviado_em,' +
+      'contrato_enviado_por,contrato_enviado_em,' +
       'contrato_validado,contrato_validado_em,contrato_validado_por,admin_comentario,' +
       'created_at,' +
       'marca:marca_id(nome,empresa),' +
       'detentor:detentor_id(nome,empresa),' +
       'oportunidade:oportunidade_id(titulo,categoria),' +
-      'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por)' +
-      '&contrato_url=not.is.null&order=contrato_enviado_em.desc'
+      'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por),' +
+      'contratos(id,documento_url,status,completo_em,enviado_em)' +
+      '&status=in.(aceita,fechada)&order=updated_at.desc'
     );
     const data = await res.json();
     allDeals = Array.isArray(data) ? data : [];
@@ -2520,7 +2522,7 @@ function renderDeals(filter, btnEl) {
         <td class="td-muted">${escapeHtml(marca.empresa || marca.nome || '—')}</td>
         <td class="td-muted">${escapeHtml(det.empresa || det.nome || '—')}</td>
         <td><strong>${fmt(val)}</strong></td>
-        <td><a href="${escapeHtml(d.contrato_url)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--gold);font-weight:600;text-decoration:underline">📄 Ver</a></td>
+        <td>${(d.contratos && d.contratos[0] && d.contratos[0].documento_url) ? `<a href="${escapeHtml(d.contratos[0].documento_url)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--gold);font-weight:600;text-decoration:underline">📄 Ver</a>` : '<span style="color:var(--gray-3);font-size:12px">—</span>'}</td>
         <td>${validated
           ? '<span class="badge badge-green" style="font-size:11px">✓ Validado</span>'
           : '<span class="badge badge-orange" style="font-size:11px">⏳ Pendente</span>'}</td>
@@ -2589,9 +2591,9 @@ function openDealModal(negId) {
 
     <div style="background:var(--gray-1);border-radius:12px;padding:16px;text-align:center">
       <div style="font-size:12px;color:var(--gray-3);margin-bottom:8px">Contrato</div>
-      <a href="${escapeHtml(d.contrato_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--gray-2);border-radius:100px;padding:8px 20px;font-size:13px;font-weight:600;color:var(--text);text-decoration:none">
-        📄 Abrir contrato
-      </a>
+      ${(d.contratos && d.contratos[0] && d.contratos[0].documento_url)
+        ? `<a href="${escapeHtml(d.contratos[0].documento_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--gray-2);border-radius:100px;padding:8px 20px;font-size:13px;font-weight:600;color:var(--text);text-decoration:none">📄 Abrir contrato</a>`
+        : `<span style="color:var(--gray-3);font-size:13px">Nenhum contrato enviado</span>`}
       ${d.contrato_validado
         ? `<div style="margin-top:10px;font-size:12px;color:#059669;font-weight:600">✓ Validado em ${fmtDate(d.contrato_validado_em)}</div>`
         : `<div style="margin-top:10px;font-size:12px;color:#D97706;font-weight:600">⏳ Aguardando validação</div>`}
@@ -2674,7 +2676,6 @@ async function rejeitarContrato(negId) {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({
-        contrato_url: null,
         contrato_enviado_por: null,
         contrato_enviado_em: null,
         contrato_validado: false,
@@ -2735,15 +2736,12 @@ async function loadMudancasMarca() {
       const reqAt = pending.requested_at
         ? new Date(pending.requested_at).toLocaleString('pt-BR')
         : '—';
-      const logoSrc = pending.domain
-        ? `https://logo.clearbit.com/${pending.domain}`
-        : (pending.icon || '');
-      const logoFallback = pending.icon || '';
+      const logoSrc = pending.icon || '';
       const logoInitial = (pending.name || '?')[0].toUpperCase();
       const iconHtml = logoSrc
         ? `<img src="${logoSrc}" alt=""
             style="width:28px;height:28px;border-radius:6px;object-fit:contain;background:#f5f5f5;margin-right:8px;vertical-align:middle;flex-shrink:0"
-            onerror="if(this.src!=='${logoFallback}' && '${logoFallback}'){this.src='${logoFallback}'}else{this.outerHTML='<span style=\\'width:28px;height:28px;border-radius:6px;background:var(--gold-pale);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brown-warm);margin-right:8px;flex-shrink:0;\\'>${logoInitial}</span>'}">`
+            onerror="this.outerHTML='<span style=\\'width:28px;height:28px;border-radius:6px;background:var(--gold-pale);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brown-warm);margin-right:8px;flex-shrink:0;\\'>${logoInitial}</span>'">`
         : `<span style="width:28px;height:28px;border-radius:6px;background:var(--gold-pale);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brown-warm);margin-right:8px;flex-shrink:0;">${logoInitial}</span>`;
       return `<tr id="mudanca-row-${r.id}" data-id="${r.id}">
         <td class="td-check" onclick="event.stopPropagation()">

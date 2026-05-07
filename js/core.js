@@ -371,7 +371,7 @@ function rowToNegociacao(row) {
       propostoPor: row.valor_deal_proposto_por || null,
       status: row.valor_deal_status || (row.valor_deal ? 'aceito' : 'sem_proposta')
     },
-    contrato_url: row.contrato_url || null,
+    contrato_url: (Array.isArray(row.contratos) && row.contratos[0] && row.contratos[0].documento_url) || null,
     contrato_enviado_por: row.contrato_enviado_por || null,
     contrato_enviado_em: row.contrato_enviado_em || null,
     contrato_validado: row.contrato_validado || false,
@@ -385,12 +385,13 @@ function rowToNegociacao(row) {
 // Shared query string for negociacoes with all joins
 var _negSelectQuery = 'id,oportunidade_id,marca_id,detentor_id,cota,assunto,valor_proposto,valor_deal,' +
   'valor_deal_proposto_por,valor_deal_status,' +
-  'contrato_url,contrato_enviado_por,contrato_enviado_em,' +
+  'contrato_enviado_por,contrato_enviado_em,' +
   'contrato_validado,contrato_validado_em,contrato_validado_por,admin_comentario,' +
   'status,status_label,status_hint,aceita_novas_propostas,created_at,campanha_id,' +
   'marca:marca_id(nome,empresa),' +
   'oportunidade:oportunidade_id(titulo,categoria),' +
   'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por),' +
+  'contratos(id,documento_url,status,completo_em),' +
   'mensagens(id,autor_role,autor_nome,texto,created_at)';
 
 /**
