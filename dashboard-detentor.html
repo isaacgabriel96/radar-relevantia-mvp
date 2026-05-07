@@ -2319,9 +2319,15 @@ tbody tr:last-child td { border-bottom: none; }
 // ─── ADMIN VIEW MODE (admin abrindo dashboard de cliente) ──────────────────
 ;(function() {
   try {
-    // sessionStorage é por-aba; localStorage é compartilhado entre todas as abas.
-    // Lemos de localStorage uma única vez e movemos para sessionStorage imediatamente
-    // para evitar que outras abas abertas normalmente herdem o contexto de impersonation.
+    // Segurança em duas camadas:
+    // 1. Só ativa se a URL tiver ?_imp=1 (admin abre explicitamente com esse parâmetro)
+    // 2. Consome do localStorage → sessionStorage (por-aba) para não vazar para outras abas
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.get('_imp')) {
+      // Esta aba foi aberta normalmente — limpa qualquer resíduo sem ativar
+      localStorage.removeItem('sb_impersonate_ctx');
+      return;
+    }
     let raw = sessionStorage.getItem('sb_impersonate_ctx');
     if (!raw) {
       raw = localStorage.getItem('sb_impersonate_ctx');

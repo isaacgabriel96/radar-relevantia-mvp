@@ -2948,7 +2948,7 @@ function openFormAsClient() {
   localStorage.setItem('sb_impersonate_ctx', JSON.stringify(ctx));
 
   // Abre o formulário em nova aba
-  window.open('criar-oportunidade.html', '_blank');
+  window.open('criar-oportunidade.html?_imp=1', '_blank');
   showToast(`Formulário aberto como ${_impersonateSelected.nome}`, 'success');
 }
 
@@ -2975,7 +2975,7 @@ function openOportunidadesDoDetentor() {
   localStorage.setItem('sb_impersonate_ctx', JSON.stringify(ctx));
 
   // Abre o dashboard do detentor na aba de oportunidades
-  window.open('dashboard-detentor.html#oportunidades', '_blank');
+  window.open('dashboard-detentor.html?_imp=1#oportunidades', '_blank');
   showToast(`Abrindo oportunidades de ${_impersonateSelected.nome}`, 'success');
 }
 

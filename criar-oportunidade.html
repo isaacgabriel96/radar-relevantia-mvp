@@ -12392,8 +12392,14 @@ function agApplyTemplateDetalhes(tplKey, detalhes) {
 /** Inicializa o modo impersonation se houver contexto válido no localStorage */
 function initImpersonateMode() {
   try {
-    // sessionStorage é por-aba; consumimos do localStorage uma única vez e movemos
-    // para sessionStorage para evitar contaminação de outras abas abertas normalmente.
+    // Segurança em duas camadas:
+    // 1. Só ativa se a URL tiver ?_imp=1 (admin abre explicitamente com esse parâmetro)
+    // 2. Consome do localStorage → sessionStorage (por-aba) para não vazar para outras abas
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.get('_imp')) {
+      localStorage.removeItem('sb_impersonate_ctx');
+      return;
+    }
     let raw = sessionStorage.getItem('sb_impersonate_ctx');
     if (!raw) {
       raw = localStorage.getItem('sb_impersonate_ctx');
