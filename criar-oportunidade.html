@@ -11750,6 +11750,10 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      // Log do erro real do Gemini — visível no DevTools Console para diagnóstico
+      if (data.detail || data.geminiStatus) {
+        console.error('[agCallGemini] erro Gemini:', data.geminiStatus, '—', data.detail || '(sem detalhe)');
+      }
       throw new Error(data.error || `HTTP ${response.status}`);
     }
 
