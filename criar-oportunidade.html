@@ -11975,7 +11975,85 @@ function agResultTemConteudo(parsed) {
 }
 
 // ── Processar resposta do agente ─────────────────────────────────
-function agAddAgentMsgFromResult(parsed) {
+/**
+ * Compara o resultado anterior com o novo e devolve HTML mostrando os
+ * campos que foram preenchidos/alterados pelo agente nesta volta. Serve
+ * de feedback visual ("ouvi você, gravei isso") — sem isso o usuário
+ * tem que confiar que o agente capturou a resposta.
+ *
+ * Foco em campos visíveis (nome, descrição curta, localização, segmentos).
+ * Descrição completa é grande demais — mostramos só "(atualizada)".
+ */
+function agBuildDeltaSummary(previous, current) {
+  if (!previous || !current) return '';
+  const pc = previous.campos || {};
+  const cc = current.campos  || {};
+  const pv = (k) => pc[k]?.valor;
+  const cv = (k) => cc[k]?.valor;
+
+  const items = [];
+
+  // Helpers de formatação por tipo de campo
+  const fmtLoc = (loc) => {
+    if (!loc || typeof loc !== 'object') return '';
+    return [loc.cidade, loc.estado, loc.pais].filter(Boolean).join(' · ');
+  };
+  const fmtSegs = (segs) => Array.isArray(segs) ? segs.join(', ') : '';
+
+  // Campos string simples
+  const stringFields = [
+    ['nome_oportunidade', 'Nome'],
+    ['descricao_curta',   'Descrição curta'],
+    ['busca_marca',       'Perfil de marca'],
+  ];
+  for (const [key, label] of stringFields) {
+    const before = pv(key) || '';
+    const after  = cv(key) || '';
+    if (after && after !== before) {
+      const display = after.length > 80 ? after.slice(0, 80) + '…' : after;
+      items.push({ label, value: display });
+    }
+  }
+
+  // Descrição completa: só sinaliza "atualizada" (texto longo)
+  if (cv('descricao_completa') && cv('descricao_completa') !== pv('descricao_completa')) {
+    items.push({ label: 'Descrição completa', value: '(atualizada)' });
+  }
+
+  // Localização
+  const beforeLoc = fmtLoc(pv('localizacao'));
+  const afterLoc  = fmtLoc(cv('localizacao'));
+  if (afterLoc && afterLoc !== beforeLoc) {
+    items.push({ label: 'Localização', value: afterLoc });
+  }
+
+  // Segmentos
+  const beforeSegs = fmtSegs(pv('segmentos'));
+  const afterSegs  = fmtSegs(cv('segmentos'));
+  if (afterSegs && afterSegs !== beforeSegs) {
+    items.push({ label: 'Segmentos', value: afterSegs });
+  }
+
+  // Detalhes do template (idioma, tipos, nichos etc)
+  const beforeDet = JSON.stringify(pv('detalhes_template') || {});
+  const afterDet  = JSON.stringify(cv('detalhes_template') || {});
+  if (afterDet !== beforeDet && afterDet !== '{}') {
+    items.push({ label: 'Detalhes do tipo', value: '(atualizados)' });
+  }
+
+  if (items.length === 0) return '';
+
+  let html = '<div style="margin:6px 0 14px;padding:10px 12px;background:#FBF8F1;border-left:3px solid #B8860B;border-radius:6px">';
+  html += '<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#7A5C1E;margin-bottom:6px;font-weight:600">✓ Atualizei</div>';
+  html += '<ul style="margin:0;padding-left:0;list-style:none">';
+  for (const it of items) {
+    html += `<li style="margin:2px 0;font-size:13px;color:#1A1200"><strong style="color:#5C4C38">${agEsc(it.label)}:</strong> ${agEsc(it.value)}</li>`;
+  }
+  html += '</ul></div>';
+  return html;
+}
+
+function agAddAgentMsgFromResult(parsed, previous) {
   // Guarda: se a IA retornou um JSON sem conteúdo útil, trata como erro
   // em vez de mostrar um card vazio/confuso pro usuário
   if (!agResultTemConteudo(parsed)) {
@@ -11993,6 +12071,12 @@ function agAddAgentMsgFromResult(parsed) {
   if (parsed.resumo) {
     html += `${agMsgHtml(parsed.resumo)}<br><br>`;
   }
+
+  // Calcula e exibe campos atualizados desde a última resposta — assim
+  // o usuário tem confirmação visível de que o agente "ouviu" a resposta
+  // e gravou no campo correto (ex: "Cidade: Porto Alegre").
+  const deltaHtml = agBuildDeltaSummary(previous, parsed);
+  if (deltaHtml) html += deltaHtml;
 
   if (parsed.duvidas?.length) {
     // A dúvida pode ser:
@@ -12036,7 +12120,12 @@ function agBuildConfirmationSummary(parsed) {
   const descCompleta = v('descricao_completa');
   const buscaMarca  = v('busca_marca');
   const segmentos   = v('segmentos') || [];
+  const localizacao = v('localizacao') || {};
   const tipoLabel = { personalidade: 'Personalidade', evento: 'Evento', artista: 'Artista', midia: 'Mídia' };
+
+  // Monta string de localização (cidade · estado · país) ignorando null/vazio
+  const locParts = [localizacao.cidade, localizacao.estado, localizacao.pais].filter(Boolean);
+  const locText = locParts.join(' · ');
 
   // Formata segmentos para exibição (snake_case → Título legível)
   const segmentosLabel = segmentos.map(s =>
@@ -12084,6 +12173,14 @@ function agBuildConfirmationSummary(parsed) {
       html += `<span style="display:inline-block;padding:3px 10px;background:#F5F0E8;border:1px solid #E0D8CC;border-radius:100px;font-size:11.5px;color:#5C4C38">${agEsc(s)}</span>`;
     });
     html += `</div></div>`;
+  }
+
+  // Localização — sinal visível pro usuário de que a cidade foi gravada
+  if (locText) {
+    html += `<div style="margin-top:14px">`;
+    html += `<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#5C4C38;margin-bottom:4px">Localização</div>`;
+    html += `<div style="line-height:1.55">${agEsc(locText)}</div>`;
+    html += `</div>`;
   }
 
   // Pergunta explícita convidando revisão antes de avançar
@@ -12194,8 +12291,9 @@ window.agEnviarResposta = async function() {
       window._agState.history.push({ role: 'assistant', content: raw });
       agRemoveTyping();
       const parsed = agParseResponse(raw);
+      const previous = window._agState.lastResult;
       window._agState.lastResult = parsed;
-      agAddAgentMsgFromResult(parsed);
+      agAddAgentMsgFromResult(parsed, previous);
     } catch (err) {
       agRemoveTyping();
       // Servidor já devolve uma mensagem específica e honesta — não inventamos
@@ -12233,8 +12331,9 @@ window.agEnviarResposta = async function() {
       window._agState.history.push({ role: 'assistant', content: raw });
       agRemoveTyping();
       const parsed = agParseResponse(raw);
+      const previous = window._agState.lastResult;
       window._agState.lastResult = parsed;
-      agAddAgentMsgFromResult(parsed);
+      agAddAgentMsgFromResult(parsed, previous);
     } catch (err) {
       agRemoveTyping();
       agAddMsg('agent', `<span style="color:#DC2626">❌ ${agEsc(err.message)}</span>`);

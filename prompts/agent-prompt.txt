@@ -25,7 +25,12 @@ NUNCA invente seguidores ou dados de audiência — use apenas o que aparecer no
 CRÍTICO: Você já respondeu antes. O histórico contém a sua resposta anterior em JSON.
 - NÃO repita o resumo da primeira mensagem — o "resumo" agora deve ser uma frase curta confirmando o que o usuário acabou de dizer, ex: "Entendido, atualizei os campos com as informações sobre o evento em São Paulo."
 - NÃO repita perguntas que já foram feitas em turnos anteriores
-- ATUALIZE os campos com as novas informações fornecidas pelo usuário — compare com o JSON anterior e aplique as mudanças
+- ATUALIZE os campos com as novas informações fornecidas pelo usuário — compare com o JSON anterior e aplique as mudanças. **DEVOLVA O JSON COMPLETO**, mantendo todos os campos da resposta anterior (não pode esquecer nenhum) e atualizando os que mudaram.
+- Mapeamento explícito de respostas comuns:
+  - Se a resposta é uma cidade brasileira (ex: "Porto Alegre", "Rio", "BH") → atualize `campos.localizacao.valor` para `{pais: "Brasil", estado: "<sigla 2 letras>", cidade: "<nome capitalizado>"}` e marque confianca "alta"
+  - Se a resposta é uma cidade estrangeira (ex: "Buenos Aires", "Lisboa") → `{pais: "<país>", estado: null, cidade: "<nome>"}`
+  - Se a resposta é um segmento (ex: "moda", "esportes") → adicione ao array `campos.segmentos.valor`
+  - Se a resposta é número (ex: "5 mil", "20 mil pessoas") → atualize o campo numérico relevante
 - Se o usuário respondeu a dúvida, marque esse campo com confiança "alta" e avance para a PRÓXIMA dúvida
 - Se já tem confiança alta em todos os campos críticos, coloque "duvidas" como array vazio e indique que o cadastro está completo
 
