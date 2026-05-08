@@ -11761,7 +11761,15 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
       throw new Error('A IA retornou uma resposta vazia. Tente novamente ou simplifique a entrada.');
     }
 
-    console.log('[agCallGemini] raw response (primeiros 500 chars):', data.text.slice(0, 500));
+    // Expõe a resposta crua no estado para diagnóstico — copie via:
+    //   copy(window._agState.lastRawResponse)
+    if (window._agState) window._agState.lastRawResponse = data.text;
+    const trimmed = data.text.trim();
+    const endsOk = trimmed.endsWith('}');
+    console.log(`[agCallGemini] raw response len=${data.text.length} endsWith}=${endsOk} (primeiros 500 chars):`, data.text.slice(0, 500));
+    if (!endsOk) {
+      console.warn('[agCallGemini] resposta NÃO termina com } — provável truncamento. Últimos 200 chars:', trimmed.slice(-200));
+    }
     return data.text;
   } catch (err) {
     if (err.name === 'AbortError') {
@@ -11823,8 +11831,11 @@ function agParseResponse(raw) {
       const recovered = JSON.parse(fixed);
       console.warn('[agParseResponse] JSON truncado — recuperado parcialmente');
       return recovered;
-    } catch {
-      console.error('[agParseResponse] falha ao parsear:', clean.slice(0, 300));
+    } catch (err2) {
+      console.error('[agParseResponse] falha ao parsear:', err2?.message || err2);
+      console.error('[agParseResponse] clean.length:', clean.length);
+      console.error('[agParseResponse] últimos 300 chars do clean:', clean.slice(-300));
+      console.error('[agParseResponse] primeiros 300 chars do clean:', clean.slice(0, 300));
       throw new Error('A IA retornou um formato inesperado. Tente novamente ou simplifique a entrada.');
     }
   }

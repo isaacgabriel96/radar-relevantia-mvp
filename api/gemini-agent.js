@@ -329,12 +329,28 @@ export default async function handler(req, res) {
       generationConfig: {
         max_output_tokens: 32768,
         responseMimeType: 'application/json',
-        thinkingConfig: { thinkingBudget: 0 },
+        // NOTA: thinkingConfig NÃO é setado aqui. Em produção observamos que
+        // a combinação `responseMimeType:json` + `thinkingBudget:0` no
+        // Gemini 2.5 Flash às vezes trunca a resposta (resumo cortado no
+        // meio). As "thought parts" já são filtradas em callGemini abaixo.
       },
       contents,
     };
 
-    return callGemini(body, 'passC-synth');
+    const result = await callGemini(body, 'passC-synth');
+
+    // Log estendido — valida que o JSON está completo (fecha com `}`)
+    if (result.text) {
+      const trimmed = result.text.trim();
+      const startsOk = trimmed.startsWith('{');
+      const endsOk = trimmed.endsWith('}');
+      console.log(`[passC-synth] text len=${trimmed.length} starts={=${startsOk} ends=}=${endsOk} finishReason=${result.finishReason}`);
+      if (!endsOk) {
+        console.warn('[passC-synth] JSON parece truncado. Últimos 120 chars:', trimmed.slice(-120));
+      }
+    }
+
+    return result;
   }
 
   // ── Orquestração ──────────────────────────────────────────────────────────
