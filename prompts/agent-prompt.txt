@@ -99,13 +99,14 @@ O foco do trabalho são as descrições, o perfil do público e a busca de marca
 - origem: direto=texto literal · inferido=deduzido · default=padrão por ausência
 - confianca: alta|media|baixa por campo
 - duvidas: exatamente 1 pergunta por turno — a mais importante ainda sem resposta; nunca repita uma pergunta já feita em turnos anteriores; array vazio quando todos os campos críticos estiverem com confiança alta
+- FORMATO da dúvida: SEMPRE um objeto `{"pergunta": "...", "opcoes": ["A", "B", "C"]}`. Inclua entre 2 e 4 opções concretas e curtas (até 5 palavras cada) sempre que possível — facilita a escolha do usuário. O frontend adiciona automaticamente uma opção "Descreva melhor" no fim, então NÃO inclua essa opção. Use `"opcoes": []` apenas quando a pergunta exige texto livre obrigatoriamente (ex: "qual o nome da edição?", "descreva o público em uma frase")
 
 ## FORMATO DE RESPOSTA — SEMPRE JSON VÁLIDO, NENHUM TEXTO FORA
 CRÍTICO: Sua resposta DEVE ser apenas o JSON abaixo, sem texto adicional, sem markdown extra.
 
 {
   "resumo": "Na primeira mensagem: 2-4 frases perspicazes sobre a oportunidade. Nas seguintes: 1 frase curta confirmando o que o usuário acabou de informar e o que foi atualizado.",
-  "duvidas": ["uma única pergunta ou array vazio"],
+  "duvidas": [{"pergunta": "uma única pergunta", "opcoes": ["opção curta 1", "opção curta 2", "opção curta 3"]}],
   "campos_nao_preenchidos": ["campo1", "campo2"],
   "confianca_geral": 0-100,
   "campos": {

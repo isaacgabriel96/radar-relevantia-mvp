@@ -3117,6 +3117,52 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .ag-btn-confirm:hover { opacity: 0.9; transform: translateY(-1px); }
 
+/* Opções numeradas das dúvidas do agente */
+.ag-options {
+  display: flex; flex-direction: column; gap: 6px;
+  margin-top: 12px;
+}
+.ag-option-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  background: var(--white, #FFFFFF);
+  border: 1.5px solid #E0D8CC;
+  border-radius: 10px;
+  font-size: 13px; font-family: var(--font-body, 'DM Sans', sans-serif);
+  color: #1A1200;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  width: 100%;
+}
+.ag-option-btn:hover {
+  border-color: #B8860B;
+  background: #FBF8F1;
+  transform: translateX(2px);
+}
+.ag-option-btn:active { transform: translateX(2px) scale(0.99); }
+.ag-option-num {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #B8860B, #C8A84B);
+  color: #FFF;
+  border-radius: 50%;
+  font-size: 11px; font-weight: 600;
+}
+.ag-option-text { flex: 1; line-height: 1.35; }
+.ag-option-free {
+  background: transparent;
+  border-style: dashed;
+  color: #5C4C38;
+}
+.ag-option-free .ag-option-num {
+  background: transparent;
+  color: #5C4C38;
+  border: 1.5px solid #A89880;
+}
+.ag-option-free:hover { background: #FAF8F5; border-style: solid; }
+
 /* Ações do painel agente */
 .ag-panel-actions {
   display: flex; gap: 10px; margin-top: 16px; align-items: center;
@@ -11943,7 +11989,25 @@ function agAddAgentMsgFromResult(parsed) {
   }
 
   if (parsed.duvidas?.length) {
-    html += `<strong>Para completar o cadastro:</strong><br>${agEsc(parsed.duvidas[0])}`;
+    // A dúvida pode ser:
+    //   - string (legado): "Qual a estimativa de público?"
+    //   - objeto (novo):   { pergunta: "...", opcoes: ["A", "B", "C"] }
+    const duv = parsed.duvidas[0];
+    const pergunta = (typeof duv === 'string') ? duv : (duv?.pergunta || '');
+    const opcoes   = (duv && typeof duv === 'object' && Array.isArray(duv.opcoes)) ? duv.opcoes : [];
+
+    html += `<strong>Para completar o cadastro:</strong><br>${agEsc(pergunta)}`;
+
+    if (opcoes.length > 0) {
+      html += '<div class="ag-options">';
+      opcoes.forEach((opc, i) => {
+        // Texto da opção é embarcado como atributo data-* (escapado) — quando
+        // o usuário clica, agSelecionarOpcao lê o atributo e envia como resposta.
+        html += `<button type="button" class="ag-option-btn" data-opc="${agEsc(opc)}" onclick="agSelecionarOpcao(this.dataset.opc)"><span class="ag-option-num">${i + 1}</span><span class="ag-option-text">${agEsc(opc)}</span></button>`;
+      });
+      html += `<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length + 1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+      html += '</div>';
+    }
   } else {
     html += agBuildConfirmationSummary(parsed);
   }
@@ -12033,6 +12097,26 @@ function agBuildConfirmationSummary(parsed) {
 }
 
 // ── Enviar mensagem no chat (primeira ou continuação) ────────────
+// Clique numa das opções numeradas — coloca o texto no input e envia.
+// Reaproveita toda a lógica de agEnviarResposta (validação, history,
+// scroll do thread etc) — o usuário "vê" o texto que escolheu como
+// se tivesse digitado.
+window.agSelecionarOpcao = function(text) {
+  if (window._agState?.loading) return;
+  const input = document.getElementById('agChatInput');
+  if (input) input.value = text || '';
+  window.agEnviarResposta();
+};
+
+// Foca o textarea quando o usuário escolhe "Descreva melhor"
+window.agFocarInput = function() {
+  const input = document.getElementById('agChatInput');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+};
+
 window.agEnviarResposta = async function() {
   const input = document.getElementById('agChatInput');
   const text  = (input || {}).value || '';
