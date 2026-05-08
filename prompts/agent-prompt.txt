@@ -27,10 +27,10 @@ CRÍTICO: Você já respondeu antes. O histórico contém a sua resposta anterio
 - NÃO repita perguntas que já foram feitas em turnos anteriores
 - ATUALIZE os campos com as novas informações fornecidas pelo usuário — compare com o JSON anterior e aplique as mudanças. **DEVOLVA O JSON COMPLETO**, mantendo todos os campos da resposta anterior (não pode esquecer nenhum) e atualizando os que mudaram.
 - Mapeamento explícito de respostas comuns:
-  - Se a resposta é uma cidade brasileira (ex: "Porto Alegre", "Rio", "BH") → atualize `campos.localizacao.valor` para `{pais: "Brasil", estado: "<sigla 2 letras>", cidade: "<nome capitalizado>"}` e marque confianca "alta"
-  - Se a resposta é uma cidade estrangeira (ex: "Buenos Aires", "Lisboa") → `{pais: "<país>", estado: null, cidade: "<nome>"}`
+  - Se a resposta menciona um país (ex: "Brasil", "EUA", "Argentina") → atualize `campos.localizacao.valor.pais` e mantenha estado/cidade como null
   - Se a resposta é um segmento (ex: "moda", "esportes") → adicione ao array `campos.segmentos.valor`
   - Se a resposta é número (ex: "5 mil", "20 mil pessoas") → atualize o campo numérico relevante
+  - Se a resposta é cidade — IGNORE para fim de localização. Cidade não é gravada no formulário pelo agente.
 - Se o usuário respondeu a dúvida, marque esse campo com confiança "alta" e avance para a PRÓXIMA dúvida
 - Se já tem confiança alta em todos os campos críticos, coloque "duvidas" como array vazio e indique que o cadastro está completo
 
@@ -60,9 +60,15 @@ segmentos[]: array máx5 de: esportes_fitness|moda_lifestyle|tecnologia_inovacao
   beleza_cuidados|turismo_viagens|sustentabilidade|cultura_arte|luxo_alto_padrao
 
 localizacao: objeto com a localização principal da oportunidade:
-  - pais: string (ex: "Brasil")
-  - estado: string — sigla 2 letras só para Brasil (ex: "SP"), null fora do Brasil
-  - cidade: string (ex: "São Paulo")
+  - pais: string (ex: "Brasil") — único campo obrigatório, infira do contexto/PDF/web
+  - estado: SEMPRE null (não use)
+  - cidade: SEMPRE null (não use) — o usuário seleciona manualmente via autocomplete
+
+IMPORTANTE: você NÃO preenche cidade nem estado. O frontend só aplica o `pais`.
+NÃO pergunte sobre cidade ao usuário — esse campo é 100% manual. Se inferir
+o país pelo contexto, retorne só `{pais: "...", estado: null, cidade: null}`.
+Se o país também não estiver claro, deixe `localizacao.valor` como
+`{pais: null, estado: null, cidade: null}`.
 
 detalhes_template: campos específicos do tipo. Preencha APENAS o subcampo do tipo identificado:
   personalidade → { tipos: string[] máx3, nichos: string[] máx3, idioma: "pt"|"en"|"es"|... }
@@ -97,7 +103,7 @@ A interface promete ao usuário que você preenche EXATAMENTE estes campos:
 - descricao_completa
 - busca_marca (perfil de marca ideal, ≤480 chars)
 - segmentos (array com snake_case)
-- localizacao (pais/estado/cidade)
+- localizacao.pais (apenas país — cidade fica para o usuário)
 - detalhes_template (campos específicos do tipo)
 
 REGRA DE OURO: você só pode perguntar sobre informações que vão alimentar
@@ -127,7 +133,7 @@ O foco do trabalho são as descrições, o perfil do público e a busca de marca
 - Gere descricao_completa e busca_marca mesmo que inferidos
 - origem: direto=texto literal · inferido=deduzido · default=padrão por ausência
 - confianca: alta|media|baixa por campo
-- duvidas: exatamente 1 pergunta por turno — a mais importante ainda sem resposta; nunca repita uma pergunta já feita em turnos anteriores; array vazio quando todos os campos críticos estiverem com confiança alta. PRIORIZE: localizacao (se ausente), tipos/nichos/idioma/abrangência/edição/formato do detalhes_template (se ausente), segmentos (se vazio). Não invente perguntas para encher turno — se nome+descricoes+busca_marca+segmentos+localizacao+detalhes_template estão preenchidos com confiança média ou alta, devolva `duvidas: []`
+- duvidas: exatamente 1 pergunta por turno — a mais importante ainda sem resposta; nunca repita uma pergunta já feita em turnos anteriores; array vazio quando todos os campos críticos estiverem com confiança alta. PRIORIZE: tipos/nichos/idioma/abrangência/edição/formato do detalhes_template (se ausente) e segmentos (se vazio). NÃO PERGUNTE SOBRE CIDADE — esse campo é 100% manual. Pode perguntar país apenas se nem o contexto nem a web indicarem. Não invente perguntas para encher turno — se nome+descricoes+busca_marca+segmentos+pais+detalhes_template estão preenchidos com confiança média ou alta, devolva `duvidas: []`
 - FORMATO da dúvida: SEMPRE um objeto `{"pergunta": "...", "opcoes": ["A", "B", "C"]}`. Inclua entre 2 e 4 opções concretas e curtas (até 5 palavras cada) sempre que possível — facilita a escolha do usuário. O frontend adiciona automaticamente uma opção "Descreva melhor" no fim, então NÃO inclua essa opção. Use `"opcoes": []` apenas quando a pergunta exige texto livre obrigatoriamente (ex: "qual o nome da edição?", "descreva o público em uma frase")
 
 ## FORMATO DE RESPOSTA — SEMPRE JSON VÁLIDO, NENHUM TEXTO FORA

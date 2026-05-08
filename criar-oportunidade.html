@@ -12004,9 +12004,10 @@ function agBuildDeltaSummary(previous, current) {
   const items = [];
 
   // Helpers de formatação por tipo de campo
+  // Localização: só país (cidade não é aplicada pelo agente — é manual)
   const fmtLoc = (loc) => {
     if (!loc || typeof loc !== 'object') return '';
-    return [loc.cidade, loc.estado, loc.pais].filter(Boolean).join(' · ');
+    return loc.pais || '';
   };
   const fmtSegs = (segs) => Array.isArray(segs) ? segs.join(', ') : '';
 
@@ -12030,11 +12031,11 @@ function agBuildDeltaSummary(previous, current) {
     items.push({ label: 'Descrição completa', value: '(atualizada)' });
   }
 
-  // Localização
+  // País (cidade é manual; não monitorada aqui)
   const beforeLoc = fmtLoc(pv('localizacao'));
   const afterLoc  = fmtLoc(cv('localizacao'));
   if (afterLoc && afterLoc !== beforeLoc) {
-    items.push({ label: 'Localização', value: afterLoc });
+    items.push({ label: 'País', value: afterLoc });
   }
 
   // Segmentos
@@ -12133,9 +12134,8 @@ function agBuildConfirmationSummary(parsed) {
   const localizacao = v('localizacao') || {};
   const tipoLabel = { personalidade: 'Personalidade', evento: 'Evento', artista: 'Artista', midia: 'Mídia' };
 
-  // Monta string de localização (cidade · estado · país) ignorando null/vazio
-  const locParts = [localizacao.cidade, localizacao.estado, localizacao.pais].filter(Boolean);
-  const locText = locParts.join(' · ');
+  // Monta string de localização (apenas país — cidade é manual no formulário)
+  const locText = localizacao.pais || '';
 
   // Formata segmentos para exibição (snake_case → Título legível)
   const segmentosLabel = segmentos.map(s =>
@@ -12185,11 +12185,11 @@ function agBuildConfirmationSummary(parsed) {
     html += `</div></div>`;
   }
 
-  // Localização — sinal visível pro usuário de que a cidade foi gravada
+  // País — sinal visível pro usuário (cidade é selecionada manualmente no form)
   if (locText) {
     html += `<div style="margin-top:14px">`;
-    html += `<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#5C4C38;margin-bottom:4px">Localização</div>`;
-    html += `<div style="line-height:1.55">${agEsc(locText)}</div>`;
+    html += `<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#5C4C38;margin-bottom:4px">País</div>`;
+    html += `<div style="line-height:1.55">${agEsc(locText)} <span style="color:#A89880;font-size:12px">· cidade você seleciona no formulário</span></div>`;
     html += `</div>`;
   }
 
@@ -12518,58 +12518,13 @@ function agApplyLocalizacao(loc) {
     });
   }
 
-  // Brasil: preenche estado + cidade via selects
-  if (loc.pais === 'Brasil' && loc.estado) {
-    setTimeout(() => {
-      const estadoEl = document.getElementById('opp-estado');
-      if (estadoEl && loc.estado) {
-        estadoEl.value = loc.estado;
-        estadoEl.dispatchEvent(new Event('change'));
-        agMarkField('opp-estado', 'panel-5', () => {
-          const el = document.getElementById('opp-estado');
-          if (el) { el.value = ''; el.dispatchEvent(new Event('change')); }
-        });
-      }
-      // Cidade via select (preenchida após updateOppCidades)
-      if (loc.cidade) {
-        setTimeout(() => {
-          const cidadeEl = document.getElementById('opp-cidade');
-          if (cidadeEl) {
-            const opt = Array.from(cidadeEl.options).find(o =>
-              o.text.toLowerCase() === loc.cidade.toLowerCase()
-            );
-            if (opt) {
-              cidadeEl.value = opt.value;
-              agMarkField('opp-cidade', 'panel-5', () => {
-                const el = document.getElementById('opp-cidade');
-                if (el) el.value = '';
-              });
-            } else {
-              // Fallback: campo texto internacional
-              const intlEl = document.getElementById('opp-cidade-intl');
-              if (intlEl) {
-                intlEl.value = loc.cidade;
-                agMarkField('opp-cidade-intl', 'panel-5', () => {
-                  const el = document.getElementById('opp-cidade-intl');
-                  if (el) el.value = '';
-                });
-              }
-            }
-          }
-        }, 300);
-      }
-    }, 100);
-  } else if (loc.cidade) {
-    // País internacional: campo texto
-    const intlEl = document.getElementById('opp-cidade-intl');
-    if (intlEl) {
-      intlEl.value = loc.cidade;
-      agMarkField('opp-cidade-intl', 'panel-5', () => {
-        const el = document.getElementById('opp-cidade-intl');
-        if (el) el.value = '';
-      });
-    }
-  }
+  // ── Cidade: NÃO é aplicada pelo agente (decisão MVP) ────────────────────
+  // O input #opp-cidade-intl tem autocomplete do Google Maps que exige
+  // place_id válido (selecionado da lista). Apenas setar `value` falha
+  // porque o autocomplete reseta o input ao carregar. Para evitar a
+  // expectativa frustrada, o agente preenche somente o país e a cidade
+  // fica 100% manual — o autocomplete já oferece UX rápida pro usuário.
+  // O modal "O que o agente preenche?" reflete isso explicitamente.
 }
 
 // ── Aplicar e marcar campos específicos do template ───────────────
@@ -13017,7 +12972,7 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
           <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Descrição completa</strong> <span>— contexto rico, perfil de público e relevância para marcas</span></div></div>
           <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Perfil de marca ideal</strong> <span>— setores, valores e tipo de ativação que faz sentido</span></div></div>
           <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Segmentos de mercado</strong> <span>— categorias de marca com maior fit</span></div></div>
-          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Localização</strong> <span>— país, estado e cidade quando inferíveis</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>País</strong> <span>— inferido do contexto, PDF ou pesquisa na web</span></div></div>
           <div class="info-modal-item"><span class="im-dot im-dot-green"></span><div><strong>Campos do tipo</strong> <span>— ex: tipo de evento, edição, formato, estilo musical</span></div></div>
         </div>
       </div>
@@ -13031,6 +12986,7 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
         <div class="info-modal-items">
           <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Canais e redes sociais</strong> <span>— usernames, seguidores e métricas</span></div></div>
           <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Cotas de patrocínio</strong> <span>— valores, benefícios e pacotes</span></div></div>
+          <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Cidade</strong> <span>— selecionada via autocomplete do Google Maps</span></div></div>
           <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Datas e locais</strong> <span>— cada data e venue adicionados individualmente</span></div></div>
           <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Foto de capa</strong> <span>— upload manual de imagem</span></div></div>
           <div class="info-modal-item"><span class="im-dot im-dot-gray"></span><div><strong>Link público e visibilidade</strong> <span>— definidos na etapa de publicação</span></div></div>
