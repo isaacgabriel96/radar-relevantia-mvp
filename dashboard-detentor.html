@@ -2387,6 +2387,20 @@ tbody tr:last-child td { border-bottom: none; }
       return href + sep + '_imp=1' + n;
     };
 
+    // Devolve token admin fresco. Como nesta página getValidToken foi
+    // monkey-patchado para retornar admin_token (snapshot), buscamos a sessão
+    // direto pelo SDK (sb.auth.getSession() faz auto-refresh quando expirado).
+    // Fallback para o ctx.admin_token caso o SDK não esteja pronto.
+    window._freshAdminToken = async function() {
+      try {
+        if (typeof sb !== 'undefined' && sb && sb.auth) {
+          const { data } = await sb.auth.getSession();
+          if (data?.session?.access_token) return data.session.access_token;
+        }
+      } catch (_) {}
+      return window._adminViewCtx?.admin_token || null;
+    };
+
     // Helper único: roteia chamadas de leitura/escrita de oportunidades via
     // Edge Function admin-actions quando o admin está em modo "Visualizando como".
     // A Edge Function valida is_admin e usa service_role — bypassa RLS de forma
@@ -2394,10 +2408,12 @@ tbody tr:last-child td { border-bottom: none; }
     window._adminViewCall = async function(action, payload = {}) {
       const c = window._adminViewCtx;
       if (!c) throw new Error('admin view context missing');
+      const token = await window._freshAdminToken();
+      if (!token) throw new Error('Sessão admin expirada. Faça login novamente.');
       const res = await fetch(SUPABASE_URL + '/functions/v1/admin-actions', {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer ' + c.admin_token,
+          'Authorization': 'Bearer ' + token,
           'apikey': SUPABASE_KEY,
           'Content-Type': 'application/json'
         },
