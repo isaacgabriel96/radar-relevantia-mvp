@@ -667,7 +667,15 @@ function renderCards() {
       '</div>' +
       '<div class="card-body">' +
         '<div class="card-org">' +
-          '<span class="card-org-avatar">' + o.orgInitials + '</span>' +
+          (function() {
+            var lu = o.detentorLogoUrl, ed = o.detentorEmpresaDomain, org = o.org;
+            var bf = !lu && ed ? ' data-bf-domain="'+ed+'"' : (!lu && org ? ' data-bf-name="'+org+'"' : '');
+            var bg = lu ? 'background:var(--gray-100);' : '';
+            return '<div class="card-org-avatar" style="overflow:hidden;padding:0;'+bg+'"'+bf+'>' +
+              '<img src="'+(lu||'')+'" alt="" style="width:100%;height:100%;object-fit:contain;'+(lu?'':'display:none')+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'\'">' +
+              '<span style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;'+(lu?'display:none':'')+'">' + o.orgInitials + '</span>' +
+            '</div>';
+          })() +
           '<span class="card-org-name">' + o.org + '</span>' +
         '</div>' +
         '<div class="card-title">' + o.title + '</div>' +
@@ -683,6 +691,9 @@ function renderCards() {
       '</div>' +
     '</a>';
   }).join('');
+
+  // Busca logos via Brandfetch para cards sem logo_url direto
+  applyBrandfetchLogos(grid);
 }
 
 /* ─── EVENTS ─── */

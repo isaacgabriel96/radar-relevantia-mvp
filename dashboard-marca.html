@@ -3009,54 +3009,8 @@ function renderOpportunities(opps) {
     </${cardTag}>`;
   }).join('');
 
-  // Buscar logos via Brandfetch nos cards recém-renderizados
+  // Buscar logos via Brandfetch nos cards recém-renderizados (usa applyBrandfetchLogos de core.js)
   applyBrandfetchLogos(document.getElementById('oppGrid'));
-}
-
-// ─── BRANDFETCH LOGO LOOKUP ──────────────────────────────────────────────────
-// Cache compartilhado entre o catálogo e o grid de negociações/solicitações
-const _bfLogoCache = {};
-const _BF_CLIENT   = '1idE-ar9WXT49s6Qb2f';
-
-function _applyBfLogo(row, src) {
-  const img  = row.querySelector('img');
-  const span = row.querySelector('span');
-  if (!img) return;
-  img.src = src;
-  img.style.display = 'block';
-  if (span) span.style.display = 'none';
-  img.onerror = () => { img.style.display = 'none'; if (span) span.style.display = ''; };
-}
-
-function _fetchBfAndApply(query, row) {
-  if (_bfLogoCache[query]) { _applyBfLogo(row, _bfLogoCache[query]); return; }
-  fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(query)}?c=${_BF_CLIENT}`)
-    .then(r => r.ok ? r.json() : null)
-    .then(data => {
-      const icon = Array.isArray(data) && data.length > 0 ? data[0].icon : null;
-      if (icon) { _bfLogoCache[query] = icon; _applyBfLogo(row, icon); }
-    })
-    .catch(() => {});
-}
-
-/**
- * Percorre um container e busca logos via Brandfetch para todos os cards
- * que não têm logo_url direto.
- * Prioridade: data-bf-domain (domínio exato) → data-bf-name (nome, fallback para marcas manuais)
- */
-function applyBrandfetchLogos(container) {
-  if (!container) return;
-  // 1. Cards com logo_url → <img> já preenchido, sem necessidade de Brandfetch
-  // 2. Sem logo_url mas com empresa_domain → Brandfetch por domínio (mais preciso)
-  container.querySelectorAll('.olc-brand-row[data-bf-domain]').forEach(row => {
-    const domain = row.dataset.bfDomain;
-    if (domain) _fetchBfAndApply(domain, row);
-  });
-  // 3. Sem logo_url e sem domínio (marca criada manualmente) → Brandfetch pelo nome
-  container.querySelectorAll('.olc-brand-row[data-bf-name]').forEach(row => {
-    const name = row.dataset.bfName;
-    if (name) _fetchBfAndApply(name, row);
-  });
 }
 
 // ─── HERO CAROUSEL CONTROLS ───

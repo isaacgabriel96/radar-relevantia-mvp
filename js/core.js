@@ -302,6 +302,8 @@ function rowToCatalogItem(row) {
     title: row.titulo || '', category: row.categoria || '',
     city: extractCity(row.localizacao), region: extractRegion(row.localizacao),
     org: orgNome, orgInitials: makeInitials(orgNome),
+    detentorLogoUrl:       (row.perfis && row.perfis.logo_url)       || null,
+    detentorEmpresaDomain: (row.perfis && row.perfis.empresa_domain) || null,
     desc: row.descricao_curta || '', price: parsePreco(row.preco_minimo),
     date: row.alcance || '', gradient: row.bg_gradient || 'linear-gradient(135deg, #1a1a2e, #16213e)',
     imagem_capa: row.imagem_capa || null,
@@ -313,7 +315,7 @@ function rowToCatalogItem(row) {
 
 async function fetchCatalog() {
   try {
-    const path = '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,preco_minimo,descricao_curta,alcance,bg_gradient,imagem_capa,imagens_focal,visibilidade,projeto_incentivado,perfis:detentor_id(empresa,slug)&ativo=eq.true&order=id.asc';
+    const path = '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,preco_minimo,descricao_curta,alcance,bg_gradient,imagem_capa,imagens_focal,visibilidade,projeto_incentivado,perfis:detentor_id(empresa,slug,logo_url,empresa_domain)&ativo=eq.true&order=id.asc';
     const res = await sbPublicFetch(path);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
@@ -324,6 +326,44 @@ async function fetchCatalog() {
     console.error('[fetchCatalog] Failed:', err);
     return null;
   }
+}
+
+// ─── BRANDFETCH LOGO UTILITY ────────────────────────────────
+// Shared by all pages. Percorre um container e busca logos via Brandfetch
+// para cards que não têm logo_url direto.
+// Prioridade: data-bf-domain (domínio exato) → data-bf-name (nome da empresa)
+const _rrBfCache = {};
+const _RR_BF_CLIENT = '1idE-ar9WXT49s6Qb2f';
+
+function _rrApplyLogo(row, src) {
+  const img  = row.querySelector('img');
+  const span = row.querySelector('span');
+  if (!img) return;
+  img.src = src;
+  img.style.display = 'block';
+  if (span) span.style.display = 'none';
+  img.onerror = () => { img.style.display = 'none'; if (span) span.style.display = ''; };
+}
+
+function _rrFetchBf(query, row) {
+  if (_rrBfCache[query]) { _rrApplyLogo(row, _rrBfCache[query]); return; }
+  fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(query) + '?c=' + _RR_BF_CLIENT)
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      const icon = Array.isArray(data) && data.length > 0 ? data[0].icon : null;
+      if (icon) { _rrBfCache[query] = icon; _rrApplyLogo(row, icon); }
+    })
+    .catch(() => {});
+}
+
+function applyBrandfetchLogos(container) {
+  if (!container) return;
+  container.querySelectorAll('[data-bf-domain]').forEach(row => {
+    const d = row.dataset.bfDomain; if (d) _rrFetchBf(d, row);
+  });
+  container.querySelectorAll('[data-bf-name]').forEach(row => {
+    const n = row.dataset.bfName; if (n) _rrFetchBf(n, row);
+  });
 }
 
 // ─── NEGOTIATIONS API (SDK-powered) ─────────────────────────
