@@ -3187,17 +3187,7 @@ input[type=number] { -moz-appearance: textfield; }
 </head>
 <body>
 
-<!-- Banner de Impersonation (visível apenas quando admin cria como cliente) -->
-<div id="impersonate-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#B8860B,#C8A84B);padding:10px 24px;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(184,134,11,0.4)">
-  <span style="font-size:16px">🪄</span>
-  <span style="font-size:13px;font-weight:600;color:#1A1200">Modo Admin:</span>
-  <span id="impersonate-banner-name" style="font-size:13px;color:#1A1200">Criando como cliente...</span>
-  <span style="font-size:12px;color:rgba(26,18,0,0.6);margin-left:4px">— A oportunidade será salva no nome deste detentor</span>
-  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-    <button onclick="saveDraft()" id="impersonate-save-btn" style="background:rgba(26,18,0,0.85);border:1px solid rgba(26,18,0,0.4);border-radius:100px;padding:5px 16px;font-size:12px;font-weight:600;color:#F5EDD6;cursor:pointer;font-family:inherit;transition:opacity .15s">💾 Salvar rascunho</button>
-    <button onclick="exitImpersonateMode()" style="background:rgba(26,18,0,0.15);border:1px solid rgba(26,18,0,0.25);border-radius:100px;padding:5px 14px;font-size:12px;font-weight:600;color:#1A1200;cursor:pointer;font-family:inherit">✕ Sair do modo</button>
-  </div>
-</div>
+<!-- Banner do modo admin é renderizado por js/admin-view-banner.js (pílula glass flutuante) -->
 
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
@@ -4285,7 +4275,7 @@ input[type=number] { -moz-appearance: textfield; }
           onclick="copySuccessShareLink(event)">Copiar</button>
       </div>
     </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="window.location.href='dashboard-detentor.html#oportunidades'">
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="goToDashboardPreservingCtx()">
       Ver minhas oportunidades
     </button>
   </div>
@@ -4295,6 +4285,7 @@ input[type=number] { -moz-appearance: textfield; }
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 <script src="js/sanitize.js"></script>
 <script src="js/core.js"></script>
+<script src="js/admin-view-banner.js"></script>
 <script src="js/demo-data.js"></script>
 <script>if(new URLSearchParams(location.search).get('demo')==='true')document.write('<script src="js\/demo-mode.js"><\/script>');</script>
 <script src="js/i18n.js"></script>
@@ -10249,10 +10240,11 @@ async function saveDraft() {
 
     showToast('Rascunho salvo!', 'success');
     setTimeout(() => {
-      if (window._impersonateCtx && oppId) {
-        // Em modo impersonation: fica no formulário com ?edit=<id> para permitir
-        // continuar editando o rascunho sem perder o contexto de impersonation
-        window.location.href = 'criar-oportunidade.html?edit=' + oppId;
+      if (window._impersonateCtx) {
+        // Em modo impersonation: vai pro dashboard do detentor preservando ctx
+        // (nonce + _imp=1 garantem que o banner reaparece e o admin view continua)
+        const n = window._impersonateCtx.nonce ? '&_n=' + encodeURIComponent(window._impersonateCtx.nonce) : '';
+        window.location.href = 'dashboard-detentor.html?_imp=1' + n + '#oportunidades';
       } else {
         window.location.href = 'dashboard-detentor.html#oportunidades';
       }
@@ -12665,43 +12657,42 @@ function agApplyTemplateDetalhes(tplKey, detalhes) {
 /** Inicializa o modo impersonation se houver contexto válido no localStorage */
 function initImpersonateMode() {
   try {
-    // Segurança em duas camadas:
-    // 1. Só ativa se a URL tiver ?_imp=1 (admin abre explicitamente com esse parâmetro)
-    // 2. Consome do localStorage → sessionStorage (por-aba) para não vazar para outras abas
+    // Segurança em três camadas:
+    // 1. Só ativa se a URL tiver ?_imp=1
+    // 2. Cada handoff usa um nonce único (?_n=…) — impede que abas concorrentes consumam o ctx errado
+    // 3. localStorage (chave por-nonce) → sessionStorage (por-aba)
     const urlParams = new URLSearchParams(window.location.search);
     if (!urlParams.get('_imp')) {
       localStorage.removeItem('sb_impersonate_ctx');
       return;
     }
+    const nonce = urlParams.get('_n');
     let raw = sessionStorage.getItem('sb_impersonate_ctx');
-    if (!raw) {
-      raw = localStorage.getItem('sb_impersonate_ctx');
+    if (!raw && nonce) {
+      const lsKey = 'sb_impersonate_ctx__' + nonce;
+      raw = localStorage.getItem(lsKey);
       if (raw) {
         sessionStorage.setItem('sb_impersonate_ctx', raw);
-        localStorage.removeItem('sb_impersonate_ctx');
+        localStorage.removeItem(lsKey);
       }
     }
     if (!raw) return;
     const ctx = JSON.parse(raw);
-    // Valida expiração (2h)
     if (!ctx.target_user_id || !ctx.admin_token || !ctx.expires_at) return;
     if (Math.floor(Date.now() / 1000) > ctx.expires_at) {
       sessionStorage.removeItem('sb_impersonate_ctx');
       console.warn('[Impersonate] Contexto expirado, removido.');
       return;
     }
-    // Contexto válido — ativa modo
+    if (nonce && ctx.nonce && ctx.nonce !== nonce) {
+      console.warn('[Impersonate] nonce mismatch — abortando ativação');
+      sessionStorage.removeItem('sb_impersonate_ctx');
+      return;
+    }
+    // Contexto válido — ativa modo. O banner em si é renderizado pelo
+    // js/admin-view-banner.js (pílula glass flutuante, não desloca conteúdo).
     window._impersonateCtx = ctx;
-    const banner = document.getElementById('impersonate-banner');
-    const nameEl = document.getElementById('impersonate-banner-name');
-    if (banner) {
-      banner.style.display = 'flex';
-      // Adiciona padding-top no body para o conteúdo não ficar atrás do banner fixo
-      document.body.style.paddingTop = '48px';
-    }
-    if (nameEl) {
-      nameEl.textContent = ctx.target_nome || ctx.target_email || ctx.target_user_id;
-    }
+    window._adminViewCtx = window._adminViewCtx || ctx; // unifica nome para o banner compartilhado
     // Sobrescrever sidebar com dados do detentor impersonado
     const sidebarName   = document.getElementById('sidebarUserName');
     const sidebarEmail  = document.getElementById('sidebarEmail');
@@ -12719,18 +12710,34 @@ function initImpersonateMode() {
 
 /** Sai do modo impersonation: limpa contexto e fecha a aba */
 function exitImpersonateMode() {
-  sessionStorage.removeItem('sb_impersonate_ctx');
-  localStorage.removeItem('sb_impersonate_ctx'); // limpa resíduos antigos
+  try {
+    sessionStorage.removeItem('sb_impersonate_ctx');
+    // Remove qualquer chave por-nonce que tenha vazado
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith('sb_impersonate_ctx')) localStorage.removeItem(k);
+    });
+  } catch(_) {}
   window._impersonateCtx = null;
-  const banner = document.getElementById('impersonate-banner');
-  if (banner) banner.style.display = 'none';
-  document.body.style.paddingTop = '';
+  window._adminViewCtx = null;
+  // Remove o banner glass injetado por js/admin-view-banner.js
+  const banner = document.getElementById('adminViewBanner');
+  if (banner) banner.remove();
   showToast('Saiu do modo Admin. Redirecionando…', 'success');
   setTimeout(() => {
     // Tenta fechar a aba; se não conseguir, vai para o admin
-    window.close();
-    setTimeout(() => { window.location.href = 'admin.html'; }, 500);
-  }, 1200);
+    try { window.close(); } catch(_) {}
+    setTimeout(() => { window.location.href = 'admin.html'; }, 400);
+  }, 1000);
+}
+
+/** Vai pro dashboard do detentor preservando ctx do admin (usado após publish/save) */
+function goToDashboardPreservingCtx() {
+  if (window._impersonateCtx) {
+    const n = window._impersonateCtx.nonce ? '&_n=' + encodeURIComponent(window._impersonateCtx.nonce) : '';
+    window.location.href = 'dashboard-detentor.html?_imp=1' + n + '#oportunidades';
+  } else {
+    window.location.href = 'dashboard-detentor.html#oportunidades';
+  }
 }
 
 /**
@@ -12741,11 +12748,17 @@ async function _impersonateCreateOportunidade(oppData, status) {
   const ctx = window._impersonateCtx;
   if (!ctx) throw new Error('Contexto de impersonation não encontrado');
 
+  // Defesa em profundidade: remove campos que o servidor é dono de definir
+  // (id, dono, timestamps, auditoria). A Edge Function deve re-impor esses
+  // valores; aqui só evitamos enviá-los pra reduzir superfície de ataque.
+  const SERVER_OWNED = ['id', 'detentor_id', 'criado_em', 'atualizado_em', 'criado_por', 'org_id'];
+  const safeData = { ...oppData, status };
+  for (const k of SERVER_OWNED) delete safeData[k];
+
   const payload = {
     action: 'create-oportunidade-as',
     target_user_id: ctx.target_user_id,
-    opp_data: { ...oppData, status },
-    admin_user_id: null, // o admin_user_id virá do JWT do token admin
+    opp_data: safeData,
   };
 
   const res = await fetch(SUPABASE_URL + '/functions/v1/admin-actions', {
@@ -12773,6 +12786,11 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
   const ctx = window._impersonateCtx;
   if (!ctx) throw new Error('Contexto de impersonation não encontrado');
 
+  // Strip de campos cujo dono é o servidor — admin nunca pode reatribuir opp
+  const SERVER_OWNED = ['id', 'detentor_id', 'criado_em', 'criado_por', 'org_id'];
+  const safeData = { ...oppData };
+  for (const k of SERVER_OWNED) delete safeData[k];
+
   const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-actions`, {
     method: 'POST',
     headers: {
@@ -12780,7 +12798,12 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
       'Authorization': 'Bearer ' + ctx.admin_token,
       'apikey': SUPABASE_KEY,
     },
-    body: JSON.stringify({ action: 'update-oportunidade-as', opp_id: oppId, opp_data: oppData }),
+    body: JSON.stringify({
+      action: 'update-oportunidade-as',
+      target_user_id: ctx.target_user_id,
+      opp_id: oppId,
+      opp_data: safeData
+    }),
   });
 
   const result = await res.json();
