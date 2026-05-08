@@ -11782,6 +11782,65 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
   }
 }
 
+/**
+ * Repair iterativo de JSON inválido devolvido pelo Gemini.
+ *
+ * O modelo às vezes "esquece" caracteres estruturais (`,`, `}`, `]`) entre
+ * propriedades — gera coisas como:
+ *   "cidade": "Rio de Janeiro"
+ *   "origem": "inferido"
+ * onde deveria haver `},` ou `,` antes da próxima propriedade.
+ *
+ * Estratégia: tenta JSON.parse; em caso de falha, lê a posição do erro,
+ * encontra o último char não-whitespace antes dela e tenta inserir cada um
+ * dos candidatos comuns (`,`, `}`, `},`, `]`, `],`). Aceita o primeiro que
+ * faça parse passar — ou que avance a posição do próximo erro (progresso).
+ * Cap de 30 iterações para evitar loop infinito em casos patológicos.
+ */
+function agRepairJson(raw) {
+  let s = raw;
+  const candidates = [',', '},', '],', '}', ']', '}}', '}}'];
+  for (let attempt = 0; attempt < 30; attempt++) {
+    try {
+      return JSON.parse(s);
+    } catch (e) {
+      const m = e.message.match(/position (\d+)/);
+      if (!m) return null;
+      const pos = +m[1];
+
+      // Acha o último char não-whitespace antes da posição do erro
+      let p = pos - 1;
+      while (p >= 0 && /\s/.test(s[p])) p--;
+      if (p < 0) return null;
+
+      // Tenta cada candidato; aceita o que (a) faz parsear OK ou (b) avança
+      // o ponteiro do erro mais que os outros (heurística de progresso).
+      let bestCandidate = null;
+      let bestProgress = pos;
+
+      for (const fix of candidates) {
+        const cand = s.slice(0, p + 1) + fix + s.slice(p + 1);
+        try {
+          JSON.parse(cand);
+          // Sucesso direto — devolve já parseado
+          return JSON.parse(cand);
+        } catch (e2) {
+          const m2 = e2.message.match(/position (\d+)/);
+          const newPos = m2 ? +m2[1] : -1;
+          if (newPos > bestProgress) {
+            bestProgress = newPos;
+            bestCandidate = cand;
+          }
+        }
+      }
+
+      if (!bestCandidate) return null;
+      s = bestCandidate;
+    }
+  }
+  return null;
+}
+
 function agParseResponse(raw) {
   if (!raw || !raw.trim()) {
     throw new Error('Resposta vazia da IA.');
@@ -11795,16 +11854,25 @@ function agParseResponse(raw) {
   if (mFull) clean = mFull[0];
   else if (mOpen) clean = mOpen[0];
 
+  // Tenta parse direto primeiro (caminho feliz)
   try {
     return JSON.parse(clean);
-  } catch {
-    // Tenta recuperar JSON truncado
+  } catch (origErr) {
+    // ── Repair iterativo ──────────────────────────────────────────────────
+    // O Gemini 2.5 Flash às vezes gera JSON com vírgulas ou chaves faltando
+    // (ex: `"cidade": "Rio"\n  "origem": "..."` sem `,` nem `}` entre eles),
+    // mesmo com responseMimeType:'application/json'. Esta rotina pega a
+    // posição do erro do JSON.parse e tenta inserir os caracteres mais
+    // prováveis (`,`, `}`, `},`, etc) até o parse passar.
+    const repaired = agRepairJson(clean);
+    if (repaired) {
+      console.warn('[agParseResponse] JSON reparado automaticamente. Erro original:', origErr.message);
+      return repaired;
+    }
+
+    // Fallback: tenta tratar como JSON truncado (string aberta, chaves abertas)
     try {
       let fixed = clean;
-
-      // Corta na última chave completa para evitar valor incompleto
-      const lastComma = fixed.lastIndexOf(',"');
-      if (lastComma > fixed.length * 0.3) fixed = fixed.slice(0, lastComma);
 
       // Fecha string aberta: conta aspas não-escapadas — se ímpar, fecha
       let inStr = false;
@@ -11833,6 +11901,7 @@ function agParseResponse(raw) {
       return recovered;
     } catch (err2) {
       console.error('[agParseResponse] falha ao parsear:', err2?.message || err2);
+      console.error('[agParseResponse] erro original:', origErr.message);
       console.error('[agParseResponse] clean.length:', clean.length);
       console.error('[agParseResponse] últimos 300 chars do clean:', clean.slice(-300));
       console.error('[agParseResponse] primeiros 300 chars do clean:', clean.slice(0, 300));
