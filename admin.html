@@ -2935,18 +2935,21 @@ function openFormAsClient() {
     return;
   }
 
-  // Salva contexto de impersonation no localStorage
+  // Nonce único por handoff — evita que abas concorrentes consumam o ctx errado
+  const nonce = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(36).slice(2));
   const ctx = {
     target_user_id:  _impersonateSelected.id,
     target_nome:     _impersonateSelected.nome,
     target_email:    _impersonateSelected.email,
     admin_token:     session.access_token,
-    expires_at:      Math.floor(Date.now() / 1000) + 7200,  // 2h
+    expires_at:      Math.floor(Date.now() / 1000) + 1800,  // 30 min
+    nonce,
   };
-  localStorage.setItem('sb_impersonate_ctx', JSON.stringify(ctx));
+  // Chave por-nonce, não compartilhada entre handoffs
+  localStorage.setItem('sb_impersonate_ctx__' + nonce, JSON.stringify(ctx));
 
-  // Abre o formulário em nova aba
-  window.open('criar-oportunidade.html?_imp=1', '_blank');
+  // Abre o formulário em nova aba — nonce vai na URL para a página destino reivindicar o ctx certo
+  window.open('criar-oportunidade.html?_imp=1&_n=' + encodeURIComponent(nonce), '_blank');
   showToast(`Formulário aberto como ${_impersonateSelected.nome}`, 'success');
 }
 
@@ -2962,18 +2965,20 @@ function openOportunidadesDoDetentor() {
     return;
   }
 
-  // Salva contexto de impersonation (mesmo que openFormAsClient)
+  // Nonce único por handoff (mesmo padrão do openFormAsClient)
+  const nonce = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(36).slice(2));
   const ctx = {
     target_user_id: _impersonateSelected.id,
     target_nome:    _impersonateSelected.nome,
     target_email:   _impersonateSelected.email,
     admin_token:    session.access_token,
-    expires_at:     Math.floor(Date.now() / 1000) + 7200, // 2h
+    expires_at:     Math.floor(Date.now() / 1000) + 1800, // 30 min
+    nonce,
   };
-  localStorage.setItem('sb_impersonate_ctx', JSON.stringify(ctx));
+  localStorage.setItem('sb_impersonate_ctx__' + nonce, JSON.stringify(ctx));
 
-  // Abre o dashboard do detentor na aba de oportunidades
-  window.open('dashboard-detentor.html?_imp=1#oportunidades', '_blank');
+  // Abre o dashboard do detentor na aba de oportunidades — nonce reivindica o ctx
+  window.open('dashboard-detentor.html?_imp=1&_n=' + encodeURIComponent(nonce) + '#oportunidades', '_blank');
   showToast(`Abrindo oportunidades de ${_impersonateSelected.nome}`, 'success');
 }
 
