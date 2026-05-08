@@ -2996,10 +2996,10 @@ function renderOpportunities(opps) {
         <div class="opp-card-desc">${opp.desc}</div>
         <div class="opp-card-divider"></div>
         <div class="opp-card-footer">
-          <div class="olc-brand-row" ${opp.detentorEmpresaDomain ? `data-bf-domain="${opp.detentorEmpresaDomain}"` : ''}>
+          <div class="olc-brand-row" ${!opp.detentorLogoUrl && opp.detentorEmpresaDomain ? `data-bf-domain="${opp.detentorEmpresaDomain}"` : ''}>
             <div class="olc-logo" style="overflow:hidden;padding:0;background:var(--gray-100)">
-              <img src="" alt="" style="width:100%;height:100%;object-fit:contain;display:none" onerror="this.style.display='none';this.nextElementSibling.style.display=''">
-              <span style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">${opp.detentorEmpresa ? opp.detentorEmpresa.charAt(0).toUpperCase() : (opp.orgInitials||'?')}</span>
+              <img src="${opp.detentorLogoUrl || ''}" alt="" style="width:100%;height:100%;object-fit:contain;${opp.detentorLogoUrl ? 'display:block' : 'display:none'}" onerror="this.style.display='none';this.nextElementSibling.style.display=''">
+              <span style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;${opp.detentorLogoUrl ? 'display:none' : ''}">${opp.detentorEmpresa ? opp.detentorEmpresa.charAt(0).toUpperCase() : (opp.orgInitials||'?')}</span>
             </div>
             <span class="olc-brand-name">${opp.detentorEmpresa || opp.org}</span>
           </div>
@@ -5763,6 +5763,7 @@ function renderMinhasSolicitacoes() {
     var categoria = o ? (o.categoria || '') : '';
     var desc = o ? (o.descricao_curta || (o.tags ? o.tags.slice(0,3).join(' · ') : '')) : '';
     var orgInitials = o ? (o.icone || titulo.substring(0,2).toUpperCase()) : '?';
+    var detentorLogoUrl = (o && o.detentorLogoUrl) || null;
 
     var slidesHtml = imgs.map(function(src) {
       return '<div class="olc-hero-slide"><img src="' + src + '" alt="' + titulo + '" loading="lazy" style="object-position:50% 20%"></div>';
@@ -5805,8 +5806,11 @@ function renderMinhasSolicitacoes() {
         + '<div class="opp-card-divider"></div>'
         + '<div class="opp-card-footer">'
           + '<div class="olc-brand-row">'
-            + '<div class="olc-logo">' + orgInitials + '</div>'
-            + '<span class="olc-brand-name">' + (o && o.categoria ? o.categoria : titulo) + '</span>'
+            + '<div class="olc-logo" style="overflow:hidden;padding:0;background:var(--gray-100)">'
+              + '<img src="' + (detentorLogoUrl || '') + '" alt="" style="width:100%;height:100%;object-fit:contain;' + (detentorLogoUrl ? 'display:block' : 'display:none') + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'">'
+              + '<span style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;' + (detentorLogoUrl ? 'display:none' : '') + '">' + orgInitials + '</span>'
+            + '</div>'
+            + '<span class="olc-brand-name">' + (o && o.detentorEmpresa ? o.detentorEmpresa : (o && o.categoria ? o.categoria : titulo)) + '</span>'
           + '</div>'
           + footerArrow
         + '</div>'
