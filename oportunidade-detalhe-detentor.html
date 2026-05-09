@@ -1348,8 +1348,18 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'cotas(nome,preco,icone,ordem),' +
       'canais(icone,label,valor,ordem)' +
       filter;
-    // Use auth token so detentor can see their own private/draft records
-    const token = typeof getValidToken === 'function' ? await getValidToken() : null;
+    // Use auth token so detentor (ou admin em modo view) possa ver registros privados/rascunho.
+    // Em admin view, getValidToken foi monkey-patchado pro admin_token snapshot;
+    // usamos sb.auth.getSession() pra pegar token fresco (auto-refreshed pelo SDK).
+    let token = null;
+    if (window._adminViewCtx && typeof sb !== 'undefined' && sb && sb.auth) {
+      try {
+        const { data } = await sb.auth.getSession();
+        token = data?.session?.access_token || window._adminViewCtx.admin_token;
+      } catch (_) { token = window._adminViewCtx.admin_token; }
+    } else if (typeof getValidToken === 'function') {
+      token = await getValidToken();
+    }
     const headers = {
       'apikey': SUPABASE_KEY,
       'Authorization': token ? ('Bearer ' + token) : ('Bearer ' + SUPABASE_KEY),
@@ -1979,7 +1989,8 @@ var LOGGED_USER = (function() {
   }
   return null;
 })();
-if ((!LOGGED_USER || !LOGGED_USER.id) && !(typeof isDemoMode === 'function' && isDemoMode())) { window.location.href = 'login.html'; }
+// Em admin view: não exige sessão de detentor — admin usa sua própria sessão.
+if ((!LOGGED_USER || !LOGGED_USER.id) && !(typeof isDemoMode === 'function' && isDemoMode()) && !window._adminViewCtx) { window.location.href = 'login.html'; }
 
 // Preenche sidebar com dados reais
 (function() {
@@ -2075,16 +2086,51 @@ function handleFieldBlur(e) {
 async function saveField(fieldName, value) {
   if (!_CURRENT_OPP || !_CURRENT_OPP.id) return;
 
-  var token = typeof _getWriteToken === 'function' ? await _getWriteToken('rightsholder') : null;
-  if (!token) {
-    if (typeof showToast === 'function') showToast('Sessão expirada. Faça login novamente.', 'error');
-    return;
-  }
-
   var payload = {};
   payload[fieldName] = value;
 
   try {
+    // Em admin view: roteia via Edge Function admin-actions (RLS bloqueia
+    // PATCH direto com admin_token; é a mesma armadilha que tinha no dashboard).
+    if (window._adminViewCtx) {
+      var ctx = window._adminViewCtx;
+      var freshToken = ctx.admin_token;
+      try {
+        if (typeof sb !== 'undefined' && sb && sb.auth) {
+          var sess = await sb.auth.getSession();
+          if (sess?.data?.session?.access_token) freshToken = sess.data.session.access_token;
+        }
+      } catch (_) {}
+      var efRes = await fetch(SUPABASE_URL + '/functions/v1/admin-actions', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + freshToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'update-oportunidade-as',
+          target_user_id: ctx.target_user_id,
+          opp_id: _CURRENT_OPP.id,
+          opp_data: payload
+        })
+      });
+      var efData = await efRes.json().catch(function(){ return {}; });
+      if (efRes.ok && efData.success !== false) {
+        showSaveIndicator();
+        _CURRENT_OPP[fieldName] = value;
+      } else {
+        console.error('[saveField/admin-view] Failed:', efData);
+        if (typeof showToast === 'function') showToast('Erro ao salvar: ' + (efData.error || 'tente novamente'), 'error');
+      }
+      return;
+    }
+
+    // Fluxo normal (detentor editando a própria opp)
+    var token = typeof _getWriteToken === 'function' ? await _getWriteToken('rightsholder') : null;
+    if (!token) {
+      if (typeof showToast === 'function') showToast('Sessão expirada. Faça login novamente.', 'error');
+      return;
+    }
     var res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + _CURRENT_OPP.id, {
       method: 'PATCH',
       body: JSON.stringify(payload),
@@ -2175,8 +2221,8 @@ function goToFullEdit() {
   if (oppData) {
     console.log('[Detentor Detail] Loaded:', oppData.title);
 
-    // Verificar ownership
-    if (oppData.detentor_id !== LOGGED_USER.id) {
+    // Verificar ownership — pulado em admin view (admin pode ver opp de qualquer detentor)
+    if (!window._adminViewCtx && (!LOGGED_USER || oppData.detentor_id !== LOGGED_USER.id)) {
       console.warn('[Detentor Detail] Not the owner! Redirecting...');
       window.location.href = 'oportunidade-detalhe.html?@' + (oppData.slug || oppData.id);
       return;
