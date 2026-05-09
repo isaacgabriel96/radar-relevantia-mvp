@@ -10260,6 +10260,15 @@ async function saveDraft() {
 ══════════════════════════════════════════════ */
 let _autoSaveInterval = null;
 let _autoSaving = false;
+// Trava de segurança: depois que o publish termina, não deixamos o autosave
+// continuar rodando — caso contrário ele sobrescreve status='publicada' de
+// volta pra 'rascunho' (race condition real, vide opp #72 nos logs).
+let _publishCompleted = false;
+function _stopAutoSave() {
+  if (_autoSaveInterval) { clearInterval(_autoSaveInterval); _autoSaveInterval = null; }
+  _publishCompleted = true;
+  _hideAutoSaveStatus();
+}
 
 function _showAutoSaveStatus(cls, text) {
   const el = document.getElementById('autoSaveStatus');
@@ -10274,6 +10283,7 @@ function _hideAutoSaveStatus() {
 }
 
 async function silentSaveDraft() {
+  if (_publishCompleted) return;     // após publish, autosave nunca mais roda
   if (_autoSaving) return;           // evita sobreposição
   if (!formState.selectedTemplate) return; // form ainda vazio
   _autoSaving = true;
@@ -10508,6 +10518,14 @@ async function publishOpportunity() {
   const publishOrigText = publishBtn ? publishBtn.innerHTML : '';
   if (publishBtn) { publishBtn.disabled = true; publishBtn.innerHTML = '<span style="opacity:.7">Publicando…</span>'; }
   draftBtns.forEach(b => b.disabled = true);
+
+  // ── CRÍTICO: para o autosave ANTES do publish começar ──
+  // Sem isso, silentSaveDraft (rodando a cada 60s) sobrescreve status='publicada'
+  // de volta pra 'rascunho' segundos depois do publish, e também pode zerar
+  // cotas_data/slug se o estado interno do form mudar. Visto em produção na
+  // opp #72 (Filipe Ret): publish setou status=publicada, autosave 3s depois
+  // setou status=rascunho.
+  _stopAutoSave();
 
   try {
     let oppId = formState.editId;
