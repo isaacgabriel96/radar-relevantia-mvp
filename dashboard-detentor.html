@@ -3970,7 +3970,7 @@ async function loadMinhasOpps() {
       const data = await window._adminViewCall('list-oportunidades-as');
       rows = data.oportunidades || data.rows || [];
     } else {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,descricao_curta,descricao_completa,localizacao,alcance,status,ativo,bg_gradient,imagem_capa,imagens,imagens_focal,visibilidade,link_externo,video_url,detalhes,tags,redes_sociais,cotas_data,cotas_habilitadas,criado_em,perfis:detentor_id(slug)&detentor_id=eq.' + userId + '&order=criado_em.desc', {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,descricao_curta,descricao_completa,localizacao,alcance,status,ativo,bg_gradient,imagem_capa,imagens,imagens_focal,visibilidade,link_externo,video_url,detalhes,tags,redes_sociais,cotas_data,cotas_habilitadas,criado_em,midia_kit_url,publico_canais,publico_presencial,projeto_incentivado,incentivo_data,perfis:detentor_id(slug)&detentor_id=eq.' + userId + '&order=criado_em.desc', {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
       });
       if (!res.ok) return;
@@ -4000,7 +4000,12 @@ async function loadMinhasOpps() {
       tags: r.tags || [],
       redes_sociais: r.redes_sociais || {},
       cotas_data: r.cotas_data || null,
-      cotas_habilitadas: r.cotas_habilitadas || false
+      cotas_habilitadas: r.cotas_habilitadas || false,
+      midia_kit_url: r.midia_kit_url || null,
+      publico_canais: r.publico_canais || null,
+      publico_presencial: r.publico_presencial || null,
+      projeto_incentivado: r.projeto_incentivado || false,
+      incentivo_data: r.incentivo_data || null
     }));
     // Count interesses (negociações) per oportunidade
     NEGOCIACOES.forEach(n => {
