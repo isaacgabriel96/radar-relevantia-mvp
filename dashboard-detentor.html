@@ -367,6 +367,25 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 /* ─── SETUP GUIDE PANEL ─── */
 .sgp-overlay { display:none; position:fixed; inset:0; z-index:299; }
 .sgp-overlay.open { display:block; }
+/* ── Modo Admin View: restringe nav apenas a "Minhas Oportunidades" ─────────
+   Admin atuando como cliente NUNCA deve mexer em Configurações, Equipe, Voz,
+   Dashboard nem na sidebar do user. Esconde tudo via CSS quando body tem
+   .admin-view-mode (classe adicionada pelo IIFE de admin view). */
+body.admin-view-mode .sidebar-nav .nav-item[data-section="dashboard"],
+body.admin-view-mode .sidebar-nav .nav-item[data-section="configuracoes"],
+body.admin-view-mode .sidebar-nav .nav-item[data-section="voz"],
+body.admin-view-mode .sidebar-nav .nav-item[data-section="equipe"],
+body.admin-view-mode .sidebar-footer,
+body.admin-view-mode #bn-dashboard,
+body.admin-view-mode #bn-negociacoes,
+body.admin-view-mode #bn-configuracoes,
+body.admin-view-mode #setupGuidePanel,
+body.admin-view-mode #setupGuideFloatBtn,
+body.admin-view-mode .topbar-actions,
+body.admin-view-mode #notifBtn { display: none !important; }
+/* Esconde labels "Visão Geral" e "Conta" — mantém só "Oportunidades" */
+body.admin-view-mode .sidebar-nav .nav-section-label:not(:nth-of-type(2)) { display: none !important; }
+
 .setup-guide-panel {
   position: fixed; top: 64px; right: 0; width: 340px;
   background: #fff; border-left: 1px solid rgba(0,0,0,0.08);
@@ -2427,6 +2446,16 @@ tbody tr:last-child td { border-bottom: none; }
     };
     // O banner é renderizado pelo js/admin-view-banner.js (pílula glass flutuante).
     // Não precisamos mais reservar padding no layout — banner não desloca conteúdo.
+
+    // Marca o body para o CSS restringir nav (Configurações, Voz, Equipe, etc).
+    // Admin em modo "atuando como" só deve poder mexer em Minhas Oportunidades.
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('admin-view-mode');
+      // Força hash pra #oportunidades — bloqueia deep-links pra outras seções
+      if (window.location.hash && window.location.hash !== '#oportunidades' && window.location.hash !== '#') {
+        window.location.hash = 'oportunidades';
+      }
+    });
   } catch(_) {}
 })();
 
@@ -2547,12 +2576,18 @@ async function init() {
     // Pré-carrega solicitações em background para atualizar badge imediatamente
     loadSolicitacoes().catch(function(e) { console.error('[init] loadSolicitacoes bg error:', e); });
 
-    // Check hash for deep linking
-    const hash = window.location.hash.replace('#', '');
-    if (hash === 'negociacoes') {
-      showSectionTab('oportunidades', 'negociacoes');
-    } else if (hash && SECTION_TITLES[hash]) {
-      showSection(hash);
+    // Em admin view: força "oportunidades" como section inicial.
+    // Admin não deve cair no Dashboard do detentor por padrão.
+    if (window._adminViewCtx) {
+      showSection('oportunidades');
+    } else {
+      // Check hash for deep linking
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'negociacoes') {
+        showSectionTab('oportunidades', 'negociacoes');
+      } else if (hash && SECTION_TITLES[hash]) {
+        showSection(hash);
+      }
     }
   } catch (e) {
     console.error('[init] Critical error:', e);
@@ -2959,6 +2994,12 @@ function formatRelTime(iso) {
 
 // ─── NAVIGATION ───
 function showSection(sectionId) {
+  // Em modo admin view: força que só "oportunidades" seja acessível.
+  // Admin não deve poder mexer em Configurações/Equipe/Voz/Dashboard do detentor.
+  if (window._adminViewCtx && sectionId !== 'oportunidades') {
+    sectionId = 'oportunidades';
+  }
+
   // Hide all sections
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
 
