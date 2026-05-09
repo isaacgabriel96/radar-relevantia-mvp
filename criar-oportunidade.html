@@ -4635,8 +4635,9 @@ async function loadOrgForLivePreview() {
   if (window._impersonateCtx) {
     try {
       var ctx = window._impersonateCtx;
+      var freshToken = (typeof _freshAdminToken === 'function') ? await _freshAdminToken() : ctx.admin_token;
       var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + ctx.target_user_id + '&select=empresa,logo_url&limit=1', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + ctx.admin_token }
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + freshToken }
       });
       var rows = res.ok ? await res.json() : [];
       var perfil = rows[0] || {};
@@ -10199,7 +10200,7 @@ async function saveDraft() {
     }
 
     // Upload de fotos
-    const uploadToken = window._impersonateCtx ? window._impersonateCtx.admin_token : token;
+    const uploadToken = window._impersonateCtx ? (await _freshAdminToken()) : token;
     if (oppId) {
       const { imagens, imagem_capa, imagens_focal } = await uploadPhotos(oppId, uploadToken);
       if (imagens.length > 0) {
@@ -10338,7 +10339,7 @@ async function silentSaveDraft() {
     }
 
     // Upload de fotos (mesmo que saveDraft)
-    const uploadToken = window._impersonateCtx ? window._impersonateCtx.admin_token : token;
+    const uploadToken = window._impersonateCtx ? (await _freshAdminToken()) : token;
     if (oppId) {
       try {
         const { imagens, imagem_capa, imagens_focal } = await uploadPhotos(oppId, uploadToken);
@@ -10552,7 +10553,7 @@ async function publishOpportunity() {
     }
 
     // Upload fotos
-    const uploadToken = window._impersonateCtx ? window._impersonateCtx.admin_token : token;
+    const uploadToken = window._impersonateCtx ? (await _freshAdminToken()) : token;
     if (oppId) {
       let uploadErrors = [];
       const { imagens, imagem_capa, imagens_focal } = await uploadPhotos(oppId, uploadToken);
@@ -11412,10 +11413,11 @@ async function agProcessPdf(file) {
     //             leitura da resposta no browser — ignoramos esse erro.
     //   Etapa 3 — POST → nosso servidor → consulta Google server-to-server
     //             (sem CORS) → retorna o fileUri que o browser não conseguiu ler
-    // Em modo impersonation usa o token do admin; caso contrário busca a sessão normal
-    const token = window._impersonateCtx?.admin_token
-      || (await getSessionAsync('rightsholder'))?.access_token
-      || (await getSessionAsync('brand'))?.access_token;
+    // Em modo impersonation usa token admin fresco (auto-refreshed); caso contrário sessão normal
+    const token = window._impersonateCtx
+      ? await _freshAdminToken()
+      : ((await getSessionAsync('rightsholder'))?.access_token
+         || (await getSessionAsync('brand'))?.access_token);
     const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {};
 
     // ── Etapa 1: inicia upload resumível → obtém uploadUrl ──────────────────
@@ -11728,10 +11730,11 @@ function agMsgHtml(text) {
 
 // ── Chamada ao proxy seguro /api/gemini-agent ────────────────────
 async function agCallGemini(messages, { useSearch = false } = {}) {
-  // Em modo impersonation usa o token do admin; caso contrário busca a sessão normal
-  const token = window._impersonateCtx?.admin_token
-    || (await getSessionAsync('rightsholder'))?.access_token
-    || (await getSessionAsync('brand'))?.access_token;
+  // Em modo impersonation usa token admin fresco (auto-refreshed); caso contrário sessão normal
+  const token = window._impersonateCtx
+    ? await _freshAdminToken()
+    : ((await getSessionAsync('rightsholder'))?.access_token
+       || (await getSessionAsync('brand'))?.access_token);
 
   // AbortController — cancela a requisição após 150s para evitar loading eterno
   // (Vercel tem maxDuration=120s; 150s dá margem para overhead de rede)
@@ -12683,6 +12686,25 @@ function goToDashboardPreservingCtx() {
 }
 
 /**
+ * Devolve um token de admin fresco (auto-refreshed pelo SDK), com fallback
+ * para o ctx.admin_token se o SDK não estiver disponível.
+ *
+ * Por que isso importa: o ctx.admin_token foi snapshotado quando o admin
+ * abriu "Criar como cliente" e pode ter expirado durante o flow (JWT do
+ * Supabase dura ~1h). Em criar-oportunidade.html o admin continua logado
+ * normalmente, então getValidToken() devolve a sessão atual dele.
+ */
+async function _freshAdminToken() {
+  if (typeof getValidToken === 'function') {
+    try {
+      const t = await getValidToken();
+      if (t) return t;
+    } catch (_) { /* fallback abaixo */ }
+  }
+  return window._impersonateCtx?.admin_token || null;
+}
+
+/**
  * Chama a Edge Function admin-actions para criar oportunidade como o detentor alvo.
  * Retorna o ID da oportunidade criada.
  */
@@ -12703,11 +12725,14 @@ async function _impersonateCreateOportunidade(oppData, status) {
     opp_data: safeData,
   };
 
+  const token = await _freshAdminToken();
+  if (!token) throw new Error('Sessão admin expirada. Faça login novamente.');
+
   const res = await fetch(SUPABASE_URL + '/functions/v1/admin-actions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + ctx.admin_token,
+      'Authorization': 'Bearer ' + token,
       'apikey': SUPABASE_KEY,
     },
     body: JSON.stringify(payload),
@@ -12760,11 +12785,14 @@ async function _impersonateUpdateOportunidade(oppId, oppData) {
   const safeData = { ...oppData };
   for (const k of SERVER_OWNED) delete safeData[k];
 
+  const token = await _freshAdminToken();
+  if (!token) throw new Error('Sessão admin expirada. Faça login novamente.');
+
   const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-actions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + ctx.admin_token,
+      'Authorization': 'Bearer ' + token,
       'apikey': SUPABASE_KEY,
     },
     body: JSON.stringify({
