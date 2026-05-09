@@ -1513,6 +1513,16 @@ tbody tr:last-child td { border-bottom: none; }
       </div>
       <p class="page-subtitle-mobile" style="display:none;font-size:14px;color:var(--gray-500);margin-top:6px;margin-bottom:28px;line-height:1.5">Publique e acompanhe seus ativos</p>
 
+      <!-- Banner: cadastro jurídico pendente (gate de publicação) -->
+      <div id="juridicoGateBanner" style="display:none;margin:0 0 24px 0;padding:14px 18px;background:linear-gradient(135deg,#FFF8E1,#FFE9B0);border:1px solid #E8C96A;border-radius:12px;align-items:center;gap:14px;font-family:'DM Sans',sans-serif">
+        <div style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#1A1200;color:#E8C96A;display:flex;align-items:center;justify-content:center;font-size:18px">⚖️</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:#1A1200;margin-bottom:2px">Complete seu cadastro jurídico para publicar oportunidades</div>
+          <div style="font-size:13px;color:rgba(26,18,0,0.7);line-height:1.4">Suas oportunidades só ficam visíveis para as marcas após o jurídico ser aprovado. Você pode criar e salvar como rascunho enquanto isso.</div>
+        </div>
+        <button onclick="irParaJuridicoDetentor()" style="flex-shrink:0;background:#1A1200;color:#E8C96A;border:none;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap">Configurar agora →</button>
+      </div>
+
       <!-- Sub-abas -->
       <div class="sub-tabs">
         <button class="sub-tab active" id="subtab-publicadas" onclick="switchSubTab('publicadas')">
@@ -2587,6 +2597,13 @@ async function init() {
         showSectionTab('oportunidades', 'negociacoes');
       } else if (hash && SECTION_TITLES[hash]) {
         showSection(hash);
+        // Deep-link de aba dentro de Configurações: ?tab=juridico#configuracoes
+        if (hash === 'configuracoes') {
+          const tab = new URLSearchParams(window.location.search).get('tab');
+          if (tab && typeof switchConfigTab === 'function') {
+            setTimeout(() => switchConfigTab(tab), 80);
+          }
+        }
       }
     }
   } catch (e) {
@@ -2730,6 +2747,12 @@ function populateDetenorFields(p) {
   OB_DET.perfil   = !!(p.empresa && p.empresa.trim() && p.segmento && p.segmento.trim() && p.descricao && p.descricao.trim());
   OB_DET.juridico = !!(p.cadastro_juridico_completo);
   updateSetupGuide();
+  // Banner de aviso "Complete jurídico pra publicar" — visível só pra detentor real
+  // (não pra admin em modo view; admin bypassa o gate via Edge Function).
+  if (!window._adminViewCtx) {
+    const gate = document.getElementById('juridicoGateBanner');
+    if (gate) gate.style.display = OB_DET.juridico ? 'none' : 'flex';
+  }
   if (!editingJuridico) populateJuridicoFields(p);
 
   // Empresa fields: [0]=nome empresa, [1]=segmento (select), [2]=website, [3]=descricao

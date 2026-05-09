@@ -10433,7 +10433,48 @@ function mergePreviewData(data) {
   return data;
 }
 
+/**
+ * Verifica se o detentor logado tem cadastro jurídico aprovado.
+ * Em modo admin view: pula a checagem (admin bypassa o gate via Edge Function).
+ * Retorna true se pode publicar; false e mostra dialog amigável se não pode.
+ */
+async function _checkPodeJuridico() {
+  // Admin atuando como cliente: bypassa (Edge Function usa service_role)
+  if (window._impersonateCtx) return true;
+  if (typeof isDemoMode === 'function' && isDemoMode()) return true;
+  try {
+    const userId = await getAuthUserId();
+    const token = await getValidToken();
+    if (!userId || !token) return true; // sem sessão, deixa o backend decidir
+    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=cadastro_juridico_completo&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return true; // se falhar, não bloqueia (backend ainda valida)
+    const rows = await res.json();
+    const ok = !!(rows[0] && rows[0].cadastro_juridico_completo);
+    if (ok) return true;
+
+    // Bloqueio amigável: confirma + redireciona pro Jurídico
+    const goConfig = confirm(
+      'Para publicar oportunidades, você precisa completar seu cadastro jurídico.\n\n' +
+      'Você pode salvar esta oportunidade como rascunho enquanto isso.\n\n' +
+      'Deseja ir para Configurações > Jurídico agora?'
+    );
+    if (goConfig) {
+      window.location.href = 'dashboard-detentor.html?tab=juridico#configuracoes';
+    }
+    return false;
+  } catch (e) {
+    console.warn('[checkPodeJuridico]', e);
+    return true; // erro inesperado: deixa o backend validar
+  }
+}
+
 async function publishOpportunity() {
+  // Pre-flight: bloqueia publish amigavelmente se jurídico não está completo
+  const podePub = await _checkPodeJuridico();
+  if (!podePub) return;
+
   const data = mergePreviewData(collectOppData());
 
   // ── Validações obrigatórias ──
