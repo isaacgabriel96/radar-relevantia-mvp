@@ -1014,7 +1014,7 @@ tbody tr:last-child td { border-bottom: none; }
 <script src="shared-state.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/sanitize.js"></script>
-<script src="js/core.js?v=20260507b"></script>
+<script src="js/core.js?v=20260513"></script>
 <script>if(new URLSearchParams(location.search).get('demo')==='true'){document.write('<script src="js\/demo-data.js"><\/script>');document.write('<script src="js\/demo-mode.js"><\/script>');}</script>
 
 <!-- Loading -->
@@ -2622,7 +2622,13 @@ function populateConfigFields(p) {
     _applyMarcaLogo(p.logo_url, p.empresa);
   } else if (brandDomain) {
     fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(brandDomain)}?c=1idE-ar9WXT49s6Qb2f`)
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (Array.isArray(d) && d[0]?.icon) _applyMarcaLogo(d[0].icon, p.empresa); })
+      .catch(() => {});
+  } else if (p.empresa) {
+    // Fallback: busca pelo nome da empresa (marcas criadas manualmente sem domínio)
+    fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(p.empresa)}?c=1idE-ar9WXT49s6Qb2f`)
+      .then(r => r.ok ? r.json() : null)
       .then(d => { if (Array.isArray(d) && d[0]?.icon) _applyMarcaLogo(d[0].icon, p.empresa); })
       .catch(() => {});
   }
@@ -3010,7 +3016,9 @@ function renderOpportunities(opps) {
   }).join('');
 
   // Buscar logos via Brandfetch nos cards recém-renderizados (usa applyBrandfetchLogos de core.js)
-  applyBrandfetchLogos(document.getElementById('oppGrid'));
+  if (typeof applyBrandfetchLogos === 'function') {
+    applyBrandfetchLogos(document.getElementById('oppGrid'));
+  }
 }
 
 // ─── HERO CAROUSEL CONTROLS ───
@@ -5820,7 +5828,7 @@ function renderMinhasSolicitacoes() {
   container.innerHTML = html;
 
   // Busca logos via Brandfetch para cards sem logo_url (incluindo marcas criadas manualmente)
-  applyBrandfetchLogos(container);
+  if (typeof applyBrandfetchLogos === 'function') applyBrandfetchLogos(container);
 }
 </script>
 
