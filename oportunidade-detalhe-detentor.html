@@ -948,7 +948,7 @@ a { text-decoration: none; color: inherit; }
       <strong id="topbarOppTitle">Carregando...</strong>
     </div>
     <div class="topbar-right">
-      <div class="topbar-avatar">NB</div>
+      <div class="topbar-avatar" id="topbarAvatar">?</div>
     </div>
   </div>
 </header>
@@ -965,7 +965,7 @@ a { text-decoration: none; color: inherit; }
         <div class="detail-header-left">
           <div class="detail-category-row">
             <span class="detail-category" id="detailCategory"></span>
-            <span class="detail-status">Aberto</span>
+            <span class="detail-status" id="detailStatusBadge" style="display:none"></span>
           </div>
           <h1 class="detail-title" id="detailTitle"></h1>
           <div class="detail-hero-meta" id="detailHeroMeta"></div>
@@ -1340,7 +1340,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       filter = '&slug=eq.' + encodeURIComponent(idOrPerfilSlug);
     }
     const path = '/rest/v1/oportunidades?select=' +
-      'id,slug,detentor_id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
+      'id,slug,detentor_id,ativo,status,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
       'preco_minimo,formato,bg_gradient,imagens,imagem_capa,imagens_focal,tags,publico_descricao,visibilidade,' +
       'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,projeto_incentivado,incentivo_data,publico_canais,publico_presencial,' +
       'perfis:detentor_id(nome,empresa,descricao,website,slug,logo_url,empresa_domain),' +
@@ -1359,6 +1359,16 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       } catch (_) { token = window._adminViewCtx.admin_token; }
     } else if (typeof getValidToken === 'function') {
       token = await getValidToken();
+    }
+    // Fallback: localStorage detentor session diretamente
+    if (!token) {
+      try {
+        var raw = localStorage.getItem('sb_detentor_session');
+        if (raw) {
+          var sess = JSON.parse(raw);
+          if (sess && sess.access_token && sess.access_token !== 'DEMO_TOKEN') token = sess.access_token;
+        }
+      } catch(_) {}
     }
     const headers = {
       'apikey': SUPABASE_KEY,
@@ -1469,6 +1479,8 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       localizacao: r.localizacao || '',
       alcance: r.alcance || '',
       visibilidade: r.visibilidade || 'publica',
+      status: r.status || null,
+      ativo: r.ativo != null ? r.ativo : null,
       sidebar: {
         evento: (r.datas_evento && r.datas_evento.length > 0) ? (r.datas_evento[0].data || r.alcance || '') : (r.alcance || ''),
         cotasQty: cotasArr.length > 0 ? cotasArr.length + ' modalidade' + (cotasArr.length > 1 ? 's' : '') : (r.cotas_habilitadas ? 'Disponível' : 'A definir'),
@@ -1570,6 +1582,18 @@ function renderPage(oppOverride) {
 
   // Breadcrumb (topbar + secondary bar)
   document.getElementById('topbarOppTitle').textContent = opp.title;
+
+  // Status badge
+  var statusBadgeEl = document.getElementById('detailStatusBadge');
+  if (statusBadgeEl) {
+    var statusLabelMap = { publicada: 'Publicada', rascunho: 'Rascunho', finalizada: 'Encerrada' };
+    var statusColors   = { publicada: 'rgba(5,150,105,0.9)', rascunho: 'rgba(217,119,6,0.9)', finalizada: 'rgba(100,100,100,0.8)' };
+    var st = opp.status || (opp.ativo === true ? 'publicada' : 'rascunho');
+    statusBadgeEl.textContent = statusLabelMap[st] || st;
+    statusBadgeEl.style.background = statusColors[st] || 'rgba(100,100,100,0.8)';
+    statusBadgeEl.style.color = '#fff';
+    statusBadgeEl.style.display = '';
+  }
 
   document.getElementById('detailTitle').textContent = opp.title;
   document.getElementById('detailCategory').textContent = opp.category;
@@ -2000,6 +2024,8 @@ if ((!LOGGED_USER || !LOGGED_USER.id) && !(typeof isDemoMode === 'function' && i
   if (a && LOGGED_USER) a.textContent = LOGGED_USER.initials;
   if (n && LOGGED_USER) n.textContent = LOGGED_USER.company || LOGGED_USER.name;
   if (e && LOGGED_USER) e.textContent = LOGGED_USER.email;
+  var ta = document.getElementById('topbarAvatar');
+  if (ta && LOGGED_USER) ta.textContent = LOGGED_USER.initials;
 })();
 
 /* ─── SIDEBAR MOBILE ─── */
@@ -2174,6 +2200,8 @@ function goToFullEdit() {
 
 /* ─── INIT ─── */
 (async function initDetail() {
+  // Garante que o SDK tem sessão antes de qualquer fetch autenticado
+  if (typeof restoreSessionToSDK === 'function') { try { await restoreSessionToSDK(); } catch(_) {} }
   // ── DEMO MODE: pula fetch do Supabase e renderiza opp do window.DEMO ──
   if (typeof isDemoMode === 'function' && isDemoMode() && typeof window.loadDemoOppDetail === 'function') {
     var rendered = await window.loadDemoOppDetail();
