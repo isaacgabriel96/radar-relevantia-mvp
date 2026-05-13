@@ -4284,7 +4284,7 @@ input[type=number] { -moz-appearance: textfield; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 <script src="js/sanitize.js"></script>
-<script src="js/core.js"></script>
+<script src="js/core.js?v=20260513b"></script>
 <script src="js/admin-view-banner.js"></script>
 <script src="js/demo-data.js"></script>
 <script>if(new URLSearchParams(location.search).get('demo')==='true')document.write('<script src="js\/demo-mode.js"><\/script>');</script>
@@ -4617,6 +4617,11 @@ function lpCloseFocalEditor() {
 
 /* Aplica logo no card preview — com retry Brandfetch se URL expirada */
 function applyLpLogo(logoUrl, empresa, domain, logoImg, logoInitials, logoWrap) {
+  // Salva domain/empresa no wrap para uso em renderReviewSummary
+  if (logoWrap) {
+    if (domain) logoWrap.dataset.bfDomain = domain;
+    else if (empresa) logoWrap.dataset.bfName = empresa;
+  }
   function showInitials() {
     if (logoImg) logoImg.style.display = 'none';
     if (logoInitials) {
@@ -6506,14 +6511,20 @@ function renderReviewSummary() {
           `<div class="opp-card-desc">${descVal || 'Descrição curta aparecerá aqui'}</div>` +
           `<div class="opp-card-divider"></div>` +
           `<div class="opp-card-footer">` +
-            `<div class="olc-brand-row">` +
-              `<div class="olc-logo" style="${logoSrc ? 'background:var(--gray-1);border:1px solid rgba(26,18,0,0.07)' : ''}">` +
-                (logoSrc
-                  ? `<img src="${logoSrc}" alt="${orgName}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit">`
-                  : orgInitials) +
-              `</div>` +
-              `<span class="olc-brand-name">${orgName}</span>` +
-            `</div>` +
+            (() => {
+              // Lê domain/nome do elemento #lpOrgLogo (salvo por applyLpLogo)
+              const lpWrap = document.getElementById('lpOrgLogo');
+              const bfDomain = lpWrap && lpWrap.dataset.bfDomain ? lpWrap.dataset.bfDomain : null;
+              const bfName   = lpWrap && lpWrap.dataset.bfName   ? lpWrap.dataset.bfName   : null;
+              const bfAttr   = bfDomain ? ` data-bf-domain="${bfDomain}"` : (bfName ? ` data-bf-name="${bfName}"` : '');
+              return `<div class="olc-brand-row"${bfAttr}>` +
+                `<div class="olc-logo" style="overflow:hidden;padding:0;${logoSrc ? 'background:var(--gray-1);border:1px solid rgba(26,18,0,0.07)' : ''}">` +
+                  `<img src="${logoSrc || ''}" alt="${orgName}" style="width:100%;height:100%;object-fit:contain;${logoSrc ? 'display:block' : 'display:none'}" onerror="this.style.display='none';this.nextElementSibling.style.display=''">` +
+                  `<span style="width:100%;height:100%;display:${logoSrc ? 'none' : 'flex'};align-items:center;justify-content:center;font-size:13px;font-weight:700">${orgInitials}</span>` +
+                `</div>` +
+                `<span class="olc-brand-name">${orgName}</span>` +
+              `</div>`;
+            })() +
             `<div class="olc-arrow-btn">${arrowSvg}</div>` +
           `</div>` +
         `</div>` +
@@ -6521,6 +6532,8 @@ function renderReviewSummary() {
     `</div>`;
 
   container.innerHTML = html;
+  // Aplica logos via Brandfetch nos cards renderizados
+  if (typeof applyBrandfetchLogos === 'function') applyBrandfetchLogos(container);
 }
 
 /* ══════════════════════════════════════════════
