@@ -2619,7 +2619,7 @@ function populateConfigFields(p) {
   // Mostra letra fallback imediatamente, depois tenta carregar logo
   _applyMarcaLogo(null, p.empresa);
   if (p.logo_url) {
-    _applyMarcaLogo(p.logo_url, p.empresa);
+    _applyMarcaLogo(p.logo_url, p.empresa, brandDomain || p.empresa);
   } else if (brandDomain) {
     fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(brandDomain)}?c=1idE-ar9WXT49s6Qb2f`)
       .then(r => r.ok ? r.json() : null)
@@ -3235,16 +3235,24 @@ let _marcaSelectedBrand = null; // { name, domain, icon, logoDataUrl, website, d
 let _marcaManualMode = false;
 let _marcaManualLogoDataUrl = null;
 
-function _applyMarcaLogo(src, name) {
+function _applyMarcaLogo(src, name, domainFallback) {
   const img = document.getElementById('marcaLogoImg');
   const fb  = document.getElementById('marcaLogoFallback');
   if (!img || !fb) return;
   if (src) {
     img.onerror = function() {
+      img.onerror = null;
       img.style.display = 'none';
       fb.style.display = '';
       fb.textContent = name ? name.charAt(0).toUpperCase() : '?';
-      img.onerror = null;
+      // URL expired/broken: try to fetch a fresh logo via Brandfetch
+      const bfQuery = domainFallback || name;
+      if (bfQuery) {
+        fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(bfQuery)}?c=1idE-ar9WXT49s6Qb2f`)
+          .then(r => r.ok ? r.json() : null)
+          .then(d => { if (Array.isArray(d) && d[0]?.icon) _applyMarcaLogo(d[0].icon, name); })
+          .catch(() => {});
+      }
     };
     img.src = src;
     img.style.display = '';
