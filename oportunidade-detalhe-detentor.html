@@ -1003,7 +1003,7 @@ a { text-decoration: none; color: inherit; }
       <div class="detail-tabs" id="detailTabsNav">
         <button class="tab-btn active" data-section="section-visao" onclick="scrollToSection('section-visao', this)">Visão geral</button>
         <button class="tab-btn" data-section="section-canais" onclick="scrollToSection('section-canais', this)">Canais</button>
-        <button class="tab-btn" data-section="section-incentivo" id="tabBtnIncentivo" style="display:none" onclick="scrollToSection('section-incentivo', this)">Incentivo fiscal</button>
+        <button class="tab-btn" data-section="section-incentivo" id="tabBtnIncentivo" onclick="scrollToSection('section-incentivo', this)">Incentivo fiscal</button>
         <button class="tab-btn" data-section="section-cotas" onclick="scrollToSection('section-cotas', this)">Cotas & Entregas</button>
       </div>
 
@@ -1041,7 +1041,7 @@ a { text-decoration: none; color: inherit; }
             </section>
 
             <!-- SECTION: Incentivo Fiscal -->
-            <section class="detail-section-block" id="section-incentivo" style="display:none">
+            <section class="detail-section-block" id="section-incentivo">
               <div class="detail-section">
                 <h3 class="detail-section-title">Incentivo fiscal</h3>
                 <p class="detail-text" style="margin-bottom:16px">Detalhes do apoio via lei de incentivo fiscal.</p>
@@ -1724,29 +1724,25 @@ function renderPage(oppOverride) {
     mediaInline.innerHTML = mediaHtml;
   }
 
-  // ── Facts (hide section if empty) ────────────────────────────────────────
+  // ── Facts — always show ────────────────────────────────────────────────
   var factsHtml = '';
   (opp.facts || []).forEach(function(f) {
     factsHtml += '<div class="fact-item"><div class="fact-icon">' + escapeHtml(f.icon) + '</div><div><div class="fact-label">' + escapeHtml(f.label) + '</div><div class="fact-value">' + escapeHtml(f.value) + '</div></div></div>';
   });
-  document.getElementById('detailFacts').innerHTML = factsHtml;
   var factsSection = document.getElementById('detailFactsSection');
-  if (factsSection) factsSection.style.display = factsHtml ? '' : 'none';
+  if (factsSection) factsSection.style.display = '';
+  document.getElementById('detailFacts').innerHTML = factsHtml ||
+    '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>Nenhuma informação adicionada.</span><button class="det-empty-cta" onclick="goToFullEdit()">Adicionar no editor →</button></div>';
 
-  // Tags (hide section if empty)
-  var tagsHtml = '';
-  (opp.tags || []).forEach(function(t, i) {
-    tagsHtml += '<span class="tag' + (i === 0 ? ' tag-gold' : '') + '">' + escapeHtml(t) + '</span>';
-  });
-  document.getElementById('detailTags').innerHTML = tagsHtml;
+  // Tags — always show with inline add/remove in edit mode
+  _CURRENT_TAGS = (opp.tags || []).slice();
   var tagsSection = document.getElementById('detailTagsSection');
-  if (tagsSection) tagsSection.style.display = tagsHtml ? '' : 'none';
+  if (tagsSection) tagsSection.style.display = '';
+  renderTagsView();
 
   // Publico — aba removida, elementos não existem mais no DOM
 
-  var EMPTY_STATE_HTML = '<div style="padding:32px 16px;text-align:center;color:var(--gray-3);font-family:var(--font-body);font-size:14px;">Informações sendo preparadas pelo detentor.</div>';
-
-  // Cotas
+  // Cotas — always show
   var cotasHtml = '';
   if (opp.cotas && opp.cotas.length > 0) {
     opp.cotas.forEach(function(c, i) {
@@ -1756,85 +1752,46 @@ function renderPage(oppOverride) {
       cotasHtml += '</div>';
     });
   } else {
-    cotasHtml = EMPTY_STATE_HTML;
+    cotasHtml = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8M12 3v4"/></svg><span>Nenhuma cota configurada.</span><button class="det-empty-cta" onclick="goToFullEdit()">Configurar cotas →</button></div>';
   }
   document.getElementById('cotasGrid').innerHTML = cotasHtml;
 
-  // Canais — rich render
+  // Canais — always show
   if (opp.canais && opp.canais.length > 0) {
     var canaisHtml = '';
     opp.canais.forEach(function(c) {
-      // Format seguidores
       var segStr = '';
       if (c.seguidores) {
         var seg = Number(c.seguidores);
         segStr = seg >= 1000000 ? (seg/1000000).toFixed(1) + 'M' : seg >= 1000 ? (seg/1000).toFixed(1) + 'k' : seg.toString();
       }
-
       canaisHtml += '<div class="canal-item">';
-      // Header: icon + name + reach
       canaisHtml += '<div class="canal-item-header">';
       canaisHtml += '<div class="canal-icon">' + escapeHtml(c.icon) + '</div>';
       canaisHtml += '<div><div class="canal-name">' + escapeHtml(c.name) + '</div>';
       canaisHtml += '<div class="canal-reach">' + escapeHtml(c.reach) + '</div></div>';
       canaisHtml += '</div>';
-
-      // Stats block
       canaisHtml += '<div class="canal-stats">';
-
-      // Seguidores
-      if (segStr) {
-        canaisHtml += '<div class="canal-stat-row"><span class="canal-stat-label">Seguidores</span><span class="canal-stat-value">' + segStr + '</span></div>';
-      }
-
-      // Gênero bar
+      if (segStr) canaisHtml += '<div class="canal-stat-row"><span class="canal-stat-label">Seguidores</span><span class="canal-stat-value">' + segStr + '</span></div>';
       if (c.genero_f != null && c.genero_m != null) {
-        var pctF = Math.round(Number(c.genero_f));
-        var pctM = Math.round(Number(c.genero_m));
-        canaisHtml += '<div class="canal-stat-row">';
-        canaisHtml += '<span class="canal-stat-label">Gênero</span>';
-        canaisHtml += '<div class="canal-gender-bar"><div class="canal-gender-f" style="width:' + pctF + '%"></div><div class="canal-gender-m" style="width:' + pctM + '%"></div></div>';
-        canaisHtml += '<div class="canal-gender-labels"><span class="canal-gender-lbl">♀ ' + pctF + '%</span><span class="canal-gender-lbl">♂ ' + pctM + '%</span></div>';
-        canaisHtml += '</div>';
+        var pctF = Math.round(Number(c.genero_f)), pctM = Math.round(Number(c.genero_m));
+        canaisHtml += '<div class="canal-stat-row"><span class="canal-stat-label">Gênero</span><div class="canal-gender-bar"><div class="canal-gender-f" style="width:' + pctF + '%"></div><div class="canal-gender-m" style="width:' + pctM + '%"></div></div><div class="canal-gender-labels"><span class="canal-gender-lbl">♀ ' + pctF + '%</span><span class="canal-gender-lbl">♂ ' + pctM + '%</span></div></div>';
       }
-
-      // Faixa etária
       if (c.faixa_etaria) {
         var faixas = Array.isArray(c.faixa_etaria) ? c.faixa_etaria : (typeof c.faixa_etaria === 'object' ? Object.entries(c.faixa_etaria).map(function(e){return e[0]+': '+e[1]+'%';}) : [String(c.faixa_etaria)]);
-        canaisHtml += '<div class="canal-stat-row">';
-        canaisHtml += '<span class="canal-stat-label">Faixa etária</span>';
-        canaisHtml += '<div class="canal-faixa-wrap">';
+        canaisHtml += '<div class="canal-stat-row"><span class="canal-stat-label">Faixa etária</span><div class="canal-faixa-wrap">';
         faixas.forEach(function(f) { canaisHtml += '<span class="canal-faixa-tag">' + escapeHtml(String(f)) + '</span>'; });
         canaisHtml += '</div></div>';
       }
-
-      canaisHtml += '</div>';  // /canal-stats
-      canaisHtml += '</div>';  // /canal-item
+      canaisHtml += '</div></div>';
     });
     document.getElementById('canaisGrid').innerHTML = canaisHtml;
   } else {
-    document.getElementById('canaisGrid').innerHTML = EMPTY_STATE_HTML;
+    document.getElementById('canaisGrid').innerHTML = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.06 9.81a19.79 19.79 0 01-3.07-8.64A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg><span>Nenhum canal configurado.</span><button class="det-empty-cta" onclick="goToFullEdit()">Configurar canais →</button></div>';
   }
 
-  // Incentivo fiscal
-  var incentivoSection = document.getElementById('section-incentivo');
-  var incentivoGrid = document.getElementById('incentivoGrid');
-  var incentivoTabBtn = document.getElementById('tabBtnIncentivo');
-  if (opp.projetoIncentivado && opp.incentivoData && incentivoSection && incentivoGrid) {
-    var d = opp.incentivoData;
-    var valorFmt = (typeof formatCurrency === 'function') ? formatCurrency(d.valor, d.moeda || 'BRL') : (d.valor || '—');
-    var statusLbl = d.status === 'aprovado' ? 'Aprovado' : 'Em andamento';
-    incentivoGrid.innerHTML =
-      '<div class="incentivo-card"><div class="incentivo-label">Lei</div><div class="incentivo-value">' + escapeHtml(d.lei_nome || '—') + '</div></div>' +
-      '<div class="incentivo-card"><div class="incentivo-label">Categoria</div><div class="incentivo-value">' + escapeHtml(d.categoria || '—') + '</div></div>' +
-      '<div class="incentivo-card"><div class="incentivo-label">Valor</div><div class="incentivo-value">' + valorFmt + '</div></div>' +
-      '<div class="incentivo-card"><div class="incentivo-label">Status</div><div class="incentivo-value"><span class="incentivo-status-badge ' + (d.status || '') + '">' + statusLbl + '</span></div></div>';
-    incentivoSection.style.display = '';
-    if (incentivoTabBtn) incentivoTabBtn.style.display = '';
-  } else {
-    if (incentivoSection) incentivoSection.style.display = 'none';
-    if (incentivoTabBtn) incentivoTabBtn.style.display = 'none';
-  }
+  // Incentivo fiscal — sempre visível com form inline
+  renderIncentivoSection(opp);
 
   // ── Sidebar card — info rica ─────────────────────────────────────────────
   document.getElementById('interestPrice').textContent = 'Entre em contato';
@@ -1943,6 +1900,153 @@ function renderPage(oppOverride) {
     var simGrid = document.getElementById('similarGrid');
     if (simGrid) { simGrid.innerHTML = simHtml; applyBrandfetchLogos(simGrid); }
   }
+}
+
+/* ─── TAGS INLINE EDITING ─── */
+var _CURRENT_TAGS = [];
+
+function renderTagsView() {
+  var tagsEl = document.getElementById('detailTags');
+  if (!tagsEl) return;
+  var html = '';
+  _CURRENT_TAGS.forEach(function(t, i) {
+    html += '<span class="tag' + (i === 0 ? ' tag-gold' : '') + '" style="display:inline-flex;align-items:center;gap:4px">' +
+      escapeHtml(t) +
+      (_EDIT_MODE ? '<button onclick="removeTag(' + i + ')" style="background:none;border:none;cursor:pointer;color:inherit;font-size:14px;padding:0 2px;line-height:1;opacity:0.6" title="Remover">×</button>' : '') +
+      '</span>';
+  });
+  if (_EDIT_MODE) {
+    html += '<span style="display:inline-flex;align-items:center">' +
+      '<input id="tagAddInput" class="tag-add-input" placeholder="+ Adicionar tag" ' +
+      'style="border:1px dashed var(--gray-300);background:transparent;border-radius:100px;padding:3px 12px;font-size:12px;font-family:var(--font-body);outline:none;color:var(--text);width:140px" ' +
+      'onkeydown="if(event.key===\'Enter\'){var v=this.value.trim();if(v)addTag(v);this.value=\'\';event.preventDefault()}" />' +
+      '</span>';
+  } else if (_CURRENT_TAGS.length === 0) {
+    html = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span>Nenhum segmento adicionado.</span><button class="det-empty-cta" onclick="toggleEditMode()">Adicionar tags →</button></div>';
+  }
+  tagsEl.innerHTML = html;
+}
+
+function addTag(tag) {
+  if (!tag) return;
+  var t = tag.replace(/^#+/, '').trim();
+  if (!t || _CURRENT_TAGS.indexOf(t) !== -1) return;
+  _CURRENT_TAGS.push(t);
+  renderTagsView();
+  setTimeout(function(){ var inp = document.getElementById('tagAddInput'); if(inp) inp.focus(); }, 0);
+  saveJsonField('tags', _CURRENT_TAGS);
+}
+
+function removeTag(idx) {
+  _CURRENT_TAGS.splice(idx, 1);
+  renderTagsView();
+  saveJsonField('tags', _CURRENT_TAGS);
+}
+
+/* ─── INCENTIVO FISCAL INLINE ─── */
+function renderIncentivoSection(oppOverride) {
+  var opp = oppOverride || _CURRENT_OPP;
+  if (!opp) return;
+  var section = document.getElementById('section-incentivo');
+  var grid = document.getElementById('incentivoGrid');
+  if (!section || !grid) return;
+  section.style.display = '';
+
+  if (opp.projetoIncentivado && opp.incentivoData) {
+    var d = opp.incentivoData;
+    grid.innerHTML =
+      '<div class="incentivo-card"><div class="incentivo-label">Lei</div><div class="incentivo-value" id="inc-view-lei">' + escapeHtml(d.lei_nome || '—') + '</div></div>' +
+      '<div class="incentivo-card"><div class="incentivo-label">Categoria</div><div class="incentivo-value" id="inc-view-cat">' + escapeHtml(d.categoria || '—') + '</div></div>' +
+      '<div class="incentivo-card"><div class="incentivo-label">Valor</div><div class="incentivo-value">' + escapeHtml(d.valor || '—') + '</div></div>' +
+      '<div class="incentivo-card"><div class="incentivo-label">Status</div><div class="incentivo-value"><span class="incentivo-status-badge ' + (d.status||'') + '">' + (d.status === 'aprovado' ? 'Aprovado' : 'Em andamento') + '</span></div></div>';
+    if (_EDIT_MODE) {
+      grid.innerHTML += '<div style="margin-top:12px"><button class="det-empty-cta" onclick="openIncentivoForm()">Editar dados de incentivo</button> <button class="det-empty-cta" style="background:rgba(239,68,68,0.08);color:var(--red)" onclick="removeIncentivo()">Remover incentivo</button></div>';
+    }
+  } else {
+    // Não configurado — mostrar form sempre
+    grid.innerHTML = '<div class="incentivo-edit-form" id="incentivoEditForm">' +
+      '<p style="font-size:13px;color:var(--gray-4);margin-bottom:12px">Preencha os dados do incentivo fiscal desta oportunidade.</p>' +
+      '<div class="inc-form-row"><label class="inc-label">Nome da Lei</label><input id="incLei" class="inc-input" placeholder="Ex: Lei Rouanet, Lei de Incentivo ao Esporte" /></div>' +
+      '<div class="inc-form-row"><label class="inc-label">Categoria</label><input id="incCategoria" class="inc-input" placeholder="Ex: Cultura, Esporte, Audiovisual" /></div>' +
+      '<div class="inc-form-row"><label class="inc-label">Valor disponível</label><input id="incValor" class="inc-input" placeholder="Ex: R$ 500.000" /></div>' +
+      '<div class="inc-form-row"><label class="inc-label">Status</label>' +
+        '<select id="incStatus" class="inc-input">' +
+          '<option value="andamento">Em andamento</option>' +
+          '<option value="aprovado">Aprovado</option>' +
+        '</select>' +
+      '</div>' +
+      '<div style="margin-top:14px;display:flex;gap:8px">' +
+        '<button class="det-save-btn" onclick="saveIncentivo()">Salvar incentivo</button>' +
+      '</div>' +
+    '</div>';
+  }
+}
+
+function openIncentivoForm() {
+  var opp = _CURRENT_OPP;
+  if (!opp) return;
+  var d = opp.incentivoData || {};
+  var grid = document.getElementById('incentivoGrid');
+  if (!grid) return;
+  grid.innerHTML = '<div class="incentivo-edit-form">' +
+    '<div class="inc-form-row"><label class="inc-label">Nome da Lei</label><input id="incLei" class="inc-input" value="' + escapeHtml(d.lei_nome||'') + '" placeholder="Ex: Lei Rouanet" /></div>' +
+    '<div class="inc-form-row"><label class="inc-label">Categoria</label><input id="incCategoria" class="inc-input" value="' + escapeHtml(d.categoria||'') + '" placeholder="Ex: Cultura" /></div>' +
+    '<div class="inc-form-row"><label class="inc-label">Valor disponível</label><input id="incValor" class="inc-input" value="' + escapeHtml(d.valor||'') + '" placeholder="Ex: R$ 500.000" /></div>' +
+    '<div class="inc-form-row"><label class="inc-label">Status</label>' +
+      '<select id="incStatus" class="inc-input">' +
+        '<option value="andamento"' + (d.status !== 'aprovado' ? ' selected' : '') + '>Em andamento</option>' +
+        '<option value="aprovado"' + (d.status === 'aprovado' ? ' selected' : '') + '>Aprovado</option>' +
+      '</select>' +
+    '</div>' +
+    '<div style="margin-top:14px;display:flex;gap:8px">' +
+      '<button class="det-save-btn" onclick="saveIncentivo()">Salvar</button>' +
+      '<button class="det-empty-cta" onclick="renderIncentivoSection()">Cancelar</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function saveIncentivo() {
+  var lei = (document.getElementById('incLei') || {}).value || '';
+  var cat = (document.getElementById('incCategoria') || {}).value || '';
+  var val = (document.getElementById('incValor') || {}).value || '';
+  var status = (document.getElementById('incStatus') || {}).value || 'andamento';
+  var incData = { lei_nome: lei.trim(), categoria: cat.trim(), valor: val.trim(), status: status };
+  if (!_CURRENT_OPP) return;
+  _CURRENT_OPP.projetoIncentivado = !!(lei || cat || val);
+  _CURRENT_OPP.incentivoData = incData;
+  saveJsonField('incentivo_data', incData);
+  saveJsonField('projeto_incentivado', _CURRENT_OPP.projetoIncentivado);
+  renderIncentivoSection();
+}
+
+function removeIncentivo() {
+  if (!_CURRENT_OPP) return;
+  _CURRENT_OPP.projetoIncentivado = false;
+  _CURRENT_OPP.incentivoData = null;
+  saveJsonField('projeto_incentivado', false);
+  saveJsonField('incentivo_data', null);
+  renderIncentivoSection();
+}
+
+async function saveJsonField(fieldName, value) {
+  if (!_CURRENT_OPP || !_CURRENT_OPP.id) return;
+  var payload = {};
+  payload[fieldName] = value;
+  showSaveIndicator();
+  try {
+    if (window._adminViewCtx) {
+      var ctx = window._adminViewCtx;
+      var freshToken = ctx.admin_token;
+      try { if (typeof sb !== 'undefined' && sb && sb.auth) { var sess = await sb.auth.getSession(); if (sess?.data?.session?.access_token) freshToken = sess.data.session.access_token; } } catch(_) {}
+      await fetch(SUPABASE_URL + '/functions/v1/admin-actions', { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + freshToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'update-oportunidade-as', target_user_id: ctx.target_user_id, opp_id: _CURRENT_OPP.id, opp_data: payload }) });
+      return;
+    }
+    var token = typeof _getWriteToken === 'function' ? await _getWriteToken('rightsholder') : null;
+    if (!token) {
+      try { var r = localStorage.getItem('sb_detentor_session'); if (r) { var s = JSON.parse(r); if (s.access_token && s.access_token !== 'DEMO_TOKEN') token = s.access_token; } } catch(_) {}
+    }
+    if (token) await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + _CURRENT_OPP.id, { method: 'PATCH', body: JSON.stringify(payload), headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' } });
+  } catch(e) { console.error('[saveJsonField]', e); }
 }
 
 /* ─── SCROLL SPY TABS ─── */
@@ -2061,12 +2165,16 @@ function toggleEditMode() {
     if (sideBtn) sideBtn.textContent = '✓ Concluir edição';
     if (sideBtn) sideBtn.style.background = 'var(--green)';
     enableInlineEditing();
+    renderTagsView();
+    renderIncentivoSection();
   } else {
     if (headerBtn) headerBtn.style.background = 'var(--gold-pale)';
     if (headerBtn) headerBtn.style.borderColor = 'var(--gold)';
     if (sideBtn) sideBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Editar oportunidade';
     if (sideBtn) sideBtn.style.background = '';
     disableInlineEditing();
+    renderTagsView();
+    renderIncentivoSection();
   }
 }
 
@@ -2304,6 +2412,19 @@ function doLogout() {
   background: var(--white) !important;
   box-shadow: 0 0 0 3px rgba(184,134,11,0.12);
 }
+/* ─── EMPTY STATES ─── */
+.det-empty-state { display:flex; align-items:center; gap:8px; padding:20px 16px; color:var(--gray-3); font-size:13px; font-family:var(--font-body); background:var(--gray-1); border-radius:10px; border:1px dashed var(--gray-2); }
+.det-empty-state svg { flex-shrink:0; color:var(--gray-3); }
+.det-empty-cta { background:none; border:1px solid var(--gray-300); color:var(--gray-500); font-size:12px; font-weight:600; font-family:var(--font-body); padding:4px 12px; border-radius:100px; cursor:pointer; transition:all 0.15s; white-space:nowrap; margin-left:auto; }
+.det-empty-cta:hover { border-color:var(--gold); color:var(--gold); background:var(--gold-pale); }
+/* ─── INCENTIVO FORM ─── */
+.incentivo-edit-form { padding:16px; background:var(--gray-1); border-radius:12px; border:1px solid var(--gray-2); }
+.inc-form-row { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+.inc-label { font-size:11px; font-weight:600; color:var(--gray-4); text-transform:uppercase; letter-spacing:0.05em; }
+.inc-input { border:1.5px solid var(--gray-2); border-radius:8px; padding:8px 12px; font-size:13px; font-family:var(--font-body); color:var(--text); background:var(--white); outline:none; transition:border-color 0.15s; }
+.inc-input:focus { border-color:var(--gold); }
+.det-save-btn { background:var(--black); color:var(--white); border:none; padding:8px 20px; border-radius:100px; font-size:13px; font-weight:600; font-family:var(--font-body); cursor:pointer; transition:background 0.15s; }
+.det-save-btn:hover { background:var(--gold); }
 </style>
 </body>
 </html>
