@@ -774,6 +774,17 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-excluir { background: transparent; border: 1.5px solid #E5E0D8; color: #DC2626; padding: 5px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; }
 .btn-excluir:hover { background: #FEF2F2; border-color: #DC2626; }
 
+/* ─── CARD AÇÕES: COMPARTILHAR + OPÇÕES ─── */
+.pub-opp-card { cursor: pointer; }
+.pub-card-action-btn { background: none; border: none; padding: 0; font-size: 13px; font-weight: 500; color: var(--gray-400); cursor: pointer; transition: color 0.15s; font-family: var(--font-body); line-height: 1; white-space: nowrap; }
+.pub-card-action-btn:hover { color: var(--black); }
+.pub-card-opts-btn { background: none; border: none; padding: 0; font-size: 13px; font-weight: 500; color: var(--gray-400); cursor: pointer; transition: color 0.15s; font-family: var(--font-body); display: flex; align-items: center; gap: 3px; line-height: 1; white-space: nowrap; }
+.pub-card-opts-btn:hover { color: var(--black); }
+#opts-global-dropdown { display: none; position: fixed; z-index: 9999; background: var(--white); border: 1px solid var(--gray-2); border-radius: 10px; box-shadow: 0 8px 24px rgba(26,18,0,0.15); min-width: 170px; overflow: hidden; }
+#opts-global-dropdown.open { display: block; }
+.opts-dropdown-item { display: flex; align-items: center; gap: 8px; padding: 9px 12px; font-size: 13px; font-weight: 500; color: var(--black); cursor: pointer; transition: background 0.12s; font-family: var(--font-body); border: none; background: none; width: 100%; text-align: left; }
+.opts-dropdown-item:hover { background: var(--gray-1); }
+
 /* ─── MODAL NEGOCIAÇÃO (detentor) ─── */
 .modal-overlay-det { position: fixed; inset: 0; background: rgba(30,22,0,0.45); backdrop-filter: blur(4px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay-det.open { display: flex; }
@@ -4140,18 +4151,24 @@ function renderPublicadas() {
     const isRascunho   = o.status === 'rascunho';
     const vis = o.visibilidade || 'publica';
     const vCfg = visConfig[vis] || visConfig.publica;
+    const detailUrl = window._adminViewUrl ? window._adminViewUrl('oportunidade-detalhe-detentor.html?@'+o.slug) : 'oportunidade-detalhe-detentor.html?@'+o.slug;
+    const cardOnclick = isRascunho ? `onclick="editarOportunidade(${o.id})"` : `onclick="window.location.href='${detailUrl}'"`;
     let leftBtn = '';
     let rightBtns = '';
     if (isPublicada) {
-      leftBtn   = `<button class="btn-encerrar" onclick="encerrarOportunidade(${o.id})">Encerrar</button>`;
-      rightBtns = `<button class="btn btn-ghost btn-sm" onclick="editarOportunidade(${o.id})">Editar</button>
-                   <a href="${(window._adminViewUrl ? window._adminViewUrl('oportunidade-detalhe-detentor.html?@'+o.slug) : 'oportunidade-detalhe-detentor.html?@'+o.slug)}" class="btn btn-ghost btn-sm">Ver →</a>`;
+      leftBtn   = `<button class="btn-encerrar" onclick="event.stopPropagation();encerrarOportunidade(${o.id})">Encerrar</button>`;
+      rightBtns = `
+        <button class="pub-card-action-btn" onclick="compartilharOpp(${o.id},'${o.slug||''}',event)">Compartilhar</button>
+        <button class="pub-card-opts-btn" onclick="toggleOppOpts(${o.id},event)">
+          Opções
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>`;
     } else if (isFinalizada) {
-      rightBtns = `<a href="${(window._adminViewUrl ? window._adminViewUrl('oportunidade-detalhe-detentor.html?@'+o.slug) : 'oportunidade-detalhe-detentor.html?@'+o.slug)}" class="btn btn-ghost btn-sm">Ver →</a>`;
+      rightBtns = '';
     } else {
-      leftBtn   = `<button class="btn-excluir" onclick="excluirOportunidade(${o.id})">Excluir</button>`;
-      rightBtns = `<button class="btn btn-ghost btn-sm" onclick="editarOportunidade(${o.id})">Editar</button>
-                   <button class="btn btn-gold btn-sm" onclick="publishOportunidade(${o.id})">Publicar</button>`;
+      leftBtn   = `<button class="btn-excluir" onclick="event.stopPropagation();excluirOportunidade(${o.id})">Excluir</button>`;
+      rightBtns = `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editarOportunidade(${o.id})">Editar</button>
+                   <button class="btn btn-gold btn-sm" onclick="event.stopPropagation();publishOportunidade(${o.id})">Publicar</button>`;
     }
 
     const visBadgeHtml = isPublicada ? `
@@ -4164,7 +4181,7 @@ function renderPublicadas() {
       </div>` : '';
 
     const cardStyle = isFinalizada ? 'opacity:0.65;' : '';
-    return `<div class="pub-opp-card" style="${cardStyle}">
+    return `<div class="pub-opp-card" style="${cardStyle}" ${cardOnclick}>
       <div class="pub-card-image" style="background:${o.imagem_capa ? (function(){ var fp = (o.imagens_focal || {})[o.imagem_capa] || {x:50,y:20}; return 'url(' + o.imagem_capa + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat'; })() : (o.bg_gradient || cfg.gradient)}${isFinalizada ? ';filter:grayscale(0.5)' : ''}">
         ${o.imagem_capa ? '' : cfg.icon}
         <div style="position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start">
@@ -4187,6 +4204,58 @@ function renderPublicadas() {
       </div>
     </div>`;
   }).join('');
+}
+
+// ─── COMPARTILHAR + OPÇÕES DROPDOWN ───
+function compartilharOpp(oppId, slug, e) {
+  e.stopPropagation();
+  const url = window.location.origin + '/oportunidade-detalhe.html?id=' + oppId;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('Link copiado!', 'success'));
+  } else {
+    const inp = document.createElement('input');
+    inp.value = url; document.body.appendChild(inp); inp.select(); document.execCommand('copy'); document.body.removeChild(inp);
+    showToast('Link copiado!', 'success');
+  }
+}
+
+let _optsOpenId = null;
+function toggleOppOpts(oppId, e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('opts-global-dropdown');
+  const btn = e.currentTarget;
+  if (!dropdown || !btn) return;
+  const visD = document.getElementById('vis-global-dropdown');
+  if (visD) visD.classList.remove('open');
+  _visOpenOppId = null;
+  if (_optsOpenId === oppId && dropdown.classList.contains('open')) {
+    dropdown.classList.remove('open'); _optsOpenId = null; return;
+  }
+  dropdown.innerHTML = `
+    <button class="opts-dropdown-item" onclick="event.stopPropagation();closeOppOpts();editarOportunidade(${oppId})">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Editar
+    </button>
+    <button class="opts-dropdown-item" onclick="event.stopPropagation();closeOppOpts();openVisFromOpts(${oppId})">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-8 10-8 10 8 10 8-3.6 8-10 8-10-8-10-8z"/></svg>
+      Visibilidade
+    </button>`;
+  const rect = btn.getBoundingClientRect();
+  const dw = 175;
+  dropdown.style.top  = (rect.bottom + 6) + 'px';
+  const left = Math.min(rect.left, window.innerWidth - dw - 8);
+  dropdown.style.left = Math.max(8, left) + 'px';
+  dropdown.classList.add('open');
+  _optsOpenId = oppId;
+}
+function closeOppOpts() {
+  const d = document.getElementById('opts-global-dropdown');
+  if (d) d.classList.remove('open');
+  _optsOpenId = null;
+}
+function openVisFromOpts(oppId) {
+  const badge = document.getElementById('visbadge-' + oppId);
+  if (badge) badge.click();
 }
 
 // ─── VISIBILIDADE DROPDOWN (global, fora dos cards) ───
@@ -4229,11 +4298,12 @@ function toggleVisBadge(oppId, e) {
   _visOpenOppId = oppId;
 }
 
-// Fecha dropdown ao clicar fora
+// Fecha dropdowns ao clicar fora
 document.addEventListener('click', () => {
   const d = document.getElementById('vis-global-dropdown');
   if (d) d.classList.remove('open');
   _visOpenOppId = null;
+  closeOppOpts();
 });
 
 async function setVisibilidade(oppId, novaVis, e) {
@@ -6685,6 +6755,7 @@ async function retirarAcessoSolicitacao(solId, oppId) {
 
 <!-- Dropdown global de visibilidade — fora dos cards para não ser cortado pelo overflow:hidden -->
 <div id="vis-global-dropdown"></div>
+<div id="opts-global-dropdown"></div>
 
 </body>
 </html>
