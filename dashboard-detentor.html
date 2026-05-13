@@ -3987,7 +3987,7 @@ async function loadMinhasOpps() {
       cidade: extractCity(r.localizacao),
       localizacao: r.localizacao || '',
       data: r.alcance || '',
-      status: r.status === 'publicada' ? 'publicada' : (r.ativo === false ? 'rascunho' : (r.status || 'publicada')),
+      status: r.ativo === true ? 'publicada' : (r.status === 'finalizada' ? 'finalizada' : 'rascunho'),
       interesses: 0,
       bg_gradient: r.bg_gradient,
       imagem_capa: r.imagem_capa || null,
