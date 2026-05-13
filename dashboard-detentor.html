@@ -4157,8 +4157,7 @@ function renderPublicadas() {
     const isRascunho   = o.status === 'rascunho';
     const vis = o.visibilidade || 'publica';
     const vCfg = visConfig[vis] || visConfig.publica;
-    const detailUrl = window._adminViewUrl ? window._adminViewUrl('oportunidade-detalhe-detentor.html?@'+o.slug) : 'oportunidade-detalhe-detentor.html?@'+o.slug;
-    const cardOnclick = isRascunho ? `onclick="editarOportunidade(${o.id})"` : `onclick="window.location.href='${detailUrl}'"`;
+    const cardOnclick = `onclick="editarOportunidade(${o.id})"`;
     let leftBtn = '';
     let rightBtns = '';
     if (isPublicada) {
