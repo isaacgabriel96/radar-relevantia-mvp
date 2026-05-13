@@ -139,6 +139,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   background: linear-gradient(135deg, var(--gold), var(--gold-light));
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 700; color: var(--black); flex-shrink: 0;
+  overflow: hidden;
 }
 .sidebar-user-info { flex: 1; min-width: 0; }
 .sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1130,7 +1131,10 @@ tbody tr:last-child td { border-bottom: none; }
 
   <div class="sidebar-footer">
     <div class="sidebar-user" onclick="showSection('configuracoes')">
-      <div class="sidebar-user-avatar" id="sidebarAvatar">NB</div>
+      <div class="sidebar-user-avatar" id="sidebarAvatar">
+        <img id="sidebarAvatarImg" src="" alt="" style="width:100%;height:100%;object-fit:contain;display:none;border-radius:50%">
+        <span id="sidebarAvatarFb">NB</span>
+      </div>
       <div class="sidebar-user-info">
         <div class="sidebar-user-name" id="sidebarName">Nike Brasil</div>
         <div class="sidebar-user-email" id="sidebarEmail">contato@nikebrasil.com</div>
@@ -2595,8 +2599,49 @@ function setUserInfo(nome, email) {
   document.getElementById('welcomeName').textContent = firstName;
   document.getElementById('sidebarName').textContent = nome;
   document.getElementById('sidebarEmail').textContent = email;
-  document.getElementById('sidebarAvatar').textContent = initials;
+  // Sidebar avatar: atualiza apenas o fallback (img gerenciado por _setSidebarLogo)
+  const sbFb = document.getElementById('sidebarAvatarFb');
+  if (sbFb) sbFb.textContent = initials;
   document.getElementById('topbarAvatar').textContent = initials;
+}
+
+function _setSidebarLogo(logoUrl, empresa, domain) {
+  const img  = document.getElementById('sidebarAvatarImg');
+  const fb   = document.getElementById('sidebarAvatarFb');
+  const wrap = document.getElementById('sidebarAvatar');
+  if (!img || !fb) return;
+
+  function applyImg(src) {
+    img.onerror = function() {
+      img.onerror = null;
+      img.style.display = 'none';
+      fb.style.display = '';
+      if (wrap) wrap.style.background = '';
+      const q = domain || empresa;
+      if (q) {
+        fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(q) + '?c=1idE-ar9WXT49s6Qb2f')
+          .then(r => r.ok ? r.json() : null)
+          .then(d => { if (Array.isArray(d) && d[0]?.icon) applyImg(d[0].icon); })
+          .catch(() => {});
+      }
+    };
+    img.src = src;
+    img.style.display = 'block';
+    fb.style.display = 'none';
+    if (wrap) wrap.style.background = 'var(--gray-1)';
+  }
+
+  if (logoUrl) {
+    applyImg(logoUrl);
+  } else {
+    const q = domain || empresa;
+    if (q) {
+      fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(q) + '?c=1idE-ar9WXT49s6Qb2f')
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (Array.isArray(d) && d[0]?.icon) applyImg(d[0].icon); })
+        .catch(() => {});
+    }
+  }
 }
 
 function populateConfigFields(p) {
@@ -2616,6 +2661,8 @@ function populateConfigFields(p) {
   // Resolve domain: empresa_domain prioritário, fallback do website
   const brandDomain = p.empresa_domain ||
     (p.website ? p.website.replace(/^https?:\/\/(www\.)?/, '').split('/')[0].split('?')[0] : null);
+  // Atualiza sidebar logo com dados do perfil
+  _setSidebarLogo(p.logo_url, p.empresa, brandDomain);
   // Mostra letra fallback imediatamente, depois tenta carregar logo
   _applyMarcaLogo(null, p.empresa);
   if (p.logo_url) {
