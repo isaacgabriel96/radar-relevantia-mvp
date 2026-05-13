@@ -4314,13 +4314,19 @@ function toggleVisBadge(oppId, e) {
   _visOpenOppId = oppId;
 }
 
-// Fecha dropdowns ao clicar fora
+// Fecha dropdowns ao clicar fora ou scrollar
 document.addEventListener('click', () => {
   const d = document.getElementById('vis-global-dropdown');
   if (d) d.classList.remove('open');
   _visOpenOppId = null;
   closeOppOpts();
 });
+window.addEventListener('scroll', () => {
+  const d = document.getElementById('vis-global-dropdown');
+  if (d) d.classList.remove('open');
+  _visOpenOppId = null;
+  closeOppOpts();
+}, { passive: true, capture: true });
 
 async function setVisibilidade(oppId, novaVis, e) {
   e.stopPropagation();
