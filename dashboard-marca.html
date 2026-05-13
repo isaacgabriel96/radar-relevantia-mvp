@@ -3781,7 +3781,11 @@ var PROPOSTAS = [];
 async function loadPropostas() {
   const real = await fetchNegociacoesMarca();
   if (real !== null) {
-    PROPOSTAS = real;
+    // Filter out orphaned proposals (linked opportunity was deleted)
+    PROPOSTAS = real.filter(p => p.opp && p.opp_id);
+    if (real.length !== PROPOSTAS.length) {
+      console.warn('[loadPropostas] Filtered', real.length - PROPOSTAS.length, 'orphaned proposal(s) with no linked opportunity.');
+    }
     return;
   }
   // Supabase unavailable — show empty state, not fake data

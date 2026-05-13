@@ -487,12 +487,16 @@ async function fetchNegociacoesMarca() {
   if (isDemoMode()) return null;
   try {
     if (sb) {
-      const token = await getValidToken();
-      if (token) {
-        // Para marca, faz join no detentor (organizador) em vez da marca
+      // Get session once — contains both token and user.id
+      const { data: sdkData } = await sb.auth.getSession();
+      if (sdkData?.session) {
+        const token  = sdkData.session.access_token;
+        const userId = sdkData.session.user?.id;
+        // Explicit marca_id filter guards against misconfigured RLS
+        const marcaFilter = userId ? '&marca_id=eq.' + userId : '';
         const marcaSelect = _negSelectQuery.replace('marca:marca_id(nome,empresa),', 'detentor:detentor_id(nome,empresa),');
         const res = await fetch(SUPABASE_URL + '/rest/v1/negociacoes?select=' + marcaSelect +
-          '&order=created_at.desc&mensagens.order=created_at.asc', {
+          marcaFilter + '&order=created_at.desc&mensagens.order=created_at.asc', {
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -504,9 +508,11 @@ async function fetchNegociacoesMarca() {
     // Fallback: tenta sessão legada da marca
     const session = await getSessionAsync('brand');
     if (session?.access_token && session.access_token !== 'DEMO_TOKEN') {
+      const userId = session?.user?.id;
+      const marcaFilter = userId ? '&marca_id=eq.' + userId : '';
       const marcaSelect = _negSelectQuery.replace('marca:marca_id(nome,empresa),', 'detentor:detentor_id(nome,empresa),');
       const res = await sbFetch('/rest/v1/negociacoes?select=' + marcaSelect +
-        '&order=created_at.desc&mensagens.order=created_at.asc', session.access_token);
+        marcaFilter + '&order=created_at.desc&mensagens.order=created_at.asc', session.access_token);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const rows = await res.json();
       return rows.map(rowToNegociacaoMarca);
