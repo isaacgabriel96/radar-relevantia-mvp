@@ -4615,6 +4615,47 @@ function lpCloseFocalEditor() {
   _lpFocalTemp = null;
 }
 
+/* Aplica logo no card preview — com retry Brandfetch se URL expirada */
+function applyLpLogo(logoUrl, empresa, domain, logoImg, logoInitials, logoWrap) {
+  function showInitials() {
+    if (logoImg) logoImg.style.display = 'none';
+    if (logoInitials) {
+      logoInitials.style.display = '';
+      logoInitials.textContent = (empresa || '?').split(' ').filter(function(w){ return w.length > 0; }).slice(0,2).map(function(w){ return w[0]; }).join('').toUpperCase() || '?';
+    }
+    if (logoWrap) { logoWrap.style.background = 'var(--gold-gradient)'; logoWrap.style.border = 'none'; }
+  }
+  function applyImg(src) {
+    if (!logoImg || !logoInitials) return;
+    logoImg.onerror = function() {
+      logoImg.onerror = null;
+      // Retry via Brandfetch
+      var q = domain || empresa;
+      if (q) {
+        fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(q) + '?c=1idE-ar9WXT49s6Qb2f')
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .then(function(d){ if (Array.isArray(d) && d[0] && d[0].icon) applyImg(d[0].icon); else showInitials(); })
+          .catch(showInitials);
+      } else { showInitials(); }
+    };
+    logoImg.src = src;
+    logoImg.style.display = 'block';
+    logoInitials.style.display = 'none';
+    if (logoWrap) { logoWrap.style.background = 'var(--gray-1)'; logoWrap.style.border = '1px solid rgba(26,18,0,0.07)'; }
+  }
+  if (logoUrl) {
+    applyImg(logoUrl);
+  } else {
+    var q = domain || empresa;
+    if (q) {
+      fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(q) + '?c=1idE-ar9WXT49s6Qb2f')
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){ if (Array.isArray(d) && d[0] && d[0].icon) applyImg(d[0].icon); else showInitials(); })
+        .catch(showInitials);
+    } else { showInitials(); }
+  }
+}
+
 /* Carregar organização do Supabase para o card */
 async function loadOrgForLivePreview() {
   var logoImg = document.getElementById('lpOrgLogoImg');
@@ -4636,7 +4677,7 @@ async function loadOrgForLivePreview() {
     try {
       var ctx = window._impersonateCtx;
       var freshToken = (typeof _freshAdminToken === 'function') ? await _freshAdminToken() : ctx.admin_token;
-      var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + ctx.target_user_id + '&select=empresa,logo_url&limit=1', {
+      var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + ctx.target_user_id + '&select=empresa,logo_url,empresa_domain&limit=1', {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + freshToken }
       });
       var rows = res.ok ? await res.json() : [];
@@ -4644,14 +4685,7 @@ async function loadOrgForLivePreview() {
       var empresa = perfil.empresa || ctx.target_nome || ctx.target_email || 'Detentor';
       if (orgNameEl) orgNameEl.textContent = empresa;
       var logoWrap = document.getElementById('lpOrgLogo');
-      if (perfil.logo_url && logoImg && logoInitials) {
-        logoImg.src = perfil.logo_url;
-        logoImg.style.display = 'block';
-        logoInitials.style.display = 'none';
-        if (logoWrap) { logoWrap.style.background = 'var(--gray-1)'; logoWrap.style.border = '1px solid rgba(26,18,0,0.07)'; }
-      } else {
-        setFallback(empresa);
-      }
+      applyLpLogo(perfil.logo_url, empresa, perfil.empresa_domain, logoImg, logoInitials, logoWrap);
     } catch (e) {
       setFallback(window._impersonateCtx.target_nome || null);
     }
@@ -4697,7 +4731,7 @@ async function loadOrgForLivePreview() {
   try {
     var token = session.access_token;
     var userId = session.user.id;
-    var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=empresa,logo_url&limit=1', {
+    var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=empresa,logo_url,empresa_domain&limit=1', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
 
@@ -4720,26 +4754,7 @@ async function loadOrgForLivePreview() {
     if (orgNameEl) orgNameEl.textContent = empresa;
 
     var logoWrap = document.getElementById('lpOrgLogo');
-    if (perfil.logo_url && logoImg && logoInitials) {
-      logoImg.src = perfil.logo_url;
-      logoImg.style.display = 'block';
-      logoInitials.style.display = 'none';
-      if (logoWrap) {
-        logoWrap.style.background = 'var(--gray-1)';
-        logoWrap.style.border = '1px solid rgba(26,18,0,0.07)';
-      }
-      logoImg.onerror = function() {
-        logoImg.style.display = 'none';
-        logoInitials.style.display = '';
-        logoInitials.textContent = empresa.split(' ').filter(function(w) { return w.length > 0; }).slice(0,2).map(function(w) { return w[0]; }).join('').toUpperCase() || '?';
-        if (logoWrap) {
-          logoWrap.style.background = 'var(--gold-gradient)';
-          logoWrap.style.border = 'none';
-        }
-      };
-    } else {
-      setFallback(empresa);
-    }
+    applyLpLogo(perfil.logo_url, empresa, perfil.empresa_domain, logoImg, logoInitials, logoWrap);
   } catch (err) {
     console.error('[LP] Erro ao buscar perfil:', err);
     setFallback(null);
