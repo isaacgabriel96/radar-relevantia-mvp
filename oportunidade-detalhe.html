@@ -3772,7 +3772,11 @@ function updateFavBtnState(isFav) {
     // Supabase não retornou dados — mostrar página de erro inline sem redirecionar
     var ls = document.getElementById('loadingScreen');
     if (ls) { ls.style.opacity = '0'; ls.style.transition = 'opacity 0.3s'; setTimeout(function(){ ls.style.display = 'none'; }, 300); }
-    var mainEl = document.querySelector('.main-content') || document.querySelector('main') || document.querySelector('.page-content');
+    // Atualiza breadcrumb para não ficar preso em "Carregando..."
+    var titleEl = document.getElementById('topbarOppTitle');
+    if (titleEl) titleEl.textContent = 'Não encontrada';
+    // Seletor correto — o elemento raiz tem class="main", não ".main-content"
+    var mainEl = document.querySelector('.main') || document.querySelector('.main-content') || document.querySelector('main') || document.querySelector('.page-content');
     if (mainEl) {
       mainEl.innerHTML = '<div style="text-align:center;padding:80px 24px;max-width:480px;margin:0 auto;">' +
         '<div style="font-size:48px;margin-bottom:16px;">🔍</div>' +
