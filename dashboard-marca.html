@@ -1014,7 +1014,7 @@ tbody tr:last-child td { border-bottom: none; }
 <script src="shared-state.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/sanitize.js"></script>
-<script src="js/core.js?v=20260513"></script>
+<script src="js/core.js?v=20260513b"></script>
 <script>if(new URLSearchParams(location.search).get('demo')==='true'){document.write('<script src="js\/demo-data.js"><\/script>');document.write('<script src="js\/demo-mode.js"><\/script>');}</script>
 
 <!-- Loading -->
@@ -3002,7 +3002,7 @@ function renderOpportunities(opps) {
         <div class="opp-card-desc">${opp.desc}</div>
         <div class="opp-card-divider"></div>
         <div class="opp-card-footer">
-          <div class="olc-brand-row" ${!opp.detentorLogoUrl && opp.detentorEmpresaDomain ? `data-bf-domain="${opp.detentorEmpresaDomain}"` : (!opp.detentorLogoUrl && !opp.detentorEmpresaDomain && opp.detentorEmpresa ? `data-bf-name="${opp.detentorEmpresa}"` : '')}>
+          <div class="olc-brand-row" ${opp.detentorEmpresaDomain ? `data-bf-domain="${opp.detentorEmpresaDomain}"` : (opp.detentorEmpresa ? `data-bf-name="${opp.detentorEmpresa}"` : '')}>
             <div class="olc-logo" style="overflow:hidden;padding:0;background:var(--gray-100)">
               <img src="${opp.detentorLogoUrl || ''}" alt="" style="width:100%;height:100%;object-fit:contain;${opp.detentorLogoUrl ? 'display:block' : 'display:none'}" onerror="this.style.display='none';this.nextElementSibling.style.display=''">
               <span style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;${opp.detentorLogoUrl ? 'display:none' : ''}">${opp.detentorEmpresa ? opp.detentorEmpresa.charAt(0).toUpperCase() : (opp.orgInitials||'?')}</span>
@@ -5801,7 +5801,7 @@ function renderMinhasSolicitacoes() {
         + '<div class="opp-card-divider"></div>'
         + '<div class="opp-card-footer">'
           + '<div class="olc-brand-row"'
-            + (!detentorLogoUrl && o && o.detentorEmpresaDomain ? ' data-bf-domain="' + o.detentorEmpresaDomain + '"' : (!detentorLogoUrl && o && o.detentorEmpresa ? ' data-bf-name="' + o.detentorEmpresa + '"' : ''))
+            + (o && o.detentorEmpresaDomain ? ' data-bf-domain="' + o.detentorEmpresaDomain + '"' : (o && o.detentorEmpresa ? ' data-bf-name="' + o.detentorEmpresa + '"' : ''))
             + '>'
             + '<div class="olc-logo" style="overflow:hidden;padding:0;background:var(--gray-100)">'
               + '<img src="' + (detentorLogoUrl || '') + '" alt="" style="width:100%;height:100%;object-fit:contain;' + (detentorLogoUrl ? 'display:block' : 'display:none') + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'">'

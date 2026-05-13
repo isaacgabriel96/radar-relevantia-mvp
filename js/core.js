@@ -339,6 +339,8 @@ function _rrApplyLogo(row, src) {
   const img  = row.querySelector('img');
   const span = row.querySelector('span');
   if (!img) return;
+  // Skip only if img already loaded a working image (naturalWidth > 0)
+  if (img.complete && img.naturalWidth > 0) return;
   img.src = src;
   img.style.display = 'block';
   if (span) span.style.display = 'none';
