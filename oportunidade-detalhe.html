@@ -1496,8 +1496,10 @@ function getOpp() {
 async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
   try {
     var filter;
-    // UUID detection: string com formato UUID (8-4-4-4-12 hex) ou string numérica longa
+    // UUID detection: string com formato UUID (8-4-4-4-12 hex)
     var isUuid = typeof idOrPerfilSlug === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrPerfilSlug);
+    // Numeric string detection: '70', '123' etc (ID inteiro passado como string)
+    var isNumericStr = typeof idOrPerfilSlug === 'string' && /^\d+$/.test(idOrPerfilSlug);
     if (oppSlug) {
       // Lookup by @perfil-slug/opp-slug — need to resolve perfil slug first
       const pRes = await sbPublicFetch('/rest/v1/perfis?select=id&slug=eq.' + encodeURIComponent(idOrPerfilSlug));
@@ -1509,7 +1511,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       } else {
         filter = '&detentor_id=eq.' + pRows[0].id + '&slug=eq.' + encodeURIComponent(oppSlug);
       }
-    } else if (typeof idOrPerfilSlug === 'number' || isUuid) {
+    } else if (typeof idOrPerfilSlug === 'number' || isUuid || isNumericStr) {
       filter = '&id=eq.' + idOrPerfilSlug;
     } else {
       filter = '&slug=eq.' + encodeURIComponent(idOrPerfilSlug);
@@ -3694,14 +3696,20 @@ function updateFavBtnState(isFav) {
   var rawKey = params.keys().next().value;
   var perfilSlug = null, oppSlug = null, id = null;
 
-  // Support ?@perfil-slug/opp-slug or ?@opp-slug (legacy)
+  // Support ?@perfil-slug/opp-slug or ?@opp-slug (legacy) or ?@123 (numeric ID)
   if (rawKey && rawKey.startsWith('@')) {
     var parts = rawKey.substring(1).split('/');
     if (parts.length >= 2) {
       perfilSlug = parts[0];
       oppSlug = parts[1];
     } else {
-      oppSlug = parts[0]; // legacy single slug fallback
+      var part = parts[0];
+      // Se for puramente numérico → trata como ID inteiro, não slug
+      if (/^\d+$/.test(part)) {
+        id = parseInt(part, 10);
+      } else {
+        oppSlug = part; // slug textual legado
+      }
     }
   } else {
     var rawSlug = params.get('slug');
