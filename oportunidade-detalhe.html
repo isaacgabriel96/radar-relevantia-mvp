@@ -3750,19 +3750,26 @@ function updateFavBtnState(isFav) {
     var _gateSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
     var _gateMarcaId = _gateSession && _gateSession.user ? _gateSession.user.id : null;
 
-    // Bypass: admin ou detentor logados podem ver a página sem gate
+    // Bypass 1: arquivo local (file://) — localStorage de produção não disponível
+    if (!_gateMarcaId && window.location.protocol === 'file:') {
+      console.log('[Detail] Bypass: acesso local (file://)');
+      _gateMarcaId = '__local__';
+    }
+
+    // Bypass 2: admin ou detentor logados no site de produção
     if (!_gateMarcaId) {
       var _adminSession    = typeof getSessionAsync === 'function' ? await getSessionAsync('admin')    : null;
       var _detentorSession = typeof getSessionAsync === 'function' ? await getSessionAsync('detentor') : null;
       if (_adminSession?.user || _detentorSession?.user) {
         console.log('[Detail] Acesso liberado via sessão admin/detentor');
-        renderPage(oppData);
-        // Não chama renderLoginGate — admin/detentor vê conteúdo completo
-        _gateMarcaId = (_adminSession?.user?.id || _detentorSession?.user?.id || 'bypass');
+        _gateMarcaId = (_adminSession?.user?.id || _detentorSession?.user?.id || '__bypass__');
       }
     }
 
-    if (!_gateMarcaId) {
+    // Se passou por um bypass → renderiza diretamente sem gate de login
+    if (_gateMarcaId === '__local__' || _gateMarcaId === '__bypass__') {
+      renderPage(oppData);
+    } else if (!_gateMarcaId) {
       // Usuário não está logado — renderiza página com blur + modal de login
       console.log('[Detail] Usuário não logado — exibindo login gate');
       renderPage(oppData);
