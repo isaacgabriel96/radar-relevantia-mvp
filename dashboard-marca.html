@@ -2473,6 +2473,9 @@ function updateSetupGuide() {
     if (lbl) lbl.textContent = `Guia de início · ${doneCount}/${total}`;
   }
 
+  // Persist progress so other pages (e.g. oportunidade-detalhe) can show the same button
+  localStorage.setItem('rr_sg_progress_marca', JSON.stringify({ done: doneCount, total: total, ob: OB_MARCA }));
+
   if (doneCount === total) {
     setTimeout(() => {
       const panel = document.getElementById('setupGuidePanel');

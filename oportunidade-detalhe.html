@@ -162,6 +162,88 @@ a { text-decoration: none; color: inherit; }
 .topbar-breadcrumb strong { color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 320px; display: block; }
 .topbar-sep { color: var(--gray-300); flex-shrink: 0; }
 .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* ─── SETUP GUIDE BUTTON ─── */
+.setup-guide-btn {
+  display: none; align-items: center; gap: 7px;
+  padding: 6px 12px 6px 8px; border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.12); background: #fff;
+  font-size: 13px; font-weight: 500; color: var(--text,#1a1200);
+  cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; white-space: nowrap;
+}
+.setup-guide-btn:hover { border-color: rgba(184,134,11,0.4); box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+.setup-guide-btn.active { border-color: rgba(184,134,11,0.5); background: #fffdf5; }
+.sgp-overlay { display:none; position:fixed; inset:0; z-index:299; }
+.sgp-overlay.open { display:block; }
+.setup-guide-panel {
+  position: fixed; top: 64px; right: 0; width: 340px;
+  background: #fff; border-left: 1px solid rgba(0,0,0,0.08);
+  border-bottom: 1px solid rgba(0,0,0,0.08); border-radius: 0 0 0 12px;
+  box-shadow: -4px 8px 32px rgba(0,0,0,0.12); z-index: 300;
+  transform: translateX(110%); transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  max-height: calc(100vh - 80px); overflow-y: auto;
+}
+.setup-guide-panel.open { transform: translateX(0); }
+.sgp-top-bar { height: 3px; background: linear-gradient(90deg,#C8A428,#E8C84A); }
+.sgp-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 20px 14px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sgp-header-title { font-size: 15px; font-weight: 700; color: #1a1200; margin-bottom: 2px; }
+.sgp-header-sub { font-size: 12px; color: #888; }
+.sgp-close { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: #aaa; cursor: pointer; border-radius: 5px; flex-shrink: 0; }
+.sgp-close:hover { background: rgba(0,0,0,0.05); color: #555; }
+.sgp-body { padding: 8px 0 16px; }
+.sgp-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 20px; cursor: pointer; transition: background 0.12s; border-bottom: 1px solid rgba(0,0,0,0.04); text-decoration: none; color: inherit; }
+.sgp-item:last-child { border-bottom: none; }
+.sgp-item:hover { background: #fafafa; }
+.sgp-item.done { opacity: 0.5; cursor: default; pointer-events: none; }
+.sgp-check { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; margin-top: 1px; border: 1.5px solid #d1c084; display: flex; align-items: center; justify-content: center; background: #fff; }
+.sgp-item.done .sgp-check { background: #dcfce7; border-color: #86efac; }
+.sgp-check-icon { display: none; }
+.sgp-item.done .sgp-check-icon { display: block; }
+.sgp-item-body { flex: 1; min-width: 0; }
+.sgp-item-title { font-size: 13px; font-weight: 600; color: #1a1200; line-height: 1.4; }
+.sgp-item.done .sgp-item-title { text-decoration: line-through; color: #aaa; }
+.sgp-item-desc { font-size: 12px; color: #888; margin-top: 2px; }
+.sgp-item-arrow { color: #ccc; font-size: 15px; margin-top: 2px; flex-shrink: 0; }
+.sgp-item.done .sgp-item-arrow { display: none; }
+@media (max-width: 768px) { .setup-guide-panel { width: 100%; border-radius: 0; } .setup-guide-btn { padding: 6px 8px; } #setupGuideBtnLabel { display: none; } }
+
+/* ─── NOTIFICATION BELL ─── */
+.notif-wrapper { position: relative; }
+.notif-btn { position: relative; width: 38px; height: 38px; border-radius: 10px; background: none; border: 1.5px solid var(--gray-200,#e5e5e5); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--gray-500,#737373); transition: all 0.15s; flex-shrink: 0; }
+.notif-btn:hover { background: var(--gray-100,#f5f5f5); border-color: var(--gray-300,#d4d4d4); color: #1a1200; }
+.notif-btn.active { background: var(--gray-100,#f5f5f5); border-color: var(--gray-300,#d4d4d4); }
+.notif-btn svg { width: 18px; height: 18px; }
+.notif-badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; border-radius: 9px; background: #EF4444; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 4px; border: 2px solid #fff; pointer-events: none; }
+.notif-badge.hidden { display: none; }
+.notif-panel { position: fixed; width: 380px; max-height: 520px; background: #fff; border: 1px solid var(--gray-200,#e5e5e5); border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,0.12); display: none; flex-direction: column; overflow: hidden; animation: notifSlideIn 0.2s cubic-bezier(0.16,1,0.3,1); z-index: 999; }
+.notif-panel.open { display: flex; }
+@keyframes notifSlideIn { from { opacity:0; transform:translateY(-8px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+.notif-panel-header { padding: 16px 18px 12px; border-bottom: 1px solid var(--gray-100,#f5f5f5); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.notif-panel-title { font-size: 15px; font-weight: 600; color: #1a1200; }
+.notif-mark-all { font-size: 12px; font-weight: 500; color: #737373; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: all 0.15s; }
+.notif-mark-all:hover { background: var(--gray-100,#f5f5f5); color: #1a1200; }
+.notif-list { overflow-y: auto; flex: 1; }
+.notif-item { display: flex; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--gray-100,#f5f5f5); cursor: pointer; transition: background 0.12s; }
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--gray-100,#f5f5f5); }
+.notif-item.unread { background: #FFFBEB; }
+.notif-item.unread:hover { background: #FEF3C7; }
+.notif-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+.notif-icon.green { background: #D1FAE5; } .notif-icon.blue { background: #DBEAFE; } .notif-icon.orange { background: #FEF3C7; } .notif-icon.red { background: #FEE2E2; } .notif-icon.gray { background: var(--gray-100,#f5f5f5); }
+.notif-content { flex: 1; min-width: 0; }
+.notif-content-title { font-size: 13px; font-weight: 600; color: #1a1200; line-height: 1.4; margin-bottom: 2px; }
+.notif-content-desc { font-size: 12px; color: #737373; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notif-content-time { font-size: 11px; color: #a3a3a3; margin-top: 4px; }
+.notif-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold,#B8860B); flex-shrink: 0; margin-top: 5px; }
+.notif-empty { text-align: center; padding: 40px 24px; color: #737373; }
+.notif-empty-icon { font-size: 36px; margin-bottom: 10px; }
+.notif-empty-text { font-size: 13px; font-weight: 500; }
+.notif-panel-footer { padding: 10px 18px; border-top: 1px solid var(--gray-100,#f5f5f5); flex-shrink: 0; }
+.notif-see-all { width: 100%; padding: 9px; border-radius: 8px; background: var(--gray-100,#f5f5f5); border: none; cursor: pointer; font-size: 12px; font-weight: 600; color: #737373; transition: all 0.15s; }
+.notif-see-all:hover { background: var(--gray-200,#e5e5e5); color: #1a1200; }
+.notif-panel.mobile-sheet { position: fixed !important; top: auto !important; bottom: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; max-height: 75vh !important; border-radius: 20px 20px 0 0 !important; }
+.notif-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 800; }
+.notif-overlay.open { display: block; }
 .topbar-avatar {
   width: 34px; height: 34px; border-radius: 50%;
   background: linear-gradient(135deg, var(--gold), var(--gold-light));
@@ -1113,10 +1195,98 @@ a { text-decoration: none; color: inherit; }
       <strong id="topbarOppTitle">Carregando...</strong>
     </div>
     <div class="topbar-right">
-      <div class="topbar-avatar" id="topbarAvatar">U</div>
+      <button class="setup-guide-btn" id="setupGuideBtn" onclick="toggleSetupGuide()">
+        <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0">
+          <circle cx="9" cy="9" r="7" fill="none" stroke="rgba(184,134,11,0.2)" stroke-width="2"/>
+          <circle cx="9" cy="9" r="7" fill="none" stroke="#B8860B" stroke-width="2"
+            stroke-dasharray="43.98" stroke-dashoffset="43.98"
+            stroke-linecap="round" transform="rotate(-90 9 9)"
+            id="setupGuideRing" style="transition:stroke-dashoffset 0.5s ease"/>
+        </svg>
+        <span id="setupGuideBtnLabel">Guia de início</span>
+      </button>
+      <div class="notif-wrapper">
+        <button class="notif-btn" id="notifBtn" onclick="toggleNotifPanel()" aria-label="Notificações">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span class="notif-badge hidden" id="notifBadge">0</span>
+        </button>
+      </div>
     </div>
   </div>
 </header>
+
+<!-- Setup Guide Panel -->
+<div class="sgp-overlay" id="sgpOverlay" onclick="toggleSetupGuide()"></div>
+<div class="setup-guide-panel" id="setupGuidePanel">
+  <div class="sgp-top-bar" id="sgpTopBar"></div>
+  <div class="sgp-header">
+    <div>
+      <div class="sgp-header-title">Guia de início</div>
+      <div class="sgp-header-sub" id="sgpSubtitle">Carregando...</div>
+    </div>
+    <button class="sgp-close" onclick="toggleSetupGuide()">
+      <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="sgp-body">
+    <a class="sgp-item" id="ob-perfil" href="dashboard-marca.html#configuracoes">
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Complete o perfil da empresa</div>
+        <div class="sgp-item-desc">Adicione segmento e descrição da marca</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </a>
+    <a class="sgp-item" id="ob-juridico" href="dashboard-marca.html#configuracoes">
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Preencha os dados jurídicos</div>
+        <div class="sgp-item-desc">CNPJ e razão social da empresa</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </a>
+    <a class="sgp-item" id="ob-equipe" href="dashboard-marca.html#configuracoes">
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Monte sua equipe</div>
+        <div class="sgp-item-desc">Convide membros para acessar a plataforma</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </a>
+    <a class="sgp-item" id="ob-salvar" href="dashboard-marca.html#oportunidades">
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Salve uma oportunidade</div>
+        <div class="sgp-item-desc">Explore o catálogo e favorite algo relevante</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </a>
+    <a class="sgp-item" id="ob-proposta" href="dashboard-marca.html#oportunidades">
+      <div class="sgp-check"><svg class="sgp-check-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="sgp-item-body">
+        <div class="sgp-item-title">Envie sua primeira proposta</div>
+        <div class="sgp-item-desc">Inicie uma negociação com um detentor</div>
+      </div>
+      <span class="sgp-item-arrow">→</span>
+    </a>
+  </div>
+</div>
+
+<!-- Notification Panel -->
+<div class="notif-overlay" id="notifOverlay" onclick="closeNotifPanel()"></div>
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-header">
+    <span class="notif-panel-title">Notificações</span>
+    <button class="notif-mark-all" onclick="markAllRead()">Marcar todas como lidas</button>
+  </div>
+  <div class="notif-list" id="notifList"></div>
+  <div class="notif-panel-footer">
+    <button class="notif-see-all" onclick="closeNotifPanel()">Ver todas as notificações</button>
+  </div>
+</div>
 
 <!-- Main -->
 <div class="main">
@@ -3894,6 +4064,151 @@ function doLogout() {
   localStorage.removeItem('sb_marca_session');
   window.location.href = 'index.html';
 }
+
+// ─── SETUP GUIDE (topbar) ────────────────────────────────────────────────────
+const OB_KEY_MARCA = 'rr_sg_done_marca';
+
+function initSetupGuide() {
+  // If guide was already dismissed on the dashboard, don't show it here
+  if (localStorage.getItem(OB_KEY_MARCA)) return;
+
+  const btn = document.getElementById('setupGuideBtn');
+  if (!btn) return;
+
+  // Read the progress persisted by dashboard-marca.html
+  let progress = null;
+  try { progress = JSON.parse(localStorage.getItem('rr_sg_progress_marca') || 'null'); } catch(e) {}
+
+  btn.style.display = 'flex';
+
+  const lbl = document.getElementById('setupGuideBtnLabel');
+  if (lbl && progress) lbl.textContent = `Guia de início · ${progress.done}/${progress.total}`;
+
+  // Update ring progress
+  if (progress) {
+    const ring = document.getElementById('setupGuideRing');
+    if (ring) {
+      const circ = 43.98;
+      ring.style.strokeDashoffset = circ - (circ * progress.done / progress.total);
+    }
+    // Update subtitle
+    const sub = document.getElementById('sgpSubtitle');
+    if (sub) sub.textContent = `${progress.done} de ${progress.total} concluído${progress.done !== 1 ? 's' : ''}`;
+    // Mark done items
+    if (progress.ob) {
+      const map = { perfil: 'ob-perfil', juridico: 'ob-juridico', equipe: 'ob-equipe', salvar: 'ob-salvar', proposta: 'ob-proposta' };
+      Object.entries(map).forEach(([key, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('done', !!progress.ob[key]);
+      });
+    }
+  }
+}
+
+function toggleSetupGuide() {
+  const panel = document.getElementById('setupGuidePanel');
+  const overlay = document.getElementById('sgpOverlay');
+  const btn = document.getElementById('setupGuideBtn');
+  if (!panel) return;
+  const open = panel.classList.toggle('open');
+  if (overlay) overlay.classList.toggle('open', open);
+  if (btn) btn.classList.toggle('active', open);
+}
+
+// ─── NOTIFICATIONS (topbar) ──────────────────────────────────────────────────
+const NOTIF_STORAGE_KEY = 'rr_notif_marca_v1';
+let _notifs = [];
+let _notifOpen = false;
+
+function loadNotifs() {
+  try { _notifs = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]'); } catch(e) { _notifs = []; }
+  renderNotifs();
+}
+
+function saveNotifs() { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(_notifs)); }
+
+function renderNotifs() {
+  const list = document.getElementById('notifList');
+  const badge = document.getElementById('notifBadge');
+  const unreadCount = _notifs.filter(n => n.unread).length;
+  if (badge) {
+    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+    badge.classList.toggle('hidden', unreadCount === 0);
+  }
+  if (!list) return;
+  if (_notifs.length === 0) {
+    list.innerHTML = '<div class="notif-empty"><div class="notif-empty-icon">🔔</div><div class="notif-empty-text">Sem notificações por aqui</div></div>';
+    return;
+  }
+  list.innerHTML = _notifs.map(n => `
+    <div class="notif-item${n.unread ? ' unread' : ''}" onclick="onNotifClick('${n.id}')">
+      <div class="notif-icon ${n.iconColor}">${n.icon}</div>
+      <div class="notif-content">
+        <div class="notif-content-title">${n.title}</div>
+        <div class="notif-content-desc">${n.desc}</div>
+        <div class="notif-content-time">${n.time}</div>
+      </div>
+      ${n.unread ? '<div class="notif-unread-dot"></div>' : ''}
+    </div>
+  `).join('');
+}
+
+function onNotifClick(id) {
+  const n = _notifs.find(x => x.id === id);
+  if (n) { n.unread = false; saveNotifs(); renderNotifs(); }
+  closeNotifPanel();
+  if (n && n.section) window.location.href = 'dashboard-marca.html#' + n.section;
+}
+
+function markAllRead() { _notifs.forEach(n => n.unread = false); saveNotifs(); renderNotifs(); }
+
+function toggleNotifPanel() { _notifOpen ? closeNotifPanel() : openNotifPanel(); }
+
+function openNotifPanel() {
+  _notifOpen = true;
+  const panel = document.getElementById('notifPanel');
+  const btn = document.getElementById('notifBtn');
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    panel.classList.add('mobile-sheet');
+    panel.style.top = panel.style.right = panel.style.left = panel.style.bottom = '';
+    document.getElementById('notifOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  } else {
+    panel.classList.remove('mobile-sheet');
+    const rect = btn.getBoundingClientRect();
+    panel.style.top = (rect.bottom + 10) + 'px';
+    panel.style.right = (window.innerWidth - rect.right) + 'px';
+    panel.style.left = 'auto'; panel.style.bottom = 'auto';
+  }
+  panel.classList.add('open');
+  if (btn) btn.classList.add('active');
+}
+
+function closeNotifPanel() {
+  _notifOpen = false;
+  const panel = document.getElementById('notifPanel');
+  if (panel) { panel.classList.remove('open', 'mobile-sheet'); }
+  const btn = document.getElementById('notifBtn');
+  if (btn) btn.classList.remove('active');
+  const overlay = document.getElementById('notifOverlay');
+  if (overlay) overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('click', function(e) {
+  if (!_notifOpen || window.innerWidth <= 768) return;
+  const btn = document.getElementById('notifBtn');
+  const panel = document.getElementById('notifPanel');
+  if (btn && !btn.contains(e.target) && panel && !panel.contains(e.target)) closeNotifPanel();
+});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { if (_notifOpen) closeNotifPanel(); if (document.getElementById('setupGuidePanel')?.classList.contains('open')) toggleSetupGuide(); } });
+
+// Init on load
+document.addEventListener('DOMContentLoaded', function() {
+  initSetupGuide();
+  loadNotifs();
+});
 </script>
 </body>
 </html>
