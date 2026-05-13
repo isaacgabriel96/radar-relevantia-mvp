@@ -1732,7 +1732,7 @@ function renderPage(oppOverride) {
   var factsSection = document.getElementById('detailFactsSection');
   if (factsSection) factsSection.style.display = '';
   document.getElementById('detailFacts').innerHTML = factsHtml ||
-    '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><span>Nenhuma informação adicionada.</span><button class="det-empty-cta" onclick="goToFullEdit()">Adicionar no editor →</button></div>';
+    ('<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div class="det-empty-state-body"><span>Nenhuma informação adicionada.</span>' + DET_HIDDEN_NOTE + '</div><button class="det-empty-cta" onclick="goToFullEdit()">Adicionar →</button></div>');
 
   // Tags — always show with inline add/remove in edit mode
   _CURRENT_TAGS = (opp.tags || []).slice();
@@ -1752,7 +1752,7 @@ function renderPage(oppOverride) {
       cotasHtml += '</div>';
     });
   } else {
-    cotasHtml = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8M12 3v4"/></svg><span>Nenhuma cota configurada.</span><button class="det-empty-cta" onclick="goToFullEdit()">Configurar cotas →</button></div>';
+    cotasHtml = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8M12 3v4"/></svg><div class="det-empty-state-body"><span>Nenhuma cota configurada.</span>' + DET_HIDDEN_NOTE + '</div><button class="det-empty-cta" onclick="goToFullEdit()">Configurar →</button></div>';
   }
   document.getElementById('cotasGrid').innerHTML = cotasHtml;
 
@@ -1787,7 +1787,7 @@ function renderPage(oppOverride) {
     });
     document.getElementById('canaisGrid').innerHTML = canaisHtml;
   } else {
-    document.getElementById('canaisGrid').innerHTML = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.06 9.81a19.79 19.79 0 01-3.07-8.64A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg><span>Nenhum canal configurado.</span><button class="det-empty-cta" onclick="goToFullEdit()">Configurar canais →</button></div>';
+    document.getElementById('canaisGrid').innerHTML = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.06 9.81a19.79 19.79 0 01-3.07-8.64A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg><div class="det-empty-state-body"><span>Nenhum canal configurado.</span>' + DET_HIDDEN_NOTE + '</div><button class="det-empty-cta" onclick="goToFullEdit()">Configurar →</button></div>';
   }
 
   // Incentivo fiscal — sempre visível com form inline
@@ -1905,6 +1905,13 @@ function renderPage(oppOverride) {
 /* ─── TAGS INLINE EDITING ─── */
 var _CURRENT_TAGS = [];
 
+var _EYE_OFF_SVG_SM = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+var _EYE_OFF_SVG_MD = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+// Badge inline (usado dentro de .det-empty-state-body)
+var DET_HIDDEN_NOTE = '<span class="det-hidden-badge">' + _EYE_OFF_SVG_SM + 'Não aparece para marcas enquanto vazio</span>';
+// Banner em bloco (usado no topo de formulários/seções)
+var DET_HIDDEN_BANNER = '<div class="det-hidden-banner">' + _EYE_OFF_SVG_MD + 'Este campo não aparece para marcas enquanto estiver vazio</div>';
+
 function renderTagsView() {
   var tagsEl = document.getElementById('detailTags');
   if (!tagsEl) return;
@@ -1922,7 +1929,7 @@ function renderTagsView() {
       'onkeydown="if(event.key===\'Enter\'){var v=this.value.trim();if(v)addTag(v);this.value=\'\';event.preventDefault()}" />' +
       '</span>';
   } else if (_CURRENT_TAGS.length === 0) {
-    html = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span>Nenhum segmento adicionado.</span><button class="det-empty-cta" onclick="toggleEditMode()">Adicionar tags →</button></div>';
+    html = '<div class="det-empty-state"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><div class="det-empty-state-body"><span>Nenhuma tag adicionada.</span>' + DET_HIDDEN_NOTE + '</div><button class="det-empty-cta" onclick="toggleEditMode()">Adicionar →</button></div>';
   }
   tagsEl.innerHTML = html;
 }
@@ -1964,7 +1971,8 @@ function renderIncentivoSection(oppOverride) {
     }
   } else {
     // Não configurado — mostrar form sempre
-    grid.innerHTML = '<div class="incentivo-edit-form" id="incentivoEditForm">' +
+    grid.innerHTML = DET_HIDDEN_BANNER +
+      '<div class="incentivo-edit-form" id="incentivoEditForm">' +
       '<p style="font-size:13px;color:var(--gray-4);margin-bottom:12px">Preencha os dados do incentivo fiscal desta oportunidade.</p>' +
       '<div class="inc-form-row"><label class="inc-label">Nome da Lei</label><input id="incLei" class="inc-input" placeholder="Ex: Lei Rouanet, Lei de Incentivo ao Esporte" /></div>' +
       '<div class="inc-form-row"><label class="inc-label">Categoria</label><input id="incCategoria" class="inc-input" placeholder="Ex: Cultura, Esporte, Audiovisual" /></div>' +
@@ -2413,9 +2421,13 @@ function doLogout() {
   box-shadow: 0 0 0 3px rgba(184,134,11,0.12);
 }
 /* ─── EMPTY STATES ─── */
-.det-empty-state { display:flex; align-items:center; gap:8px; padding:20px 16px; color:var(--gray-3); font-size:13px; font-family:var(--font-body); background:var(--gray-1); border-radius:10px; border:1px dashed var(--gray-2); }
-.det-empty-state svg { flex-shrink:0; color:var(--gray-3); }
-.det-empty-cta { background:none; border:1px solid var(--gray-300); color:var(--gray-500); font-size:12px; font-weight:600; font-family:var(--font-body); padding:4px 12px; border-radius:100px; cursor:pointer; transition:all 0.15s; white-space:nowrap; margin-left:auto; }
+.det-empty-state { display:flex; align-items:flex-start; gap:10px; padding:16px; color:var(--gray-3); font-size:13px; font-family:var(--font-body); background:var(--gray-1); border-radius:10px; border:1px dashed var(--gray-2); }
+.det-empty-state > svg { flex-shrink:0; color:var(--gray-3); margin-top:1px; }
+.det-empty-state-body { flex:1; display:flex; flex-direction:column; gap:5px; }
+.det-hidden-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:500; color:#D97706; background:rgba(217,119,6,0.08); border:1px solid rgba(217,119,6,0.2); border-radius:100px; padding:2px 8px; width:fit-content; }
+.det-hidden-badge svg { flex-shrink:0; }
+.det-hidden-banner { display:flex; align-items:center; gap:7px; font-size:12px; font-weight:500; color:#D97706; background:rgba(217,119,6,0.07); border:1px solid rgba(217,119,6,0.18); border-radius:8px; padding:8px 12px; margin-bottom:14px; }
+.det-empty-cta { background:none; border:1px solid var(--gray-300); color:var(--gray-500); font-size:12px; font-weight:600; font-family:var(--font-body); padding:4px 12px; border-radius:100px; cursor:pointer; transition:all 0.15s; white-space:nowrap; flex-shrink:0; }
 .det-empty-cta:hover { border-color:var(--gold); color:var(--gold); background:var(--gold-pale); }
 /* ─── INCENTIVO FORM ─── */
 .incentivo-edit-form { padding:16px; background:var(--gray-1); border-radius:12px; border:1px solid var(--gray-2); }
