@@ -139,7 +139,6 @@ a { text-decoration: none; color: inherit; }
   background: linear-gradient(135deg, var(--gold), var(--gold-light));
   display: flex; align-items: center; justify-content: center;
   font-size: 11px; font-weight: 700; color: var(--black); flex-shrink: 0;
-  overflow: hidden;
 }
 .sidebar-user-info { flex: 1; min-width: 0; }
 .sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -769,7 +768,7 @@ a { text-decoration: none; color: inherit; }
 
 /* remetente — linha "de:" */
 .modal-from { display: flex; align-items: center; gap: 10px; background: var(--gray-1); border-radius: var(--radius-md); padding: 10px 14px; margin-bottom: 16px; }
-.modal-from-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gold-gradient); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--black); flex-shrink: 0; overflow: hidden; }
+.modal-from-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gold-gradient); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--black); flex-shrink: 0; }
 .modal-from-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
 .modal-from-name { font-size: 12px; font-weight: 600; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .modal-from-tag { font-size: 11px; color: var(--gray-400); }
@@ -1084,10 +1083,7 @@ a { text-decoration: none; color: inherit; }
 
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <div class="sidebar-user-avatar" id="sb-avatar">
-        <img id="sb-avatar-img" src="" alt="" style="width:100%;height:100%;object-fit:contain;display:none;border-radius:50%">
-        <span id="sb-avatar-fb">U</span>
-      </div>
+      <div class="sidebar-user-avatar" id="sb-avatar">U</div>
       <div class="sidebar-user-info">
         <div class="sidebar-user-name" id="sb-name">Usuário</div>
         <div class="sidebar-user-email" id="sb-email"></div>
@@ -1372,10 +1368,7 @@ a { text-decoration: none; color: inherit; }
 
         <!-- De: (automático do perfil logado) -->
         <div class="modal-from">
-          <div class="modal-from-avatar" id="modal-avatar">
-            <img id="modal-avatar-img" src="" alt="" style="width:100%;height:100%;object-fit:contain;display:none;border-radius:50%">
-            <span id="modal-avatar-fb">NB</span>
-          </div>
+          <div class="modal-from-avatar" id="modal-avatar">NB</div>
           <div class="modal-from-info">
             <div class="modal-from-name" id="modal-from-name">João Silva · Nike Brasil</div>
             <div class="modal-from-tag">Seu perfil cadastrado</div>
@@ -3277,77 +3270,16 @@ var LOGGED_USER = (function() {
   });
 })();
 
-// Helper: aplica logo da empresa em qualquer avatar (img+span)
-function _applyBrandLogoToAvatar(wrap, logoUrl, empresa, domain) {
-  if (!wrap) return;
-  var img  = wrap.querySelector('img');
-  var span = wrap.querySelector('span');
-  if (!img) return;
-
-  function applyImg(src) {
-    img.onerror = function() {
-      img.onerror = null;
-      img.style.display = 'none';
-      if (span) span.style.display = '';
-      wrap.style.background = '';
-      var q = domain || empresa;
-      if (q) {
-        fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(q) + '?c=1idE-ar9WXT49s6Qb2f')
-          .then(function(r){ return r.ok ? r.json() : null; })
-          .then(function(d){ if (Array.isArray(d) && d[0] && d[0].icon) applyImg(d[0].icon); })
-          .catch(function(){});
-      }
-    };
-    img.src = src;
-    img.style.display = 'block';
-    if (span) span.style.display = 'none';
-    wrap.style.background = '#F5F0E8';
-  }
-
-  if (logoUrl) {
-    applyImg(logoUrl);
-  } else {
-    var q = domain || empresa;
-    if (q) {
-      fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(q) + '?c=1idE-ar9WXT49s6Qb2f')
-        .then(function(r){ return r.ok ? r.json() : null; })
-        .then(function(d){ if (Array.isArray(d) && d[0] && d[0].icon) applyImg(d[0].icon); })
-        .catch(function(){});
-    }
-  }
-}
-
 // Preenche sidebar com dados reais
 (function() {
   var a = document.getElementById('sb-avatar');
   var n = document.getElementById('sb-name');
   var e = document.getElementById('sb-email');
   var t = document.getElementById('topbarAvatar');
-  // Sidebar avatar: atualiza só o fallback (logo carregada async abaixo)
-  var sbFb = document.getElementById('sb-avatar-fb');
-  if (sbFb) sbFb.textContent = LOGGED_USER.initials;
-  else if (a) a.textContent = LOGGED_USER.initials;
+  if (a) a.textContent = LOGGED_USER.initials;
   if (n) n.textContent = LOGGED_USER.company || LOGGED_USER.name;
   if (e) e.textContent = LOGGED_USER.email;
   if (t) t.textContent = LOGGED_USER.initials;
-})();
-
-// Carrega logo da empresa do perfil e aplica nos avatares
-(async function() {
-  try {
-    var userId = typeof getAuthUserId === 'function' ? await getAuthUserId() : null;
-    if (!userId) return;
-    var res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=logo_url,empresa_domain&id=eq.' + userId, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-    });
-    if (!res.ok) return;
-    var rows = await res.json();
-    if (!Array.isArray(rows) || !rows[0]) return;
-    LOGGED_USER.logoUrl = rows[0].logo_url || null;
-    LOGGED_USER.domain  = rows[0].empresa_domain || null;
-    // Aplica na sidebar
-    _applyBrandLogoToAvatar(document.getElementById('sb-avatar'), LOGGED_USER.logoUrl, LOGGED_USER.company, LOGGED_USER.domain);
-  } catch(e) {}
 })();
 
 // Assuntos para oportunidades COM cota definida
@@ -3394,13 +3326,7 @@ function openModal() {
   // preenche "De:" com dados do usuário logado
   var avatar = document.getElementById('modal-avatar');
   var fromName = document.getElementById('modal-from-name');
-  if (avatar) {
-    // Atualiza fallback text
-    var modalFb = document.getElementById('modal-avatar-fb');
-    if (modalFb) modalFb.textContent = LOGGED_USER.initials;
-    // Aplica logo da empresa (usa logoUrl/domain carregados async)
-    _applyBrandLogoToAvatar(avatar, LOGGED_USER.logoUrl || null, LOGGED_USER.company, LOGGED_USER.domain || null);
-  }
+  if (avatar) avatar.textContent = LOGGED_USER.initials;
   if (fromName) fromName.textContent = LOGGED_USER.company ? (LOGGED_USER.name + ' · ' + LOGGED_USER.company) : LOGGED_USER.name;
 
   // ajusta assuntos conforme existência de cotas
