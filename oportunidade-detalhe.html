@@ -1520,7 +1520,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'id,slug,detentor_id,titulo,categoria,categoria_slug,descricao_curta,descricao_completa,localizacao,alcance,' +
       'preco_minimo,formato,bg_gradient,imagens,imagem_capa,imagens_focal,tags,publico_descricao,visibilidade,' +
       'video_url,link_externo,redes_sociais,detalhes,datas_evento,cotas_data,cotas_habilitadas,projeto_incentivado,incentivo_data,midia_kit_url,publico_canais,publico_presencial,' +
-      'perfis:detentor_id(nome,empresa,descricao,website,slug,logo_url,empresa_domain),' +
+      'perfis:detentor_id(nome,empresa,descricao,website,slug),' +
       'oportunidade_fatos(icone,label,valor,tipo,ordem),' +
       'cotas(nome,preco,icone,ordem),' +
       'canais(icone,label,valor,ordem)' +
@@ -1700,8 +1700,6 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       title: r.titulo || '',
       org: orgName,
       orgInitials: orgName ? orgName.split(' ').filter(w=>w.length>2).slice(0,2).map(w=>w[0]).join('').toUpperCase() : '??',
-      detentorLogoUrl:       orgData.logo_url       || null,
-      detentorEmpresaDomain: orgData.empresa_domain || null,
       orgId: 'org-' + r.id,
       category: r.categoria || '',
       city: city,
@@ -1797,15 +1795,7 @@ function buildOppCard(o) {
     '</div>' +
     '<div class="opp-card-body">' +
       '<div class="opp-card-org">' +
-        (function() {
-          var lu = o.detentorLogoUrl, ed = o.detentorEmpresaDomain, org = o.org;
-          var bf = !lu && ed ? ' data-bf-domain="'+ed+'"' : (!lu && org ? ' data-bf-name="'+org+'"' : '');
-          var bg = lu ? 'background:var(--gray-100);' : '';
-          return '<div class="opp-card-org-avatar" style="overflow:hidden;padding:0;'+bg+'"'+bf+'>' +
-            '<img src="'+(lu||'')+'" alt="" style="width:100%;height:100%;object-fit:contain;'+(lu?'':'display:none')+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'\'">' +
-            '<span style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;'+(lu?'display:none':'')+'">' + o.orgInitials + '</span>' +
-          '</div>';
-        })() +
+        '<span class="opp-card-org-avatar">' + o.orgInitials + '</span>' +
         '<span class="opp-card-org-name">' + o.org + '</span>' +
       '</div>' +
       '<div class="opp-card-title">' + o.title + '</div>' +
@@ -2798,7 +2788,7 @@ function renderPage(oppOverride) {
     if (ownerOppsTitle) ownerOppsTitle.textContent = 'Outras oportunidades de ' + ownerName;
     var ownerOppsHtml = '';
     ownerOtherIds.forEach(function(sid) { ownerOppsHtml += buildOppCard(getOppById(sid)); });
-    if (ownerOppsGrid) { ownerOppsGrid.innerHTML = ownerOppsHtml; applyBrandfetchLogos(ownerOppsGrid); }
+    if (ownerOppsGrid) ownerOppsGrid.innerHTML = ownerOppsHtml;
   } else {
     // Esconde seção quando dados vêm do Supabase (sem lista pre-populada)
     if (ownerOppsSection) ownerOppsSection.style.display = 'none';
@@ -2816,8 +2806,7 @@ function renderPage(oppOverride) {
     allIds.sort(function() { return 0.5 - Math.random(); });
     var simHtml = '';
     allIds.slice(0, 3).forEach(function(sid) { simHtml += buildOppCard(getOppById(sid)); });
-    var simGrid = document.getElementById('similarGrid');
-    if (simGrid) { simGrid.innerHTML = simHtml; applyBrandfetchLogos(simGrid); }
+    document.getElementById('similarGrid').innerHTML = simHtml;
   }
 }
 
