@@ -6520,7 +6520,7 @@ async function loadSolicitacoes() {
     const marcaInClause = 'in.(' + marcaIds.map(function(id) { return '"' + id + '"'; }).join(',') + ')';
     const perfisRes = await fetch(
       SUPABASE_URL + '/rest/v1/perfis?id=' + marcaInClause +
-      '&select=id,nome,empresa',
+      '&select=id,nome,empresa,logo_url',
       { headers: headers }
     );
     const perfisRows = perfisRes.ok ? await perfisRes.json() : [];
@@ -6539,9 +6539,9 @@ async function loadSolicitacoes() {
         criado_em:       r.criado_em,
         opp_titulo:      opp ? (opp.titulo || 'Oportunidade') : 'Oportunidade',
         opp_categoria:   opp ? (opp.categoria || '') : '',
-        marca_nome:      perfil.nome || 'Marca',
-        marca_empresa:   perfil.empresa || '',
-        avatar_url:      null
+        marca_nome:      perfil.nome || '',
+        marca_empresa:   perfil.empresa || perfil.nome || 'Marca',
+        avatar_url:      perfil.logo_url || null
       };
     });
     _SOLICITACOES_LOADED = true;
@@ -6597,9 +6597,9 @@ function renderSolicitacoes() {
     ].filter(Boolean).join('');
 
     const rowsHtml = g.items.map(function(s) {
-      const initials = s.marca_nome.split(' ').slice(0,2).map(function(w) { return w[0] || ''; }).join('').toUpperCase() || 'M';
+      const initials = (s.marca_empresa || s.marca_nome).split(' ').slice(0,2).map(function(w) { return w[0] || ''; }).join('').toUpperCase() || 'M';
       const avatarHtml = s.avatar_url
-        ? '<img src="' + s.avatar_url + '" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="' + s.marca_nome + '">'
+        ? '<img src="' + s.avatar_url + '" style="width:38px;height:38px;border-radius:8px;object-fit:contain;background:#f5f5f5;padding:2px;flex-shrink:0" alt="' + escapeHtml(s.marca_empresa) + '">'
         : '<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-heading);font-size:13px;font-weight:700;color:#fff">' + initials + '</div>';
 
       const dataRelativa = typeof formatRelTime === 'function' ? formatRelTime(s.criado_em) : '';
@@ -6634,11 +6634,10 @@ function renderSolicitacoes() {
           avatarHtml,
           '<div style="flex:1;min-width:0">',
             '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px">',
-              '<span style="font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--text)">' + s.marca_nome + '</span>',
-              s.marca_empresa ? '<span style="font-family:var(--font-body);font-size:12px;color:var(--gray-400)">· ' + s.marca_empresa + '</span>' : '',
+              '<span style="font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--text)">' + escapeHtml(s.marca_empresa) + '</span>',
               statusBadge,
             '</div>',
-            dataRelativa ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400)">' + dataRelativa + '</div>' : '',
+            s.marca_nome ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400);margin-bottom:2px">' + escapeHtml(s.marca_nome) + (dataRelativa ? ' · ' + dataRelativa : '') + '</div>' : (dataRelativa ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400)">' + dataRelativa + '</div>' : ''),
           '</div>',
           '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">' + actionsHtml + '</div>',
         '</div>'
