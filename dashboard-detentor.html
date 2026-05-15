@@ -6499,21 +6499,11 @@ async function loadSolicitacoes() {
   const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
 
   try {
-    // 1. IDs de todas as oportunidades do detentor (solicitations existem
-    //    mesmo que a visibilidade tenha sido alterada depois)
-    const oppIds = MINHAS_OPPS.map(function(o) { return o.id; });
-    if (oppIds.length === 0) {
-      _SOLICITACOES = [];
-      _SOLICITACOES_LOADED = true;
-      renderSolicitacoes();
-      return;
-    }
-
-    // 2. Busca todas solicitações para essas oportunidades
-    const inClause = 'in.(' + oppIds.join(',') + ')';
+    // A RLS policy `acessos_select_detentor` já filtra pelos registros das
+    // oportunidades deste detentor — não precisamos construir o IN clause manual.
     const solRes = await fetch(
-      SUPABASE_URL + '/rest/v1/acessos_oportunidade?oportunidade_id=' + inClause +
-      '&select=id,oportunidade_id,marca_id,status,criado_em&order=criado_em.desc',
+      SUPABASE_URL + '/rest/v1/acessos_oportunidade?' +
+      'select=id,oportunidade_id,marca_id,status,criado_em&order=criado_em.desc',
       { headers: headers }
     );
     if (!solRes.ok) throw new Error('acessos_oportunidade fetch failed: ' + solRes.status);
