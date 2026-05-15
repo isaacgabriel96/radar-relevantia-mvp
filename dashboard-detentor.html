@@ -6499,8 +6499,9 @@ async function loadSolicitacoes() {
   const headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
 
   try {
-    // 1. IDs das oportunidades do detentor com visibilidade=aprovacao
-    const oppIds = MINHAS_OPPS.filter(function(o) { return o.visibilidade === 'aprovacao'; }).map(function(o) { return o.id; });
+    // 1. IDs de todas as oportunidades do detentor (solicitations existem
+    //    mesmo que a visibilidade tenha sido alterada depois)
+    const oppIds = MINHAS_OPPS.map(function(o) { return o.id; });
     if (oppIds.length === 0) {
       _SOLICITACOES = [];
       _SOLICITACOES_LOADED = true;
