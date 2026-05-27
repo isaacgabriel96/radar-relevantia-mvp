@@ -609,7 +609,12 @@ async function fetchCotaBeneficios(oportunidadeId, cotaNome) {
       var nome = (c.nome || '').toLowerCase().trim();
       return cotaLower === nome || cotaLower.indexOf(nome) === 0;
     });
-    return (cota && cota.beneficios) ? cota.beneficios.filter(Boolean) : [];
+    if (!cota || !cota.beneficios) return [];
+    // Normaliza: benefício pode ser string (formato antigo) ou objeto {titulo,descricao,...} (novo)
+    return cota.beneficios.filter(Boolean).map(function(b) {
+      if (typeof b === 'string') return { titulo: b, descricao: '' };
+      return { titulo: b.titulo || b.descricao || '', descricao: b.descricao || '' };
+    });
   } catch (err) { console.error('[fetchCotaBeneficios] Failed:', err); return []; }
 }
 
