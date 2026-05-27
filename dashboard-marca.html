@@ -4343,7 +4343,7 @@ function _renderValorDealM(p) {
   const estadoEl   = document.getElementById('mp-vd-estado');
   const inputRow   = document.getElementById('mp-vd-input-row');
   const actionsEl  = document.getElementById('mp-vd-actions');
-  const btnPropor  = document.getElementById('mp-vd-btn-propor');
+  const btnEnviar  = document.getElementById('mp-btn-enviar-proposta');
   const input      = document.getElementById('mp-vd-input');
   if (!badge) return;
 
@@ -4363,7 +4363,8 @@ function _renderValorDealM(p) {
   const fmtVal = vd.proposto ? 'R$ ' + Number(vd.proposto).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
   if (estadoEl) {
     if (vd.status === 'aguardando_detentor') {
-      estadoEl.innerHTML = `<span style="font-size:12px;color:var(--gray-400)">Você propôs <strong style="color:var(--text)">${fmtVal}</strong> — aguardando resposta do organizador.</span>`;
+      const valTxt = fmtVal ? ` com valor de <strong style="color:var(--text)">${fmtVal}</strong>` : '';
+      estadoEl.innerHTML = `<span style="font-size:12px;color:var(--gray-400)">Proposta enviada${valTxt} — aguardando resposta do organizador.</span>`;
       estadoEl.style.display = 'block';
     } else if (vd.status === 'aguardando_marca') {
       estadoEl.innerHTML = `<span style="font-size:12px;color:#1D4ED8">O organizador propôs <strong>${fmtVal}</strong> — aceite ou contraproponha.</span>`;
@@ -4376,25 +4377,30 @@ function _renderValorDealM(p) {
     }
   }
 
-  // Restaura onclick padrão do botão propor
-  if (btnPropor) {
-    btnPropor.textContent = 'Propor valor';
-    btnPropor.onclick = function() { proporValorDealMarca(); };
-  }
   // Esconde botão cancelar de contraoferta se existir
   var btnCancel = document.getElementById('mp-btn-cancelar-contra');
   if (btnCancel) btnCancel.style.display = 'none';
 
-  // Linha de input: só se sem proposta e canEdit
+  // Input de valor: visível para edição quando canEdit e não aguardando resposta
+  const editingValor = canEdit && vd.status !== 'aguardando_detentor' && vd.status !== 'aguardando_marca' && vd.status !== 'aceito';
   if (inputRow) {
-    const showInput = canEdit && vd.status === 'sem_proposta';
-    inputRow.style.display = showInput ? 'flex' : 'none';
-    if (showInput && input) input.value = '';
+    inputRow.style.display = editingValor ? 'flex' : 'none';
+    if (editingValor && input) input.value = '';
   }
 
-  // Botão aceitar/contrapropor: só quando detentor propôs e está aguardando a marca
+  // Botão aceitar/contrapropor: só quando detentor propôs
   if (actionsEl) {
     actionsEl.style.display = (canEdit && vd.status === 'aguardando_marca') ? 'flex' : 'none';
+  }
+
+  // Botão "Enviar proposta": visível quando pode editar e não está aguardando detentor
+  if (btnEnviar) {
+    const aguardando = vd.status === 'aguardando_detentor';
+    btnEnviar.style.display = (canEdit && vd.status !== 'aguardando_marca') ? '' : 'none';
+    btnEnviar.disabled = aguardando;
+    btnEnviar.style.opacity = aguardando ? '0.45' : '1';
+    btnEnviar.style.cursor = aguardando ? 'not-allowed' : 'pointer';
+    btnEnviar.textContent = aguardando ? 'Aguardando resposta do organizador…' : 'Enviar proposta';
   }
 }
 
@@ -4405,44 +4411,60 @@ function maskValorDealM(input) {
   input.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-async function proporValorDealMarca() {
+async function enviarPropostaMarca() {
   const p = _propostaAtiva;
   if (!p) return;
-  // Bloqueia se não tem entregas
+
+  // Bloqueia se não tem entregas ativas
   const cps = (p.contrapartidas || []).filter(c => c.status !== 'recusada');
   if (cps.length === 0) {
-    showToast('Adicione pelo menos uma entrega antes de propor um valor.', 'error');
+    showToast('Adicione pelo menos uma entrega antes de enviar a proposta.', 'error');
     const hint = document.getElementById('mp-no-cp-hint');
     if (hint) hint.style.display = '';
     return;
   }
+  const hint = document.getElementById('mp-no-cp-hint');
+  if (hint) hint.style.display = 'none';
+
+  // Valor é opcional
   const input = document.getElementById('mp-vd-input');
   const raw = input ? input.value.trim() : '';
-  if (!raw) { showToast('Insira um valor.', 'error'); return; }
-
   const clean = raw.replace(/\./g, '').replace(',', '.');
-  const num = parseFloat(clean);
-  if (isNaN(num) || num <= 0) { showToast('Valor inválido.', 'error'); return; }
+  const num = raw ? parseFloat(clean) : 0;
+  if (raw && (isNaN(num) || num < 0)) { showToast('Valor inválido.', 'error'); return; }
+
+  const btnEnviar = document.getElementById('mp-btn-enviar-proposta');
+  if (btnEnviar) { btnEnviar.disabled = true; btnEnviar.textContent = 'Enviando…'; }
 
   if (!p.valorDeal) p.valorDeal = {};
-  p.valorDeal.proposto    = num;
   p.valorDeal.propostoPor = 'marca';
   p.valorDeal.status      = 'aguardando_detentor';
-  _persistProp(p, { valor_deal: num, valor_deal_proposto_por: 'marca', valor_deal_status: 'aguardando_detentor' });
+  const persistFields = { valor_deal_proposto_por: 'marca', valor_deal_status: 'aguardando_detentor', status_hint: 'Proposta enviada pela marca' };
+  if (num > 0) {
+    p.valorDeal.proposto = num;
+    persistFields.valor_deal = num;
+  }
+  _persistProp(p, persistFields);
+
   // Criar rodada snapshot
   if (p._supaId && !isDemoMode()) {
     const rodNum = getNextRodadaNumero(p._rodadas || []);
     const snap = buildContrapartidasSnapshot(p.contrapartidas || []);
     const rodada = await createRodada({
       negociacao_id: p._supaId, numero: rodNum,
-      valor: num, proposto_por: 'marca', contrapartidas: snap
+      valor: num || null, proposto_por: 'marca', contrapartidas: snap
     });
     if (rodada) { if (!p._rodadas) p._rodadas = []; p._rodadas.unshift(rodada); }
   }
+
   _renderValorDealM(p);
   renderHistoricoRodadasM();
-  showToast('Valor proposto! Aguardando resposta do organizador.', 'success');
+  const valMsg = num > 0 ? ' com valor de R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
+  showToast('Proposta enviada' + valMsg + '! Aguardando resposta do organizador.', 'success');
 }
+
+// mantida para uso interno da contraoferta
+async function proporValorDealMarca() { await enviarPropostaMarca(); }
 
 async function aceitarValorDealMarca() {
   const p = _propostaAtiva;
@@ -4465,38 +4487,31 @@ async function aceitarValorDealMarca() {
 function contraproporValorDealMarca() {
   const p = _propostaAtiva;
   if (!p || !p.valorDeal) return;
-  // Mostra input para digitar contraoferta
   const inputRow  = document.getElementById('mp-vd-input-row');
   const actionsEl = document.getElementById('mp-vd-actions');
-  const btnPropor = document.getElementById('mp-vd-btn-propor');
+  const btnEnviar = document.getElementById('mp-btn-enviar-proposta');
   if (inputRow)  inputRow.style.display = 'flex';
   if (actionsEl) actionsEl.style.display = 'none';
-  if (btnPropor) btnPropor.textContent = 'Enviar contraoferta';
+  if (btnEnviar) {
+    btnEnviar.style.display = '';
+    btnEnviar.disabled = false;
+    btnEnviar.style.opacity = '1';
+    btnEnviar.textContent = 'Enviar contraoferta';
+    btnEnviar.onclick = function() { confirmarContraofertaMarca(); };
+  }
   const input = document.getElementById('mp-vd-input');
   if (input) {
     var v = p.valorDeal.proposto || 0;
     input.value = v ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
     input.focus();
   }
-  // Redireciona clique para confirmar contraoferta
-  if (btnPropor) btnPropor.onclick = function() { confirmarContraofertaMarca(); };
-  // Botão cancelar
-  let btnCancel = document.getElementById('mp-btn-cancelar-contra');
-  if (!btnCancel) {
-    btnCancel = document.createElement('button');
-    btnCancel.id = 'mp-btn-cancelar-contra';
-    btnCancel.style.cssText = 'background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);font-size:12px;padding:8px 14px;border-radius:10px;cursor:pointer;white-space:nowrap';
-    btnCancel.textContent = 'Cancelar';
-    btnCancel.onclick = function() { cancelarContraofertaMarca(); };
-    if (inputRow) inputRow.appendChild(btnCancel);
-  }
-  btnCancel.style.display = '';
 }
 
 function cancelarContraofertaMarca() {
-  var btnCancel = document.getElementById('mp-btn-cancelar-contra');
-  if (btnCancel) btnCancel.style.display = 'none';
   var p = _propostaAtiva;
+  // Restaura botão enviar para comportamento padrão
+  var btnEnviar = document.getElementById('mp-btn-enviar-proposta');
+  if (btnEnviar) btnEnviar.onclick = function() { enviarPropostaMarca(); };
   if (p) _renderValorDealM(p);
 }
 
@@ -4525,11 +4540,9 @@ async function confirmarContraofertaMarca() {
     });
     if (rodada) { if (!p._rodadas) p._rodadas = []; p._rodadas.unshift(rodada); }
   }
-  // Restaura onclick original e esconde cancelar
-  const btnPropor = document.getElementById('mp-vd-btn-propor');
-  if (btnPropor) btnPropor.onclick = function() { proporValorDealMarca(); };
-  const btnCancel = document.getElementById('mp-btn-cancelar-contra');
-  if (btnCancel) btnCancel.style.display = 'none';
+  // Restaura botão enviar para comportamento padrão
+  const btnEnviarContra = document.getElementById('mp-btn-enviar-proposta');
+  if (btnEnviarContra) btnEnviarContra.onclick = function() { enviarPropostaMarca(); };
   _renderValorDealM(p);
   renderHistoricoRodadasM();
   showToast('Contraoferta de R$ ' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' enviada ao organizador.', 'success');
@@ -5609,24 +5622,28 @@ async function removerMembro(userId) {
           <div style="border-top:1px solid var(--gray-200);margin:12px -14px 10px"></div>
 
           <!-- 2. Valor (depois: quanto custa) -->
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Valor</div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Valor <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-300);font-size:10px">(opcional)</span></div>
           <div id="mp-vd-estado" class="valor-deal-estado-m"></div>
-          <div class="valor-deal-input-row-m" id="mp-vd-input-row">
-            <div class="valor-deal-input-wrap-m">
+          <div class="valor-deal-input-row-m" id="mp-vd-input-row" style="display:none">
+            <div class="valor-deal-input-wrap-m" style="flex:1">
               <span class="valor-deal-input-prefix-m">R$</span>
               <input type="text" inputmode="numeric" class="valor-deal-input-m" id="mp-vd-input" placeholder="0,00" oninput="maskValorDealM(this)">
             </div>
-            <button class="btn-propor-valor-m" id="mp-vd-btn-propor" onclick="proporValorDealMarca()">Propor valor</button>
           </div>
           <div class="valor-deal-actions-m" id="mp-vd-actions" style="display:none">
-            <button class="btn-aceitar-valor-m" onclick="aceitarValorDealMarca()">Aceitar valor</button>
+            <button class="btn-aceitar-valor-m" onclick="aceitarValorDealMarca()">Aceitar proposta</button>
             <button class="btn-contrapropor-valor-m" onclick="contraproporValorDealMarca()">Contrapropor</button>
           </div>
 
           <!-- Aviso sem entregas -->
           <div id="mp-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
-            Adicione pelo menos uma entrega antes de propor um valor.
+            Adicione pelo menos uma entrega antes de enviar a proposta.
           </div>
+
+          <!-- Botão enviar proposta -->
+          <button id="mp-btn-enviar-proposta" onclick="enviarPropostaMarca()" style="width:100%;margin-top:14px;padding:12px;border-radius:10px;background:var(--black);color:var(--white);font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);transition:opacity .15s">
+            Enviar proposta
+          </button>
 
           <!-- Histórico de rodadas -->
           <div id="mp-rodadas-wrap" style="display:none;margin-top:12px">
