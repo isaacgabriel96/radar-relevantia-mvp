@@ -4459,7 +4459,18 @@ function openNegOppDetail(oppId) {
   const cover = document.getElementById('neg-detail-cover');
   const titleEl = document.getElementById('neg-detail-opp-title');
   const subEl   = document.getElementById('neg-detail-opp-sub');
-  if (cover)   { cover.style.background = cfg.gradient; cover.innerHTML = cfg.icon; }
+  if (cover) {
+    const oppData = MINHAS_OPPS.find(o => o.id === oppId);
+    const imgCapa = oppData && oppData.imagem_capa;
+    if (imgCapa) {
+      const fp = (oppData.imagens_focal && oppData.imagens_focal[imgCapa]) || {x:50,y:20};
+      cover.style.background = `url(${imgCapa}) ${fp.x}% ${fp.y}% / cover no-repeat`;
+      cover.innerHTML = '';
+    } else {
+      cover.style.background = cfg.gradient;
+      cover.innerHTML = cfg.icon;
+    }
+  }
   if (titleEl) titleEl.textContent = opp;
   if (subEl)   subEl.textContent   = negs.length + (negs.length !== 1 ? ' negociações' : ' negociação');
   // mostra view 2
