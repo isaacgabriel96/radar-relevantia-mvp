@@ -4845,7 +4845,8 @@ function _buildPropostaCard(p, catalogMap) {
     </div>
     <div class="opp-card-body">
       <div class="opp-card-title" style="font-size:15px">${p.opp}</div>
-      <div style="font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--text);margin:6px 0 14px">${p.valor}</div>
+      ${p.cota ? `<div style="font-size:12px;color:var(--gray-400);margin:3px 0 0;font-weight:500">${p.cota}</div>` : ''}
+      <div style="font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--text);margin:6px 0 14px">${p.valor || (p.cota ? '' : '—')}</div>
       <div class="opp-card-divider"></div>
       <div class="opp-card-footer" style="align-items:center;justify-content:space-between">
         <button class="btn btn-ghost btn-sm" style="display:flex;align-items:center;gap:8px" onclick="openPropostaModal('${p.id}')">

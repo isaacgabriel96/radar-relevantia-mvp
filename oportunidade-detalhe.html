@@ -1490,7 +1490,7 @@ a { text-decoration: none; color: inherit; }
             <div class="interest-card-body">
               <div class="interest-info" id="interestInfo"></div>
 
-              <button class="btn-interest" onclick="openModal()">
+              <button class="btn-interest" id="btn-interest-sidebar" onclick="openModal()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 Manifestar interesse
               </button>
@@ -1636,7 +1636,7 @@ a { text-decoration: none; color: inherit; }
 
 <!-- Mobile CTA bar (visível apenas em ≤1024px) -->
 <div class="mobile-cta-bar">
-  <button class="btn-interest" onclick="openModal()" style="flex:1">
+  <button class="btn-interest" id="btn-interest-mobile" onclick="openModal()" style="flex:1">
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Manifestar interesse
   </button>
@@ -3552,6 +3552,33 @@ function _updateSubmitBtn() {
   btn.disabled = !(hasSubject || hasIncentivo);
 }
 
+async function _updateInterestButtons(oppId, marcaId) {
+  try {
+    var session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : null;
+    if (!session || !session.access_token) return;
+    var res = await fetch(SUPABASE_URL + '/rest/v1/negociacoes?select=id&oportunidade_id=eq.' + oppId + '&marca_id=eq.' + marcaId + '&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    });
+    if (!res.ok) return;
+    var rows = await res.json();
+    if (!rows || rows.length === 0) return;
+
+    var negId = rows[0].id;
+    var btnHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ver negociação';
+    var onClick = 'window.location.href="dashboard-marca.html#propostas"';
+
+    ['btn-interest-sidebar', 'btn-interest-mobile'].forEach(function(id) {
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      btn.innerHTML = btnHtml;
+      btn.setAttribute('onclick', onClick);
+      btn.style.background = 'var(--gray-1, #F5F0E8)';
+      btn.style.color = 'var(--gray-500, #7A6A58)';
+      btn.style.border = '1.5px solid var(--gray-200, #E0D8CC)';
+    });
+  } catch(e) {}
+}
+
 function openModal() {
   var opp = _CURRENT_OPP || getOpp();
   var hasCotas = opp.cotas && opp.cotas.length > 0;
@@ -4039,6 +4066,11 @@ function updateFavBtnState(isFav) {
       renderPage(oppData);
     }
     // ─────────────────────────────────────────────────────────────────────────
+
+    // Se a marca está logada com ID real, verifica se já manifestou interesse nesta opp
+    if (_gateMarcaId && _gateMarcaId !== '__local__' && _gateMarcaId !== '__bypass__') {
+      _updateInterestButtons(oppData.id, _gateMarcaId);
+    }
 
   } else {
     // Supabase não retornou dados — mostrar página de erro inline sem redirecionar
