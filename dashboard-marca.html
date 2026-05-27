@@ -4476,7 +4476,10 @@ async function enviarPropostaMarca() {
   if (!p.valorDeal) p.valorDeal = {};
   p.valorDeal.propostoPor = 'marca';
   p.valorDeal.status      = 'aguardando_detentor';
-  const persistFields = { valor_deal_proposto_por: 'marca', valor_deal_status: 'aguardando_detentor', status_hint: 'Proposta enviada pela marca' };
+  p.status = 'pendente';
+  p.statusLabel = 'Pendente';
+  p.statusHint = 'Proposta enviada pela marca';
+  const persistFields = { status: 'pendente', status_label: 'Pendente', valor_deal_proposto_por: 'marca', valor_deal_status: 'aguardando_detentor', status_hint: 'Proposta enviada pela marca' };
   if (num > 0) {
     p.valorDeal.proposto = num;
     persistFields.valor_deal = num;
