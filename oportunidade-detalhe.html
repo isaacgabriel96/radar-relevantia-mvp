@@ -3586,6 +3586,17 @@ function openModal() {
     }).join('');
   }
 
+  // auto-seleciona "Quero negociar esta cota" quando uma cota é escolhida
+  var cotaSelEl = document.getElementById('modalCotaSelect');
+  if (cotaSelEl) {
+    cotaSelEl.onchange = function() {
+      if (cotaSelEl.value) {
+        var negociarLabel = document.querySelector('#subject-options .subject-option input[value="negociar"]');
+        if (negociarLabel) selectSubject(negociarLabel.closest('label'));
+      }
+    };
+  }
+
   // toggle de incentivo fiscal — exibe apenas se disponível
   var incGroup = document.getElementById('modal-incentivo-group');
   var incLabel = document.getElementById('modal-incentivo-label');
