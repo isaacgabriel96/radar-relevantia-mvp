@@ -4828,19 +4828,16 @@ function renderValorDeal() {
   const n = _negAtiva;
   if (!n) return;
 
-  // garantir campo existe (negociações antigas no localStorage)
   if (!n.valorDeal) n.valorDeal = { proposto: null, propostoPor: null, status: 'sem_proposta' };
   if (typeof n.aceitaNovasPropostas === 'undefined') n.aceitaNovasPropostas = true;
 
-  const vd = n.valorDeal;
-  const isBlocked = (n.status === 'recusada' || n.status === 'aceita');
+  const vd        = n.valorDeal;
+  const isBlocked = n.status === 'recusada' || n.status === 'aceita';
+  const temHistorico = n._rodadas && n._rodadas.length > 0;
 
-  // toggle
+  // toggle aceita propostas
   const toggleEl = document.getElementById('mn-aceita-propostas');
-  if (toggleEl) {
-    toggleEl.checked = !!n.aceitaNovasPropostas;
-    toggleEl.disabled = isBlocked;
-  }
+  if (toggleEl) { toggleEl.checked = !!n.aceitaNovasPropostas; toggleEl.disabled = isBlocked; }
   const hint = document.getElementById('mn-toggle-hint');
   if (hint) hint.textContent = n.aceitaNovasPropostas
     ? 'A marca pode sugerir novos itens e valores'
@@ -4849,66 +4846,94 @@ function renderValorDeal() {
   // badge
   const badge = document.getElementById('mn-valor-badge');
   const badgeLabels = {
-    sem_proposta:       'Sem proposta',
+    sem_proposta:        'Sem proposta',
     aguardando_marca:    'Aguardando marca',
     aguardando_detentor: 'Aguardando você',
     aceito:              'Valor acordado ✓'
   };
-  if (badge) {
-    badge.textContent = badgeLabels[vd.status] || '';
-    badge.className = 'valor-deal-badge ' + vd.status;
-  }
+  if (badge) { badge.textContent = badgeLabels[vd.status] || ''; badge.className = 'valor-deal-badge ' + vd.status; }
 
-  // estado atual (entregas já visíveis na tabela abaixo)
-  const estadoEl = document.getElementById('mn-valor-estado');
-  if (estadoEl) {
-    if (vd.status === 'sem_proposta') {
-      estadoEl.innerHTML = '';
-    } else {
-      const quem = vd.propostoPor === 'detentor' ? 'Você propôs' : 'A marca propôs';
-      estadoEl.innerHTML = `
-        <div class="valor-deal-estado">
-          <div class="valor-deal-valor-atual">${_fmtValor(vd.proposto)}</div>
-          <div class="valor-deal-autor">${quem} este valor${vd.status === 'aceito' ? ' — aceito por ambos' : ''}</div>
-        </div>`;
+  const blocoEdit    = document.getElementById('mn-proposta-edit');
+  const blocoEnviado = document.getElementById('mn-proposta-enviada');
+  const titleEl      = document.getElementById('mn-proposta-title');
+  const inputRow     = document.getElementById('mn-valor-input-row');
+  const inputEl      = document.getElementById('mn-valor-input');
+  const btnEnviar    = document.getElementById('mn-btn-enviar-proposta');
+  const btnAddCp     = document.getElementById('mn-btn-add-cp');
+
+  // Decide qual bloco mostrar
+  const showEnviado = !isBlocked && !_modoContraproposta &&
+    (vd.status === 'aguardando_detentor' || vd.status === 'aguardando_marca');
+
+  if (isBlocked || vd.status === 'aceito') {
+    // deal fechado: mostra só resumo read-only
+    if (blocoEnviado) { blocoEnviado.style.display = ''; _renderPropostaEnviadaDet(n); }
+    if (blocoEdit)    blocoEdit.style.display = 'none';
+    if (titleEl)      titleEl.textContent = vd.status === 'aceito' ? 'Proposta aceita' : 'Proposta';
+  } else if (showEnviado) {
+    if (blocoEnviado) { blocoEnviado.style.display = ''; _renderPropostaEnviadaDet(n); }
+    if (blocoEdit)    blocoEdit.style.display = 'none';
+    if (titleEl) {
+      titleEl.textContent = vd.status === 'aguardando_detentor' ? 'Proposta recebida' : 'Proposta enviada';
     }
-  }
-
-  // input row: mostrar sempre, exceto se aceito ou bloqueado
-  const inputRow  = document.getElementById('mn-valor-input-row');
-  const actionsEl = document.getElementById('mn-valor-actions');
-  const btnPropor = document.getElementById('mn-btn-propor-valor');
-  const inputEl   = document.getElementById('mn-valor-input');
-
-  // Botão "Adicionar contrapartida"
-  const btnAddCp = document.getElementById('mn-btn-add-cp');
-
-  if (vd.status === 'aceito' || isBlocked) {
-    if (inputRow)  inputRow.style.display  = 'none';
-    if (actionsEl) actionsEl.style.display = 'none';
-    if (btnAddCp)  btnAddCp.style.display  = 'none';
-  } else if (vd.status === 'aguardando_detentor') {
-    // marca propôs — mostrar aceitar/contrapropor, esconder input e add-cp
-    if (inputRow)  inputRow.style.display  = 'none';
-    if (actionsEl) actionsEl.style.display = 'flex';
-    if (btnAddCp)  btnAddCp.style.display  = 'none';
-  } else if (vd.status === 'aguardando_marca') {
-    // detentor já propôs, aguarda marca — esconder input
-    if (inputRow)  inputRow.style.display  = 'none';
-    if (actionsEl) actionsEl.style.display = 'none';
-    if (btnAddCp)  btnAddCp.style.display  = 'none';
   } else {
-    // sem_proposta — detentor pode propor
-    if (inputRow)  inputRow.style.display  = 'flex';
-    if (actionsEl) actionsEl.style.display = 'none';
-    if (btnAddCp)  btnAddCp.style.display  = '';
-    if (inputEl)   inputEl.value = '';
-    if (btnPropor) {
-      btnPropor.disabled    = isBlocked;
-      btnPropor.textContent = 'Propor valor';
-      btnPropor.onclick     = function() { proporValorDeal(); };
+    // edição (sem_proposta ou _modoContraproposta)
+    if (blocoEnviado) blocoEnviado.style.display = 'none';
+    if (blocoEdit)    blocoEdit.style.display = '';
+    if (titleEl)      titleEl.textContent = temHistorico ? 'Nova proposta' : 'Sua proposta';
+    if (inputRow)     inputRow.style.display = 'flex';
+    if (inputEl)      inputEl.value = '';
+    if (btnAddCp)     btnAddCp.style.display = '';
+    if (btnEnviar) {
+      btnEnviar.disabled    = false;
+      btnEnviar.style.opacity = '1';
+      btnEnviar.textContent = _modoContraproposta ? 'Enviar contraoferta' : 'Enviar proposta';
+      btnEnviar.onclick     = _modoContraproposta
+        ? function() { confirmarContraoferta(); }
+        : function() { enviarPropostaDet(); };
     }
   }
+}
+
+function _renderPropostaEnviadaDet(n) {
+  const el = document.getElementById('mn-proposta-enviada');
+  if (!el) return;
+  const vd = n.valorDeal || {};
+  const aguardandoDet = vd.status === 'aguardando_detentor'; // marca enviou
+  const rodada = n._rodadas && n._rodadas[0];
+  const cps = rodada ? (rodada.contrapartidas || []) : (n.contrapartidas || []).filter(c => c.status !== 'recusada');
+  const fmtVal = rodada && rodada.valor ? _fmtValor(rodada.valor) : (vd.proposto ? _fmtValor(vd.proposto) : null);
+
+  let html = '<div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;margin-bottom:8px">';
+  if (cps.length > 0) {
+    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>';
+    html += '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">';
+    cps.forEach(function(cp) {
+      let desc = (typeof cp === 'string') ? cp : (cp.descricao || '');
+      if (desc.startsWith('{')) { try { const o = JSON.parse(desc); desc = o.titulo || o.descricao || desc; } catch(e) {} }
+      html += `<li style="font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--gray-300);flex-shrink:0"></span>
+        ${escapeHtml(desc)}</li>`;
+    });
+    html += '</ul>';
+  }
+  if (fmtVal) {
+    if (cps.length > 0) html += '<div style="border-top:1px solid var(--gray-200);margin:10px 0 8px"></div>';
+    html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:4px">Valor ${aguardandoDet ? 'proposto pela marca' : 'proposto'}</div>`;
+    html += `<div style="font-size:15px;font-weight:700;color:var(--text)">${fmtVal}</div>`;
+  }
+  html += '</div>';
+
+  if (aguardandoDet) {
+    // Detentor precisa responder → Aceitar / Contrapropor
+    html += `<div style="display:flex;gap:8px;margin-bottom:4px">
+      <button class="btn-aceitar-valor" style="flex:1" onclick="aceitarValorDeal()">Aceitar proposta</button>
+      <button class="btn-contrapropor-valor" style="flex:1" onclick="contraproporValorDeal()">Contrapropor</button>
+    </div>`;
+  } else {
+    html += '<div style="font-size:12px;color:var(--gray-400);text-align:center;padding:4px 0 8px">Aguardando resposta da marca…</div>';
+  }
+  el.innerHTML = html;
 }
 
 /* ══════════════════════════════════════════════
@@ -4967,39 +4992,36 @@ function _parseValorInput(el) {
   return parseFloat(raw) || 0;
 }
 
-async function proporValorDeal() {
+async function enviarPropostaDet() {
   const n = _negAtiva;
   if (!n) return;
-  // Bloquear se não tem entregas
   const cps = (n.contrapartidas || []).filter(c => c.status !== 'recusada');
   if (cps.length === 0) {
-    showToast('Adicione pelo menos uma entrega antes de propor um valor.', 'error');
+    showToast('Adicione pelo menos uma entrega antes de enviar a proposta.', 'error');
     const hint = document.getElementById('mn-no-cp-hint');
     if (hint) hint.style.display = '';
     return;
   }
   const inputEl = document.getElementById('mn-valor-input');
   const val = _parseValorInput(inputEl);
-  if (!val || val <= 0) { showToast('Informe um valor válido.', 'error'); return; }
   if (!n.valorDeal) n.valorDeal = {};
-  n.valorDeal.proposto    = val;
+  n.valorDeal.proposto    = val || null;
   n.valorDeal.propostoPor = 'detentor';
   n.valorDeal.status      = 'aguardando_marca';
   _autoStatus(n);
-  _persistNeg(n, { valor_deal: val, valor_deal_proposto_por: 'detentor', valor_deal_status: 'aguardando_marca' });
-  // Criar rodada snapshot
+  _persistNeg(n, { valor_deal: val || null, valor_deal_proposto_por: 'detentor', valor_deal_status: 'aguardando_marca' });
   if (n._supaId && !isDemoMode()) {
     const num = getNextRodadaNumero(n._rodadas || []);
     const snap = buildContrapartidasSnapshot(n.contrapartidas || []);
     const rodada = await createRodada({
       negociacao_id: n._supaId, numero: num,
-      valor: val, proposto_por: 'detentor', contrapartidas: snap
+      valor: val || null, proposto_por: 'detentor', contrapartidas: snap
     });
     if (rodada) { if (!n._rodadas) n._rodadas = []; n._rodadas.unshift(rodada); }
   }
   renderValorDeal();
   renderHistoricoRodadas();
-  showToast('Valor de ' + _fmtValor(val) + ' proposto. Aguardando resposta da marca.', 'success');
+  showToast('Proposta enviada. Aguardando resposta da marca.', 'success');
 }
 
 async function aceitarValorDeal() {
@@ -5033,41 +5055,28 @@ function contraproporValorDeal() {
       _prefilledCpIds.push(cp.id);
     }
   });
-  // Re-render entregas para mostrar Aceitar/Recusar agora
   renderContrapartidasDet(n.contrapartidas || []);
-  // exibe o input row para digitar contraoferta
-  const inputRow  = document.getElementById('mn-valor-input-row');
-  const actionsEl = document.getElementById('mn-valor-actions');
-  const btnPropor = document.getElementById('mn-btn-propor-valor');
-  const btnAddCp  = document.getElementById('mn-btn-add-cp');
-  if (inputRow)  inputRow.style.display  = 'flex';
-  if (actionsEl) actionsEl.style.display = 'none';
-  if (btnAddCp)  btnAddCp.style.display  = '';  // Mostrar add-cp durante contraoferta
-  if (btnPropor) btnPropor.textContent   = 'Enviar contraoferta';
+  // renderValorDeal mostra mn-proposta-edit e configura o botão para confirmarContraoferta
+  renderValorDeal();
+  // Pré-preenche valor com o que a marca propôs
   const inputEl = document.getElementById('mn-valor-input');
   if (inputEl) {
-    // pré-preenche com valor formatado
     const v = n.valorDeal?.proposto || 0;
     inputEl.value = v ? v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
     inputEl.focus();
   }
-  // redireciona o clique do botão para confirmar contraoferta
-  if (btnPropor) btnPropor.onclick = function() { confirmarContraoferta(); };
-
-  // Mostrar botão cancelar ao lado do input
+  // Botão cancelar abaixo do botão enviar
+  const btnEnviar = document.getElementById('mn-btn-enviar-proposta');
   let btnCancel = document.getElementById('mn-btn-cancelar-contra');
-  if (!btnCancel) {
+  if (!btnCancel && btnEnviar) {
     btnCancel = document.createElement('button');
     btnCancel.id = 'mn-btn-cancelar-contra';
-    btnCancel.className = 'btn-contrapropor-valor';
-    btnCancel.style.cssText = 'background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);font-size:12px;padding:8px 14px;border-radius:10px;cursor:pointer;white-space:nowrap';
+    btnCancel.style.cssText = 'width:100%;margin-top:6px;padding:10px;border-radius:10px;background:var(--gray-100);color:var(--gray-500);border:1px solid var(--gray-200);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body)';
     btnCancel.textContent = 'Cancelar';
     btnCancel.onclick = function() { cancelarContraoferta(); };
-    // Inserir ANTES do botão "Enviar contraoferta" (UX: ação leve à esquerda, ação principal à direita)
-    if (inputRow && btnPropor) inputRow.insertBefore(btnCancel, btnPropor);
-    else if (inputRow) inputRow.appendChild(btnCancel);
+    btnEnviar.parentNode.insertBefore(btnCancel, btnEnviar.nextSibling);
   }
-  btnCancel.style.display = '';
+  if (btnCancel) btnCancel.style.display = '';
 }
 
 function cancelarContraoferta() {
@@ -5117,15 +5126,12 @@ async function confirmarContraoferta() {
     });
     if (rodada) { if (!n._rodadas) n._rodadas = []; n._rodadas.unshift(rodada); }
   }
-  // restaura onclick original e esconde cancelar
-  const btnPropor = document.getElementById('mn-btn-propor-valor');
-  if (btnPropor) btnPropor.onclick = function() { proporValorDeal(); };
   const btnCancel = document.getElementById('mn-btn-cancelar-contra');
   if (btnCancel) btnCancel.style.display = 'none';
   renderContrapartidasDet(n.contrapartidas || []);
   renderValorDeal();
   renderHistoricoRodadas();
-  showToast('Contraoferta de ' + _fmtValor(val) + ' enviada para a marca.', 'success');
+  showToast('Contraoferta' + (val ? ' de ' + _fmtValor(val) : '') + ' enviada para a marca.', 'success');
 }
 
 // ─── Histórico de rodadas ────────────────────
@@ -6393,67 +6399,75 @@ async function removerMembro(userId) {
         <!-- Seção unificada: Proposta (entregas primeiro, valor depois) -->
         <div class="valor-deal-section" id="mn-valor-deal-section">
           <div class="valor-deal-header">
-            <span class="valor-deal-title">Proposta</span>
+            <span class="valor-deal-title" id="mn-proposta-title">Proposta</span>
             <span class="valor-deal-badge sem_proposta" id="mn-valor-badge">Sem proposta</span>
           </div>
 
-          <!-- 1. Entregas (primeiro: o que será entregue) -->
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>
+          <!-- BLOCO A: Read-only (proposta enviada ou recebida) -->
+          <div id="mn-proposta-enviada" style="display:none"></div>
 
-          <div class="cp-table-wrap" style="margin-bottom:8px">
-            <table class="cp-table">
-              <thead>
-                <tr>
-                  <th>Descrição</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="mn-cp-tbody"></tbody>
-            </table>
-          </div>
+          <!-- BLOCO B: Edição / Nova proposta -->
+          <div id="mn-proposta-edit">
 
-          <!-- Form adicionar -->
-          <div class="cp-form-det" id="mn-cp-form">
-            <div>
-              <label class="cp-form-label-det">Descrição da contrapartida</label>
-              <input class="cp-form-input-det" id="mn-cp-desc" type="text" placeholder="Ex: Estande 6m² no evento, logo na camiseta…">
+            <!-- 1. Entregas -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>
+
+            <div class="cp-table-wrap" style="margin-bottom:8px">
+              <table class="cp-table">
+                <thead>
+                  <tr>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="mn-cp-tbody"></tbody>
+              </table>
             </div>
-            <input type="hidden" id="mn-cp-valor" value="0">
-            <input type="hidden" id="mn-cp-prazo" value="">
-            <div class="cp-form-actions-det">
-              <button class="cp-form-btn-cancel-det" onclick="toggleCpFormDet()">Cancelar</button>
-              <button class="cp-form-btn-add-det" onclick="addContrapartidaDet()">Adicionar</button>
+
+            <!-- Form adicionar -->
+            <div class="cp-form-det" id="mn-cp-form">
+              <div>
+                <label class="cp-form-label-det">Descrição da contrapartida</label>
+                <input class="cp-form-input-det" id="mn-cp-desc" type="text" placeholder="Ex: Estande 6m² no evento, logo na camiseta…">
+              </div>
+              <input type="hidden" id="mn-cp-valor" value="0">
+              <input type="hidden" id="mn-cp-prazo" value="">
+              <div class="cp-form-actions-det">
+                <button class="cp-form-btn-cancel-det" onclick="toggleCpFormDet()">Cancelar</button>
+                <button class="cp-form-btn-add-det" onclick="addContrapartidaDet()">Adicionar</button>
+              </div>
             </div>
-          </div>
 
-          <button class="btn-add-cp-det" id="mn-btn-add-cp" onclick="toggleCpFormDet()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-            Adicionar contrapartida
-          </button>
+            <button class="btn-add-cp-det" id="mn-btn-add-cp" onclick="toggleCpFormDet()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              Adicionar contrapartida
+            </button>
 
-          <!-- Divider -->
-          <div style="border-top:1px solid var(--gray-200);margin:12px -14px 10px"></div>
+            <!-- Divider -->
+            <div style="border-top:1px solid var(--gray-200);margin:12px -14px 10px"></div>
 
-          <!-- 2. Valor (depois: quanto custa) -->
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Valor</div>
-          <div id="mn-valor-estado"></div>
-          <div class="valor-deal-input-row" id="mn-valor-input-row">
-            <div class="valor-deal-input-wrap">
-              <span class="valor-deal-input-prefix">R$</span>
-              <input type="text" inputmode="numeric" class="valor-deal-input" id="mn-valor-input" placeholder="0,00" oninput="maskValorDeal(this)">
+            <!-- 2. Valor (opcional) -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Valor <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-300);font-size:10px">(opcional)</span></div>
+            <div id="mn-valor-estado"></div>
+            <div class="valor-deal-input-row" id="mn-valor-input-row" style="display:none">
+              <div class="valor-deal-input-wrap" style="flex:1">
+                <span class="valor-deal-input-prefix">R$</span>
+                <input type="text" inputmode="numeric" class="valor-deal-input" id="mn-valor-input" placeholder="0,00" oninput="maskValorDeal(this)">
+              </div>
             </div>
-            <button class="btn-propor-valor" id="mn-btn-propor-valor" onclick="proporValorDeal()">Propor valor</button>
-          </div>
-          <div class="valor-deal-actions" id="mn-valor-actions" style="display:none">
-            <button class="btn-aceitar-valor" onclick="aceitarValorDeal()">Aceitar valor</button>
-            <button class="btn-contrapropor-valor" onclick="contraproporValorDeal()">Contrapropor</button>
-          </div>
 
-          <!-- Aviso sem entregas -->
-          <div id="mn-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
-            Adicione pelo menos uma entrega antes de propor um valor.
-          </div>
+            <!-- Aviso sem entregas -->
+            <div id="mn-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
+              Adicione pelo menos uma entrega antes de enviar a proposta.
+            </div>
+
+            <!-- Botão enviar proposta -->
+            <button id="mn-btn-enviar-proposta" onclick="enviarPropostaDet()" style="width:100%;margin-top:14px;padding:12px;border-radius:10px;background:var(--black);color:var(--white);font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);transition:opacity .15s">
+              Enviar proposta
+            </button>
+
+          </div><!-- /mn-proposta-edit -->
 
           <!-- Histórico de rodadas -->
           <div id="mn-rodadas-wrap" style="display:none;margin-top:12px">
