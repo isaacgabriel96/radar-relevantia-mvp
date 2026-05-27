@@ -4415,6 +4415,13 @@ function renderNegOppCards() {
 
   container.innerHTML = Object.values(groups).map(g => {
     const cfg = _oppCfg(g.opp_id);
+    const opp = MINHAS_OPPS.find(o => o.id === g.opp_id);
+    const imgCapa = opp && opp.imagem_capa;
+    const focalData = (opp && opp.imagens_focal && imgCapa) ? (opp.imagens_focal[imgCapa] || {x:50,y:20}) : {x:50,y:20};
+    const coverStyle = imgCapa
+      ? `background:url(${imgCapa}) ${focalData.x}% ${focalData.y}% / cover no-repeat`
+      : `background:${cfg.gradient}`;
+    const coverContent = imgCapa ? '' : cfg.icon;
     const total = g.items.length;
     // conta por status
     const counts = { pendente:0, analise:0, aceita:0, recusada:0 };
@@ -4426,7 +4433,7 @@ function renderNegOppCards() {
         return `<span class="neg-opp-chip ${s}">${counts[s]} ${labels[s]}</span>`;
       }).join('');
     return `<div class="neg-opp-card" onclick="openNegOppDetail(${g.opp_id})">
-      <div class="neg-opp-cover" style="background:${cfg.gradient}">${cfg.icon}</div>
+      <div class="neg-opp-cover" style="${coverStyle}">${coverContent}</div>
       <div class="neg-opp-info">
         <div class="neg-opp-title">${g.opp}</div>
         <div class="neg-opp-subtitle">${total} ${total !== 1 ? 'negociações' : 'negociação'}</div>
