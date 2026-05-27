@@ -4095,7 +4095,7 @@ async function reenviarPropostaMarca() {
   p.statusHint = 'Proposta reenviada pela marca';
   // Reset valor deal
   if (p.valorDeal) { p.valorDeal.proposto = null; p.valorDeal.propostoPor = null; p.valorDeal.status = 'sem_proposta'; }
-  await _persistProp(p, { status: 'pendente', status_label: 'Pendente', status_hint: 'Proposta reenviada pela marca', valor_proposto: null, valor_proposto_por: null, valor_status: 'sem_proposta' });
+  await _persistProp(p, { status: 'pendente', status_label: 'Pendente', status_hint: 'Proposta reenviada pela marca', valor_deal: null, valor_deal_proposto_por: null, valor_deal_status: 'sem_proposta' });
   // Atualiza UI
   document.getElementById('mp-status-wrap').className = 'modal-prop-status pendente';
   document.getElementById('mp-status-label').textContent = 'Pendente';
