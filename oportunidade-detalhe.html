@@ -2862,7 +2862,11 @@ function renderPage(oppOverride) {
     }
 
     // CTA
-    h += '<button onclick="closeOppModal();openModal()" style="width:100%;margin-top:20px;padding:14px;border-radius:100px;background:var(--black);color:var(--white);font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit">＋ Manifestar interesse nesta oportunidade</button>';
+    if (window._MARCA_JA_MANIFESTOU) {
+      h += '<a href="dashboard-marca.html#propostas" style="display:block;width:100%;margin-top:20px;padding:14px;border-radius:100px;background:var(--gray-1,#F5F0E8);color:var(--gray-500,#7A6A58);border:1.5px solid var(--gray-200,#E0D8CC);font-size:14px;font-weight:600;text-align:center;text-decoration:none;font-family:inherit;box-sizing:border-box">Ver negociação →</a>';
+    } else {
+      h += '<button onclick="closeOppModal();openModal()" style="width:100%;margin-top:20px;padding:14px;border-radius:100px;background:var(--black);color:var(--white);font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit">＋ Manifestar interesse nesta oportunidade</button>';
+    }
     h += '</div>';// content
     h += '</div>';// inner
 
@@ -3552,6 +3556,8 @@ function _updateSubmitBtn() {
   btn.disabled = !(hasSubject || hasIncentivo);
 }
 
+window._MARCA_JA_MANIFESTOU = false;
+
 async function _updateInterestButtons(oppId, marcaId) {
   try {
     var session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : null;
@@ -3563,7 +3569,8 @@ async function _updateInterestButtons(oppId, marcaId) {
     var rows = await res.json();
     if (!rows || rows.length === 0) return;
 
-    var negId = rows[0].id;
+    window._MARCA_JA_MANIFESTOU = true;
+
     var btnHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ver negociação';
     var onClick = 'window.location.href="dashboard-marca.html#propostas"';
 
