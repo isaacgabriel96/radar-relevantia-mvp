@@ -4336,34 +4336,50 @@ function _renderAceitaBanner(p) {
 
 function _renderValorDealM(p) {
   const vd = p.valorDeal || { proposto: null, propostoPor: null, status: 'sem_proposta' };
-  const badge      = document.getElementById('mp-vd-badge');
-  const estadoEl   = document.getElementById('mp-vd-estado');
-  const inputRow   = document.getElementById('mp-vd-input-row');
-  const actionsEl  = document.getElementById('mp-vd-actions');
-  const btnEnviar  = document.getElementById('mp-btn-enviar-proposta');
-  const input      = document.getElementById('mp-vd-input');
+  const badge        = document.getElementById('mp-vd-badge');
+  const estadoEl     = document.getElementById('mp-vd-estado');
+  const inputRow     = document.getElementById('mp-vd-input-row');
+  const actionsEl    = document.getElementById('mp-vd-actions');
+  const btnEnviar    = document.getElementById('mp-btn-enviar-proposta');
+  const input        = document.getElementById('mp-vd-input');
+  const blocoEdit    = document.getElementById('mp-proposta-edit');
+  const blocoEnviado = document.getElementById('mp-proposta-enviada');
+  const titleEl      = document.getElementById('mp-proposta-title');
   if (!badge) return;
 
-  const canEdit = p.status !== 'recusada' && p.status !== 'aceita';
+  const canEdit     = p.status !== 'recusada' && p.status !== 'aceita';
+  const aguardando  = vd.status === 'aguardando_detentor';
+  const temHistorico = p._rodadas && p._rodadas.length > 0;
 
   // Badge de status
   const BADGE_LABEL = {
-    sem_proposta:       'Sem proposta',
-    aguardando_detentor:'Aguardando organizador',
-    aguardando_marca:   'Aguardando sua resposta',
-    aceito:             'Aceito'
+    sem_proposta:        'Sem proposta',
+    aguardando_detentor: 'Aguardando organizador',
+    aguardando_marca:    'Aguardando sua resposta',
+    aceito:              'Aceito'
   };
-  badge.className = 'valor-deal-badge-m ' + (vd.status || 'sem_proposta');
+  badge.className   = 'valor-deal-badge-m ' + (vd.status || 'sem_proposta');
   badge.textContent = BADGE_LABEL[vd.status] || 'Sem proposta';
 
-  // Estado descritivo
+  // Alterna entre bloco enviado (read-only) e bloco de edição
+  if (aguardando) {
+    if (blocoEnviado) { blocoEnviado.style.display = ''; _renderPropostaEnviada(p); }
+    if (blocoEdit)    blocoEdit.style.display = 'none';
+    if (titleEl)      titleEl.textContent = 'Proposta enviada';
+  } else {
+    if (blocoEnviado) blocoEnviado.style.display = 'none';
+    if (blocoEdit)    blocoEdit.style.display = '';
+    if (titleEl)      titleEl.textContent = (canEdit && temHistorico) ? 'Nova proposta' : 'Sua proposta';
+  }
+
+  // Esconde botão cancelar de contraoferta se existir
+  const btnCancel = document.getElementById('mp-btn-cancelar-contra');
+  if (btnCancel) btnCancel.style.display = 'none';
+
+  // Estado descritivo do valor (dentro do bloco edit)
   const fmtVal = vd.proposto ? 'R$ ' + Number(vd.proposto).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '';
   if (estadoEl) {
-    if (vd.status === 'aguardando_detentor') {
-      const valTxt = fmtVal ? ` com valor de <strong style="color:var(--text)">${fmtVal}</strong>` : '';
-      estadoEl.innerHTML = `<span style="font-size:12px;color:var(--gray-400)">Proposta enviada${valTxt} — aguardando resposta do organizador.</span>`;
-      estadoEl.style.display = 'block';
-    } else if (vd.status === 'aguardando_marca') {
+    if (vd.status === 'aguardando_marca') {
       estadoEl.innerHTML = `<span style="font-size:12px;color:#1D4ED8">O organizador propôs <strong>${fmtVal}</strong> — aceite ou contraproponha.</span>`;
       estadoEl.style.display = 'block';
     } else if (vd.status === 'aceito') {
@@ -4374,31 +4390,55 @@ function _renderValorDealM(p) {
     }
   }
 
-  // Esconde botão cancelar de contraoferta se existir
-  var btnCancel = document.getElementById('mp-btn-cancelar-contra');
-  if (btnCancel) btnCancel.style.display = 'none';
-
-  // Input de valor: visível para edição quando canEdit e não aguardando resposta
-  const editingValor = canEdit && vd.status !== 'aguardando_detentor' && vd.status !== 'aguardando_marca' && vd.status !== 'aceito';
+  // Input de valor: editável quando não aguardando resposta nem deal fechado
+  const editingValor = canEdit && !aguardando && vd.status !== 'aguardando_marca' && vd.status !== 'aceito';
   if (inputRow) {
     inputRow.style.display = editingValor ? 'flex' : 'none';
     if (editingValor && input) input.value = '';
   }
 
-  // Botão aceitar/contrapropor: só quando detentor propôs
-  if (actionsEl) {
-    actionsEl.style.display = (canEdit && vd.status === 'aguardando_marca') ? 'flex' : 'none';
-  }
+  // Aceitar/contrapropor: só quando detentor propôs
+  if (actionsEl) actionsEl.style.display = (canEdit && vd.status === 'aguardando_marca') ? 'flex' : 'none';
 
-  // Botão "Enviar proposta": visível quando pode editar e não está aguardando detentor
+  // Botão enviar: só no bloco edit, visível quando pode editar e não é aguardando_marca
   if (btnEnviar) {
-    const aguardando = vd.status === 'aguardando_detentor';
-    btnEnviar.style.display = (canEdit && vd.status !== 'aguardando_marca') ? '' : 'none';
-    btnEnviar.disabled = aguardando;
-    btnEnviar.style.opacity = aguardando ? '0.45' : '1';
-    btnEnviar.style.cursor = aguardando ? 'not-allowed' : 'pointer';
-    btnEnviar.textContent = aguardando ? 'Aguardando resposta do organizador…' : 'Enviar proposta';
+    btnEnviar.style.display = (canEdit && !aguardando && vd.status !== 'aguardando_marca') ? '' : 'none';
+    btnEnviar.disabled = false;
+    btnEnviar.style.opacity = '1';
+    btnEnviar.style.cursor = 'pointer';
+    btnEnviar.textContent = 'Enviar proposta';
   }
+}
+
+function _renderPropostaEnviada(p) {
+  const el = document.getElementById('mp-proposta-enviada');
+  if (!el) return;
+  const rodada = p._rodadas && p._rodadas[0];
+  const cps = rodada ? (rodada.contrapartidas || []) : (p.contrapartidas || []).filter(c => c.status !== 'recusada');
+  const fmtVal = rodada && rodada.valor ? 'R$ ' + Number(rodada.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : null;
+
+  let html = '<div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;margin-bottom:8px">';
+  if (cps.length > 0) {
+    html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>';
+    html += '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">';
+    cps.forEach(function(cp) {
+      let desc = (typeof cp === 'string') ? cp : (cp.descricao || '');
+      if (desc.startsWith('{')) { try { const o = JSON.parse(desc); desc = o.titulo || o.descricao || desc; } catch(e) {} }
+      html += `<li style="font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--gray-300);flex-shrink:0"></span>
+        ${escapeHtml(desc)}
+      </li>`;
+    });
+    html += '</ul>';
+  }
+  if (fmtVal) {
+    if (cps.length > 0) html += '<div style="border-top:1px solid var(--gray-200);margin:10px 0 8px"></div>';
+    html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:4px">Valor proposto</div>`;
+    html += `<div style="font-size:15px;font-weight:700;color:var(--text)">${fmtVal}</div>`;
+  }
+  html += '</div>';
+  html += '<div style="font-size:12px;color:var(--gray-400);text-align:center;padding:4px 0 8px">Aguardando resposta do organizador…</div>';
+  el.innerHTML = html;
 }
 
 function maskValorDealM(input) {
@@ -5578,72 +5618,80 @@ async function removerMembro(userId) {
         <!-- Seção unificada: Sua proposta (entregas primeiro, valor depois) -->
         <div class="valor-deal-section-m" id="mp-valor-deal-section">
           <div class="valor-deal-header-m">
-            <span class="valor-deal-title-m">Sua proposta</span>
+            <span class="valor-deal-title-m" id="mp-proposta-title">Sua proposta</span>
             <span class="valor-deal-badge-m sem_proposta" id="mp-vd-badge">Sem proposta</span>
           </div>
 
-          <!-- 1. Entregas (primeiro: o que será entregue) -->
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>
+          <!-- BLOCO A: Proposta enviada (snapshot read-only) -->
+          <div id="mp-proposta-enviada" style="display:none"></div>
 
-          <div class="cp-table-wrap" style="margin-bottom:8px">
-            <table class="cp-table">
-              <thead>
-                <tr>
-                  <th>Descrição</th>
-                  <th>Status</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="mp-cp-tbody"></tbody>
-            </table>
-          </div>
+          <!-- BLOCO B: Edição / Nova proposta -->
+          <div id="mp-proposta-edit">
 
-          <!-- Form adicionar -->
-          <div class="cp-form" id="mp-cp-form">
-            <div>
-              <label class="cp-form-label">Descrição da contrapartida</label>
-              <input class="cp-form-input" id="mp-cp-desc" type="text" placeholder="Ex: Logo na camiseta oficial">
+            <!-- 1. Entregas -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>
+
+            <div class="cp-table-wrap" style="margin-bottom:8px">
+              <table class="cp-table">
+                <thead>
+                  <tr>
+                    <th>Descrição</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="mp-cp-tbody"></tbody>
+              </table>
             </div>
-            <div class="cp-form-actions">
-              <button class="cp-form-btn-cancel" onclick="toggleCpForm()">Cancelar</button>
-              <button class="cp-form-btn-add" onclick="addContrapartidaMarca()">Adicionar</button>
+
+            <!-- Form adicionar -->
+            <div class="cp-form" id="mp-cp-form">
+              <div>
+                <label class="cp-form-label">Descrição da contrapartida</label>
+                <input class="cp-form-input" id="mp-cp-desc" type="text" placeholder="Ex: Logo na camiseta oficial">
+              </div>
+              <div class="cp-form-actions">
+                <button class="cp-form-btn-cancel" onclick="toggleCpForm()">Cancelar</button>
+                <button class="cp-form-btn-add" onclick="addContrapartidaMarca()">Adicionar</button>
+              </div>
             </div>
-          </div>
 
-          <button class="btn-add-cp" id="mp-btn-add-cp" onclick="toggleCpForm()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-            Adicionar contrapartida
-          </button>
+            <button class="btn-add-cp" id="mp-btn-add-cp" onclick="toggleCpForm()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              Adicionar contrapartida
+            </button>
 
-          <!-- Entregas recusadas (fora da tabela ativa) -->
-          <div id="mp-recusadas-container"></div>
+            <!-- Entregas recusadas -->
+            <div id="mp-recusadas-container"></div>
 
-          <!-- Divider -->
-          <div style="border-top:1px solid var(--gray-200);margin:12px -14px 10px"></div>
+            <!-- Divider -->
+            <div style="border-top:1px solid var(--gray-200);margin:12px -14px 10px"></div>
 
-          <!-- 2. Valor (depois: quanto custa) -->
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Valor <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-300);font-size:10px">(opcional)</span></div>
-          <div id="mp-vd-estado" class="valor-deal-estado-m"></div>
-          <div class="valor-deal-input-row-m" id="mp-vd-input-row" style="display:none">
-            <div class="valor-deal-input-wrap-m" style="flex:1">
-              <span class="valor-deal-input-prefix-m">R$</span>
-              <input type="text" inputmode="numeric" class="valor-deal-input-m" id="mp-vd-input" placeholder="0,00" oninput="maskValorDealM(this)">
+            <!-- 2. Valor (opcional) -->
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Valor <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-300);font-size:10px">(opcional)</span></div>
+            <div id="mp-vd-estado" class="valor-deal-estado-m"></div>
+            <div class="valor-deal-input-row-m" id="mp-vd-input-row" style="display:none">
+              <div class="valor-deal-input-wrap-m" style="flex:1">
+                <span class="valor-deal-input-prefix-m">R$</span>
+                <input type="text" inputmode="numeric" class="valor-deal-input-m" id="mp-vd-input" placeholder="0,00" oninput="maskValorDealM(this)">
+              </div>
             </div>
-          </div>
-          <div class="valor-deal-actions-m" id="mp-vd-actions" style="display:none">
-            <button class="btn-aceitar-valor-m" onclick="aceitarValorDealMarca()">Aceitar proposta</button>
-            <button class="btn-contrapropor-valor-m" onclick="contraproporValorDealMarca()">Contrapropor</button>
-          </div>
+            <div class="valor-deal-actions-m" id="mp-vd-actions" style="display:none">
+              <button class="btn-aceitar-valor-m" onclick="aceitarValorDealMarca()">Aceitar proposta</button>
+              <button class="btn-contrapropor-valor-m" onclick="contraproporValorDealMarca()">Contrapropor</button>
+            </div>
 
-          <!-- Aviso sem entregas -->
-          <div id="mp-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
-            Adicione pelo menos uma entrega antes de enviar a proposta.
-          </div>
+            <!-- Aviso sem entregas -->
+            <div id="mp-no-cp-hint" style="display:none;font-size:11px;color:#B45309;margin-top:6px;padding:6px 10px;background:#FEF3C7;border-radius:8px">
+              Adicione pelo menos uma entrega antes de enviar a proposta.
+            </div>
 
-          <!-- Botão enviar proposta -->
-          <button id="mp-btn-enviar-proposta" onclick="enviarPropostaMarca()" style="width:100%;margin-top:14px;padding:12px;border-radius:10px;background:var(--black);color:var(--white);font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);transition:opacity .15s">
-            Enviar proposta
-          </button>
+            <!-- Botão enviar proposta -->
+            <button id="mp-btn-enviar-proposta" onclick="enviarPropostaMarca()" style="width:100%;margin-top:14px;padding:12px;border-radius:10px;background:var(--black);color:var(--white);font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);transition:opacity .15s">
+              Enviar proposta
+            </button>
+
+          </div><!-- /mp-proposta-edit -->
 
           <!-- Histórico de rodadas -->
           <div id="mp-rodadas-wrap" style="display:none;margin-top:12px">
