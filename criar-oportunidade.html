@@ -3288,25 +3288,37 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .ag-btn-pular:hover { color: #5C4C38; border-color: #A89880; }
 
-/* ── Onboarding banner ── */
-#onboarding-banner {
+/* ── Onboarding modal ── */
+#onboarding-overlay {
   display: none;
-  background: linear-gradient(135deg, #1A1200 0%, #2D1F00 100%);
-  border: 1px solid rgba(184,134,11,0.35);
-  border-radius: 16px;
-  padding: 24px 28px;
-  margin-bottom: 28px;
-  position: relative;
-  overflow: hidden;
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(10,8,0,0.72);
+  backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+  padding: 24px;
 }
-#onboarding-banner::before {
+#onboarding-overlay.ob-visible { display: flex; }
+#onboarding-modal {
+  background: linear-gradient(145deg, #1A1200 0%, #2A1A00 100%);
+  border: 1px solid rgba(184,134,11,0.35);
+  border-radius: 20px;
+  padding: 36px 36px 32px;
+  max-width: 600px; width: 100%;
+  position: relative; overflow: hidden;
+  animation: ob-in 0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes ob-in {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+#onboarding-modal::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; height: 3px;
   background: linear-gradient(90deg, #B8860B, #C8A84B);
 }
 .ob-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px;
 }
 .ob-badge {
   display: inline-flex; align-items: center; gap: 6px;
@@ -3317,23 +3329,29 @@ input[type=number] { -moz-appearance: textfield; }
 .ob-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #C8A84B; animation: pulse 2s ease infinite; }
 .ob-close {
   background: none; border: none; cursor: pointer;
-  color: rgba(255,255,255,0.35); font-size: 18px; line-height: 1; padding: 2px;
-  transition: color 0.15s;
+  color: rgba(255,255,255,0.35); font-size: 20px; line-height: 1; padding: 4px;
+  transition: color 0.15s; flex-shrink: 0;
 }
-.ob-close:hover { color: rgba(255,255,255,0.7); }
-.ob-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
-.ob-body { font-size: 13.5px; color: rgba(255,255,255,0.65); line-height: 1.6; margin-bottom: 16px; }
-.ob-tips {
-  display: flex; gap: 10px; flex-wrap: wrap;
-}
+.ob-close:hover { color: rgba(255,255,255,0.75); }
+.ob-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 10px; line-height: 1.3; }
+.ob-body { font-size: 14px; color: rgba(255,255,255,0.62); line-height: 1.65; margin-bottom: 24px; }
+.ob-tips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; }
 .ob-tip {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: flex-start; gap: 10px;
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px; padding: 10px 14px; flex: 1; min-width: 180px;
+  border-radius: 12px; padding: 12px 14px; flex: 1; min-width: 155px;
 }
-.ob-tip-icon { font-size: 18px; flex-shrink: 0; }
-.ob-tip-text { font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.4; }
-.ob-tip-text strong { color: rgba(255,255,255,0.9); display: block; font-size: 13px; margin-bottom: 2px; }
+.ob-tip-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.ob-tip-text { font-size: 12.5px; color: rgba(255,255,255,0.58); line-height: 1.45; }
+.ob-tip-text strong { color: rgba(255,255,255,0.92); display: block; font-size: 13px; margin-bottom: 3px; }
+.ob-cta {
+  width: 100%; padding: 14px 20px;
+  background: linear-gradient(135deg, #B8860B, #C8A84B);
+  color: #1A1200; font-family: var(--font-body); font-size: 15px; font-weight: 700;
+  border: none; border-radius: 12px; cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.ob-cta:hover { opacity: 0.9; transform: translateY(-1px); }
 </style>
 </head>
 <body>
@@ -3455,35 +3473,38 @@ input[type=number] { -moz-appearance: textfield; }
   </div>
 </header>
 
+<!-- Onboarding modal (visível só com ?onboarding=true) -->
+<div id="onboarding-overlay">
+  <div id="onboarding-modal">
+    <div class="ob-header">
+      <div class="ob-badge"><span class="ob-badge-dot"></span>Primeiro acesso</div>
+      <button class="ob-close" onclick="obClose()" title="Fechar">✕</button>
+    </div>
+    <div class="ob-title">Bem-vindo ao Radar — crie sua primeira oportunidade</div>
+    <p class="ob-body">
+      Uma oportunidade é uma proposta concreta de patrocínio que você oferece às marcas: um espaço no seu evento, uma ativação na sua arena, um naming right. Quanto mais específica, mais fácil para uma marca decidir.
+    </p>
+    <div class="ob-tips">
+      <div class="ob-tip">
+        <span class="ob-tip-icon">📦</span>
+        <div class="ob-tip-text"><strong>Crie quantas quiser</strong>Cada ativo seu pode virar uma oportunidade separada.</div>
+      </div>
+      <div class="ob-tip">
+        <span class="ob-tip-icon">🎯</span>
+        <div class="ob-tip-text"><strong>Seja específico</strong>Inclua formato, público e o que a marca recebe em troca.</div>
+      </div>
+      <div class="ob-tip">
+        <span class="ob-tip-icon">🔍</span>
+        <div class="ob-tip-text"><strong>Marcas vão encontrar você</strong>Suas oportunidades aparecem no catálogo do Radar.</div>
+      </div>
+    </div>
+    <button class="ob-cta" onclick="obClose()">Entendi, vamos criar minha oportunidade →</button>
+  </div>
+</div>
+
 <!-- Main -->
 <main class="main">
   <div class="main-inner">
-
-    <!-- Onboarding banner (visível só com ?onboarding=true) -->
-    <div id="onboarding-banner">
-      <div class="ob-header">
-        <div class="ob-badge"><span class="ob-badge-dot"></span>Primeiro acesso</div>
-        <button class="ob-close" onclick="document.getElementById('onboarding-banner').style.display='none'" title="Fechar">✕</button>
-      </div>
-      <div class="ob-title">Bem-vindo ao Radar — crie sua primeira oportunidade</div>
-      <p class="ob-body">
-        Uma oportunidade é uma proposta concreta de patrocínio que você oferece às marcas: um espaço no seu evento, uma ativação na sua arena, um naming right. Quanto mais específica, mais fácil para uma marca decidir.
-      </p>
-      <div class="ob-tips">
-        <div class="ob-tip">
-          <span class="ob-tip-icon">📦</span>
-          <div class="ob-tip-text"><strong>Crie quantas quiser</strong>Cada ativo seu pode virar uma oportunidade separada.</div>
-        </div>
-        <div class="ob-tip">
-          <span class="ob-tip-icon">🎯</span>
-          <div class="ob-tip-text"><strong>Seja específico</strong>Inclua formato, público e o que a marca recebe em troca.</div>
-        </div>
-        <div class="ob-tip">
-          <span class="ob-tip-icon">🔍</span>
-          <div class="ob-tip-text"><strong>Marcas vão encontrar você</strong>Suas oportunidades aparecem no catálogo do Radar.</div>
-        </div>
-      </div>
-    </div>
 
     <!-- Mobile Progress Bar -->
     <div class="mobile-progress" id="mobileProgress">
@@ -10187,9 +10208,17 @@ document.addEventListener('fullscreenchange', function() {
 
 document.addEventListener('DOMContentLoaded', () => _loadMapsScript(_attachOppCidadeIntlAutocomplete));
 
-if (new URLSearchParams(location.search).get('onboarding') === 'true') {
-  document.getElementById('onboarding-banner').style.display = 'block';
+function obClose() {
+  const el = document.getElementById('onboarding-overlay');
+  el.style.animation = 'none';
+  el.classList.remove('ob-visible');
 }
+if (new URLSearchParams(location.search).get('onboarding') === 'true') {
+  document.getElementById('onboarding-overlay').classList.add('ob-visible');
+}
+document.getElementById('onboarding-overlay').addEventListener('click', function(e) {
+  if (e.target === this) obClose();
+});
 
 document.addEventListener('DOMContentLoaded', function() {
   const prevBtn = document.getElementById('mkPrevBtn');
