@@ -1098,10 +1098,10 @@ body::after {
         Bem-vindo ao Radar, <em id="firstName">bem-vindo</em> !
       </h1>
       <p class="panel-sub" style="margin:0 auto 36px;max-width:380px;">
-        Sua conta está configurada. Agora é a hora de completar seu perfil e publicar suas primeiras oportunidades para as marcas encontrarem você.
+        Sua conta está configurada. Agora vamos criar sua primeira oportunidade — é assim que as marcas vão encontrar você no Radar.
       </p>
-      <button class="btn-primary" onclick="goToDashboard()" style="max-width:360px;margin:0 auto;">
-        Acessar meu dashboard →
+      <button class="btn-primary" onclick="goToPrimeiraOportunidade()" style="max-width:360px;margin:0 auto;">
+        Criar minha primeira oportunidade →
       </button>
     </div>
   </div>
@@ -1354,6 +1354,11 @@ async function setPassword() {
 function goToDashboard() {
   if (previewMode) { showToast('Preview: redirecionaria para o dashboard →', ''); return; }
   window.location.href = '/dashboard-detentor.html';
+}
+
+function goToPrimeiraOportunidade() {
+  if (previewMode) { showToast('Preview: redirecionaria para criar oportunidade →', ''); return; }
+  window.location.href = '/criar-oportunidade.html?onboarding=true';
 }
 
 function doLogout() {

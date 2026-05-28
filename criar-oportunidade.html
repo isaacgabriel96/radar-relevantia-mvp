@@ -3183,6 +3183,53 @@ input[type=number] { -moz-appearance: textfield; }
   cursor: pointer; transition: all 0.15s;
 }
 .ag-btn-pular:hover { color: #5C4C38; border-color: #A89880; }
+
+/* ── Onboarding banner ── */
+#onboarding-banner {
+  display: none;
+  background: linear-gradient(135deg, #1A1200 0%, #2D1F00 100%);
+  border: 1px solid rgba(184,134,11,0.35);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+#onboarding-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #B8860B, #C8A84B);
+}
+.ob-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;
+}
+.ob-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(184,134,11,0.15); border: 1px solid rgba(184,134,11,0.3);
+  border-radius: 100px; padding: 4px 12px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #C8A84B;
+}
+.ob-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #C8A84B; animation: pulse 2s ease infinite; }
+.ob-close {
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.35); font-size: 18px; line-height: 1; padding: 2px;
+  transition: color 0.15s;
+}
+.ob-close:hover { color: rgba(255,255,255,0.7); }
+.ob-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 8px; }
+.ob-body { font-size: 13.5px; color: rgba(255,255,255,0.65); line-height: 1.6; margin-bottom: 16px; }
+.ob-tips {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.ob-tip {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 10px 14px; flex: 1; min-width: 180px;
+}
+.ob-tip-icon { font-size: 18px; flex-shrink: 0; }
+.ob-tip-text { font-size: 12.5px; color: rgba(255,255,255,0.6); line-height: 1.4; }
+.ob-tip-text strong { color: rgba(255,255,255,0.9); display: block; font-size: 13px; margin-bottom: 2px; }
 </style>
 </head>
 <body>
@@ -3307,6 +3354,32 @@ input[type=number] { -moz-appearance: textfield; }
 <!-- Main -->
 <main class="main">
   <div class="main-inner">
+
+    <!-- Onboarding banner (visível só com ?onboarding=true) -->
+    <div id="onboarding-banner">
+      <div class="ob-header">
+        <div class="ob-badge"><span class="ob-badge-dot"></span>Primeiro acesso</div>
+        <button class="ob-close" onclick="document.getElementById('onboarding-banner').style.display='none'" title="Fechar">✕</button>
+      </div>
+      <div class="ob-title">Bem-vindo ao Radar — crie sua primeira oportunidade</div>
+      <p class="ob-body">
+        Uma oportunidade é uma proposta concreta de patrocínio que você oferece às marcas: um espaço no seu evento, uma ativação na sua arena, um naming right. Quanto mais específica, mais fácil para uma marca decidir.
+      </p>
+      <div class="ob-tips">
+        <div class="ob-tip">
+          <span class="ob-tip-icon">📦</span>
+          <div class="ob-tip-text"><strong>Crie quantas quiser</strong>Cada ativo seu pode virar uma oportunidade separada.</div>
+        </div>
+        <div class="ob-tip">
+          <span class="ob-tip-icon">🎯</span>
+          <div class="ob-tip-text"><strong>Seja específico</strong>Inclua formato, público e o que a marca recebe em troca.</div>
+        </div>
+        <div class="ob-tip">
+          <span class="ob-tip-icon">🔍</span>
+          <div class="ob-tip-text"><strong>Marcas vão encontrar você</strong>Suas oportunidades aparecem no catálogo do Radar.</div>
+        </div>
+      </div>
+    </div>
 
     <!-- Mobile Progress Bar -->
     <div class="mobile-progress" id="mobileProgress">
@@ -9774,6 +9847,10 @@ document.addEventListener('fullscreenchange', function() {
 });
 
 document.addEventListener('DOMContentLoaded', () => _loadMapsScript(_attachOppCidadeIntlAutocomplete));
+
+if (new URLSearchParams(location.search).get('onboarding') === 'true') {
+  document.getElementById('onboarding-banner').style.display = 'block';
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   const prevBtn = document.getElementById('mkPrevBtn');
