@@ -4504,7 +4504,7 @@ function initLivePreview() {
     lpGoToSlide((lpCurrentSlide + 1) % lpUploadedPhotos.length);
   });
 
-  // Drag & drop na upload area
+  // Drag & drop na upload area (zona inicial, sem fotos)
   var uploadArea = document.getElementById('photoUploadArea');
   if (uploadArea) {
     uploadArea.addEventListener('dragover', function(e) {
@@ -4520,6 +4520,26 @@ function initLivePreview() {
       e.preventDefault();
       uploadArea.style.borderColor = '';
       uploadArea.style.background = '';
+      if (e.dataTransfer.files.length) lpProcessFiles(e.dataTransfer.files);
+    });
+  }
+
+  // Drag & drop no grid (quando já há fotos)
+  var photosGrid = document.getElementById('photosGridLP');
+  if (photosGrid) {
+    photosGrid.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      photosGrid.style.outline = '2px dashed var(--gold)';
+      photosGrid.style.borderRadius = '8px';
+    });
+    photosGrid.addEventListener('dragleave', function(e) {
+      if (!photosGrid.contains(e.relatedTarget)) {
+        photosGrid.style.outline = '';
+      }
+    });
+    photosGrid.addEventListener('drop', function(e) {
+      e.preventDefault();
+      photosGrid.style.outline = '';
       if (e.dataTransfer.files.length) lpProcessFiles(e.dataTransfer.files);
     });
   }
