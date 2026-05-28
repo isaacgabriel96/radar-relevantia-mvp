@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cadastro de Marca — Radar Relevantia</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
 <style>
   :root {
     --gold: #C9A84C;
@@ -356,6 +357,7 @@
   }
   .phone-country:focus-within, .phone-country.open { border-color: var(--gold); }
   .phone-country .flag { font-size: 18px; line-height: 1; }
+  .phone-country .fi { width: 22px; height: 16px; border-radius: 2px; display: inline-block; }
   .phone-country .dial  { font-size: 12px; color: var(--gray-mid); }
   .phone-country .caret { font-size: 9px; color: var(--gray-light); margin-left: 2px; }
   .phone-number {
@@ -379,6 +381,7 @@
   }
   .phone-option:hover { background: var(--gray-bg); }
   .phone-option .flag { font-size: 16px; }
+  .phone-option .fi { width: 20px; height: 15px; border-radius: 2px; flex-shrink: 0; display: inline-block; }
   .phone-option .country-name { flex: 1; color: var(--black); }
   .phone-option .country-dial { font-size: 12px; color: var(--gray-light); }
 
@@ -581,24 +584,24 @@
           <label>Telefone / WhatsApp <span class="req">*</span></label>
           <div class="phone-wrap">
             <div class="phone-country" id="phoneCountry" onclick="togglePhoneDropdown()">
-              <span class="flag" id="phoneFlag">🇧🇷</span>
+              <span class="fi fi-br" id="phoneFlag"></span>
               <span class="dial" id="phoneDial">+55</span>
               <span class="caret">▾</span>
               <div class="phone-dropdown" id="phoneDropdown">
-                <div class="phone-option" onclick="selectCountry(event,'🇧🇷','+55','BR')"><span class="flag">🇧🇷</span><span class="country-name">Brasil</span><span class="country-dial">+55</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇵🇹','+351','PT')"><span class="flag">🇵🇹</span><span class="country-name">Portugal</span><span class="country-dial">+351</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇺🇸','+1','US')"><span class="flag">🇺🇸</span><span class="country-name">Estados Unidos</span><span class="country-dial">+1</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇬🇧','+44','GB')"><span class="flag">🇬🇧</span><span class="country-name">Reino Unido</span><span class="country-dial">+44</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇦🇷','+54','AR')"><span class="flag">🇦🇷</span><span class="country-name">Argentina</span><span class="country-dial">+54</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇨🇴','+57','CO')"><span class="flag">🇨🇴</span><span class="country-name">Colômbia</span><span class="country-dial">+57</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇲🇽','+52','MX')"><span class="flag">🇲🇽</span><span class="country-name">México</span><span class="country-dial">+52</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇨🇱','+56','CL')"><span class="flag">🇨🇱</span><span class="country-name">Chile</span><span class="country-dial">+56</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇪🇸','+34','ES')"><span class="flag">🇪🇸</span><span class="country-name">Espanha</span><span class="country-dial">+34</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇩🇪','+49','DE')"><span class="flag">🇩🇪</span><span class="country-name">Alemanha</span><span class="country-dial">+49</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇫🇷','+33','FR')"><span class="flag">🇫🇷</span><span class="country-name">França</span><span class="country-dial">+33</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇮🇹','+39','IT')"><span class="flag">🇮🇹</span><span class="country-name">Itália</span><span class="country-dial">+39</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇯🇵','+81','JP')"><span class="flag">🇯🇵</span><span class="country-name">Japão</span><span class="country-dial">+81</span></div>
-                <div class="phone-option" onclick="selectCountry(event,'🇨🇳','+86','CN')"><span class="flag">🇨🇳</span><span class="country-name">China</span><span class="country-dial">+86</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'br','+55','BR')"><span class="fi fi-br"></span><span class="country-name">Brasil</span><span class="country-dial">+55</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'pt','+351','PT')"><span class="fi fi-pt"></span><span class="country-name">Portugal</span><span class="country-dial">+351</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'us','+1','US')"><span class="fi fi-us"></span><span class="country-name">Estados Unidos</span><span class="country-dial">+1</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'gb','+44','GB')"><span class="fi fi-gb"></span><span class="country-name">Reino Unido</span><span class="country-dial">+44</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'ar','+54','AR')"><span class="fi fi-ar"></span><span class="country-name">Argentina</span><span class="country-dial">+54</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'co','+57','CO')"><span class="fi fi-co"></span><span class="country-name">Colômbia</span><span class="country-dial">+57</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'mx','+52','MX')"><span class="fi fi-mx"></span><span class="country-name">México</span><span class="country-dial">+52</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'cl','+56','CL')"><span class="fi fi-cl"></span><span class="country-name">Chile</span><span class="country-dial">+56</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'es','+34','ES')"><span class="fi fi-es"></span><span class="country-name">Espanha</span><span class="country-dial">+34</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'de','+49','DE')"><span class="fi fi-de"></span><span class="country-name">Alemanha</span><span class="country-dial">+49</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'fr','+33','FR')"><span class="fi fi-fr"></span><span class="country-name">França</span><span class="country-dial">+33</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'it','+39','IT')"><span class="fi fi-it"></span><span class="country-name">Itália</span><span class="country-dial">+39</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'jp','+81','JP')"><span class="fi fi-jp"></span><span class="country-name">Japão</span><span class="country-dial">+81</span></div>
+                <div class="phone-option" onclick="selectCountry(event,'cn','+86','CN')"><span class="fi fi-cn"></span><span class="country-name">China</span><span class="country-dial">+86</span></div>
               </div>
             </div>
             <input class="phone-number" type="tel" id="phone" placeholder="(11) 99999-9999" oninput="formatPhoneByCountry(this)" autocomplete="tel">
@@ -1353,7 +1356,7 @@
   }
   function selectCountry(e, flag, dial, code) {
     e.stopPropagation();
-    document.getElementById('phoneFlag').textContent = flag;
+    document.getElementById('phoneFlag').className = 'fi fi-' + flag; document.getElementById('phoneFlag').textContent = '';
     document.getElementById('phoneDial').textContent = dial;
     selectedCountryCode = code;
     document.getElementById('phoneDropdown').classList.remove('open');
