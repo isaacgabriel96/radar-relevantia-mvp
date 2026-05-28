@@ -1714,22 +1714,32 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
     }
     let rows = res.ok ? await res.json() : [];
     // Fallback via RPC para opps convidadas que RLS pode bloquear no REST
-    if ((!rows || rows.length === 0) && typeof idOrPerfilSlug === 'number' && brandToken) {
-      console.log('[fetchOpp] REST retornou vazio para id numérico — tentando RPC fallback');
-      try {
-        const rpcRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_opp_full_by_id', {
-          method: 'POST',
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + brandToken, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ p_id: idOrPerfilSlug })
-        });
-        if (rpcRes.ok) {
-          const rpcData = await rpcRes.json();
-          if (rpcData && typeof rpcData === 'object' && rpcData.id) {
-            rows = [rpcData]; // RPC retorna objeto único, embrulha em array
-            console.log('[fetchOpp] RPC fallback OK — opp:', rpcData.titulo);
+    if ((!rows || rows.length === 0) && brandToken) {
+      const isNumericId = typeof idOrPerfilSlug === 'number';
+      const isSlugOnly  = typeof idOrPerfilSlug === 'string' && !oppSlug; // slug direto (sem perfil/)
+      if (isNumericId || isSlugOnly) {
+        console.log('[fetchOpp] REST vazio — tentando RPC fallback');
+        try {
+          const rpcEndpoint = isNumericId
+            ? '/rest/v1/rpc/get_opp_full_by_id'
+            : '/rest/v1/rpc/get_opp_full_by_slug';
+          const rpcBody = isNumericId
+            ? JSON.stringify({ p_id: idOrPerfilSlug })
+            : JSON.stringify({ p_slug: idOrPerfilSlug });
+          const rpcRes = await fetch(SUPABASE_URL + rpcEndpoint, {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + brandToken, 'Content-Type': 'application/json' },
+            body: rpcBody
+          });
+          if (rpcRes.ok) {
+            const rpcData = await rpcRes.json();
+            if (rpcData && typeof rpcData === 'object' && rpcData.id) {
+              rows = [rpcData];
+              console.log('[fetchOpp] RPC fallback OK —', rpcData.titulo);
+            }
           }
-        }
-      } catch(e) { console.warn('[fetchOpp] RPC fallback erro:', e); }
+        } catch(e) { console.warn('[fetchOpp] RPC fallback erro:', e); }
+      }
     }
     if (!rows || rows.length === 0) return null;
     const r = rows[0];
