@@ -1090,6 +1090,8 @@ input[type=number] { -moz-appearance: textfield; }
 .mdp-day:hover { background: var(--gray-1); }
 .mdp-day.mdp-on { background: var(--gold-gradient); color: #fff; font-weight: 700; }
 .mdp-chips { display: flex; flex-wrap: wrap; gap: 5px; min-height: 22px; }
+.btn-paste-img { margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--font-body); font-weight: 500; color: var(--gray-4); background: transparent; border: 1.5px dashed var(--gray-2); border-radius: var(--radius-pill); padding: 6px 14px; cursor: pointer; transition: all .15s; }
+.btn-paste-img:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-pale, #faf6ec); }
 .mdp-footer { margin-top: 12px; text-align: right; }
 .mdp-save-btn { background: var(--brown-warm, #7a5c00); color: #fff; border: none; border-radius: var(--radius-pill, 999px); padding: 8px 22px; font-size: 13px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: opacity .15s; }
 .mdp-save-btn:hover { opacity: .85; }
@@ -3686,9 +3688,10 @@ input[type=number] { -moz-appearance: textfield; }
           <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('photosInputLP').click()">
             <div class="photo-upload-icon">📷</div>
             <div class="photo-upload-text"><strong>Clique para enviar</strong> ou arraste imagens aqui</div>
-            <div class="photo-upload-hint">JPEG, PNG ou WebP · A primeira foto será a capa do card · Ou cole com Ctrl+V</div>
+            <div class="photo-upload-hint">JPEG, PNG ou WebP · A primeira foto será a capa do card</div>
             <input type="file" id="photosInputLP" accept="image/jpeg,image/png,image/webp" multiple style="display:none" onchange="handleLPPhotoUpload(this)">
           </div>
+          <button type="button" class="btn-paste-img" onclick="pasteImageFromClipboard()">📋 Colar imagem copiada</button>
           <div class="photos-grid" id="photosGridLP" style="display:none"></div>
         </div>
 
@@ -4619,6 +4622,34 @@ function lpRenderPhotosGrid() {
   }
 
   grid.innerHTML = html;
+}
+
+async function pasteImageFromClipboard() {
+  if (lpUploadedPhotos.length >= LP_MAX_PHOTOS) return;
+  if (!navigator.clipboard || !navigator.clipboard.read) {
+    alert('Seu navegador não suporta leitura direta da área de transferência. Tente arrastar a imagem ou usar o botão de upload.');
+    return;
+  }
+  try {
+    const items = await navigator.clipboard.read();
+    const files = [];
+    for (const item of items) {
+      for (const type of item.types) {
+        if (type.startsWith('image/')) {
+          const blob = await item.getType(type);
+          const ext = type.split('/')[1] || 'png';
+          files.push(new File([blob], 'imagem-colada.' + ext, { type }));
+        }
+      }
+    }
+    if (files.length) {
+      lpProcessFiles(files);
+    } else {
+      alert('Nenhuma imagem encontrada na área de transferência. Copie uma imagem primeiro (ex: clique com botão direito → Copiar imagem).');
+    }
+  } catch (err) {
+    alert('Permissão negada para acessar a área de transferência. Clique em "Permitir" quando o navegador solicitar, ou use arrastar e soltar.');
+  }
 }
 
 function lpRemovePhoto(idx) {
