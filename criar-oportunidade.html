@@ -2846,6 +2846,18 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .ag-field-badge-clear:hover { color: #DC2626; }
 
+/* Badge de restaurar — aparece após o usuário limpar um campo da IA */
+.ag-field-badge-restore {
+  background: rgba(120,120,120,0.06); border: 1px dashed rgba(120,120,120,0.35);
+  color: #8A6D3B; padding: 1px 8px;
+}
+.ag-field-badge-restore-btn {
+  background: none; border: none; cursor: pointer;
+  color: #8A6D3B; font-size: 10px; font-weight: 600; padding: 0; line-height: 1.6;
+  font-family: var(--font-body); transition: color .15s; white-space: nowrap;
+}
+.ag-field-badge-restore-btn:hover { color: #B8860B; }
+
 .ag-step-banner {
   display: none; align-items: center; gap: 10px;
   padding: 10px 14px;
@@ -11460,21 +11472,83 @@ init();
 
 // Mapa de campos marcados pela IA: fieldId → { panelId, clearFn }
 window._agFilledFields = {};
+// Mapa de campos limpos pelo usuário (permite restaurar): fieldId → { panelId, clearFn, snapshot }
+window._agClearedFields = {};
 
 function agMarkField(fieldId, panelId, clearFn) {
   window._agFilledFields[fieldId] = { panelId, clearFn };
+  // Se o campo estava em estado "restaurável", sai desse estado (foi re-preenchido)
+  delete window._agClearedFields[fieldId];
   _agAddBadge(fieldId);
   _agUpdateBanner(panelId);
+}
+
+// Captura o valor atual de um campo simples (input/select/textarea) para
+// permitir restauração. Retorna null para grupos (pills/segmentos/quill).
+function _agCaptureSnapshot(fieldId) {
+  const el = document.getElementById(fieldId);
+  if (el && 'value' in el) return { kind: 'value', value: el.value };
+  return null;
+}
+
+// Reaplica um snapshot capturado, disparando os eventos para atualizar
+// contadores de caracteres, selects dependentes etc.
+function _agApplySnapshot(fieldId, snapshot) {
+  if (!snapshot) return false;
+  const el = document.getElementById(fieldId);
+  if (el && snapshot.kind === 'value') {
+    el.value = snapshot.value;
+    el.dispatchEvent(new Event('input'));
+    el.dispatchEvent(new Event('change'));
+    return true;
+  }
+  return false;
 }
 
 window.agClearField = function(fieldId) {
   const entry = window._agFilledFields[fieldId];
   if (!entry) return;
+  // Snapshot do valor ANTES de limpar — o campo ainda contém o valor da IA
+  const snapshot = _agCaptureSnapshot(fieldId);
   try { entry.clearFn(); } catch(e) {}
   delete window._agFilledFields[fieldId];
-  _agRemoveBadge(fieldId);
+  if (snapshot) {
+    // Guarda para restauração e transforma a badge em "↩ Restaurar IA"
+    window._agClearedFields[fieldId] = { ...entry, snapshot };
+    _agShowRestoreBadge(fieldId);
+  } else {
+    // Grupos sem snapshot (pills/segmentos/quill) — comportamento antigo
+    _agRemoveBadge(fieldId);
+  }
   _agUpdateBanner(entry.panelId);
 };
+
+// Restaura o valor da IA que o usuário havia limpado
+window.agRestoreField = function(fieldId) {
+  const entry = window._agClearedFields[fieldId];
+  if (!entry) return;
+  const ok = _agApplySnapshot(fieldId, entry.snapshot);
+  if (!ok) return;
+  delete window._agClearedFields[fieldId];
+  // Re-marca o campo: badge normal "✦ IA ✕" volta e o banner é atualizado
+  agMarkField(fieldId, entry.panelId, entry.clearFn);
+};
+
+// Mostra a badge "↩ Restaurar IA" no lugar da badge normal
+function _agShowRestoreBadge(fieldId) {
+  _agRemoveBadge(fieldId);
+  const el = document.getElementById(fieldId);
+  if (!el) return;
+  const fg = el.closest('.form-group');
+  if (!fg) return;
+  const label = fg.querySelector('label');
+  if (!label) return;
+  const badge = document.createElement('span');
+  badge.className = 'ag-field-badge ag-field-badge-restore';
+  badge.dataset.agFieldId = fieldId;
+  badge.innerHTML = '<button type="button" class="ag-field-badge-restore-btn" title="Restaurar o valor que a IA havia preenchido" onclick="event.stopPropagation();agRestoreField(\'' + fieldId + '\')">↩ Restaurar IA</button>';
+  label.appendChild(badge);
+}
 
 window.agClearStepFields = function(panelId) {
   Object.keys(window._agFilledFields).forEach(fid => {
