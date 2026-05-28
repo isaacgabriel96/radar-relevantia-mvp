@@ -3108,8 +3108,8 @@ input[type=number] { -moz-appearance: textfield; }
 
 /* Botão confirmar no chat */
 .ag-btn-confirm {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 10px; padding: 9px 18px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 12px 18px;
   background: linear-gradient(135deg, #B8860B, #C8A84B); color: #FFF;
   border: none; border-radius: 100px;
   font-size: 13px; font-weight: 600; font-family: var(--font-heading, 'Poppins', sans-serif);
@@ -3119,8 +3119,8 @@ input[type=number] { -moz-appearance: textfield; }
 
 /* Botão secundário (ghost) — "Preciso de ajustes" */
 .ag-btn-adjust {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 10px; padding: 9px 18px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 12px 18px;
   background: transparent; color: #8A6D3B;
   border: 1px solid #D9C9A8; border-radius: 100px;
   font-size: 13px; font-weight: 600; font-family: var(--font-heading, 'Poppins', sans-serif);
@@ -12295,7 +12295,7 @@ function agBuildConfirmationSummary(parsed) {
   html += `</ul>`;
   html += `<div style="margin-top:8px;color:#5C4C38">Posso refinar aqui mesmo no chat antes de preencher o formulário.</div>`;
   html += `</div>`;
-  html += `<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">`;
+  html += `<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">`;
   html += `<button class="ag-btn-confirm" onclick="agPreencher()">→ Está tudo certo, preencher formulário</button>`;
   html += `<button class="ag-btn-adjust" onclick="agPedirAjuste()">✎ Preciso de ajustes</button>`;
   html += `</div>`;
