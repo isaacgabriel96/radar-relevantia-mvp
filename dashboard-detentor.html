@@ -4492,6 +4492,9 @@ async function setVisibilidade(oppId, novaVis, e) {
 
   opp.visibilidade = novaVis;
   renderPublicadas();
+  // Reseta cache de solicitações — nova visibilidade pode incluir/excluir a oportunidade
+  _SOLICITACOES_LOADED = false;
+  _SOLICITACOES = [];
 
   if (!isDemoMode()) {
     try {
@@ -6838,9 +6841,11 @@ function renderSolicitacoes() {
     return;
   }
 
-  // Agrupa por oportunidade
+  // Agrupa por oportunidade — só mostra opps que ainda são visibilidade 'aprovacao'
   const groups = {};
   _SOLICITACOES.forEach(function(s) {
+    const oppData = MINHAS_OPPS.find(function(o) { return String(o.id) === String(s.oportunidade_id); });
+    if (oppData && oppData.visibilidade !== 'aprovacao') return; // opp mudou de visibilidade, pula
     if (!groups[s.oportunidade_id]) {
       groups[s.oportunidade_id] = {
         opp_titulo:    s.opp_titulo,
