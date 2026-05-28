@@ -5928,20 +5928,20 @@ async function loadMinhasSolicitacoes() {
       return;
     }
 
-    // 4. Busca dados das oportunidades correspondentes
+    // 4. Busca dados das oportunidades via RPC (bypassa RLS de convidadas/aprovacao)
     var oppIds = [...new Set(solRows.map(r => r.oportunidade_id))];
-    var oppUrl = SUPABASE_URL + '/rest/v1/oportunidades'
-      + '?select=id,titulo,descricao_curta,categoria,slug,tags,imagens,imagem_capa,bg_gradient,icone'
-      + '&id=in.(' + oppIds.join(',') + ')';
-
-    var oppRes = await fetch(oppUrl, { headers: headers });
     var oppMap = {};
-    if (oppRes.ok) {
-      var oppRows = await oppRes.json();
+    var oppRpcRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_solicitacao_opp_details', {
+      method: 'POST',
+      headers: Object.assign({}, headers, { 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ p_opp_ids: oppIds })
+    });
+    if (oppRpcRes.ok) {
+      var oppRows = await oppRpcRes.json();
       (oppRows || []).forEach(function(o) { oppMap[o.id] = o; });
     } else {
-      var errText = await oppRes.text().catch(function() { return ''; });
-      console.warn('[loadMinhasSolicitacoes] opp fetch failed:', oppRes.status, errText);
+      var errText = await oppRpcRes.text().catch(function() { return ''; });
+      console.warn('[loadMinhasSolicitacoes] opp RPC failed:', oppRpcRes.status, errText);
     }
 
     // 5. Mescla dados
