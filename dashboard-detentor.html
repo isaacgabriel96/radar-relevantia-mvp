@@ -4066,6 +4066,16 @@ async function publishOportunidade(id) {
 async function enviarParaRevisao(id) {
   const opp = MINHAS_OPPS.find(o => o.id === id);
   if (!opp) return;
+
+  // Verificar dados jurídicos antes de enviar para análise
+  if (!OB_DET.juridico) {
+    showToast('Complete seus dados jurídicos antes de publicar.', 'error');
+    setTimeout(() => {
+      showSection('configuracoes');
+      setTimeout(() => switchConfigTab('juridico'), 50);
+    }, 400);
+    return;
+  }
   opp.status = 'em_revisao';
   renderPublicadas();
   if (!isDemoMode()) {
