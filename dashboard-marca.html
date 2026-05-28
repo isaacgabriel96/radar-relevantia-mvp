@@ -4058,7 +4058,7 @@ function _updatePropostaDealFooter() {
   // Cancelar interesse sempre visível
   const btnCancelarInteresse = `<button class="btn-deal-cancelar" style="border-color:#E0D8CC;color:var(--gray-4)" onclick="cancelarInteresseMarca()">Cancelar interesse</button>`;
   if (st === 'aceita') {
-    footer.innerHTML = `<button class="btn-deal-aceito" disabled>✓ Deal confirmado</button>` + btnCancelarInteresse;
+    footer.innerHTML = `<button class="btn-deal-aceito" onclick="openDealDetModalMarca('${_propostaAtiva.id}')">Ver deal ✓</button>` + btnCancelarInteresse;
     if (btnAddCp) btnAddCp.style.display = 'none';
   } else if (st === 'recusada') {
     footer.innerHTML = `<button class="btn-deal-cancelar" style="border-color:#B8860B;color:#B8860B" onclick="reenviarPropostaMarca()">Reenviar proposta</button>` + btnCancelarInteresse;
@@ -4514,7 +4514,6 @@ async function aceitarValorDealMarca() {
   if (!p || !p.valorDeal) return;
   p.valorDeal.status = 'aceito';
 
-  // Aceitar automaticamente todas as contrapartidas pendentes (proposta)
   const pendentes = (p.contrapartidas || []).filter(c => c.status === 'proposta');
   for (const cp of pendentes) {
     cp.status = 'aceita';
@@ -4524,7 +4523,95 @@ async function aceitarValorDealMarca() {
   _persistProp(p, { valor_deal_status: 'aceito' });
   renderContrapartidas(p.contrapartidas);
   _renderValorDealM(p);
-  showToast('Proposta aceita — valor e entregas confirmados! 🎉', 'success');
+  // Aceitar proposta = fechar o deal
+  fecharDealMarca();
+}
+
+function fecharDealMarca() {
+  const p = _propostaAtiva;
+  if (!p || p.status === 'aceita') return;
+  if (!confirm('Confirmar fechamento do deal com ' + p.opp + '?\n\nAo fechar, a Relevantia entrará em contato para formalizar o contrato.')) return;
+  p.status = 'aceita';
+  p.statusLabel = 'Aceita';
+  p.statusHint = 'Deal fechado. Aguardando formalização.';
+  _persistProp(p, { status: 'aceita', status_label: 'Aceita', status_hint: 'Deal fechado. Aguardando formalização.' });
+  document.getElementById('mp-status-wrap').className = 'modal-prop-status aceita';
+  document.getElementById('mp-status-label').textContent = 'Aceita';
+  document.getElementById('mp-status-hint').textContent = 'Deal fechado. Aguardando formalização.';
+  _updatePropostaDealFooter();
+  renderPropostasTable();
+  showToast('Deal fechado! A Relevantia entrará em contato. 🎉', 'success');
+  // Abre modal de detalhes do deal
+  openDealDetModalMarca(p.id);
+}
+
+function openDealDetModalMarca(propId) {
+  const p = PROPOSTAS.find(x => x.id === propId);
+  if (!p) return;
+  const fmt = v => v ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—';
+  const entregas = (p.contrapartidas || []).filter(c => c.status === 'aceita');
+  const totalBruto = Number(p.valorDeal?.proposto || p.valor_deal) || 0;
+
+  document.getElementById('mdm-title').textContent = p.opp || 'Deal fechado';
+  document.getElementById('mdm-sub').textContent = p.opp + (totalBruto ? ' · ' + fmt(totalBruto) : '');
+
+  document.getElementById('mdm-entregas').innerHTML = entregas.length
+    ? entregas.map(cp => {
+        let desc = (typeof cp === 'string') ? cp : (cp.descricao || '');
+        if (desc.startsWith('{')) { try { const o = JSON.parse(desc); desc = o.titulo || o.descricao || desc; } catch(e) {} }
+        return `<div class="modal-deal-det-row"><span class="modal-deal-det-row-label">${escapeHtml(desc)}</span></div>`;
+      }).join('')
+    : '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>';
+
+  document.getElementById('mdm-financeiro').innerHTML = totalBruto
+    ? `<div class="modal-deal-det-financeiro-row total"><span class="lbl">Valor acordado</span><span>${fmt(totalBruto)}</span></div>`
+    : `<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Valor a definir com a Relevantia.</div>`;
+
+  const contratoEl = document.getElementById('mdm-contrato-area');
+  if (p.contrato_url) {
+    const enviadoEm = p.contrato_enviado_em ? new Date(p.contrato_enviado_em).toLocaleDateString('pt-BR') : '';
+    contratoEl.innerHTML = `
+      <div class="ddet-contrato-box">
+        <div class="ddet-contrato-status"><span class="dot enviado"></span> Contrato disponível</div>
+        <div class="ddet-contrato-file">
+          <div class="ddet-contrato-file-icon">📄</div>
+          <div class="ddet-contrato-file-info">
+            <div class="ddet-contrato-file-name">Contrato assinado</div>
+            <div class="ddet-contrato-file-meta">Enviado pela Relevantia${enviadoEm ? ' em ' + enviadoEm : ''}</div>
+          </div>
+          <div class="ddet-contrato-file-check">✓</div>
+        </div>
+        <div style="margin-top:10px;text-align:center">
+          <a href="${p.contrato_url}" target="_blank" style="font-size:12px;color:var(--gold);text-decoration:underline;cursor:pointer">Baixar contrato</a>
+        </div>
+      </div>`;
+  } else {
+    contratoEl.innerHTML = `
+      <div class="ddet-contrato-box">
+        <div class="ddet-contrato-status"><span class="dot pendente"></span> Aguardando Relevantia</div>
+        <div style="font-size:12px;color:var(--gray-400);padding:8px 0 4px">
+          A Relevantia enviará o contrato para assinatura em breve.
+        </div>
+      </div>`;
+  }
+
+  const pagEl = document.getElementById('mdm-pagamento-area');
+  if (!p.contrato_url) {
+    pagEl.innerHTML = `<div class="ddet-pagamento-box"><div class="ddet-pagamento-locked">🔒 Aguardando contrato para confirmar pagamento</div></div>`;
+  } else if (!p.contrato_validado) {
+    pagEl.innerHTML = `<div class="ddet-pagamento-box"><div class="ddet-pagamento-locked" style="color:#D97706">
+      <div style="font-size:20px;margin-bottom:6px">⏳</div>
+      <div style="font-weight:600;margin-bottom:4px">Contrato em análise</div>
+      <div style="font-size:12px;color:var(--gray-3)">Aguardando validação da Relevantia.</div>
+    </div></div>`;
+  } else {
+    pagEl.innerHTML = `<div class="ddet-pagamento-box"><div class="ddet-pagamento-ready">
+      <div style="color:#059669;font-weight:600;margin-bottom:4px">✓ Pagamento confirmado</div>
+      <div class="valor">${fmt(totalBruto)}</div>
+    </div></div>`;
+  }
+
+  document.getElementById('modal-deal-marca').classList.add('open');
 }
 
 function contraproporValorDealMarca() {
@@ -5695,6 +5782,47 @@ async function removerMembro(userId) {
         </div>
 
         <div class="modal-deal-footer" id="mp-deal-footer"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MODAL: DEAL FECHADO (MARCA) ══ -->
+<div class="modal-overlay" id="modal-deal-marca" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-prop" style="max-width:520px">
+    <div class="modal-prop-header">
+      <div>
+        <div class="modal-prop-opp" id="mdm-title">Deal fechado</div>
+        <div style="font-size:12px;color:var(--gray-400);margin-top:2px" id="mdm-sub"></div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modal-deal-marca').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-prop-body" style="padding:20px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;max-height:70vh">
+
+      <!-- Entregas -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Entregas acordadas</div>
+        <div id="mdm-entregas"></div>
+      </div>
+
+      <!-- Financeiro -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Financeiro</div>
+        <div class="modal-deal-det-financeiro" id="mdm-financeiro"></div>
+      </div>
+
+      <!-- Contrato -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Contrato</div>
+        <div id="mdm-contrato-area"></div>
+      </div>
+
+      <!-- Pagamento -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Pagamento</div>
+        <div id="mdm-pagamento-area"></div>
       </div>
 
     </div>

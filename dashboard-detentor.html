@@ -5029,7 +5029,6 @@ async function aceitarValorDeal() {
   if (!n || !n.valorDeal) return;
   n.valorDeal.status = 'aceito';
 
-  // Aceitar automaticamente todas as contrapartidas pendentes (proposta)
   const pendentes = (n.contrapartidas || []).filter(c => c.status === 'proposta');
   for (const cp of pendentes) {
     cp.status = 'aceita';
@@ -5040,7 +5039,8 @@ async function aceitarValorDeal() {
   _persistNeg(n, { valor_deal_status: 'aceito' });
   renderContrapartidasDet(n.contrapartidas);
   renderValorDeal();
-  showToast('Proposta aceita — valor e entregas confirmados! 🎉', 'success');
+  // Aceitar proposta = fechar o deal
+  fecharDeal();
 }
 
 function contraproporValorDeal() {
@@ -5504,20 +5504,18 @@ function openDealDetModal(negId) {
     <div class="modal-deal-det-financeiro-row"><span class="lbl">Taxa Relevantia (${Math.round(PLATAFORMA_TAXA*100)}%)</span><span style="color:#DC2626">− ${fmt(taxa)}</span></div>
     <div class="modal-deal-det-financeiro-row total"><span class="lbl">Você recebe</span><span>${fmt(liquido)}</span></div>`;
 
-  // ══ CONTRATO ══
+  // ══ CONTRATO (gerenciado pela Relevantia) ══
   const contratoArea = document.getElementById('ddet-contrato-area');
   if (n.contrato_url) {
-    // Contrato já enviado
-    const enviadoPor = n.contrato_enviado_por === _currentUserId ? 'Você' : n.marca;
     const enviadoEm = n.contrato_enviado_em ? new Date(n.contrato_enviado_em).toLocaleDateString('pt-BR') : '';
     contratoArea.innerHTML = `
       <div class="ddet-contrato-box">
-        <div class="ddet-contrato-status"><span class="dot enviado"></span> Contrato enviado</div>
+        <div class="ddet-contrato-status"><span class="dot enviado"></span> Contrato disponível</div>
         <div class="ddet-contrato-file">
           <div class="ddet-contrato-file-icon">📄</div>
           <div class="ddet-contrato-file-info">
             <div class="ddet-contrato-file-name">Contrato assinado</div>
-            <div class="ddet-contrato-file-meta">Enviado por ${enviadoPor}${enviadoEm ? ' em ' + enviadoEm : ''}</div>
+            <div class="ddet-contrato-file-meta">Enviado pela Relevantia${enviadoEm ? ' em ' + enviadoEm : ''}</div>
           </div>
           <div class="ddet-contrato-file-check">✓</div>
         </div>
@@ -5526,38 +5524,26 @@ function openDealDetModal(negId) {
         </div>
       </div>`;
   } else {
-    // Upload pendente
+    const comentarioHtml = n.admin_comentario
+      ? `<div style="margin-top:10px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400E;text-align:left;white-space:pre-wrap"><strong>Observação da Relevantia:</strong> ${escapeHtml(n.admin_comentario)}</div>`
+      : '';
     contratoArea.innerHTML = `
       <div class="ddet-contrato-box">
-        <div class="ddet-contrato-status"><span class="dot pendente"></span> Pendente</div>
-        <div class="ddet-contrato-upload-area" id="ddet-upload-area"
-             ondragover="event.preventDefault();this.classList.add('dragging')"
-             ondragleave="this.classList.remove('dragging')"
-             ondrop="event.preventDefault();this.classList.remove('dragging');handleContratoUpload(event.dataTransfer.files[0],'${n.id}')"
-             onclick="document.getElementById('ddet-contrato-input').click()">
-          <div class="ddet-contrato-upload-icon">📤</div>
-          <div class="ddet-contrato-upload-text">
-            <strong>Clique ou arraste</strong> o contrato assinado<br>
-            <span style="font-size:11px;color:var(--gray-3)">PDF, JPG ou PNG · Máx 10MB</span>
-          </div>
+        <div class="ddet-contrato-status"><span class="dot pendente"></span> Aguardando Relevantia</div>
+        <div style="font-size:12px;color:var(--gray-400);padding:8px 0 4px">
+          A Relevantia enviará o contrato para assinatura em breve.
         </div>
-        <input type="file" id="ddet-contrato-input" accept=".pdf,.jpg,.jpeg,.png" style="display:none"
-               onchange="handleContratoUpload(this.files[0],'${n.id}')">
-        <div id="ddet-upload-status"></div>
+        ${comentarioHtml}
       </div>`;
   }
 
   // ══ PAGAMENTO ══
   const pagArea = document.getElementById('ddet-pagamento-area');
   if (!n.contrato_url) {
-    const comentarioHtml = n.admin_comentario
-      ? `<div style="margin-top:12px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400E;text-align:left;white-space:pre-wrap"><strong>Observação da Relevantia:</strong> ${escapeHtml(n.admin_comentario)}</div>`
-      : '';
     pagArea.innerHTML = `
       <div class="ddet-pagamento-box">
         <div class="ddet-pagamento-locked">
-          🔒 Envie o contrato assinado para liberar o pagamento
-          ${comentarioHtml}
+          🔒 Aguardando contrato para liberar o pagamento
         </div>
       </div>`;
   } else if (!n.contrato_validado) {
@@ -5570,14 +5556,12 @@ function openDealDetModal(negId) {
         </div>
       </div>`;
   } else {
-    const valorDeal = totalBruto; // já é valor_deal
     pagArea.innerHTML = `
       <div class="ddet-pagamento-box">
         <div class="ddet-pagamento-ready">
           <div style="color:#059669;font-weight:600;margin-bottom:4px">✓ Pagamento liberado</div>
-          <div class="valor">${fmt(valorDeal)}</div>
-          <div style="font-size:12px;color:var(--gray-400);margin-bottom:14px">Valor total do deal</div>
-          <div style="font-size:11px;color:var(--gray-3);margin-top:8px">O pagamento será realizado pela marca.</div>
+          <div class="valor">${fmt(liquido)}</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:14px">Valor líquido (após taxa Relevantia)</div>
         </div>
       </div>`;
   }
