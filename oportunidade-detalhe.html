@@ -1709,8 +1709,28 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'Content-Type': 'application/json'
     };
     const res = await fetch(SUPABASE_URL + path, { headers: fetchHeaders });
-    if (!res.ok) return null;
-    const rows = await res.json();
+    if (!res.ok) {
+      console.warn('[fetchOpp] REST erro', res.status);
+    }
+    let rows = res.ok ? await res.json() : [];
+    // Fallback via RPC para opps convidadas que RLS pode bloquear no REST
+    if ((!rows || rows.length === 0) && typeof idOrPerfilSlug === 'number' && brandToken) {
+      console.log('[fetchOpp] REST retornou vazio para id numérico — tentando RPC fallback');
+      try {
+        const rpcRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_opp_full_by_id', {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + brandToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_id: idOrPerfilSlug })
+        });
+        if (rpcRes.ok) {
+          const rpcData = await rpcRes.json();
+          if (rpcData && typeof rpcData === 'object' && rpcData.id) {
+            rows = [rpcData]; // RPC retorna objeto único, embrulha em array
+            console.log('[fetchOpp] RPC fallback OK — opp:', rpcData.titulo);
+          }
+        }
+      } catch(e) { console.warn('[fetchOpp] RPC fallback erro:', e); }
+    }
     if (!rows || rows.length === 0) return null;
     const r = rows[0];
 
