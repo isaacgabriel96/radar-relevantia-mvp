@@ -3136,6 +3136,27 @@ input[type=number] { -moz-appearance: textfield; }
 }
 .ag-input-highlight { animation: agInputPulse 1.1s ease-out 2; border-color: #C8A84B !important; }
 
+/* Reticências animadas no texto de carregamento do agente */
+.ag-loading-dots::after {
+  content: '';
+  animation: agLoadingDots 1.4s steps(1, end) infinite;
+}
+@keyframes agLoadingDots {
+  0%   { content: ''; }
+  25%  { content: '.'; }
+  50%  { content: '..'; }
+  75%, 100% { content: '...'; }
+}
+/* Transição suave ao trocar de fase */
+.ag-loading-phase {
+  display: inline-block;
+  animation: agPhaseFade 0.4s ease;
+}
+@keyframes agPhaseFade {
+  from { opacity: 0.2; }
+  to   { opacity: 0.7; }
+}
+
 /* Opções numeradas das dúvidas do agente */
 .ag-options {
   display: flex; flex-direction: column; gap: 6px;
@@ -11870,21 +11891,34 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
     m => typeof m.content === 'object' && Array.isArray(m.content.files) && m.content.files.length > 0
   );
 
-  // Após 15s sem resposta, atualiza o typing indicator com aviso contextual
-  let searchHintTimer = null;
-  if (useSearch) {
-    searchHintTimer = setTimeout(() => {
-      const typingEl = document.getElementById('agTypingMsg');
-      if (typingEl) {
-        const bubble = typingEl.querySelector('.ag-msg-bubble');
-        if (bubble) {
-          bubble.innerHTML = hasPdfInMessages
-            ? '<span style="opacity:0.7;font-size:13px">📄 Lendo o PDF e pesquisando na web… pode levar até 1 minuto</span>'
-            : '<span style="opacity:0.7;font-size:13px">🔍 Pesquisando na web… pode levar até 30 segundos</span>';
-        }
-      }
-    }, 15000);
+  // Fases dinâmicas de carregamento — o texto vai alternando para passar
+  // a sensação de progresso (em vez de uma frase estática).
+  let phases;
+  if (hasPdfInMessages) {
+    phases = ['📄 Lendo o documento', '🔍 Pesquisando na web', '🧠 Analisando as informações', '✍️ Escrevendo o que entendi'];
+  } else if (useSearch) {
+    phases = ['🔍 Pesquisando na web', '🧠 Analisando o perfil', '✍️ Escrevendo o que entendi'];
+  } else {
+    phases = ['🧠 Analisando', '✍️ Escrevendo o que entendi'];
   }
+
+  let phaseIdx = 0;
+  const renderPhase = () => {
+    const typingEl = document.getElementById('agTypingMsg');
+    if (!typingEl) return;
+    const bubble = typingEl.querySelector('.ag-msg-bubble');
+    if (!bubble) return;
+    bubble.innerHTML = `<span class="ag-loading-phase" style="opacity:0.7;font-size:13px">${phases[phaseIdx]}<span class="ag-loading-dots"></span></span>`;
+  };
+
+  // Mostra a primeira fase após ~1s (deixa o "digitando" aparecer primeiro),
+  // depois avança a cada 2.8s e fica parado na última até a resposta chegar.
+  const phaseStart = setTimeout(renderPhase, 1000);
+  const phaseInterval = setInterval(() => {
+    if (phaseIdx >= phases.length - 1) return; // segura na última fase
+    phaseIdx++;
+    renderPhase();
+  }, 2800);
 
   try {
     const response = await fetch('/api/gemini-agent', {
@@ -11931,7 +11965,8 @@ async function agCallGemini(messages, { useSearch = false } = {}) {
     throw err;
   } finally {
     clearTimeout(abortTimer);
-    if (searchHintTimer) clearTimeout(searchHintTimer);
+    clearTimeout(phaseStart);
+    clearInterval(phaseInterval);
   }
 }
 
