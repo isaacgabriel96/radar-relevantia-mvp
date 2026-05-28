@@ -7066,14 +7066,17 @@ let _dashJuridicoTargetOppId = null;
 function _dashOpenJuridicoModal(oppId) {
   _dashJuridicoTargetOppId = oppId;
 
-  // Se o usuário já está na aba Jurídico em Configurações, não duplica o modal —
-  // ativa o modo de edição do form existente e orienta com um toast
-  const jurPanel = document.getElementById('cfg-panel-juridico');
-  if (jurPanel && jurPanel.style.display !== 'none') {
-    showToast('Preencha e salve seus dados jurídicos aqui para continuar.', 'info');
+  // Se o usuário está na seção Configurações (qualquer sub-tab), não abre modal —
+  // navega direto para a aba Jurídico e ativa o modo edição
+  const cfgSection = document.getElementById('sec-configuracoes');
+  if (cfgSection && cfgSection.classList.contains('active')) {
+    switchConfigTab('juridico');
     if (!editingJuridico) toggleEditJuridico();
-    document.getElementById('jur-cnpj')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    document.getElementById('jur-cnpj')?.focus();
+    setTimeout(() => {
+      document.getElementById('jur-cnpj')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      document.getElementById('jur-cnpj')?.focus();
+    }, 100);
+    showToast('Preencha e salve seus dados jurídicos para continuar.', 'info');
     return;
   }
 
