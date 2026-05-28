@@ -3686,7 +3686,7 @@ input[type=number] { -moz-appearance: textfield; }
           <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('photosInputLP').click()">
             <div class="photo-upload-icon">📷</div>
             <div class="photo-upload-text"><strong>Clique para enviar</strong> ou arraste imagens aqui</div>
-            <div class="photo-upload-hint">JPEG, PNG ou WebP · A primeira foto será a capa do card</div>
+            <div class="photo-upload-hint">JPEG, PNG ou WebP · A primeira foto será a capa do card · Ou cole com Ctrl+V</div>
             <input type="file" id="photosInputLP" accept="image/jpeg,image/png,image/webp" multiple style="display:none" onchange="handleLPPhotoUpload(this)">
           </div>
           <div class="photos-grid" id="photosGridLP" style="display:none"></div>
@@ -4523,6 +4523,23 @@ function initLivePreview() {
       if (e.dataTransfer.files.length) lpProcessFiles(e.dataTransfer.files);
     });
   }
+
+  // Colar imagem (Ctrl+V / Cmd+V) em qualquer momento
+  document.addEventListener('paste', function(e) {
+    var step1 = document.getElementById('panel-1');
+    if (!step1 || step1.style.display === 'none') return; // só no step de fotos
+    if (lpUploadedPhotos.length >= LP_MAX_PHOTOS) return;
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    var files = [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        var f = items[i].getAsFile();
+        if (f) files.push(f);
+      }
+    }
+    if (files.length) lpProcessFiles(files);
+  });
 
   // Drag & drop no grid (quando já há fotos)
   var photosGrid = document.getElementById('photosGridLP');
