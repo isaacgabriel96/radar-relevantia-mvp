@@ -554,8 +554,9 @@ tbody tr:last-child td { border-bottom: none; }
 .pub-card-image { position: relative; height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 .pub-card-image svg { width: 40px; height: 40px; color: rgba(255,255,255,0.2); }
 .pub-card-status-badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-.pub-card-status-badge.publicada  { background: rgba(5,150,105,0.85);  color: #fff; }
-.pub-card-status-badge.rascunho   { background: rgba(217,119,6,0.85);  color: #fff; }
+.pub-card-status-badge.publicada   { background: rgba(5,150,105,0.85);   color: #fff; }
+.pub-card-status-badge.rascunho    { background: rgba(217,119,6,0.85);   color: #fff; }
+.pub-card-status-badge.em_revisao  { background: rgba(59,130,246,0.85);  color: #fff; }
 /* ── Banner: Rascunhos aguardando dados jurídicos ── */
 #juridico-rascunho-banner {
   display:none; align-items:center; gap:12px; flex-wrap:wrap;
@@ -1569,10 +1570,11 @@ tbody tr:last-child td { border-bottom: none; }
       <!-- Painel: Publicadas -->
       <div class="sub-panel active" id="subpanel-publicadas">
         <div class="neg-pills">
-          <button class="neg-pill active" id="pubpill-todos"      onclick="filterPubPill('todos')">Todos</button>
-          <button class="neg-pill"        id="pubpill-publicada"  onclick="filterPubPill('publicada')">Publicadas</button>
-          <button class="neg-pill"        id="pubpill-rascunho"   onclick="filterPubPill('rascunho')">Rascunho</button>
-          <button class="neg-pill"        id="pubpill-finalizada" onclick="filterPubPill('finalizada')">Encerradas</button>
+          <button class="neg-pill active" id="pubpill-todos"       onclick="filterPubPill('todos')">Todos</button>
+          <button class="neg-pill"        id="pubpill-publicada"   onclick="filterPubPill('publicada')">Publicadas</button>
+          <button class="neg-pill"        id="pubpill-em_revisao"  onclick="filterPubPill('em_revisao')">Em análise</button>
+          <button class="neg-pill"        id="pubpill-rascunho"    onclick="filterPubPill('rascunho')">Rascunho</button>
+          <button class="neg-pill"        id="pubpill-finalizada"  onclick="filterPubPill('finalizada')">Encerradas</button>
           <span class="neg-pills-count" id="pub-pills-count"></span>
         </div>
         <!-- Banner: rascunhos aguardando dados jurídicos -->
@@ -4030,7 +4032,7 @@ async function loadMinhasOpps() {
       cidade: extractCity(r.localizacao),
       localizacao: r.localizacao || '',
       data: r.alcance || '',
-      status: r.ativo === true ? 'publicada' : (r.status === 'finalizada' ? 'finalizada' : 'rascunho'),
+      status: r.ativo === true ? 'publicada' : (r.status === 'finalizada' ? 'finalizada' : (r.status === 'em_revisao' ? 'em_revisao' : 'rascunho')),
       interesses: 0,
       bg_gradient: r.bg_gradient,
       imagem_capa: r.imagem_capa || null,
@@ -4057,24 +4059,29 @@ async function loadMinhasOpps() {
 }
 
 async function publishOportunidade(id) {
+  // Mantido por compatibilidade — redireciona para o novo fluxo de revisão
+  await enviarParaRevisao(id);
+}
+
+async function enviarParaRevisao(id) {
   const opp = MINHAS_OPPS.find(o => o.id === id);
   if (!opp) return;
-  opp.status = 'publicada';
+  opp.status = 'em_revisao';
   renderPublicadas();
   if (!isDemoMode()) {
     try {
       if (window._adminViewCtx) {
-        await window._adminViewCall('update-oportunidade-as', { opp_id: id, opp_data: { status: 'publicada', ativo: true } });
+        await window._adminViewCall('update-oportunidade-as', { opp_id: id, opp_data: { status: 'em_revisao', ativo: false } });
       } else {
         const token = await _getWriteToken();
         if (token) await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + id, {
-          method: 'PATCH', body: JSON.stringify({ status: 'publicada', ativo: true }),
+          method: 'PATCH', body: JSON.stringify({ status: 'em_revisao', ativo: false }),
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
         });
       }
-    } catch (e) { console.error('[publishOportunidade]', e); showToast('Erro ao publicar.', 'error'); return; }
+    } catch (e) { console.error('[enviarParaRevisao]', e); showToast('Erro ao enviar para análise.', 'error'); return; }
   }
-  showToast('Oportunidade publicada com sucesso!', 'success');
+  showToast('Oportunidade enviada para análise!', 'success');
 }
 
 async function encerrarOportunidade(id) {
@@ -4159,7 +4166,7 @@ function renderPublicadas() {
   _updateJuridicoBanner();
   const container = document.getElementById('pub-grid-container');
   if (!container) return;
-  const statusLabel = { publicada:'Publicada', rascunho:'Rascunho', finalizada:'Encerrada' };
+  const statusLabel = { publicada:'Publicada', rascunho:'Rascunho', finalizada:'Encerrada', em_revisao:'Em análise' };
 
   const filtered = _pubFilterAtivo === 'todos'
     ? MINHAS_OPPS
@@ -4177,7 +4184,7 @@ function renderPublicadas() {
   if (navBadge) navBadge.textContent = MINHAS_OPPS.length;
 
   if (filtered.length === 0) {
-    const labels = { publicada:'publicadas', rascunho:'em rascunho', finalizada:'encerradas', todos:'' };
+    const labels = { publicada:'publicadas', rascunho:'em rascunho', finalizada:'encerradas', em_revisao:'em análise', todos:'' };
     const labelStr = labels[_pubFilterAtivo] !== undefined ? labels[_pubFilterAtivo] : '';
     container.innerHTML = `<div style="grid-column:1/-1">${emptyStateHtml('oportunidades', 'Nenhuma oportunidade encontrada', labelStr ? 'Nenhuma oportunidade ' + labelStr + ' por aqui.' : 'Suas oportunidades publicadas aparecerão aqui.')}</div>`;
     return;
@@ -4194,6 +4201,7 @@ function renderPublicadas() {
     const isPublicada  = o.status === 'publicada';
     const isFinalizada = o.status === 'finalizada';
     const isRascunho   = o.status === 'rascunho';
+    const isEmRevisao  = o.status === 'em_revisao';
     const vis = o.visibilidade || 'publica';
     const vCfg = visConfig[vis] || visConfig.publica;
     const cardOnclick = `onclick="editarOportunidade(${o.id})"`;
@@ -4206,10 +4214,13 @@ function renderPublicadas() {
         <button class="btn btn-ghost btn-sm" onclick="toggleOppOpts(${o.id},event)">Opções</button>`;
     } else if (isFinalizada) {
       rightBtns = '';
+    } else if (isEmRevisao) {
+      leftBtn   = `<button class="btn-excluir" onclick="event.stopPropagation();excluirOportunidade(${o.id})">Excluir</button>`;
+      rightBtns = `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editarOportunidade(${o.id})">Editar</button>`;
     } else {
       leftBtn   = `<button class="btn-excluir" onclick="event.stopPropagation();excluirOportunidade(${o.id})">Excluir</button>`;
       rightBtns = `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editarOportunidade(${o.id})">Editar</button>
-                   <button class="btn btn-gold btn-sm" onclick="event.stopPropagation();publishOportunidade(${o.id})">Publicar</button>`;
+                   <button class="btn btn-gold btn-sm" onclick="event.stopPropagation();enviarParaRevisao(${o.id})">Enviar para análise</button>`;
     }
 
     const visBadgeHtml = isPublicada ? `

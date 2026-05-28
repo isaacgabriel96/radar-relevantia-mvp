@@ -606,6 +606,11 @@ tr.row-selected td { background: #FEF2F2; }
             <div class="stat-value" id="statAprovados">—</div>
             <div class="stat-desc">marcas + detentores</div>
           </div>
+          <div class="stat-card" style="border-left:3px solid #3B82F6;cursor:pointer" onclick="showSection('oportunidades',document.querySelector('.sidebar-item[onclick*=oportunidades]'));renderOportunidades('em_revisao',document.getElementById('filter-em_revisao'))">
+            <div class="stat-label">Oportunidades Em Análise</div>
+            <div class="stat-value" id="statOppsRevisao">—</div>
+            <div class="stat-desc">aguardando sua aprovação</div>
+          </div>
           <div class="stat-card" style="border-left:3px solid #D97706">
             <div class="stat-label">Deals Pendentes</div>
             <div class="stat-value" id="statDealsPend">—</div>
@@ -1125,7 +1130,8 @@ tr.row-selected td { background: #FEF2F2; }
 
         <div class="filter-bar" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <button class="btn btn-sm btn-filter active" onclick="renderOportunidades('todos', this)">Todas</button>
-          <button class="btn btn-sm btn-filter" onclick="renderOportunidades('publicado', this)">✓ Publicadas</button>
+          <button class="btn btn-sm btn-filter" id="filter-em_revisao" onclick="renderOportunidades('em_revisao', this)">⏳ Em análise <span id="badge-em-revisao" style="display:none;margin-left:4px;background:#3B82F6;color:#fff;border-radius:100px;padding:0 6px;font-size:11px"></span></button>
+          <button class="btn btn-sm btn-filter" onclick="renderOportunidades('publicada', this)">✓ Publicadas</button>
           <button class="btn btn-sm btn-filter" onclick="renderOportunidades('rascunho', this)">📝 Rascunhos</button>
           <input id="opp-search" type="text" placeholder="Buscar por nome ou detentor…"
             style="margin-left:auto;padding:6px 12px;border:1px solid var(--gray-2);border-radius:8px;font-size:13px;width:220px"
@@ -1673,17 +1679,18 @@ async function loadAllData() {
 // ── Stats ─────────────────────────────────────────────────────
 async function loadStats() {
   try {
-    const [rEmb, rMPend, rDPend, rMAprov, rDAprov, rDealsPend] = await Promise.all([
+    const [rEmb, rMPend, rDPend, rMAprov, rDAprov, rDealsPend, rOppsRevisao] = await Promise.all([
       sbFetch('/rest/v1/embaixadores?select=id&ativo=eq.true'),
       sbFetch('/rest/v1/marcas_waitlist?select=id&status=eq.pendente'),
       sbFetch('/rest/v1/detentores_waitlist?select=id&status=eq.pendente'),
       sbFetch('/rest/v1/marcas_waitlist?select=id&status=eq.aprovado'),
       sbFetch('/rest/v1/detentores_waitlist?select=id&status=eq.aprovado'),
-      sbFetch('/rest/v1/contratos?select=id&completo_em=is.null')
+      sbFetch('/rest/v1/contratos?select=id&completo_em=is.null'),
+      sbFetch('/rest/v1/oportunidades?select=id&status=eq.em_revisao')
     ]);
 
-    const [emb, mPend, dPend, mAprov, dAprov, dealsPend] = await Promise.all([
-      rEmb.json(), rMPend.json(), rDPend.json(), rMAprov.json(), rDAprov.json(), rDealsPend.json()
+    const [emb, mPend, dPend, mAprov, dAprov, dealsPend, oppsRevisao] = await Promise.all([
+      rEmb.json(), rMPend.json(), rDPend.json(), rMAprov.json(), rDAprov.json(), rDealsPend.json(), rOppsRevisao.json()
     ]);
 
     const embCount  = Array.isArray(emb)    ? emb.length    : 0;
@@ -1691,12 +1698,14 @@ async function loadStats() {
     const dPendCnt  = Array.isArray(dPend)  ? dPend.length  : 0;
     const aprovCnt  = (Array.isArray(mAprov) ? mAprov.length : 0) + (Array.isArray(dAprov) ? dAprov.length : 0);
     const dealsPendCnt = Array.isArray(dealsPend) ? dealsPend.length : 0;
+    const oppsRevisaoCnt = Array.isArray(oppsRevisao) ? oppsRevisao.length : 0;
 
     document.getElementById('statEmbaixadores').textContent   = embCount;
     document.getElementById('statMarcasPend').textContent     = mPendCnt;
     document.getElementById('statDetentoresPend').textContent = dPendCnt;
     document.getElementById('statAprovados').textContent      = aprovCnt;
     document.getElementById('statDealsPend').textContent      = dealsPendCnt;
+    document.getElementById('statOppsRevisao').textContent    = oppsRevisaoCnt;
 
     document.getElementById('badgeEmbaixadores').textContent = embCount;
     document.getElementById('badgeMarcas').textContent       = mPendCnt;
@@ -2403,8 +2412,13 @@ function renderOportunidades(filter, btn) {
     return;
   }
 
-  const statusLabel = { publicado: '✓ Publicado', rascunho: '📝 Rascunho', pendente: '⏳ Pendente', arquivado: '📦 Arquivado' };
-  const statusColor = { publicado: '#15803D', rascunho: '#92400E', pendente: '#1D4ED8', arquivado: '#6B7280' };
+  const statusLabel = { publicada: '✓ Publicada', publicado: '✓ Publicado', rascunho: '📝 Rascunho', em_revisao: '⏳ Em análise', pendente: '⏳ Pendente', arquivado: '📦 Arquivado' };
+  const statusColor = { publicada: '#15803D', publicado: '#15803D', rascunho: '#92400E', em_revisao: '#1D4ED8', pendente: '#1D4ED8', arquivado: '#6B7280' };
+
+  // Atualiza badge de "em análise"
+  const countRevisao = rows.filter(o => o.status === 'em_revisao').length;
+  const badgeEl = document.getElementById('badge-em-revisao');
+  if (badgeEl) { badgeEl.textContent = countRevisao; badgeEl.style.display = countRevisao > 0 ? 'inline' : 'none'; }
   const tipoLabel   = { evento: 'Evento', personalidade: 'Personalidade', artista: 'Artista', midia: 'Mídia' };
 
   tbody.innerHTML = rows.map(o => {
@@ -2423,7 +2437,13 @@ function renderOportunidades(filter, btn) {
       <td><span style="color:${cor};font-weight:600;font-size:12px">${sl}</span></td>
       <td style="color:var(--gray-5);font-size:13px">${data}</td>
       <td>
-        <div style="display:flex;gap:6px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${status === 'em_revisao' ? `
+          <button class="btn btn-sm btn-approve" style="padding:4px 10px;font-size:12px"
+            onclick="aprovarOportunidade('${o.id}')">✓ Aprovar</button>
+          <button class="btn btn-sm btn-reject" style="padding:4px 10px;font-size:12px"
+            onclick="rejeitarOportunidade('${o.id}')">✕ Rejeitar</button>
+          ` : ''}
           <a href="criar-oportunidade.html?edit=${o.id}" target="_blank"
              style="padding:4px 10px;border-radius:6px;border:1px solid var(--gray-2);font-size:12px;color:var(--black);text-decoration:none;background:var(--white)">
             ✏️ Editar
@@ -2450,6 +2470,33 @@ async function deleteOportunidade(id, titulo) {
   } catch (e) {
     console.error('[deleteOportunidade]', e);
     showToast('Erro ao apagar oportunidade.', 'error');
+  }
+}
+
+async function aprovarOportunidade(id) {
+  try {
+    await adminAction('update-oportunidade-as', { opp_id: id, opp_data: { status: 'publicada', ativo: true } });
+    const opp = _allOportunidades.find(o => String(o.id) === String(id));
+    if (opp) { opp.status = 'publicada'; opp.ativo = true; }
+    renderOportunidades(window._oppFilter || 'todos');
+    showToast('Oportunidade aprovada e publicada!', 'success');
+  } catch (e) {
+    console.error('[aprovarOportunidade]', e);
+    showToast('Erro ao aprovar oportunidade.', 'error');
+  }
+}
+
+async function rejeitarOportunidade(id) {
+  const motivo = prompt('Motivo da rejeição (opcional — será registrado no log):') ?? '';
+  try {
+    await adminAction('update-oportunidade-as', { opp_id: id, opp_data: { status: 'rascunho', ativo: false } });
+    const opp = _allOportunidades.find(o => String(o.id) === String(id));
+    if (opp) { opp.status = 'rascunho'; opp.ativo = false; }
+    renderOportunidades(window._oppFilter || 'todos');
+    showToast('Oportunidade rejeitada — devolvida para rascunho.', 'success');
+  } catch (e) {
+    console.error('[rejeitarOportunidade]', e);
+    showToast('Erro ao rejeitar oportunidade.', 'error');
   }
 }
 

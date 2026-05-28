@@ -4429,7 +4429,7 @@ input[type=number] { -moz-appearance: textfield; }
         <button class="btn btn-ghost" onclick="nextStep(7)">← Voltar</button>
         <button class="btn btn-ghost" onclick="saveDraft()">Salvar rascunho</button>
         <button class="btn btn-publish" onclick="publishOpportunity()">
-          Publicar no Radar
+          Enviar para análise
         </button>
       </div>
     </div><!-- /panel-8 -->
@@ -4444,8 +4444,8 @@ input[type=number] { -moz-appearance: textfield; }
 <div class="modal-overlay" id="successModal">
   <div class="modal-box">
     <div class="modal-icon" style="display:flex;justify-content:center"><svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="26" cy="26" r="24" stroke="#B8860B" stroke-width="1.5" fill="rgba(184,134,11,0.06)"/><path d="M16 26l8 8 12-14" stroke="#B8860B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div class="modal-title">Oportunidade publicada!</div>
-    <div id="success-modal-desc" class="modal-desc">Sua oportunidade está agora visível no Radar Relevantia. As marcas já podem encontrá-la e demonstrar interesse.</div>
+    <div class="modal-title">Enviado para análise! 🎉</div>
+    <div id="success-modal-desc" class="modal-desc">Nossa equipe vai revisar sua oportunidade em breve. Você será notificado quando ela for publicada no Radar.</div>
     <!-- Link de convite — exibido apenas para visibilidade "convidadas" -->
     <div id="success-share-link-wrap" style="display:none;margin-bottom:16px;padding:14px;background:var(--gray-1);border-radius:var(--radius-md)">
       <div style="font-size:12px;color:var(--gray-4);font-weight:600;margin-bottom:8px">Link de convite</div>
@@ -8209,10 +8209,10 @@ function _openSuccessModal() {
     const link = _buildShareLink();
     input.value = link;
     wrap.style.display = 'block';
-    if (desc) desc.textContent = 'Sua oportunidade foi publicada. Compartilhe o link abaixo com as marcas que você deseja convidar.';
+    if (desc) desc.textContent = 'Nossa equipe vai revisar sua oportunidade em breve. Enquanto isso, salve o link para compartilhar com marcas convidadas após a aprovação.';
   } else {
     if (wrap) wrap.style.display = 'none';
-    if (desc) desc.textContent = 'Sua oportunidade está agora visível no Radar Relevantia. As marcas já podem encontrá-la e demonstrar interesse.';
+    if (desc) desc.textContent = 'Nossa equipe vai revisar sua oportunidade em breve. Você será notificado quando ela for publicada no Radar.';
   }
   document.getElementById('successModal').classList.add('open');
 }
@@ -11043,6 +11043,9 @@ async function _saveJuridicoAndPublish() {
 
 async function publishOpportunity() {
   const data = mergePreviewData(collectOppData());
+  // Fluxo de revisão: oportunidades ficam em análise até aprovação admin
+  data.status = 'em_revisao';
+  data.ativo  = false;
 
   // ── Validações obrigatórias ──
   if (!data.titulo) { showToast('Preencha o nome da oportunidade.', 'error'); return; }
