@@ -6125,6 +6125,11 @@ function renderMinhasSolicitacoes() {
           Solicite acesso para que o detentor possa analisar seu perfil.
         </p>
       </div>
+      <!-- Mensagem opcional -->
+      <div style="width:100%;text-align:left">
+        <label style="font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--gray-500);display:block;margin-bottom:6px">Mensagem para o organizador <span style="font-weight:400;color:var(--gray-400)">(opcional)</span></label>
+        <textarea id="map-mensagem" rows="3" placeholder="Apresente sua marca e o motivo do interesse..." style="width:100%;box-sizing:border-box;border:1px solid var(--gray-200);border-radius:10px;padding:10px 12px;font-family:var(--font-body);font-size:13px;color:var(--text);resize:none;outline:none;transition:border-color 0.15s" onfocus="this.style.borderColor='#B8860B'" onblur="this.style.borderColor='var(--gray-200)'"></textarea>
+      </div>
       <!-- Botão primário -->
       <button id="map-btn-solicitar" class="btn" style="width:100%;justify-content:center;padding:13px 20px;font-size:14px;border-radius:12px;background:#503A00;color:#fff" onclick="handleModalSolicitarAcesso()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -6172,6 +6177,8 @@ function abrirModalAprovacao(opp) {
 
 function fecharModalAprovacao() {
   document.getElementById('modal-aprovacao').classList.remove('open');
+  const ta = document.getElementById('map-mensagem');
+  if (ta) ta.value = '';
   _MAP_OPP = null;
 }
 
@@ -6225,7 +6232,7 @@ async function handleModalSolicitarAcesso() {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({ oportunidade_id: _MAP_OPP.id, marca_id: marcaId, status: 'pendente' })
+      body: JSON.stringify({ oportunidade_id: _MAP_OPP.id, marca_id: marcaId, status: 'pendente', mensagem: (document.getElementById('map-mensagem') || {}).value || null })
     });
 
     if (res.ok || res.status === 201) {

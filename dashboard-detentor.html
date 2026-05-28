@@ -6653,7 +6653,7 @@ async function loadSolicitacoes() {
     // oportunidades deste detentor — não precisamos construir o IN clause manual.
     const solRes = await fetch(
       SUPABASE_URL + '/rest/v1/acessos_oportunidade?' +
-      'select=id,oportunidade_id,marca_id,status,criado_em&order=criado_em.desc',
+      'select=id,oportunidade_id,marca_id,status,mensagem,criado_em&order=criado_em.desc',
       { headers: headers }
     );
     if (!solRes.ok) throw new Error('acessos_oportunidade fetch failed: ' + solRes.status);
@@ -6686,11 +6686,13 @@ async function loadSolicitacoes() {
         oportunidade_id: r.oportunidade_id,
         marca_id:        r.marca_id,
         status:          r.status,
+        mensagem:        r.mensagem || null,
         criado_em:       r.criado_em,
         opp_titulo:      opp ? (opp.titulo || 'Oportunidade') : 'Oportunidade',
         opp_categoria:   opp ? (opp.categoria || '') : '',
+        opp_imagem:      opp ? (opp.imagem_capa || null) : null,
         marca_nome:      perfil.nome || '',
-        marca_empresa:   perfil.empresa || perfil.nome || 'Marca',
+        marca_empresa:   perfil.empresa || perfil.nome || '',
         avatar_url:      perfil.logo_url || null
       };
     });
@@ -6787,22 +6789,30 @@ function renderSolicitacoes() {
               '<span style="font-family:var(--font-body);font-size:14px;font-weight:600;color:var(--text)">' + escapeHtml(s.marca_empresa) + '</span>',
               statusBadge,
             '</div>',
-            s.marca_nome ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400);margin-bottom:2px">' + escapeHtml(s.marca_nome) + (dataRelativa ? ' · ' + dataRelativa : '') + '</div>' : (dataRelativa ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400)">' + dataRelativa + '</div>' : ''),
+            s.marca_nome ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400);margin-bottom:2px">' + escapeHtml(s.marca_nome) + (dataRelativa ? ' · ' + dataRelativa : '') + '</div>' : (dataRelativa ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400);margin-bottom:2px">' + dataRelativa + '</div>' : ''),
+            s.mensagem ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:6px 10px;margin-top:5px;font-style:italic">"' + escapeHtml(s.mensagem) + '"</div>' : '',
           '</div>',
           '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">' + actionsHtml + '</div>',
         '</div>'
       ].join('');
     }).join('');
 
+    const oppImg = g.items[0] && g.items[0].opp_imagem;
+    const oppImgHtml = oppImg
+      ? '<img src="' + oppImg + '" style="width:100%;height:80px;object-fit:cover;border-radius:10px;margin-bottom:14px;display:block" alt="">'
+      : '';
     return [
-      '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px">',
-        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">',
-          '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:rgba(184,134,11,0.1);color:#B8860B;font-size:11px;font-weight:600;font-family:var(--font-body)">' + lockIconSvg + 'Por aprovação</span>',
-          g.opp_categoria ? '<span style="display:inline-flex;padding:3px 10px;border-radius:100px;background:var(--gray-100);color:var(--gray-500);font-size:11px;font-weight:600;font-family:var(--font-body)">' + g.opp_categoria + '</span>' : '',
+      '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px">',
+        oppImgHtml ? '<div style="padding:16px 20px 0">' + oppImgHtml + '</div>' : '',
+        '<div style="padding:' + (oppImgHtml ? '0' : '20px') + ' 20px 20px">',
+          '<div style="' + (oppImgHtml ? 'padding-top:0' : '') + 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">',
+            '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:rgba(184,134,11,0.1);color:#B8860B;font-size:11px;font-weight:600;font-family:var(--font-body)">' + lockIconSvg + 'Por aprovação</span>',
+            g.opp_categoria ? '<span style="display:inline-flex;padding:3px 10px;border-radius:100px;background:var(--gray-100);color:var(--gray-500);font-size:11px;font-weight:600;font-family:var(--font-body)">' + g.opp_categoria + '</span>' : '',
+          '</div>',
+          '<div style="font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px">' + g.opp_titulo + '</div>',
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">' + chipsHtml + '</div>',
+          '<div>' + rowsHtml + '</div>',
         '</div>',
-        '<div style="font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px">' + g.opp_titulo + '</div>',
-        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">' + chipsHtml + '</div>',
-        '<div>' + rowsHtml + '</div>',
       '</div>'
     ].join('');
   }).join('');
