@@ -10865,20 +10865,24 @@ function mergePreviewData(data) {
 /* ══════════════════════════════════════════════
    MODAL: DADOS JURÍDICOS PARA PUBLICAR
 ══════════════════════════════════════════════ */
+// Retorna: 'ok' | 'no_permission' | 'no_juridico'
 async function _checkJuridicoCompleto() {
-  if (window._juridicoValidated) return true;
+  if (window._juridicoValidated) return 'ok';
   try {
     const token = await _getWriteToken();
     const userId = await getAuthUserId();
-    if (!token || !userId) return true;
+    if (!token || !userId) return 'no_juridico';
     const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId +
-      '&select=cadastro_juridico_completo&limit=1', {
+      '&select=pode_publicar,cadastro_juridico_completo&limit=1', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
-    if (!res.ok) return true;
+    if (!res.ok) return 'no_juridico';
     const rows = await res.json();
-    return !!(rows[0]?.cadastro_juridico_completo);
-  } catch(_) { return true; }
+    const p = rows[0];
+    if (!p?.pode_publicar) return 'no_permission';
+    if (!p?.cadastro_juridico_completo) return 'no_juridico';
+    return 'ok';
+  } catch(_) { return 'no_juridico'; }
 }
 
 async function _openJuridicoPublishModal() {
@@ -11122,10 +11126,14 @@ async function publishOpportunity() {
     return;
   }
 
-  // ── Verificar dados jurídicos ──
+  // ── Verificar permissões e dados jurídicos ──
   if (!window._impersonateCtx) {
-    const jurOk = await _checkJuridicoCompleto();
-    if (!jurOk) {
+    const check = await _checkJuridicoCompleto();
+    if (check === 'no_permission') {
+      showToast('Sua conta não tem permissão para publicar. Entre em contato com o Radar Relevantia.', 'error');
+      return;
+    }
+    if (check === 'no_juridico') {
       await _openJuridicoPublishModal();
       return;
     }

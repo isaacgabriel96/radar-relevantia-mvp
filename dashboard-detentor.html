@@ -2772,8 +2772,9 @@ function irParaEquipeDetentor() {
 
 function populateDetenorFields(p) {
   if (editingEmpresa || editingPerfil) return;
-  OB_DET.perfil   = !!(p.empresa && p.empresa.trim() && p.segmento && p.segmento.trim() && p.descricao && p.descricao.trim());
-  OB_DET.juridico = !!(p.cadastro_juridico_completo);
+  OB_DET.perfil        = !!(p.empresa && p.empresa.trim() && p.segmento && p.segmento.trim() && p.descricao && p.descricao.trim());
+  OB_DET.juridico      = !!(p.cadastro_juridico_completo);
+  OB_DET.podePublicar  = !!(p.pode_publicar);
   updateSetupGuide();
   if (!editingJuridico) populateJuridicoFields(p);
 
@@ -2871,7 +2872,7 @@ async function loadUserInfoDetentor() {
     try {
       const ctx = window._adminViewCtx;
       const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + ctx.target_user_id +
-        '&select=nome,empresa,email,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url,cadastro_juridico_completo&limit=1', {
+        '&select=nome,empresa,email,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url,cadastro_juridico_completo,pode_publicar&limit=1', {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + ctx.admin_token }
       });
       if (res.ok) {
@@ -2912,7 +2913,7 @@ async function loadUserInfoDetentor() {
         // Tentar buscar nome real na tabela perfis
         try {
           const token = session.access_token;
-          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa,email,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url,cadastro_juridico_completo&limit=1', {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa,email,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url,cadastro_juridico_completo,pode_publicar&limit=1', {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
           });
           if (res.ok) {
@@ -4067,7 +4068,11 @@ async function enviarParaRevisao(id) {
   const opp = MINHAS_OPPS.find(o => o.id === id);
   if (!opp) return;
 
-  // Verificar dados jurídicos antes de enviar para análise
+  // Verificar permissão e dados jurídicos antes de enviar para análise
+  if (!OB_DET.podePublicar) {
+    showToast('Sua conta não tem permissão para publicar. Entre em contato com o Radar Relevantia.', 'error');
+    return;
+  }
   if (!OB_DET.juridico) {
     showToast('Complete seus dados jurídicos antes de publicar.', 'error');
     setTimeout(() => {

@@ -2444,6 +2444,13 @@ function renderOportunidades(filter, btn) {
           <button class="btn btn-sm btn-reject" style="padding:4px 10px;font-size:12px"
             onclick="rejeitarOportunidade('${o.id}')">✕ Rejeitar</button>
           ` : ''}
+          ${o.detentor_id ? `
+          <button class="btn btn-sm" style="padding:4px 10px;font-size:12px;${o.perfil_detentor?.pode_publicar ? 'background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)' : 'background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)'}"
+            onclick="togglePodePublicar('${o.detentor_id}', ${!!o.perfil_detentor?.pode_publicar})"
+            title="${o.perfil_detentor?.pode_publicar ? 'Bloquear publicação deste detentor' : 'Liberar publicação deste detentor'}">
+            ${o.perfil_detentor?.pode_publicar ? '🔒 Bloquear' : '🔓 Liberar'}
+          </button>
+          ` : ''}
           <a href="criar-oportunidade.html?edit=${o.id}" target="_blank"
              style="padding:4px 10px;border-radius:6px;border:1px solid var(--gray-2);font-size:12px;color:var(--black);text-decoration:none;background:var(--white)">
             ✏️ Editar
@@ -2470,6 +2477,20 @@ async function deleteOportunidade(id, titulo) {
   } catch (e) {
     console.error('[deleteOportunidade]', e);
     showToast('Erro ao apagar oportunidade.', 'error');
+  }
+}
+
+async function togglePodePublicar(perfilId, currentValue) {
+  const novoValor = !currentValue;
+  const acao = novoValor ? 'liberar publicação' : 'bloquear publicação';
+  if (!confirm(`Confirma: ${acao} para este detentor?`)) return;
+  try {
+    await adminAction('set-pode-publicar', { perfil_id: perfilId, value: novoValor });
+    showToast(novoValor ? 'Publicação liberada.' : 'Publicação bloqueada.', 'success');
+    loadOportunidades();
+  } catch (e) {
+    console.error('[togglePodePublicar]', e);
+    showToast('Erro ao alterar permissão.', 'error');
   }
 }
 
