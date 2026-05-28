@@ -1761,6 +1761,34 @@ input[type=number] { -moz-appearance: textfield; }
 .modal-title { font-family: var(--font-heading); font-size: 26px; margin-bottom: 8px; }
 .modal-desc { font-size: 14px; color: var(--gray-3); margin-bottom: 24px; line-height: 1.6; }
 
+/* ── Modal: Dados Jurídicos (Publicar) ── */
+#modal-juridico-publish.modal-overlay .jpm-box {
+  background:var(--white); border-radius:var(--radius-lg);
+  padding:28px 28px 24px; max-width:540px; width:94%; text-align:left;
+  box-shadow:var(--shadow-lg); max-height:90vh; overflow-y:auto;
+}
+.jpm-title { font-family:var(--font-heading); font-size:20px; font-weight:700; color:var(--text-dark); margin-bottom:6px; }
+.jpm-desc { font-size:13.5px; color:var(--gray-3); margin-bottom:16px; line-height:1.55; }
+.jpm-section-label { font-size:11px; font-weight:700; color:var(--gray-400,#A89880); letter-spacing:.06em; text-transform:uppercase; margin:18px 0 10px; }
+.jpm-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; }
+.jpm-form-group { display:flex; flex-direction:column; gap:4px; }
+.jpm-form-group.jpm-full { grid-column:1/-1; }
+.jpm-label { font-size:12px; font-weight:600; color:var(--gray-600,#5C4C38); }
+.jpm-input { height:40px; border:1.5px solid var(--gray-2,#E0D8CC); border-radius:8px; padding:0 12px; font-size:13.5px; font-family:var(--font-body); color:var(--text); background:var(--white); width:100%; outline:none; transition:border-color .15s; }
+.jpm-input:focus { border-color:var(--gold); }
+.jpm-input.jpm-err { border-color:#EF4444; }
+.jpm-footer { display:flex; flex-direction:column; gap:8px; margin-top:22px; }
+.jpm-btn-pub { height:46px; border:none; border-radius:10px; background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B)); color:#fff; font-family:var(--font-heading); font-weight:700; font-size:14px; cursor:pointer; letter-spacing:.02em; transition:opacity .15s; }
+.jpm-btn-pub:hover { opacity:.88; }
+.jpm-btn-pub:disabled { opacity:.5; cursor:default; }
+.jpm-btn-later { height:40px; border:1.5px solid var(--gray-2,#E0D8CC); border-radius:10px; background:transparent; color:var(--gray-4,#5C4C38); font-family:var(--font-heading); font-weight:600; font-size:13px; cursor:pointer; transition:border-color .15s,color .15s; }
+.jpm-btn-later:hover { border-color:var(--gold); color:var(--gold-light,#C8A84B); }
+@media(max-width:480px){
+  #modal-juridico-publish.modal-overlay .jpm-box { padding:20px 16px 18px; }
+  .jpm-form-grid { grid-template-columns:1fr; }
+  .jpm-form-group.jpm-full { grid-column:1; }
+}
+
 /* ── Divider ── */
 .section-divider { border: none; border-top: 1px solid var(--gray-1); margin: 24px 0; }
 
@@ -4431,6 +4459,80 @@ input[type=number] { -moz-appearance: textfield; }
     <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="goToDashboardPreservingCtx()">
       Ver minhas oportunidades
     </button>
+  </div>
+</div>
+
+<!-- ── Modal: Dados Jurídicos para Publicar ── -->
+<div class="modal-overlay" id="modal-juridico-publish" onclick="if(event.target===this)_closeJuridicoPublishModal()">
+  <div class="jpm-box">
+    <div class="jpm-title">Dados jurídicos necessários</div>
+    <div class="jpm-desc">Para publicar no Radar, precisamos de seus dados jurídicos. Eles garantem a segurança dos acordos com as marcas.</div>
+
+    <div class="jpm-section-label">Empresa</div>
+    <div class="jpm-form-grid">
+      <div class="jpm-form-group">
+        <label class="jpm-label">CNPJ <span style="color:#EF4444">*</span></label>
+        <input class="jpm-input" id="jpm-cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18" oninput="_jpmMaskCnpj(this)">
+      </div>
+      <div class="jpm-form-group">
+        <label class="jpm-label">Razão Social <span style="color:#EF4444">*</span></label>
+        <input class="jpm-input" id="jpm-razao" type="text" placeholder="Razão social completa">
+      </div>
+    </div>
+
+    <div class="jpm-section-label">Endereço</div>
+    <div class="jpm-form-grid">
+      <div class="jpm-form-group">
+        <label class="jpm-label">CEP <span style="color:#EF4444">*</span></label>
+        <input class="jpm-input" id="jpm-cep" type="text" placeholder="00000-000" maxlength="9" oninput="_jpmMaskCep(this)">
+      </div>
+      <div class="jpm-form-group jpm-full">
+        <label class="jpm-label">Logradouro <span style="color:#EF4444">*</span></label>
+        <input class="jpm-input" id="jpm-logradouro" type="text" placeholder="Rua, Avenida...">
+      </div>
+      <div class="jpm-form-group">
+        <label class="jpm-label">Número <span style="color:#EF4444">*</span></label>
+        <input class="jpm-input" id="jpm-numero" type="text" placeholder="123">
+      </div>
+      <div class="jpm-form-group">
+        <label class="jpm-label">Complemento</label>
+        <input class="jpm-input" id="jpm-complemento" type="text" placeholder="Apto, sala...">
+      </div>
+      <div class="jpm-form-group">
+        <label class="jpm-label">Cidade <span style="color:#EF4444">*</span></label>
+        <input class="jpm-input" id="jpm-cidade" type="text" placeholder="São Paulo">
+      </div>
+      <div class="jpm-form-group">
+        <label class="jpm-label">Estado <span style="color:#EF4444">*</span></label>
+        <select class="jpm-input" id="jpm-estado" style="appearance:auto">
+          <option value="">Selecione</option>
+          <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+          <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+          <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+          <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+          <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+          <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+          <option>SP</option><option>SE</option><option>TO</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="jpm-section-label">Responsável legal</div>
+    <div class="jpm-form-grid">
+      <div class="jpm-form-group">
+        <label class="jpm-label">Nome completo <span style="color:#EF4444">*</span></label>
+        <input class="jpm-input" id="jpm-resp-nome" type="text" placeholder="Nome do responsável legal">
+      </div>
+      <div class="jpm-form-group">
+        <label class="jpm-label">CPF <span style="color:#EF4444">*</span></label>
+        <input class="jpm-input" id="jpm-resp-cpf" type="text" placeholder="000.000.000-00" maxlength="14" oninput="_jpmMaskCpf(this)">
+      </div>
+    </div>
+
+    <div class="jpm-footer">
+      <button class="jpm-btn-pub" id="jpm-btn-pub" onclick="_saveJuridicoAndPublish()">Salvar e publicar</button>
+      <button class="jpm-btn-later" onclick="_publishAsRascunho()">Publicar depois — salvar como rascunho</button>
+    </div>
   </div>
 </div>
 
@@ -10760,6 +10862,185 @@ function mergePreviewData(data) {
   return data;
 }
 
+/* ══════════════════════════════════════════════
+   MODAL: DADOS JURÍDICOS PARA PUBLICAR
+══════════════════════════════════════════════ */
+async function _checkJuridicoCompleto() {
+  if (window._juridicoValidated) return true;
+  try {
+    const token = await _getWriteToken();
+    const userId = await getAuthUserId();
+    if (!token || !userId) return true;
+    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId +
+      '&select=cadastro_juridico_completo&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return true;
+    const rows = await res.json();
+    return !!(rows[0]?.cadastro_juridico_completo);
+  } catch(_) { return true; }
+}
+
+async function _openJuridicoPublishModal() {
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) {
+      const { data, error } = await sb.rpc('get_perfil_juridico', { p_perfil_id: session.user.id });
+      if (!error && data && data[0]) {
+        const p = data[0];
+        const setV = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+        setV('jpm-cnpj',      p.cnpj);
+        setV('jpm-razao',     p.razao_social);
+        setV('jpm-cep',       p.cep);
+        setV('jpm-logradouro',p.logradouro);
+        setV('jpm-numero',    p.numero_endereco);
+        setV('jpm-complemento',p.complemento);
+        setV('jpm-cidade',    p.cidade);
+        setV('jpm-resp-nome', p.responsavel_legal_nome);
+        setV('jpm-resp-cpf',  p.responsavel_legal_cpf);
+        const estadoEl = document.getElementById('jpm-estado');
+        if (estadoEl && p.estado) estadoEl.value = p.estado;
+      }
+    }
+  } catch(_) {}
+  document.getElementById('modal-juridico-publish').classList.add('open');
+}
+
+function _closeJuridicoPublishModal() {
+  document.getElementById('modal-juridico-publish').classList.remove('open');
+}
+
+async function _publishAsRascunho() {
+  _closeJuridicoPublishModal();
+  await saveDraft();
+}
+
+function _jpmMaskCnpj(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 14);
+  v = v.replace(/^(\d{2})(\d)/, '$1.$2');
+  v = v.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+  v = v.replace(/\.(\d{3})(\d)/, '.$1/$2');
+  v = v.replace(/(\d{4})(\d)/, '$1-$2');
+  el.value = v;
+}
+
+function _jpmMaskCpf(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 11);
+  v = v.replace(/(\d{3})(\d)/, '$1.$2');
+  v = v.replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+  v = v.replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
+  el.value = v;
+}
+
+function _jpmMaskCep(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 8);
+  v = v.replace(/(\d{5})(\d)/, '$1-$2');
+  el.value = v;
+  if (v.replace(/\D/g,'').length === 8) _jpmBuscarCep(v.replace(/\D/g,''));
+}
+
+async function _jpmBuscarCep(cep) {
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const d = await r.json();
+    if (!d.erro) {
+      const setV = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
+      setV('jpm-logradouro', d.logradouro);
+      setV('jpm-cidade',     d.localidade);
+      const estadoEl = document.getElementById('jpm-estado');
+      if (estadoEl && !estadoEl.value) estadoEl.value = d.uf;
+    }
+  } catch(_) {}
+}
+
+function _validateCnpjDigits(cnpj) {
+  cnpj = cnpj.replace(/\D/g, '');
+  if (cnpj.length !== 14) return false;
+  if (/^(\d)\1+$/.test(cnpj)) return false;
+  const calc = (str, weights) => {
+    let sum = 0;
+    for (let i = 0; i < weights.length; i++) sum += parseInt(str[i]) * weights[i];
+    const rem = sum % 11;
+    return rem < 2 ? 0 : 11 - rem;
+  };
+  if (calc(cnpj, [5,4,3,2,9,8,7,6,5,4,3,2]) !== parseInt(cnpj[12])) return false;
+  if (calc(cnpj, [6,5,4,3,2,9,8,7,6,5,4,3,2]) !== parseInt(cnpj[13])) return false;
+  return true;
+}
+
+function _validateCpfDigits(cpf) {
+  cpf = cpf.replace(/\D/g, '');
+  if (cpf.length !== 11) return false;
+  if (/^(\d)\1+$/.test(cpf)) return false;
+  const calc = (str, n) => {
+    let sum = 0;
+    for (let i = 0; i < n - 1; i++) sum += parseInt(str[i]) * (n - i);
+    const rem = (sum * 10) % 11;
+    return rem === 10 || rem === 11 ? 0 : rem;
+  };
+  if (calc(cpf, 10) !== parseInt(cpf[9])) return false;
+  if (calc(cpf, 11) !== parseInt(cpf[10])) return false;
+  return true;
+}
+
+async function _saveJuridicoAndPublish() {
+  document.querySelectorAll('#modal-juridico-publish .jpm-input').forEach(el => el.classList.remove('jpm-err'));
+  const g = (id) => document.getElementById(id)?.value?.trim() || '';
+  const cnpj       = g('jpm-cnpj');
+  const razao      = g('jpm-razao');
+  const cep        = g('jpm-cep');
+  const logradouro = g('jpm-logradouro');
+  const numero     = g('jpm-numero');
+  const complemento= g('jpm-complemento');
+  const cidade     = g('jpm-cidade');
+  const estado     = g('jpm-estado');
+  const respNome   = g('jpm-resp-nome');
+  const respCpf    = g('jpm-resp-cpf');
+
+  let valid = true;
+  const markErr = (id) => { const el = document.getElementById(id); if (el) el.classList.add('jpm-err'); valid = false; };
+
+  if (!cnpj) { markErr('jpm-cnpj'); }
+  else if (!_validateCnpjDigits(cnpj)) { markErr('jpm-cnpj'); showToast('CNPJ inválido. Verifique os dígitos.', 'error'); return; }
+  if (!razao)      markErr('jpm-razao');
+  if (!cep)        markErr('jpm-cep');
+  if (!logradouro) markErr('jpm-logradouro');
+  if (!numero)     markErr('jpm-numero');
+  if (!cidade)     markErr('jpm-cidade');
+  if (!estado)     markErr('jpm-estado');
+  if (!respNome)   markErr('jpm-resp-nome');
+  if (!respCpf) { markErr('jpm-resp-cpf'); }
+  else if (!_validateCpfDigits(respCpf)) { markErr('jpm-resp-cpf'); showToast('CPF inválido. Verifique os dígitos.', 'error'); return; }
+
+  if (!valid) { showToast('Preencha todos os campos obrigatórios.', 'error'); return; }
+
+  const pubBtn = document.getElementById('jpm-btn-pub');
+  if (pubBtn) { pubBtn.disabled = true; pubBtn.textContent = 'Salvando…'; }
+
+  try {
+    const { error } = await sb.rpc('upsert_perfil_juridico', {
+      p_cnpj:                   cnpj,
+      p_razao_social:           razao,
+      p_cep:                    cep,
+      p_logradouro:             logradouro,
+      p_numero_endereco:        numero,
+      p_complemento:            complemento || null,
+      p_cidade:                 cidade,
+      p_estado:                 estado,
+      p_responsavel_legal_nome: respNome,
+      p_responsavel_legal_cpf:  respCpf
+    });
+    if (error) throw error;
+    window._juridicoValidated = true;
+    _closeJuridicoPublishModal();
+    await publishOpportunity();
+  } catch(err) {
+    console.error('[JuridicoPublish] RPC error:', err);
+    showToast('Erro ao salvar dados jurídicos. Tente novamente.', 'error');
+    if (pubBtn) { pubBtn.disabled = false; pubBtn.textContent = 'Salvar e publicar'; }
+  }
+}
+
 async function publishOpportunity() {
   const data = mergePreviewData(collectOppData());
 
@@ -10837,6 +11118,16 @@ async function publishOpportunity() {
     nextStep(4); // leva de volta ao step de materiais/canais
     return;
   }
+
+  // ── Verificar dados jurídicos ──
+  if (!window._impersonateCtx) {
+    const jurOk = await _checkJuridicoCompleto();
+    if (!jurOk) {
+      await _openJuridicoPublishModal();
+      return;
+    }
+  }
+  window._juridicoValidated = false; // reset após uso
 
   // ── Refresh token antes de operação longa (Fix 8) ──
   const token = await _getWriteToken();

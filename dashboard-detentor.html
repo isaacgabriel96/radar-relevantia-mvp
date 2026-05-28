@@ -556,6 +556,19 @@ tbody tr:last-child td { border-bottom: none; }
 .pub-card-status-badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
 .pub-card-status-badge.publicada  { background: rgba(5,150,105,0.85);  color: #fff; }
 .pub-card-status-badge.rascunho   { background: rgba(217,119,6,0.85);  color: #fff; }
+/* ── Banner: Rascunhos aguardando dados jurídicos ── */
+#juridico-rascunho-banner {
+  display:none; align-items:center; gap:12px; flex-wrap:wrap;
+  background:#FFF7E6; border:1.5px solid rgba(184,134,11,0.35); border-radius:12px;
+  padding:14px 18px; margin-bottom:16px;
+}
+#juridico-rascunho-banner.visible { display:flex; }
+.jrb-icon { font-size:20px; flex-shrink:0; }
+.jrb-text { flex:1; min-width:180px; }
+.jrb-text strong { font-size:14px; color:var(--black); display:block; margin-bottom:2px; }
+.jrb-text span { font-size:12.5px; color:var(--gray-500,#7A6A58); }
+.jrb-btn { padding:8px 16px; border-radius:8px; border:none; background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B)); color:#fff; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap; flex-shrink:0; }
+.jrb-btn:hover { opacity:.88; }
 .pub-card-status-badge.finalizada { background: rgba(100,100,100,0.80); color: #fff; }
 .pub-card-body { padding: 16px 18px; flex: 1; display: flex; flex-direction: column; }
 .pub-card-category { font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
@@ -1562,6 +1575,16 @@ tbody tr:last-child td { border-bottom: none; }
           <button class="neg-pill"        id="pubpill-finalizada" onclick="filterPubPill('finalizada')">Encerradas</button>
           <span class="neg-pills-count" id="pub-pills-count"></span>
         </div>
+        <!-- Banner: rascunhos aguardando dados jurídicos -->
+        <div id="juridico-rascunho-banner">
+          <span class="jrb-icon">⚠️</span>
+          <div class="jrb-text">
+            <strong>Você tem oportunidades aguardando publicação</strong>
+            <span>Complete seus dados jurídicos para publicá-las no Radar.</span>
+          </div>
+          <button class="jrb-btn" onclick="irParaJuridicoDetentor()">Completar agora →</button>
+        </div>
+
         <div class="pub-grid" id="pub-grid-container">
           <!-- preenchido por renderPublicadas() -->
         </div>
@@ -4120,7 +4143,20 @@ function filterPubPill(val) {
   renderPublicadas();
 }
 
+function _updateJuridicoBanner() {
+  const banner = document.getElementById('juridico-rascunho-banner');
+  if (!banner) return;
+  const hasRascunho = MINHAS_OPPS.some(o => o.status === 'rascunho');
+  const juridicoIncompleto = !OB_DET.juridico;
+  if (hasRascunho && juridicoIncompleto) {
+    banner.classList.add('visible');
+  } else {
+    banner.classList.remove('visible');
+  }
+}
+
 function renderPublicadas() {
+  _updateJuridicoBanner();
   const container = document.getElementById('pub-grid-container');
   if (!container) return;
   const statusLabel = { publicada:'Publicada', rascunho:'Rascunho', finalizada:'Encerrada' };
