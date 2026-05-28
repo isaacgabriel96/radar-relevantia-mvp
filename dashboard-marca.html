@@ -6303,6 +6303,52 @@ async function carregarEstadoAcessos() {
     acessos.forEach(function(a) {
       marcarCardSolicitado(a.oportunidade_id, a.status);
     });
+
+    // Injeta no catálogo opps aprovadas que não estão visíveis publicamente (convidadas)
+    var aprovadas = acessos.filter(function(a) { return a.status === 'aprovado'; });
+    var oppIdsNocatalog = aprovadas
+      .map(function(a) { return a.oportunidade_id; })
+      .filter(function(id) { return !MOCK_OPPORTUNITIES.find(function(o) { return o.id === id; }); });
+
+    if (oppIdsNocatalog.length > 0) {
+      var rpcRes = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_solicitacao_opp_details', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_opp_ids: oppIdsNocatalog })
+      });
+      if (rpcRes.ok) {
+        var extraRows = await rpcRes.json();
+        var extras = (extraRows || []).map(function(r) {
+          return {
+            id:          r.id,
+            slug:        r.slug || null,
+            perfilSlug:  null,
+            title:       r.titulo,
+            desc:        r.descricao_curta || (r.tags ? r.tags.slice(0,3).join(' · ') : ''),
+            category:    r.categoria,
+            city:        '',
+            org:         '',
+            orgInitials: r.icone || (r.titulo || '').substring(0,2).toUpperCase(),
+            detentorEmpresa:       r.detentor_empresa       || null,
+            detentorEmpresaDomain: r.detentor_empresa_domain|| null,
+            detentorLogoUrl:       r.detentor_logo_url      || null,
+            images:      (r.imagens && r.imagens.length > 0) ? r.imagens : [],
+            _bgGradient: r.bg_gradient,
+            _icon:       r.icone,
+            _imagemCapa: r.imagem_capa || null,
+            _imagensFocal: {},
+            _tags:       r.tags || [],
+            visibilidade: 'convidadas'
+          };
+        });
+        if (extras.length > 0) {
+          MOCK_OPPORTUNITIES = MOCK_OPPORTUNITIES.concat(extras);
+          renderOpportunities(MOCK_OPPORTUNITIES);
+          // Marca os cards recém-injetados como aprovados
+          extras.forEach(function(o) { marcarCardSolicitado(o.id, 'aprovado'); });
+        }
+      }
+    }
   } catch(e) {
     console.warn('[carregarEstadoAcessos]', e);
   }
