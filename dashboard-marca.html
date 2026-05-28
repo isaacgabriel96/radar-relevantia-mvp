@@ -5320,8 +5320,17 @@ function renderDealsPropostas() {
     byOpp[p.opp_id].items.push(p);
   });
 
+  const catalogMap = {};
+  (MOCK_OPPORTUNITIES || []).forEach(o => { catalogMap[o.id] = o; });
+
   container.innerHTML = Object.values(byOpp).map((group, gi) => {
     const cat = getOppCatMarca(group.opp);
+    const oppId = group.items[0] && group.items[0].opp_id;
+    const catalogItem = oppId && catalogMap[oppId];
+    const imgCapa = catalogItem && (catalogItem._imagemCapa || (catalogItem.images && catalogItem.images[0]));
+    const focalData = (catalogItem && catalogItem._imagensFocal && imgCapa) ? (catalogItem._imagensFocal[imgCapa] || {x:50,y:20}) : {x:50,y:20};
+    const coverStyle = imgCapa ? `background:url(${imgCapa}) ${focalData.x}% ${focalData.y}% / cover no-repeat` : `background:${cat.bg}`;
+    const coverContent = imgCapa ? '' : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
     const totalGrupo = group.items.reduce((s, p) => {
       return s + (p.contrapartidas || []).filter(c => c.status === 'aceita').reduce((a, c) => a + c.valor, 0);
     }, 0);
@@ -5347,9 +5356,7 @@ function renderDealsPropostas() {
 
     return `<div class="deals-opp-accordion open" id="${accId}">
       <div class="deals-opp-header" onclick="toggleDealAcc(this)">
-        <div class="deals-opp-cover" style="background:${cat.bg}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        </div>
+        <div class="deals-opp-cover" style="${coverStyle}">${coverContent}</div>
         <div class="deals-opp-info">
           <div class="deals-opp-title">${group.opp}</div>
           <div class="deals-opp-subtitle">${group.items.length} deal${group.items.length !== 1 ? 's' : ''} fechado${group.items.length !== 1 ? 's' : ''}</div>
