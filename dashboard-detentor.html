@@ -6059,8 +6059,17 @@ async function saveJuridico() {
     document.querySelectorAll('.juridico-field').forEach(el => el.disabled = true);
     document.getElementById('juridicoActions').style.display = 'none';
     document.getElementById('btnEditJuridico').textContent = 'Editar';
-    OB_DET.juridico = !!(patch.cnpj && patch.razao_social);
+    OB_DET.juridico = true;
     updateSetupGuide();
+    showToast('Dados jurídicos salvos!', 'success');
+
+    // Se havia uma oportunidade aguardando envio para análise (usuário foi
+    // direcionado para cá pelo _dashOpenJuridicoModal), retomar o fluxo
+    if (_dashJuridicoTargetOppId) {
+      const pendingId = _dashJuridicoTargetOppId;
+      _dashJuridicoTargetOppId = null;
+      setTimeout(() => enviarParaRevisao(pendingId), 300);
+    }
   }
 }
 
@@ -7056,6 +7065,18 @@ let _dashJuridicoTargetOppId = null;
 
 function _dashOpenJuridicoModal(oppId) {
   _dashJuridicoTargetOppId = oppId;
+
+  // Se o usuário já está na aba Jurídico em Configurações, não duplica o modal —
+  // ativa o modo de edição do form existente e orienta com um toast
+  const jurPanel = document.getElementById('cfg-panel-juridico');
+  if (jurPanel && jurPanel.style.display !== 'none') {
+    showToast('Preencha e salve seus dados jurídicos aqui para continuar.', 'info');
+    if (!editingJuridico) toggleEditJuridico();
+    document.getElementById('jur-cnpj')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('jur-cnpj')?.focus();
+    return;
+  }
+
   // Limpar erros anteriores
   document.querySelectorAll('.djpm-input').forEach(el => el.classList.remove('djpm-err'));
   // Pré-preencher com dados existentes, se houver
