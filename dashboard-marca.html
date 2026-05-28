@@ -5964,16 +5964,17 @@ function renderMinhasSolicitacoes() {
   var container = document.getElementById('sol-marca-container');
   if (!container) return;
 
-  // Atualiza badge — conta pendentes
-  var pendentes = _SOL_MARCA.filter(function(r) { return r.status === 'pendente'; }).length;
+  // Só mostra solicitações não aprovadas (aprovadas = acesso já liberado, não precisa aparecer aqui)
+  var visiveis = _SOL_MARCA.filter(function(r) { return r.status !== 'aprovado'; });
+  var pendentes = visiveis.filter(function(r) { return r.status === 'pendente'; }).length;
   var badge = document.getElementById('sol-marca-badge');
   if (badge) {
-    badge.textContent = _SOL_MARCA.length;
-    badge.style.display = _SOL_MARCA.length > 0 ? '' : 'none';
+    badge.textContent = visiveis.length;
+    badge.style.display = visiveis.length > 0 ? '' : 'none';
   }
 
-  if (_SOL_MARCA.length === 0) {
-    container.innerHTML = emptyStateHtml('solicitacoes', 'Nenhuma solicitação ainda', 'Quando você solicitar acesso a oportunidades com visibilidade restrita, elas aparecerão aqui.');
+  if (visiveis.length === 0) {
+    container.innerHTML = emptyStateHtml('solicitacoes', 'Nenhuma solicitação pendente', 'Quando você solicitar acesso a oportunidades com visibilidade restrita, elas aparecerão aqui.');
     return;
   }
 
@@ -6078,7 +6079,7 @@ function renderMinhasSolicitacoes() {
   // Build grid de cards — igual ao explorar
   var html = '<div class="opp-grid" style="padding:0 0 16px">';
 
-  _SOL_MARCA.forEach(function(sol) {
+  visiveis.forEach(function(sol) {
     if (sol.opp) {
       html += buildVisualCard(sol);
     } else {
