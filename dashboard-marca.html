@@ -6292,11 +6292,12 @@ async function carregarEstadoAcessos() {
     if (!res.ok) return;
     var acessos = await res.json();
 
-    // Atualiza badge de Minhas Solicitações imediatamente
+    // Atualiza badge — conta só não-aprovadas (aprovadas já têm acesso, não precisam de ação)
+    var pendentes = acessos.filter(function(a) { return a.status !== 'aprovado'; });
     var badge = document.getElementById('sol-marca-badge');
-    if (badge && acessos.length > 0) {
-      badge.textContent = acessos.length;
-      badge.style.display = '';
+    if (badge) {
+      badge.textContent = pendentes.length;
+      badge.style.display = pendentes.length > 0 ? '' : 'none';
     }
 
     acessos.forEach(function(a) {
