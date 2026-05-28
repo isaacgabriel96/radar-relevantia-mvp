@@ -2793,7 +2793,8 @@ function populateDetenorFields(p) {
   OB_DET.juridico      = !!(p.cadastro_juridico_completo);
   OB_DET.podePublicar  = !!(p.pode_publicar);
   updateSetupGuide();
-  if (!editingJuridico) populateJuridicoFields(p);
+  // Dados jurídicos são criptografados — precisam do RPC get_perfil_juridico para decriptar
+  if (!editingJuridico) loadJuridicoFromPerfil();
 
   // Empresa fields: [0]=nome empresa, [1]=segmento (select), [2]=website, [3]=descricao
   const empresaFields = document.querySelectorAll('.empresa-field');
@@ -5929,6 +5930,7 @@ function switchConfigTab(tab) {
   });
   if (tab === 'equipe') loadEquipe();
   if (tab === 'financeiro') loadFinanceiro();
+  if (tab === 'juridico') loadJuridicoFromPerfil();
 }
 
 // ─── ABA JURÍDICO ───
