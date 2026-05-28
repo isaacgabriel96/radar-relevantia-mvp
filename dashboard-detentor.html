@@ -6923,7 +6923,7 @@ function renderSolicitacoes() {
             '</div>',
             (s.marca_nome && s.marca_empresa) ? '<div style="font-size:12px;color:var(--gray-400)">' + escapeHtml(s.marca_nome) + (dataRelativa ? ' · ' + dataRelativa : '') + '</div>'
               : (dataRelativa ? '<div style="font-size:12px;color:var(--gray-400)">' + dataRelativa + '</div>' : ''),
-            s.mensagem ? '<div style="font-size:12px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-100);border-radius:8px;padding:6px 10px;margin-top:6px;font-family:var(--font-body)">' + escapeHtml(s.mensagem) + '</div>' : '',
+            '<div style="font-size:12px;color:' + (s.mensagem ? 'var(--gray-600)' : 'var(--gray-400)') + ';background:var(--gray-50);border:1px solid var(--gray-100);border-radius:8px;padding:6px 10px;margin-top:6px;font-family:var(--font-body)">' + (s.mensagem ? escapeHtml(s.mensagem) : 'Sem mensagem') + '</div>',
           '</div>',
           '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:8px">' + actionsHtml + '</div>',
         '</div>'
