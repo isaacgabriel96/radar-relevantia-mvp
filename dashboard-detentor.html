@@ -1265,8 +1265,8 @@ tbody tr:last-child td { border-bottom: none; }
 .perfil-phone-wrap .phone-option .country-dial { font-size:12px; color:var(--gray-3,#A89880); }
 
 /* ══ Modal Dados Jurídicos — Dashboard ══ */
-#modal-dash-juridico.modal-overlay { align-items:flex-start; padding:24px 16px; overflow-y:auto; }
-#modal-dash-juridico.modal-overlay .djpm-box {
+#modal-dash-juridico { align-items:flex-start; padding:24px 16px; overflow-y:auto; }
+#modal-dash-juridico .djpm-box {
   background:var(--white,#fff); border-radius:16px; padding:28px 28px 24px;
   width:100%; max-width:520px; margin:auto; box-shadow:0 8px 40px rgba(0,0,0,.18);
 }
@@ -1287,7 +1287,7 @@ tbody tr:last-child td { border-bottom: none; }
 .djpm-btn-later { height:40px; border:1.5px solid var(--gray-2,#E0D8CC); border-radius:10px; background:transparent; color:var(--gray-4,#5C4C38); font-family:var(--font-heading); font-weight:600; font-size:13px; cursor:pointer; transition:border-color .15s,color .15s; }
 .djpm-btn-later:hover { border-color:var(--gold); color:var(--gold-light,#C8A84B); }
 @media(max-width:600px){
-  #modal-dash-juridico.modal-overlay .djpm-box { padding:20px 16px 18px; }
+  #modal-dash-juridico .djpm-box { padding:20px 16px 18px; }
   .djpm-form-grid { grid-template-columns:1fr; }
   .djpm-form-group.djpm-full { grid-column:1; }
 }
@@ -7089,13 +7089,13 @@ function _dashOpenJuridicoModal(oppId) {
     } catch(_) {}
   })();
   const modal = document.getElementById('modal-dash-juridico');
-  if (modal) { modal.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  if (modal) { modal.classList.add('open'); document.body.style.overflow = 'hidden'; }
 }
 
 function _dashCloseJuridicoModal() {
   _dashJuridicoTargetOppId = null;
   const modal = document.getElementById('modal-dash-juridico');
-  if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+  if (modal) { modal.classList.remove('open'); document.body.style.overflow = ''; }
 }
 
 function _djpmMaskCnpj(el) {
@@ -7219,7 +7219,7 @@ async function _dashSaveJuridicoAndEnviar() {
 <div id="opts-global-dropdown"></div>
 
 <!-- ══ Modal: Dados Jurídicos para Enviar para Análise ══ -->
-<div class="modal-overlay" id="modal-dash-juridico" onclick="if(event.target===this)_dashCloseJuridicoModal()">
+<div class="modal-overlay-det" id="modal-dash-juridico" onclick="if(event.target===this)_dashCloseJuridicoModal()">
   <div class="djpm-box">
     <div class="djpm-title">Dados jurídicos necessários</div>
     <div class="djpm-desc">Para enviar para análise, precisamos de seus dados jurídicos. Eles garantem a segurança dos acordos com as marcas.</div>
