@@ -6809,11 +6809,11 @@ function renderSolicitacoes() {
     return;
   }
 
-  // Agrupa por oportunidade — só mostra opps que ainda são visibilidade 'aprovacao'
+  // Agrupa por oportunidade — exclui opps que viraram públicas (aprovacao e convidadas continuam)
   const groups = {};
   _SOLICITACOES.forEach(function(s) {
     const oppData = MINHAS_OPPS.find(function(o) { return String(o.id) === String(s.oportunidade_id); });
-    if (oppData && oppData.visibilidade !== 'aprovacao') return; // opp mudou de visibilidade, pula
+    if (oppData && oppData.visibilidade === 'publica') return; // virou pública, não precisa de aprovação
     if (!groups[s.oportunidade_id]) {
       groups[s.oportunidade_id] = {
         opp_titulo:    s.opp_titulo,
