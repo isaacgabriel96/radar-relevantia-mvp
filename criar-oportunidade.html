@@ -4526,19 +4526,22 @@ function initLivePreview() {
 
   // Colar imagem (Ctrl+V / Cmd+V) em qualquer momento
   document.addEventListener('paste', function(e) {
-    var step1 = document.getElementById('panel-1');
-    if (!step1 || step1.style.display === 'none') return; // só no step de fotos
     if (lpUploadedPhotos.length >= LP_MAX_PHOTOS) return;
     var items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
     var files = [];
     for (var i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith('image/')) {
+      var kind = items[i].kind;
+      var type = items[i].type || '';
+      if (kind === 'file' && type.startsWith('image/')) {
         var f = items[i].getAsFile();
         if (f) files.push(f);
       }
     }
-    if (files.length) lpProcessFiles(files);
+    if (files.length) {
+      e.preventDefault();
+      lpProcessFiles(files);
+    }
   });
 
   // Drag & drop no grid (quando já há fotos)
