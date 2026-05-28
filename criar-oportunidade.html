@@ -1029,8 +1029,8 @@ input[type=number] { -moz-appearance: textfield; }
 .mdp-month-btn.active { background: var(--gold-gradient); color: #fff; border-color: transparent; font-weight: 700; }
 .entry-remove-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; color: var(--gray-3); font-size: 17px; padding: 4px 6px; line-height: 1; transition: color .15s; }
 .entry-remove-btn:hover { color: var(--gray-4); }
-.btn-entry-save { margin-top: 10px; display: block; margin-left: auto; font-size: 12px; font-family: var(--font-body); font-weight: 600; padding: 7px 18px; border-radius: var(--radius-pill); border: 1.5px solid var(--gray-3); background: transparent; color: var(--gray-4); cursor: pointer; transition: all .15s; }
-.btn-entry-save:hover { background: var(--gray-4); color: #fff; border-color: var(--gray-4); }
+.btn-entry-save { margin-top: 16px; display: block; width: 100%; font-size: 14px; font-family: var(--font-body); font-weight: 600; padding: 11px 18px; border-radius: var(--radius-pill); border: none; background: var(--brown-warm, #7a5c00); color: #fff; cursor: pointer; transition: opacity .15s; }
+.btn-entry-save:hover { opacity: .85; }
 .pub-period-toggle { display: flex; gap: 4px; margin-top: 8px; }
 .pub-period-btn { font-size: 12px; font-family: var(--font-body); font-weight: 500; padding: 5px 14px; border-radius: var(--radius-pill); border: 1px solid var(--gray-2); background: transparent; color: var(--gray-3); cursor: pointer; transition: all .15s; }
 .pub-period-btn.active { background: var(--gray-4); color: #fff; border-color: var(--gray-4); }
@@ -9009,8 +9009,8 @@ function addEventEntry(opts) {
           <label class="entry-lbl">Datas</label>
           <div class="mdp-slot"></div>
         </div>
+        <button type="button" class="btn-entry-save" onclick="_collapseEntry(this.closest('.event-entry'))">Salvar local</button>
       </div>
-      <button type="button" class="btn-entry-save" onclick="_collapseEntry(this.closest('.event-entry'))">Salvar local</button>
     </div>
   `;
   list.appendChild(div);
