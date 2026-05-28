@@ -4064,17 +4064,49 @@ async function publishOportunidade(id) {
   await enviarParaRevisao(id);
 }
 
+// Verifica em tempo real: permissão E dados reais (não flags em cache)
+// Retorna: 'ok' | 'no_permission' | 'no_juridico'
+async function _verificarPodeEnviarRevisao() {
+  try {
+    const token = await _getWriteToken();
+    const { data: { session } } = await sb.auth.getSession();
+    if (!token || !session?.user) return 'no_juridico';
+
+    // 1. pode_publicar em tempo real (admin pode ter revogado desde o login)
+    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id +
+      '&select=pode_publicar&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return 'no_juridico';
+    const rows = await res.json();
+    if (!rows[0]?.pode_publicar) return 'no_permission';
+
+    // 2. Dados jurídicos reais (usuário pode ter apagado campos após flag ser setado)
+    const { data, error } = await sb.rpc('get_perfil_juridico', { p_perfil_id: session.user.id });
+    if (error || !data || !data[0]) return 'no_juridico';
+    const d = data[0];
+    const completo = !!(d.cnpj && d.razao_social && d.cep && d.logradouro &&
+                        d.numero_endereco && d.cidade && d.estado &&
+                        d.responsavel_legal_nome && d.responsavel_legal_cpf);
+    return completo ? 'ok' : 'no_juridico';
+  } catch(_) { return 'no_juridico'; }
+}
+
 async function enviarParaRevisao(id) {
   const opp = MINHAS_OPPS.find(o => o.id === id);
   if (!opp) return;
 
-  // Verificar permissão e dados jurídicos antes de enviar para análise
-  if (!OB_DET.podePublicar) {
+  // Verificação em tempo real — não depende de flags em cache
+  // (cobre: admin revogou permissão; usuário apagou dados jurídicos após salvar)
+  const check = await _verificarPodeEnviarRevisao();
+  if (check === 'no_permission') {
     showToast('Sua conta não tem permissão para publicar. Entre em contato com o Radar Relevantia.', 'error');
     return;
   }
-  if (!OB_DET.juridico) {
+  if (check === 'no_juridico') {
     showToast('Complete seus dados jurídicos antes de publicar.', 'error');
+    // Atualizar cache local para refletir realidade
+    OB_DET.juridico = false;
     setTimeout(() => {
       showSection('configuracoes');
       setTimeout(() => switchConfigTab('juridico'), 50);

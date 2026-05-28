@@ -10865,22 +10865,39 @@ function mergePreviewData(data) {
 /* ══════════════════════════════════════════════
    MODAL: DADOS JURÍDICOS PARA PUBLICAR
 ══════════════════════════════════════════════ */
+
+// Verifica se todos os campos obrigatórios existem nos dados reais (não só no flag)
+function _juridicoFieldsCompletos(d) {
+  if (!d) return false;
+  return !!(d.cnpj && d.razao_social && d.cep && d.logradouro &&
+            d.numero_endereco && d.cidade && d.estado &&
+            d.responsavel_legal_nome && d.responsavel_legal_cpf);
+}
+
 // Retorna: 'ok' | 'no_permission' | 'no_juridico'
+// Sempre consulta o banco — não confia em flags em cache nem no _juridicoValidated para dados reais
 async function _checkJuridicoCompleto() {
   if (window._juridicoValidated) return 'ok';
   try {
     const token = await _getWriteToken();
-    const userId = await getAuthUserId();
-    if (!token || !userId) return 'no_juridico';
-    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId +
-      '&select=pode_publicar,cadastro_juridico_completo&limit=1', {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!token || !session?.user) return 'no_juridico';
+
+    // 1. Verificar permissão pode_publicar em tempo real (pode ter sido revogada pelo admin)
+    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id +
+      '&select=pode_publicar&limit=1', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
     if (!res.ok) return 'no_juridico';
     const rows = await res.json();
-    const p = rows[0];
-    if (!p?.pode_publicar) return 'no_permission';
-    if (!p?.cadastro_juridico_completo) return 'no_juridico';
+    if (!rows[0]?.pode_publicar) return 'no_permission';
+
+    // 2. Verificar os dados reais — não o flag cadastro_juridico_completo
+    //    (o usuário pode ter apagado os dados após o flag ter sido setado)
+    const { data, error } = await sb.rpc('get_perfil_juridico', { p_perfil_id: session.user.id });
+    if (error || !data || !data[0]) return 'no_juridico';
+    if (!_juridicoFieldsCompletos(data[0])) return 'no_juridico';
+
     return 'ok';
   } catch(_) { return 'no_juridico'; }
 }
