@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -1092,6 +1093,23 @@ input[type=number] { -moz-appearance: textfield; }
 .mdp-footer { margin-top: 12px; text-align: right; }
 .mdp-save-btn { background: var(--brown-warm, #7a5c00); color: #fff; border: none; border-radius: var(--radius-pill, 999px); padding: 8px 22px; font-size: 13px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: opacity .15s; }
 .mdp-save-btn:hover { opacity: .85; }
+/* ── País Custom Dropdown ─────────────────────────────── */
+.pais-cdd { position: relative; }
+.pais-cdd-trigger { width: 100%; display: flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1.5px solid var(--gray-2); border-radius: var(--radius-md); background: #fff; cursor: pointer; font-size: 14px; font-family: var(--font-body); color: var(--gray-5, #333); transition: border-color .15s; box-sizing: border-box; }
+.pais-cdd-trigger:hover, .pais-cdd.open .pais-cdd-trigger { border-color: var(--gold); }
+.pais-cdd-flag .fi { width: 20px; height: 15px; border-radius: 2px; flex-shrink: 0; }
+.pais-cdd-no-flag { display: inline-block; width: 20px; }
+.pais-cdd-trigger-lbl { flex: 1; text-align: left; color: inherit; }
+.pais-cdd-trigger-arr { font-size: 10px; color: var(--gray-3); transition: transform .2s; margin-left: auto; }
+.pais-cdd.open .pais-cdd-trigger-arr { transform: rotate(180deg); }
+.pais-cdd-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 250; background: #fff; border: 1px solid var(--gray-2); border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(30,22,0,.12); padding: 8px; }
+.pais-cdd-search { width: 100%; padding: 7px 10px; border: 1px solid var(--gray-2); border-radius: 6px; font-size: 13px; font-family: var(--font-body); margin-bottom: 6px; box-sizing: border-box; outline: none; }
+.pais-cdd-search:focus { border-color: var(--gold); }
+.pais-cdd-list { max-height: 200px; overflow-y: auto; }
+.pais-cdd-opt { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: var(--font-body); color: var(--gray-5, #333); }
+.pais-cdd-opt:hover { background: var(--gold-pale, #faf6ec); }
+.pais-cdd-opt.selected { background: var(--gold-pale, #faf6ec); font-weight: 600; }
+.pais-cdd-opt .fi { width: 20px; height: 15px; border-radius: 2px; flex-shrink: 0; }
 .mdp-chip { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; background: var(--gray-1); border-radius: 20px; padding: 3px 6px 3px 10px; color: var(--gray-4); }
 .mdp-chip button { background: none; border: none; cursor: pointer; color: var(--gray-3); font-size: 14px; padding: 0; line-height: 1; }
 .mdp-hint { font-size: 11px; color: var(--gray-3); }
@@ -8438,8 +8456,81 @@ const _PAISES_INTL = [
 
 function _getPaisOpts(selectedVal) {
   return _PAISES_INTL.map(p =>
-    `<option value="${p.v}"${p.v === selectedVal ? ' selected' : ''}>${p.l}</option>`
+    `<option value="${p.v}"${p.v === selectedVal ? ' selected' : ''}>${p.l.replace(/^\S+\s/, '')}</option>`
   ).join('');
+}
+
+function _getPaisCddHtml(selectedVal, classes, onchangeAttr) {
+  const found = _PAISES_INTL.find(p => p.v === selectedVal);
+  const lbl = found ? found.l.replace(/^\S+\s/, '') : 'Selecione o país';
+  const flagHtml = selectedVal
+    ? `<span class="fi fi-${selectedVal}"></span>`
+    : `<span class="pais-cdd-no-flag"></span>`;
+  const opts = _PAISES_INTL.map(p => {
+    const name = p.l.replace(/^\S+\s/, '');
+    return `<div class="pais-cdd-opt${p.v===selectedVal?' selected':''}" data-v="${p.v}" data-l="${name}" onclick="_paisCddPick(this)"><span class="fi fi-${p.v}"></span>${name}</div>`;
+  }).join('');
+  const selOpts = `<option value="">Selecione o país</option>${_PAISES_INTL.map(p=>`<option value="${p.v}"${p.v===selectedVal?' selected':''}>${p.l.replace(/^\S+\s/, '')}</option>`).join('')}`;
+  return `<div class="pais-cdd">
+    <button type="button" class="pais-cdd-trigger" onclick="_paisCddToggle(this)">
+      <span class="pais-cdd-flag">${flagHtml}</span>
+      <span class="pais-cdd-trigger-lbl">${lbl}</span>
+      <span class="pais-cdd-trigger-arr">▾</span>
+    </button>
+    <div class="pais-cdd-panel" style="display:none">
+      <input type="text" class="pais-cdd-search" placeholder="Buscar país..." oninput="_paisCddFilter(this)">
+      <div class="pais-cdd-list">${opts}</div>
+    </div>
+    <select class="${classes}" style="display:none" ${onchangeAttr?`onchange="${onchangeAttr}"`:''}>${selOpts}</select>
+  </div>`;
+}
+
+function _paisCddToggle(btn) {
+  const cdd = btn.closest('.pais-cdd');
+  const panel = cdd.querySelector('.pais-cdd-panel');
+  const isOpen = cdd.classList.contains('open');
+  document.querySelectorAll('.pais-cdd.open').forEach(c => {
+    c.classList.remove('open');
+    c.querySelector('.pais-cdd-panel').style.display = 'none';
+  });
+  if (!isOpen) {
+    cdd.classList.add('open');
+    panel.style.display = '';
+    const search = panel.querySelector('.pais-cdd-search');
+    if (search) { search.value = ''; _paisCddFilter(search); setTimeout(() => search.focus(), 50); }
+    setTimeout(() => document.addEventListener('click', _paisCddOutside, true), 0);
+  }
+}
+
+const _paisCddOutside = (e) => {
+  if (!e.target.closest('.pais-cdd')) {
+    document.querySelectorAll('.pais-cdd.open').forEach(c => {
+      c.classList.remove('open');
+      c.querySelector('.pais-cdd-panel').style.display = 'none';
+    });
+    document.removeEventListener('click', _paisCddOutside, true);
+  }
+};
+
+function _paisCddFilter(input) {
+  const q = input.value.toLowerCase();
+  input.closest('.pais-cdd-panel').querySelectorAll('.pais-cdd-opt').forEach(opt => {
+    opt.style.display = opt.dataset.l.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function _paisCddPick(opt) {
+  const cdd = opt.closest('.pais-cdd');
+  const val = opt.dataset.v;
+  const lbl = opt.dataset.l;
+  cdd.querySelector('.pais-cdd-flag').innerHTML = `<span class="fi fi-${val}"></span>`;
+  cdd.querySelector('.pais-cdd-trigger-lbl').textContent = lbl;
+  cdd.querySelectorAll('.pais-cdd-opt').forEach(o => o.classList.toggle('selected', o.dataset.v === val));
+  const sel = cdd.querySelector('select');
+  if (sel) { sel.value = val; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+  cdd.classList.remove('open');
+  cdd.querySelector('.pais-cdd-panel').style.display = 'none';
+  document.removeEventListener('click', _paisCddOutside, true);
 }
 
 function _getFirstEntryPaisVal() {
@@ -8450,6 +8541,8 @@ function _getFirstEntryPaisVal() {
 function _getFirstEntryPaisLabel() {
   const first = document.querySelector('#event-entries-list .event-entry');
   if (!first) return '';
+  const lbl = first.querySelector('.event-pais-row .pais-cdd-trigger-lbl');
+  if (lbl && lbl.textContent !== 'Selecione o país') return lbl.textContent.trim();
   const sel = first.querySelector('.event-pais-select');
   return sel ? (sel.options[sel.selectedIndex]?.text || '') : '';
 }
@@ -8852,13 +8945,18 @@ function _attachEntryVenue(entry) {
 }
 
 function _getEntryPaisLabel(entry) {
-  const firstSel = entry.querySelector('.event-pais-select');
-  if (firstSel) return firstSel.options[firstSel.selectedIndex]?.text || '';
+  // Try custom dropdown trigger label first
   const overrideWrap = entry.querySelector('.event-pais-override');
   if (overrideWrap && overrideWrap.style.display !== 'none') {
+    const lbl = overrideWrap.querySelector('.pais-cdd-trigger-lbl');
+    if (lbl && lbl.textContent !== 'Selecione o país') return lbl.textContent.trim();
     const overrideSel = entry.querySelector('.event-pais-override-select');
     return overrideSel ? (overrideSel.options[overrideSel.selectedIndex]?.text || '') : '';
   }
+  const cddRow = entry.querySelector('.event-pais-row .pais-cdd-trigger-lbl');
+  if (cddRow && cddRow.textContent !== 'Selecione o país') return cddRow.textContent.trim();
+  const firstSel = entry.querySelector('.event-pais-select');
+  if (firstSel) return firstSel.options[firstSel.selectedIndex]?.text || '';
   return _getFirstEntryPaisLabel() || '';
 }
 
@@ -8960,10 +9058,7 @@ function addEventEntry(opts) {
     paisHtml = `
       <div class="event-pais-row">
         <label class="entry-lbl">País</label>
-        <select class="form-control event-pais-select" onchange="syncEventPais(this)" required>
-          <option value="">Selecione o país</option>
-          ${_getPaisOpts(opts?.pais || '')}
-        </select>
+        ${_getPaisCddHtml(opts?.pais || '', 'event-pais-select', 'syncEventPais(this)')}
       </div>`;
   } else {
     const syncedLabel = _getFirstEntryPaisLabel();
@@ -8971,14 +9066,11 @@ function addEventEntry(opts) {
     paisHtml = `
       <div class="event-pais-row">
         <div class="event-pais-badge-row" style="display:flex;align-items:center;gap:8px">
-          <span class="entry-lbl" style="margin:0;font-weight:500;color:var(--gray-4)">${syncedLabel || '—'}</span>
+          <span class="entry-lbl event-pais-badge" style="margin:0;font-weight:500;color:var(--gray-4)">${syncedLabel || '—'}</span>
           <button type="button" class="btn-trocar-pais" onclick="trocarEventPais(this)">Trocar país</button>
         </div>
         <div class="event-pais-override" style="display:none;margin-top:6px">
-          <select class="form-control event-pais-override-select">
-            <option value="">Selecione o país</option>
-            ${_getPaisOpts(opts?.pais || syncedVal)}
-          </select>
+          ${_getPaisCddHtml(opts?.pais || syncedVal, 'event-pais-override-select', '')}
         </div>
       </div>`;
   }
