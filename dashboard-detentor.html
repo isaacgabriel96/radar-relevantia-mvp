@@ -3098,80 +3098,73 @@ function showSection(sectionId) {
 }
 
 // ─── NOTIFICAÇÕES ───
-const NOTIF_STORAGE_KEY = 'rr_notif_detentor_v1';
-
-const MOCK_NOTIFS = [
-  {
-    id: 'n1',
-    type: 'proposta',
-    icon: '📩',
-    iconColor: 'blue',
-    title: 'Nova proposta recebida',
-    desc: 'Nike Brasil enviou uma proposta de R$ 90.000 para Festival de Verão.',
-    time: 'Há 15 minutos',
-    unread: true,
-    section: 'negociacoes'
-  },
-  {
-    id: 'n2',
-    type: 'interesse',
-    icon: '👀',
-    iconColor: 'orange',
-    title: 'Marca interessada',
-    desc: 'Ambev visualizou sua oportunidade Expo Tech Brasil 3 vezes.',
-    time: 'Há 1 hora',
-    unread: true,
-    section: 'oportunidades'
-  },
-  {
-    id: 'n3',
-    type: 'deal',
-    icon: '🎉',
-    iconColor: 'green',
-    title: 'Deal fechado!',
-    desc: 'Contrato com Samsung para Rock in Rio foi confirmado.',
-    time: 'Há 3 horas',
-    unread: true,
-    section: 'negociacoes'
-  },
-  {
-    id: 'n4',
-    type: 'prazo',
-    icon: '⏰',
-    iconColor: 'red',
-    title: 'Prazo se aproximando',
-    desc: 'Sua oportunidade Maratona SP 2026 encerra em 3 dias.',
-    time: 'Ontem',
-    unread: false,
-    section: 'oportunidades'
-  },
-  {
-    id: 'n5',
-    type: 'sistema',
-    icon: '✅',
-    iconColor: 'gray',
-    title: 'Oportunidade publicada',
-    desc: 'Festival de Jazz foi publicada e já está visível para marcas.',
-    time: 'Há 2 dias',
-    unread: false,
-    section: 'oportunidades'
-  }
-];
+// ── Notificações ─────────────────────────────────────────────
+const _NOTIF_ICONS = {
+  nova_proposta:      { icon: '📩', color: 'blue'  },
+  proposta_aceita:    { icon: '🤝', color: 'green' },
+  proposta_recusada:  { icon: '❌', color: 'red'   },
+  proposta_cancelada: { icon: '❌', color: 'red'   },
+  nova_rodada:        { icon: '💬', color: 'blue'  },
+};
+function _notifMeta(type) {
+  return _NOTIF_ICONS[type] || { icon: '🔔', color: 'gray' };
+}
+function _notifTimeAgo(iso) {
+  if (!iso) return '';
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60)    return 'Agora mesmo';
+  if (diff < 3600)  return `Há ${Math.floor(diff/60)} minuto${Math.floor(diff/60)>1?'s':''}`;
+  if (diff < 86400) return `Há ${Math.floor(diff/3600)} hora${Math.floor(diff/3600)>1?'s':''}`;
+  if (diff < 172800)return 'Ontem';
+  return `Há ${Math.floor(diff/86400)} dias`;
+}
 
 let _notifs = [];
+let _notifChannel = null;
 
-function loadNotifs() {
+async function loadNotifs() {
   try {
-    const raw = localStorage.getItem(NOTIF_STORAGE_KEY);
-    _notifs = raw ? JSON.parse(raw) : [];
-  } catch(e) {
-    _notifs = [];
-  }
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return;
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/notifications?user_id=eq.' + session.user.id +
+      '&order=created_at.desc&limit=30',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token } }
+    );
+    const rows = res.ok ? await res.json() : [];
+    _notifs = rows.map(r => ({
+      id: r.id, type: r.type,
+      icon: _notifMeta(r.type).icon, iconColor: _notifMeta(r.type).color,
+      title: r.title, desc: r.description || '',
+      time: _notifTimeAgo(r.created_at),
+      unread: !r.read_at,
+      section: (r.data && r.data.section) || 'negociacoes'
+    }));
+    _initNotifRealtime(session);
+  } catch(e) { _notifs = []; }
   renderNotifs();
 }
 
-function saveNotifs() {
-  localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(_notifs));
+function _initNotifRealtime(session) {
+  if (_notifChannel || !sb) return;
+  _notifChannel = sb
+    .channel('notif-' + session.user.id)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'notifications',
+      filter: 'user_id=eq.' + session.user.id
+    }, (payload) => {
+      const r = payload.new;
+      _notifs.unshift({
+        id: r.id, type: r.type,
+        icon: _notifMeta(r.type).icon, iconColor: _notifMeta(r.type).color,
+        title: r.title, desc: r.description || '',
+        time: _notifTimeAgo(r.created_at),
+        unread: true,
+        section: (r.data && r.data.section) || 'negociacoes'
+      });
+      renderNotifs();
+    })
+    .subscribe();
 }
 
 function renderNotifs() {
@@ -3209,22 +3202,35 @@ function renderNotifs() {
   `).join('');
 }
 
-function onNotifClick(id, section) {
+async function onNotifClick(id, section) {
   const n = _notifs.find(x => x.id === id);
   if (n) n.unread = false;
-  saveNotifs();
   renderNotifs();
-
-  if (section) {
-    closeNotifPanel();
-    showSection(section);
-  }
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) await fetch(SUPABASE_URL + '/rest/v1/notifications?id=eq.' + id, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token,
+                 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ read_at: new Date().toISOString() })
+    });
+  } catch(e) {}
+  if (section) { closeNotifPanel(); showSection(section); }
 }
 
-function markAllRead() {
+async function markAllRead() {
   _notifs.forEach(n => n.unread = false);
-  saveNotifs();
   renderNotifs();
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) await fetch(
+      SUPABASE_URL + '/rest/v1/notifications?user_id=eq.' + session.user.id + '&read_at=is.null',
+      { method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token,
+                   'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ read_at: new Date().toISOString() }) }
+    );
+  } catch(e) {}
 }
 
 let _notifOpen = false;
