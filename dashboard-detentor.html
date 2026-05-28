@@ -2013,7 +2013,7 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">CNPJ</label>
-                <input class="form-input juridico-field" id="jur-cnpj" type="text" placeholder="00.000.000/0000-00" disabled>
+                <input class="form-input juridico-field" id="jur-cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18" disabled oninput="_djpmMaskCnpj(this)" onblur="_lookupCnpj(this.value,'jur')">
               </div>
               <div class="form-group">
                 <label class="form-label">Razão social</label>
@@ -2024,7 +2024,7 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">CEP</label>
-                <input class="form-input juridico-field" id="jur-cep" type="text" placeholder="00000-000" disabled oninput="buscarCep(this)">
+                <input class="form-input juridico-field" id="jur-cep" type="text" placeholder="00000-000" maxlength="9" disabled oninput="_jurMaskCep(this)">
               </div>
               <div class="form-group">
                 <label class="form-label">Logradouro</label>
@@ -2064,7 +2064,7 @@ tbody tr:last-child td { border-bottom: none; }
               </div>
               <div class="form-group">
                 <label class="form-label">CPF</label>
-                <input class="form-input juridico-field" id="jur-resp-cpf" type="text" placeholder="000.000.000-00" disabled>
+                <input class="form-input juridico-field" id="jur-resp-cpf" type="text" placeholder="000.000.000-00" maxlength="14" disabled oninput="_djpmMaskCpf(this)">
               </div>
             </div>
             <div class="form-actions" id="juridicoActions" style="display:none">
@@ -4137,6 +4137,23 @@ async function enviarParaRevisao(id) {
     _dashOpenJuridicoModal(id);
     return;
   }
+  // Validar campos obrigatórios da oportunidade antes de mudar status
+  // Os dados em MINHAS_OPPS refletem o que está salvo no banco
+  const camposIncompletos = [];
+  if (!opp.titulo?.trim())          camposIncompletos.push('Nome da oportunidade');
+  if (!opp.descricao_curta?.trim()) camposIncompletos.push('Descrição');
+  if (!opp.imagem_capa && (!opp.imagens || opp.imagens.length === 0)) camposIncompletos.push('Foto');
+  if (!opp.redes_sociais || Object.keys(opp.redes_sociais).length === 0) camposIncompletos.push('Canal de rede social');
+
+  if (camposIncompletos.length > 0) {
+    showToast('Complete os campos obrigatórios antes de enviar: ' + camposIncompletos.join(', '), 'error');
+    // Redirecionar para o editor onde a validação completa irá rodar
+    setTimeout(() => {
+      window.location.href = 'criar-oportunidade.html?edit=' + id;
+    }, 1800);
+    return;
+  }
+
   opp.status = 'em_revisao';
   renderPublicadas();
   if (!isDemoMode()) {
@@ -5931,9 +5948,69 @@ function toggleEditJuridico() {
   if (!editingJuridico) loadJuridicoFromPerfil();
 }
 
+// Aplica máscara de CEP e chama buscarCep para o form jur-* (Configurações)
+function _jurMaskCep(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) v = v.replace(/^(\d{5})(\d*)/,'$1-$2');
+  el.value = v;
+  if (v.replace('-','').length === 8) buscarCep(el);
+}
+
+// Busca razão social e endereço pelo CNPJ via BrasilAPI
+// prefix: 'jur' para Configurações, 'djpm' para o modal de publicar
+async function _lookupCnpj(cnpjVal, prefix) {
+  const raw = cnpjVal.replace(/\D/g,'');
+  if (raw.length !== 14) return;
+  try {
+    const r = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + raw);
+    if (!r.ok) return;
+    const d = await r.json();
+    const sv = (id, val) => {
+      const el = document.getElementById(id);
+      if (el && !el.disabled && !el.value) el.value = val || '';
+    };
+    // Razão social — sempre preenche se vazio
+    const razaoEl = document.getElementById(prefix + '-razao');
+    if (razaoEl && !razaoEl.disabled && !razaoEl.value) razaoEl.value = d.razao_social || '';
+    // Endereço — só preenche campos vazios
+    if (d.cep) {
+      const cepFmt = d.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/, '$1-$2');
+      sv(prefix + '-cep', cepFmt);
+    }
+    sv(prefix + '-logradouro', d.logradouro);
+    sv(prefix + '-numero',     d.numero);
+    sv(prefix + '-complemento',d.complemento);
+    sv(prefix + (prefix === 'jur' ? '-cidade' : '-cidade'), d.municipio);
+    const estadoEl = document.getElementById(prefix + '-estado');
+    if (estadoEl && !estadoEl.disabled && !estadoEl.value && d.uf) estadoEl.value = d.uf;
+    showToast('Dados do CNPJ preenchidos automaticamente.', 'success');
+  } catch(_) {}
+}
+
 async function saveJuridico() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session?.user) return;
+
+  // Validar campos obrigatórios antes de salvar
+  const required = [
+    { id: 'jur-cnpj',      label: 'CNPJ' },
+    { id: 'jur-razao',     label: 'Razão Social' },
+    { id: 'jur-cep',       label: 'CEP' },
+    { id: 'jur-logradouro',label: 'Logradouro' },
+    { id: 'jur-numero',    label: 'Número' },
+    { id: 'jur-cidade',    label: 'Cidade' },
+    { id: 'jur-estado',    label: 'Estado' },
+    { id: 'jur-resp-nome', label: 'Nome do responsável' },
+    { id: 'jur-resp-cpf',  label: 'CPF do responsável' },
+  ];
+  for (const f of required) {
+    const val = document.getElementById(f.id)?.value?.trim() || '';
+    if (!val) { showToast('Preencha o campo: ' + f.label, 'error'); document.getElementById(f.id)?.focus(); return; }
+  }
+  const cnpjRaw = document.getElementById('jur-cnpj')?.value || '';
+  if (!_djpmValidateCnpj(cnpjRaw)) { showToast('CNPJ inválido. Verifique os dígitos.', 'error'); return; }
+  const cpfRaw = document.getElementById('jur-resp-cpf')?.value || '';
+  if (!_djpmValidateCpf(cpfRaw)) { showToast('CPF inválido. Verifique os dígitos.', 'error'); return; }
 
   const patch = {
     cnpj:                  document.getElementById('jur-cnpj')?.value.trim() || null,
@@ -7096,7 +7173,7 @@ async function _dashSaveJuridicoAndEnviar() {
     <div class="djpm-form-grid">
       <div class="djpm-form-group">
         <label class="djpm-label">CNPJ <span style="color:#EF4444">*</span></label>
-        <input class="djpm-input" id="djpm-cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18" oninput="_djpmMaskCnpj(this)">
+        <input class="djpm-input" id="djpm-cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18" oninput="_djpmMaskCnpj(this)" onblur="_lookupCnpj(this.value,'djpm')">
       </div>
       <div class="djpm-form-group">
         <label class="djpm-label">Razão Social <span style="color:#EF4444">*</span></label>
