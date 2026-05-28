@@ -6930,9 +6930,13 @@ function renderSolicitacoes() {
       ].join('');
     }).join('');
 
-    const oppImg = g.items[0] && g.items[0].opp_imagem;
+    // Resolve opp data live from MINHAS_OPPS (avoids stale cache if tab opened before opps loaded)
+    const oppData = MINHAS_OPPS.find(function(o) { return String(o.id) === String(g.opp_id); });
+    const oppImg = (oppData && oppData.imagem_capa) || (g.items[0] && g.items[0].opp_imagem);
+    const oppFp  = (oppData && oppData.imagens_focal && oppImg) ? (oppData.imagens_focal[oppImg] || {x:50,y:20}) : {x:50,y:20};
+    const oppTitulo = (oppData && oppData.titulo) || g.opp_titulo;
     const cfg = _oppCfg(g.opp_id);
-    const coverStyle = oppImg ? 'background:url(' + oppImg + ') 50% 20% / cover no-repeat' : 'background:' + cfg.gradient;
+    const coverStyle = oppImg ? 'background:url(' + oppImg + ') ' + oppFp.x + '% ' + oppFp.y + '% / cover no-repeat' : 'background:' + cfg.gradient;
     const coverContent = oppImg ? '' : cfg.icon;
 
     return [
@@ -6940,7 +6944,7 @@ function renderSolicitacoes() {
         '<div class="sol-opp-header" onclick="toggleSolGroup(' + JSON.stringify(g.opp_id) + ')">',
           '<div class="sol-opp-cover" style="' + coverStyle + '">' + coverContent + '</div>',
           '<div class="sol-opp-info">',
-            '<div class="sol-opp-title">' + escapeHtml(g.opp_titulo) + '</div>',
+            '<div class="sol-opp-title">' + escapeHtml(oppTitulo) + '</div>',
             '<div class="sol-opp-subtitle" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">' + subtitleHtml + '</div>',
           '</div>',
           chevronSvgSol,
