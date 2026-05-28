@@ -3054,47 +3054,37 @@ function renderPage(oppOverride) {
 var _CURRENT_OPP = null;
 
 /* ─── APPROVAL ACCESS CHECK ─── */
-// Verifica se a marca logada tem acesso aprovado à oportunidade
+// Verifica se a marca logada tem acesso aprovado — usa RPC para evitar cache de schema
 async function checkApprovalAccess(oppId, marcaId) {
   if (!marcaId) return false;
   try {
     var brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
     if (!brandSession) return false;
-    var headers = {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + brandSession.access_token,
-      'Content-Type': 'application/json'
-    };
-    // Consulta acessos_oportunidade — status 'aprovado' = acesso liberado
-    var path = SUPABASE_URL + '/rest/v1/acessos_oportunidade?oportunidade_id=eq.' + oppId +
-      '&marca_id=eq.' + marcaId +
-      '&status=eq.aprovado' +
-      '&select=id,status&limit=1';
-    var res = await fetch(path, { headers: headers });
+    var headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + brandSession.access_token, 'Content-Type': 'application/json' };
+    var res = await fetch(SUPABASE_URL + '/rest/v1/rpc/check_acesso_aprovado', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({ p_oportunidade_id: Number(oppId) })
+    });
     if (!res.ok) return false;
-    var rows = await res.json();
-    return Array.isArray(rows) && rows.length > 0;
+    var result = await res.json();
+    return result === true;
   } catch (e) {
     console.warn('[checkApprovalAccess] Error:', e);
     return false;
   }
 }
 
-// Verifica se já existe solicitação (qualquer status) para esta marca+opp
+// Verifica se já existe solicitação (qualquer status) — usa RPC para evitar cache de schema
 async function getAccessRequest(oppId, marcaId) {
   if (!oppId || !marcaId) return null;
   try {
     var brandSession = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
     if (!brandSession) return null;
-    var headers = {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + brandSession.access_token,
-      'Content-Type': 'application/json'
-    };
-    var path = SUPABASE_URL + '/rest/v1/acessos_oportunidade?oportunidade_id=eq.' + oppId +
-      '&marca_id=eq.' + marcaId +
-      '&select=id,status&limit=1';
-    var res = await fetch(path, { headers: headers });
+    var headers = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + brandSession.access_token, 'Content-Type': 'application/json' };
+    var res = await fetch(SUPABASE_URL + '/rest/v1/rpc/get_acesso_request', {
+      method: 'POST', headers: headers,
+      body: JSON.stringify({ p_oportunidade_id: Number(oppId) })
+    });
     if (!res.ok) return null;
     var rows = await res.json();
     return (Array.isArray(rows) && rows.length > 0) ? rows[0] : null;
