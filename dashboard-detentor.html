@@ -6790,7 +6790,7 @@ function renderSolicitacoes() {
               statusBadge,
             '</div>',
             s.marca_nome ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400);margin-bottom:2px">' + escapeHtml(s.marca_nome) + (dataRelativa ? ' · ' + dataRelativa : '') + '</div>' : (dataRelativa ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-400);margin-bottom:2px">' + dataRelativa + '</div>' : ''),
-            s.mensagem ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:6px 10px;margin-top:5px;font-style:italic">"' + escapeHtml(s.mensagem) + '"</div>' : '',
+            s.mensagem ? '<div style="font-family:var(--font-body);font-size:12px;color:var(--gray-600);background:var(--gray-50);border:1px solid var(--gray-200);border-radius:8px;padding:6px 10px;margin-top:5px">' + escapeHtml(s.mensagem) + '</div>' : '',
           '</div>',
           '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">' + actionsHtml + '</div>',
         '</div>'
