@@ -6958,106 +6958,84 @@ function renderSolicitacoes() {
 }
 
 /**
- * Aprova uma solicitação — PATCH acessos_oportunidade.status → 'aprovado'
+ * Helper — chama a RPC set_acesso_status (bypassa o cache de schema do PostgREST)
  */
-async function aprovarSolicitacao(solId, oppId) {
+async function _setAcessoStatus(solId, oppId, newStatus) {
   const token = await _getWriteToken();
-  if (!token) { showToast('Erro de autenticação.', 'error'); return; }
-
-  const row = document.getElementById('sol-row-' + solId);
-  if (row) row.style.opacity = '0.5';
-
-  var patchFilter = '/rest/v1/acessos_oportunidade?id=eq.' + solId;
-  if (oppId) patchFilter += '&oportunidade_id=eq.' + oppId;
-  const res = await fetch(SUPABASE_URL + patchFilter, {
-    method: 'PATCH',
+  if (!token) return { ok: false, err: 'auth' };
+  const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/set_acesso_status', {
+    method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ status: 'aprovado' })
+    body: JSON.stringify({
+      p_acesso_id:        solId,
+      p_oportunidade_id:  Number(oppId),
+      p_status:           newStatus
+    })
   });
+  if (!res.ok) {
+    const t = await res.text();
+    console.error('[set_acesso_status] RPC falhou', res.status, t);
+  }
+  return { ok: res.ok };
+}
 
-  if (res.ok) {
+/**
+ * Aprova uma solicitação → status 'aprovado'
+ */
+async function aprovarSolicitacao(solId, oppId) {
+  const row = document.getElementById('sol-row-' + solId);
+  if (row) row.style.opacity = '0.5';
+
+  const { ok } = await _setAcessoStatus(solId, oppId, 'aprovado');
+  if (ok) {
     const sol = _SOLICITACOES.find(function(s) { return s.id === solId; });
     if (sol) sol.status = 'aprovado';
     renderSolicitacoes();
     showToast('Acesso aprovado — a marca já pode visualizar a oportunidade.', 'success');
   } else {
     if (row) row.style.opacity = '1';
-    res.text().then(function(t) { console.error('[aprovar] PATCH falhou', res.status, t); });
     showToast('Erro ao aprovar. Tente novamente.', 'error');
   }
 }
 
 /**
- * Recusa uma solicitação — PATCH acessos_oportunidade.status → 'rejeitado'
+ * Recusa uma solicitação → status 'rejeitado'
  */
 async function recusarSolicitacaoAcesso(solId, oppId) {
-  const token = await _getWriteToken();
-  if (!token) { showToast('Erro de autenticação.', 'error'); return; }
-
   const row = document.getElementById('sol-row-' + solId);
   if (row) row.style.opacity = '0.5';
 
-  var patchFilter = '/rest/v1/acessos_oportunidade?id=eq.' + solId;
-  if (oppId) patchFilter += '&oportunidade_id=eq.' + oppId;
-  const res = await fetch(SUPABASE_URL + patchFilter, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ status: 'rejeitado' })
-  });
-
-  if (res.ok) {
+  const { ok } = await _setAcessoStatus(solId, oppId, 'rejeitado');
+  if (ok) {
     const sol = _SOLICITACOES.find(function(s) { return s.id === solId; });
     if (sol) sol.status = 'rejeitado';
     renderSolicitacoes();
     showToast('Solicitação recusada.', 'info');
   } else {
     if (row) row.style.opacity = '1';
-    res.text().then(function(t) { console.error('[recusar] PATCH falhou', res.status, t); });
     showToast('Erro ao recusar. Tente novamente.', 'error');
   }
 }
 
 /**
- * Retira o acesso de uma marca aprovada — PATCH acessos_oportunidade.status → 'rejeitado'
+ * Retira o acesso de uma marca aprovada → status 'rejeitado'
  */
 async function retirarAcessoSolicitacao(solId, oppId) {
-  const token = await _getWriteToken();
-  if (!token) { showToast('Erro de autenticação.', 'error'); return; }
-
   const row = document.getElementById('sol-row-' + solId);
   if (row) row.style.opacity = '0.5';
 
-  var patchFilter = '/rest/v1/acessos_oportunidade?id=eq.' + solId;
-  if (oppId) patchFilter += '&oportunidade_id=eq.' + oppId;
-  const res = await fetch(SUPABASE_URL + patchFilter, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + token,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ status: 'rejeitado' })
-  });
-
-  if (res.ok) {
+  const { ok } = await _setAcessoStatus(solId, oppId, 'rejeitado');
+  if (ok) {
     const sol = _SOLICITACOES.find(function(s) { return s.id === solId; });
     if (sol) sol.status = 'rejeitado';
     renderSolicitacoes();
     showToast('Acesso retirado.', 'info');
   } else {
     if (row) row.style.opacity = '1';
-    res.text().then(function(t) { console.error('[retirar] PATCH falhou', res.status, t); });
     showToast('Erro ao retirar acesso. Tente novamente.', 'error');
   }
 }
