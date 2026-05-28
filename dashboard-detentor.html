@@ -6875,21 +6875,23 @@ function renderSolicitacoes() {
     }).join('');
 
     const oppImg = g.items[0] && g.items[0].opp_imagem;
-    const oppImgHtml = oppImg
-      ? '<img src="' + oppImg + '" style="width:100%;height:80px;object-fit:cover;border-radius:10px;margin-bottom:14px;display:block" alt="">'
-      : '';
+    const cfg = _oppCfg(g.opp_id);
+    const coverStyle = oppImg ? 'background:url(' + oppImg + ') 50% 20% / cover no-repeat' : 'background:' + cfg.gradient;
+    const coverContent = oppImg ? '' : cfg.icon;
     return [
-      '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px">',
-        oppImgHtml ? '<div style="padding:16px 20px 0">' + oppImgHtml + '</div>' : '',
-        '<div style="padding:' + (oppImgHtml ? '0' : '20px') + ' 20px 20px">',
-          '<div style="' + (oppImgHtml ? 'padding-top:0' : '') + 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">',
-            '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:rgba(184,134,11,0.1);color:#B8860B;font-size:11px;font-weight:600;font-family:var(--font-body)">' + lockIconSvg + 'Por aprovação</span>',
-            g.opp_categoria ? '<span style="display:inline-flex;padding:3px 10px;border-radius:100px;background:var(--gray-100);color:var(--gray-500);font-size:11px;font-weight:600;font-family:var(--font-body)">' + g.opp_categoria + '</span>' : '',
+      '<div style="background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:16px">',
+        '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">',
+          '<div class="neg-opp-cover" style="' + coverStyle + '">' + coverContent + '</div>',
+          '<div style="flex:1;min-width:0">',
+            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">',
+              '<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:rgba(184,134,11,0.1);color:#B8860B;font-size:11px;font-weight:600;font-family:var(--font-body)">' + lockIconSvg + 'Por aprovação</span>',
+              g.opp_categoria ? '<span style="display:inline-flex;padding:3px 10px;border-radius:100px;background:var(--gray-100);color:var(--gray-500);font-size:11px;font-weight:600;font-family:var(--font-body)">' + g.opp_categoria + '</span>' : '',
+            '</div>',
+            '<div style="font-family:var(--font-heading);font-size:15px;font-weight:700;color:var(--text)">' + escapeHtml(g.opp_titulo) + '</div>',
           '</div>',
-          '<div style="font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px">' + g.opp_titulo + '</div>',
-          '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">' + chipsHtml + '</div>',
-          '<div>' + rowsHtml + '</div>',
         '</div>',
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">' + chipsHtml + '</div>',
+        '<div>' + rowsHtml + '</div>',
       '</div>'
     ].join('');
   }).join('');
