@@ -1089,6 +1089,9 @@ input[type=number] { -moz-appearance: textfield; }
 .mdp-day:hover { background: var(--gray-1); }
 .mdp-day.mdp-on { background: var(--gold-gradient); color: #fff; font-weight: 700; }
 .mdp-chips { display: flex; flex-wrap: wrap; gap: 5px; min-height: 22px; }
+.mdp-footer { margin-top: 12px; text-align: right; }
+.mdp-save-btn { background: var(--brown-warm, #7a5c00); color: #fff; border: none; border-radius: var(--radius-pill, 999px); padding: 8px 22px; font-size: 13px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: opacity .15s; }
+.mdp-save-btn:hover { opacity: .85; }
 .mdp-chip { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; background: var(--gray-1); border-radius: 20px; padding: 3px 6px 3px 10px; color: var(--gray-4); }
 .mdp-chip button { background: none; border: none; cursor: pointer; color: var(--gray-3); font-size: 14px; padding: 0; line-height: 1; }
 .mdp-hint { font-size: 11px; color: var(--gray-3); }
@@ -8557,6 +8560,9 @@ function _mdpNew(slot, savedDates) {
         </div>
         <div class="mdp-month-grid"></div>
       </div>
+      <div class="mdp-footer">
+        <button type="button" class="mdp-save-btn" onclick="mdpSave(this)">Salvar data</button>
+      </div>
     </div>
     <input type="hidden" class="event-datas-hidden">
   `;
@@ -8693,6 +8699,18 @@ function mdpOpen(btn) {
     };
     setTimeout(() => document.addEventListener('click', closeHandler, true), 0);
   }
+}
+
+function mdpSave(btn) {
+  const mdp = _mdpGet(btn);
+  if (!mdp) return;
+  const s = _mdpS[mdp.dataset.mid];
+  if (!s) return;
+  s.open = false;
+  const panel = mdp.querySelector('.mdp-panel');
+  const arr   = mdp.querySelector('.mdp-trigger-arr');
+  if (panel) panel.style.display = 'none';
+  if (arr)   arr.style.transform = '';
 }
 
 function mdpGo(btn, dir) {
