@@ -3216,7 +3216,11 @@ async function onNotifClick(id, section) {
       body: JSON.stringify({ read_at: new Date().toISOString() })
     });
   } catch(e) {}
-  if (section) { closeNotifPanel(); showSection(section); }
+  if (section) {
+    closeNotifPanel();
+    if (section === 'negociacoes') showSectionTab('oportunidades', 'negociacoes');
+    else showSection(section);
+  }
 }
 
 async function markAllRead() {
