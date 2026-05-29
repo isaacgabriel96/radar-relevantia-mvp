@@ -6706,6 +6706,73 @@ var _SOLICITACOES_LOADED = false;
 var _SOLICITACOES = []; // { id, oportunidade_id, marca_id, status, criado_em, opp_titulo, opp_categoria, marca_nome, marca_empresa, avatar_url }
 var _SOL_OPEN = {}; // { [opp_id]: boolean }
 
+let _CONVITES = {};       // { [opp_id]: [convite, ...] }
+let _CONVITES_LOADED = false;
+
+function buildConviteUrl(token, oppId) {
+  return 'https://radar-relevantia.com.br/oportunidade-detalhe.html?id=' + oppId + '&convite=' + token;
+}
+
+async function loadConvites() {
+  if (_CONVITES_LOADED) return;
+  const token = await _getWriteToken();
+  const userId = await getAuthUserId();
+  if (!token || !userId) return;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/convites_opp?created_by=eq.' + userId + '&select=*&order=created_at.desc', {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+  });
+  if (!res.ok) return;
+  const rows = await res.json();
+  _CONVITES = {};
+  rows.forEach(function(c) {
+    if (!_CONVITES[c.oportunidade_id]) _CONVITES[c.oportunidade_id] = [];
+    _CONVITES[c.oportunidade_id].push(c);
+  });
+  _CONVITES_LOADED = true;
+}
+
+async function gerarConvite(oppId) {
+  const token = await _getWriteToken();
+  if (!token) return;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/convites_opp', {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+               'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: JSON.stringify({ oportunidade_id: Number(oppId), created_by: await getAuthUserId() })
+  });
+  if (!res.ok) { showToast('Erro ao gerar link', 'error'); return; }
+  const data = await res.json();
+  const c = data[0];
+  if (!_CONVITES[oppId]) _CONVITES[oppId] = [];
+  _CONVITES[oppId].unshift(c);
+  renderSolicitacoes();
+  const link = buildConviteUrl(c.token, oppId);
+  if (navigator.clipboard) navigator.clipboard.writeText(link).then(function() { showToast('Link gerado e copiado!', 'success'); });
+  else showToast('Link gerado!', 'success');
+}
+
+async function revogarConvite(conviteId, oppId) {
+  const token = await _getWriteToken();
+  if (!token) return;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/convites_opp?id=eq.' + conviteId, {
+    method: 'PATCH',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+               'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ revogado: true })
+  });
+  if (!res.ok) { showToast('Erro ao revogar', 'error'); return; }
+  var list = _CONVITES[oppId] || [];
+  var c = list.find(function(x) { return x.id === conviteId; });
+  if (c) c.revogado = true;
+  renderSolicitacoes();
+  showToast('Link revogado', 'success');
+}
+
+function copiarConviteLink(token, oppId) {
+  var link = buildConviteUrl(token, oppId);
+  if (navigator.clipboard) navigator.clipboard.writeText(link).then(function() { showToast('Link copiado!', 'success'); });
+}
+
 function toggleSolGroup(oppId) {
   _SOL_OPEN[oppId] = !_SOL_OPEN[oppId];
   const acc = document.getElementById('sol-acc-' + oppId);
@@ -6799,12 +6866,49 @@ async function loadSolicitacoes() {
       };
     });
     _SOLICITACOES_LOADED = true;
+    await loadConvites();
     renderSolicitacoes();
   } catch (e) {
     console.error('[Solicitações] loadSolicitacoes error:', e);
     _SOLICITACOES = [];
     renderSolicitacoes();
   }
+}
+
+function _renderConvitesSection(oppId) {
+  var convites = _CONVITES[oppId] || [];
+  var rows = convites.map(function(c) {
+    var shortToken = c.token.slice(0,8) + '…';
+    var status, statusBg, statusColor;
+    if (c.revogado) {
+      status = 'Revogado'; statusBg = '#FEF2F2'; statusColor = '#DC2626';
+    } else if (c.used_by) {
+      status = 'Usado'; statusBg = '#EFF6FF'; statusColor = '#2563EB';
+    } else {
+      status = 'Ativo'; statusBg = '#DCFCE7'; statusColor = '#166534';
+    }
+    var copyBtn = !c.revogado
+      ? '<button onclick="copiarConviteLink(\'' + c.token + '\',' + JSON.stringify(oppId) + ')" style="padding:3px 10px;border-radius:100px;background:transparent;border:1px solid var(--gray-200);cursor:pointer;font-size:11px;color:var(--gray-600);font-family:var(--font-body)">Copiar</button>'
+      : '';
+    var revokeBtn = (!c.revogado && !c.used_by)
+      ? '<button onclick="revogarConvite(\'' + c.id + '\',' + JSON.stringify(oppId) + ')" style="padding:3px 10px;border-radius:100px;background:transparent;border:1px solid var(--gray-200);cursor:pointer;font-size:11px;color:#DC2626;font-family:var(--font-body)">Revogar</button>'
+      : '';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--gray-100)">'
+      + '<code style="font-size:11px;color:var(--gray-500);background:var(--gray-50);border-radius:4px;padding:2px 6px;flex:1;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + shortToken + '</code>'
+      + '<span style="background:' + statusBg + ';color:' + statusColor + ';font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px;white-space:nowrap;font-family:var(--font-body)">' + status + '</span>'
+      + copyBtn + revokeBtn
+      + '</div>';
+  }).join('');
+
+  return '<div style="border-top:1px solid var(--gray-100);padding:12px 16px 14px;">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+      + '<span style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gray-400);font-family:var(--font-body)">Links de convite</span>'
+      + '<button onclick="gerarConvite(' + JSON.stringify(oppId) + ')" style="padding:4px 12px;border-radius:100px;background:var(--brown-warm,#7a5c00);color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font-body)">+ Gerar link</button>'
+    + '</div>'
+    + (convites.length === 0
+        ? '<p style="font-size:12px;color:var(--gray-400);font-family:var(--font-body);margin:0">Nenhum link gerado ainda.</p>'
+        : rows)
+    + '</div>';
 }
 
 /**
@@ -6938,6 +7042,7 @@ function renderSolicitacoes() {
         '</div>',
         '<div id="sol-body-' + g.opp_id + '" class="sol-opp-list" style="display:' + (isOpen ? 'block' : 'none') + '">',
           rowsHtml,
+          _renderConvitesSection(g.opp_id),
         '</div>',
       '</div>'
     ].join('');
