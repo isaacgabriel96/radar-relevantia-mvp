@@ -10868,6 +10868,25 @@ async function silentSaveDraft() {
  * - metricas_impressoes  → detalhes.metricas_impressoes (JSONB)
  */
 function mergePreviewData(data) {
+  // Merge _pendingDetalhes como base para edição (campos do template não visitados)
+  // Garante que campos do banco não sejam perdidos quando o usuário salva sem navegar
+  // pelo step de detalhes do template. DOM (data.detalhes) tem precedência sobre banco.
+  if (formState._pendingDetalhes && Object.keys(formState._pendingDetalhes).length > 0) {
+    data.detalhes = Object.assign({}, formState._pendingDetalhes, data.detalhes || {});
+  }
+
+  // Merge cotas pendentes: se step 4 não foi visitado, preserva os valores do banco
+  if (!data.cotas_habilitadas && !data.cotas_data) {
+    if (formState._pendingCotasHabilitadas) data.cotas_habilitadas = formState._pendingCotasHabilitadas;
+    if (formState._pendingCotas)           data.cotas_data         = formState._pendingCotas;
+  }
+
+  // Merge incentivo pendente: mesmo padrão
+  if (!data.projeto_incentivado && !data.incentivo_data) {
+    if (formState._pendingIncentivoHabilitado) data.projeto_incentivado = formState._pendingIncentivoHabilitado;
+    if (formState._pendingIncentivo)           data.incentivo_data      = formState._pendingIncentivo;
+  }
+
   if (!previewEditData || Object.keys(previewEditData).length === 0) return data;
 
   // publico_descricao — coluna própria
@@ -11539,6 +11558,90 @@ function maybePreFillEdit(forceRun = false) {
       });
     });
   }
+
+  // --- Restaurar dados de audiência dos canais (detalhes.publico_canais) ---
+  // IMPORTANTE: redes_sociais só guarda o username; os dados de audiência ficam em
+  // detalhes.publico_canais. Sem essa restauração, collectOppData() lê o DOM vazio
+  // e sobrescreve os dados salvos com null no próximo save.
+  const _publicoCanaisEdit = (opp.detalhes || {}).publico_canais || {};
+  Object.entries(_publicoCanaisEdit).forEach(([profileId, aud]) => {
+    if (!aud) return;
+
+    // Seguidores
+    const segInput = document.getElementById('aud-' + profileId + '-seguidores');
+    if (segInput && aud.seguidores != null) {
+      segInput.value = formatFollowers(aud.seguidores);
+    }
+
+    // Tipo de dado (real / estimativa)
+    if (aud.tipo_dado === 'real') {
+      const toggle = document.getElementById('est-toggle-' + profileId);
+      if (toggle && !toggle.classList.contains('is-real')) {
+        toggle.classList.add('is-real');
+        const badge = document.getElementById('est-badge-' + profileId);
+        if (badge) { badge.textContent = 'Dado real'; badge.classList.add('is-real'); }
+      }
+    }
+
+    // Formatos de conteúdo
+    if (aud.formatos && Array.isArray(aud.formatos)) {
+      const card = document.getElementById('canal-card-' + profileId);
+      if (card) {
+        card.querySelectorAll('.format-pill').forEach(pill => {
+          if (aud.formatos.some(f => f.toLowerCase() === pill.textContent.trim().toLowerCase())) {
+            pill.classList.add('selected');
+          }
+        });
+      }
+    }
+
+    // Período de referência — tenta selecionar chip; se for custom usa hidden input
+    if (aud.periodo_referencia != null) {
+      const periodoStr = String(aud.periodo_referencia);
+      const chips = document.querySelectorAll('#period-chips-' + profileId + ' .period-chip');
+      let chipFound = false;
+      chips.forEach(chip => {
+        if (chip.dataset.days === periodoStr) {
+          selectPeriodChip(profileId, chip);
+          chipFound = true;
+        }
+      });
+      if (!chipFound) {
+        // Período em texto livre (ex: "01/01/24 a 31/12/24") — grava no hidden input direto
+        const periodoInput = document.getElementById('aud-' + profileId + '-periodo');
+        if (periodoInput) periodoInput.value = periodoStr;
+      }
+    }
+
+    // Gênero
+    if (aud.genero) {
+      const fInput = document.getElementById('aud-' + profileId + '-genero-f');
+      const mInput = document.getElementById('aud-' + profileId + '-genero-m');
+      if (fInput && aud.genero.f != null) fInput.value = aud.genero.f;
+      if (mInput && aud.genero.m != null) mInput.value = aud.genero.m;
+      updateGenderPie(profileId);
+      updateGenderSum(profileId, aud.genero.f || 0, aud.genero.m || 0);
+    }
+
+    // Faixa etária
+    if (aud.faixa_etaria) {
+      ['1317','1824','2534','3544','45p'].forEach(r => {
+        const v = aud.faixa_etaria[r];
+        if (v == null) return;
+        const input  = document.getElementById('aud-' + profileId + '-age-' + r);
+        const slider = document.getElementById('slider-' + profileId + '-' + r);
+        if (input)  input.value  = v;
+        if (slider) slider.value = v;
+      });
+      updateAgeBars(profileId);
+    }
+
+    // Cidade
+    if (aud.cidade) {
+      const cidadeInput = document.getElementById('aud-' + profileId + '-cidade');
+      if (cidadeInput) cidadeInput.value = aud.cidade;
+    }
+  });
 
   // --- Visibilidade ---
   if (opp.visibilidade) {
