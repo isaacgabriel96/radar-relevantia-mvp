@@ -213,11 +213,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black);
 }
 .notif-mark-all {
-  font-size: 12px; font-weight: 500; color: var(--gray-400);
+  font-size: 12px; font-weight: 500; color: var(--gold);
   background: none; border: none; cursor: pointer; padding: 4px 8px;
   border-radius: 6px; transition: all 0.15s; font-family: var(--font-body);
 }
-.notif-mark-all:hover { background: var(--gray-100); color: var(--black); }
+.notif-mark-all:hover { background: var(--gold-pale); color: var(--gold); }
 
 .notif-list {
   overflow-y: auto; flex: 1;
@@ -233,19 +233,19 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 }
 .notif-item:last-child { border-bottom: none; }
 .notif-item:hover { background: var(--gray-100); }
-.notif-item.unread { background: #FFFBEB; }
-.notif-item.unread:hover { background: #FEF3C7; }
+.notif-item.unread { background: var(--gold-pale); }
+.notif-item.unread:hover { background: #EDE4CC; }
 
 .notif-icon {
   width: 38px; height: 38px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; font-size: 18px;
 }
-.notif-icon.green { background: #D1FAE5; }
-.notif-icon.blue  { background: #DBEAFE; }
-.notif-icon.orange { background: #FEF3C7; }
-.notif-icon.red   { background: #FEE2E2; }
-.notif-icon.gray  { background: var(--gray-100); }
+.notif-icon.green  { background: var(--green-bg); }
+.notif-icon.blue   { background: rgba(59,130,246,0.12); }
+.notif-icon.orange { background: var(--gold-pale); }
+.notif-icon.red    { background: var(--red-bg); }
+.notif-icon.gray   { background: var(--gray-100); }
 
 .notif-content { flex: 1; min-width: 0; }
 .notif-content-title {
@@ -278,11 +278,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 }
 .notif-see-all {
   width: 100%; padding: 9px; border-radius: 8px;
-  background: var(--gray-100); border: none; cursor: pointer;
-  font-size: 12px; font-weight: 600; color: var(--gray-500);
+  background: var(--gold-pale); border: 1px solid rgba(184,134,11,0.18); cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--gold);
   font-family: var(--font-body); transition: all 0.15s;
 }
-.notif-see-all:hover { background: var(--gray-200); color: var(--black); }
+.notif-see-all:hover { background: #EDE4CC; color: var(--gold); }
 
 /* Mobile: notif bottom-sheet — controlado via JS (.mobile-sheet) para evitar
    stacking-context do backdrop-filter do topbar */
@@ -2763,11 +2763,13 @@ function showSection(sectionId) {
 // ─── NOTIFICAÇÕES ───
 // ── Notificações ─────────────────────────────────────────────
 const _NOTIF_ICONS = {
-  nova_proposta:      { icon: '📩', color: 'blue'  },
-  proposta_aceita:    { icon: '🤝', color: 'green' },
-  proposta_recusada:  { icon: '❌', color: 'red'   },
-  proposta_cancelada: { icon: '❌', color: 'red'   },
-  nova_rodada:        { icon: '💬', color: 'blue'  },
+  nova_proposta:       { icon: '📩', color: 'blue'   },
+  proposta_aceita:     { icon: '🤝', color: 'green'  },
+  proposta_recusada:   { icon: '❌', color: 'red'    },
+  proposta_cancelada:  { icon: '❌', color: 'red'    },
+  nova_rodada:         { icon: '💬', color: 'blue'   },
+  nova_mensagem:       { icon: '✉️', color: 'blue'   },
+  proposta_em_analise: { icon: '🔍', color: 'blue'   },
 };
 function _notifMeta(type) {
   return _NOTIF_ICONS[type] || { icon: '🔔', color: 'gray' };
@@ -2878,7 +2880,11 @@ async function onNotifClick(id, section) {
       body: JSON.stringify({ read_at: new Date().toISOString() })
     });
   } catch(e) {}
-  if (section) { closeNotifPanel(); showSection(section); }
+  if (section) {
+    closeNotifPanel();
+    if (section === 'negociacoes') showSection('propostas');
+    else showSection(section);
+  }
 }
 
 async function markAllRead() {
