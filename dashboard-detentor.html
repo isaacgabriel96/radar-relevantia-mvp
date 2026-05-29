@@ -1265,6 +1265,19 @@ tbody tr:last-child td { border-bottom: none; }
 .perfil-phone-wrap .phone-option .country-name { flex:1; color:var(--black,#1A1200); }
 .perfil-phone-wrap .phone-option .country-dial { font-size:12px; color:var(--gray-3,#A89880); }
 
+/* ══ Modal Conta em Análise ══ */
+.cam-box { background:var(--white,#fff); border-radius:18px; padding:32px 28px 24px; width:100%; max-width:440px; margin:auto; box-shadow:0 8px 40px rgba(0,0,0,.18); text-align:center; }
+.cam-icon { font-size:44px; margin-bottom:12px; }
+.cam-title { font-family:var(--font-heading); font-size:20px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
+.cam-desc { font-size:14px; color:var(--gray-3); line-height:1.6; margin-bottom:24px; }
+.cam-steps { background:var(--gray-50,#FAF7F2); border-radius:10px; padding:14px 16px; margin-bottom:22px; text-align:left; display:flex; flex-direction:column; gap:8px; }
+.cam-step { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text); }
+.cam-step-num { width:22px; height:22px; border-radius:50%; background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B)); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.cam-btn-jur { width:100%; height:46px; border:none; border-radius:10px; background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B)); color:#fff; font-family:var(--font-heading); font-weight:700; font-size:14px; cursor:pointer; margin-bottom:8px; transition:opacity .15s; }
+.cam-btn-jur:hover { opacity:.88; }
+.cam-btn-close { width:100%; height:40px; border:1.5px solid var(--gray-2,#E0D8CC); border-radius:10px; background:transparent; color:var(--gray-4,#5C4C38); font-family:var(--font-heading); font-weight:600; font-size:13px; cursor:pointer; transition:border-color .15s; }
+.cam-btn-close:hover { border-color:var(--gold); color:var(--gold); }
+
 </style>
 </head>
 <body>
@@ -7131,19 +7144,6 @@ async function retirarAcessoSolicitacao(solId, oppId) {
     showToast('Erro ao retirar acesso. Tente novamente.', 'error');
   }
 }
-
-/* ══ Modal Conta em Análise ══ */
-.cam-box { background:var(--white,#fff); border-radius:18px; padding:32px 28px 24px; width:100%; max-width:440px; margin:auto; box-shadow:0 8px 40px rgba(0,0,0,.18); text-align:center; }
-.cam-icon { font-size:44px; margin-bottom:12px; }
-.cam-title { font-family:var(--font-heading); font-size:20px; font-weight:700; color:var(--text-dark); margin-bottom:10px; }
-.cam-desc { font-size:14px; color:var(--gray-3); line-height:1.6; margin-bottom:24px; }
-.cam-steps { background:var(--gray-50,#FAF7F2); border-radius:10px; padding:14px 16px; margin-bottom:22px; text-align:left; display:flex; flex-direction:column; gap:8px; }
-.cam-step { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--text); }
-.cam-step-num { width:22px; height:22px; border-radius:50%; background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B)); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.cam-btn-jur { width:100%; height:46px; border:none; border-radius:10px; background:var(--gold-gradient,linear-gradient(135deg,#B8860B,#C8A84B)); color:#fff; font-family:var(--font-heading); font-weight:700; font-size:14px; cursor:pointer; margin-bottom:8px; transition:opacity .15s; }
-.cam-btn-jur:hover { opacity:.88; }
-.cam-btn-close { width:100%; height:40px; border:1.5px solid var(--gray-2,#E0D8CC); border-radius:10px; background:transparent; color:var(--gray-4,#5C4C38); font-family:var(--font-heading); font-weight:600; font-size:13px; cursor:pointer; transition:border-color .15s; }
-.cam-btn-close:hover { border-color:var(--gold); color:var(--gold); }
 
 /* Máscara CNPJ para form Configurações > Jurídico */
 function _djpmMaskCnpj(el) {
