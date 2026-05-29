@@ -6926,6 +6926,81 @@ function _renderConvitesSection(oppId) {
     + '</div>';
 }
 
+let _conviteDdOppId = null;
+
+function toggleConviteDropdown(e, oppId) {
+  e.stopPropagation();
+  const dd = document.getElementById('convite-global-dropdown');
+  if (!dd) return;
+  if (_conviteDdOppId === oppId && dd.style.display !== 'none') {
+    dd.style.display = 'none';
+    _conviteDdOppId = null;
+    return;
+  }
+  _conviteDdOppId = oppId;
+  dd.innerHTML = _buildConviteDdHtml(oppId);
+  dd.style.display = 'block';
+  const rect = e.currentTarget.getBoundingClientRect();
+  const w = 280;
+  let left = rect.right - w;
+  if (left < 8) left = 8;
+  dd.style.top  = (rect.bottom + 6) + 'px';
+  dd.style.left = left + 'px';
+  setTimeout(function() { document.addEventListener('click', _conviteDdOutside, true); }, 0);
+}
+
+const _conviteDdOutside = function(e) {
+  const dd = document.getElementById('convite-global-dropdown');
+  if (dd && !dd.contains(e.target)) {
+    dd.style.display = 'none';
+    _conviteDdOppId = null;
+    document.removeEventListener('click', _conviteDdOutside, true);
+  }
+};
+
+function _buildConviteDdHtml(oppId) {
+  const convites = _CONVITES[oppId] || [];
+  const linkIcon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+  let html = '<div style="padding:10px 12px;border-bottom:1px solid var(--gray-100,#f3f4f6)">'
+    + '<button onclick="_gerarConviteDd(' + JSON.stringify(oppId) + ')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 12px;border-radius:8px;background:var(--brown-warm,#7a5c00);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font-body)">'
+    + linkIcon + ' Gerar novo link</button></div>';
+  if (convites.length > 0) {
+    html += '<div style="padding:8px 12px 10px">';
+    html += '<div style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--gray-400);margin-bottom:6px;font-family:var(--font-body)">Links gerados</div>';
+    html += convites.map(function(c) {
+      var short = c.token.slice(0,10) + '…';
+      var st, bg, cl;
+      if (c.revogado)    { st='Revogado'; bg='#FEF2F2'; cl='#DC2626'; }
+      else if (c.used_by){ st='Usado';    bg='#EFF6FF'; cl='#2563EB'; }
+      else               { st='Ativo';    bg='#DCFCE7'; cl='#166534'; }
+      var cpBtn = !c.revogado
+        ? '<button onclick="copiarConviteLink(\'' + c.token + '\',' + JSON.stringify(oppId) + ')" style="padding:2px 8px;border-radius:6px;background:transparent;border:1px solid var(--gray-200);cursor:pointer;font-size:11px;color:var(--gray-600);font-family:var(--font-body)">Copiar</button>' : '';
+      var rvBtn = (!c.revogado && !c.used_by)
+        ? '<button onclick="_revogarConviteDd(\'' + c.id + '\',' + JSON.stringify(oppId) + ')" style="padding:2px 8px;border-radius:6px;background:transparent;border:1px solid var(--gray-200);cursor:pointer;font-size:11px;color:#DC2626;font-family:var(--font-body)">Revogar</button>' : '';
+      return '<div style="display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid var(--gray-100)">'
+        + '<code style="font-size:11px;color:var(--gray-500);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace">' + short + '</code>'
+        + '<span style="background:' + bg + ';color:' + cl + ';font-size:10px;font-weight:600;padding:1px 6px;border-radius:100px;white-space:nowrap;font-family:var(--font-body)">' + st + '</span>'
+        + cpBtn + rvBtn + '</div>';
+    }).join('');
+    html += '</div>';
+  } else {
+    html += '<div style="padding:10px 12px;font-size:12px;color:var(--gray-400);font-family:var(--font-body)">Nenhum link gerado ainda.</div>';
+  }
+  return html;
+}
+
+async function _gerarConviteDd(oppId) {
+  await gerarConvite(oppId);
+  const dd = document.getElementById('convite-global-dropdown');
+  if (dd && dd.style.display !== 'none') dd.innerHTML = _buildConviteDdHtml(oppId);
+}
+
+async function _revogarConviteDd(conviteId, oppId) {
+  await revogarConvite(conviteId, oppId);
+  const dd = document.getElementById('convite-global-dropdown');
+  if (dd && dd.style.display !== 'none') dd.innerHTML = _buildConviteDdHtml(oppId);
+}
+
 /**
  * Renderiza o painel de solicitações agrupado por oportunidade.
  */
@@ -7053,11 +7128,11 @@ function renderSolicitacoes() {
             '<div class="sol-opp-title">' + escapeHtml(oppTitulo) + '</div>',
             '<div class="sol-opp-subtitle" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">' + subtitleHtml + '</div>',
           '</div>',
+          '<button onclick="toggleConviteDropdown(event,' + JSON.stringify(g.opp_id) + ')" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:100px;background:transparent;border:1px solid var(--gray-200,#e5e7eb);cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-500);font-family:var(--font-body);flex-shrink:0;white-space:nowrap" title="Links de convite"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Link</button>',
           chevronSvgSol,
         '</div>',
         '<div id="sol-body-' + g.opp_id + '" class="sol-opp-list" style="display:' + (isOpen ? 'block' : 'none') + '">',
           rowsHtml,
-          _renderConvitesSection(g.opp_id),
         '</div>',
       '</div>'
     ].join('');
@@ -7225,6 +7300,7 @@ function _djpmValidateCpf(cpf) {
 <!-- Dropdown global de visibilidade — fora dos cards para não ser cortado pelo overflow:hidden -->
 <div id="vis-global-dropdown"></div>
 <div id="opts-global-dropdown"></div>
+<div id="convite-global-dropdown" style="display:none;position:fixed;z-index:400;background:#fff;border:1px solid var(--gray-200,#e5e7eb);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.13);min-width:270px;max-width:300px;overflow:hidden;"></div>
 
 <!-- ══ Modal: Conta em análise (no_permission) ══ -->
 <div class="modal-overlay-det" id="modal-conta-analise" onclick="if(event.target===this)_closeContaEmAnaliseModal()">
