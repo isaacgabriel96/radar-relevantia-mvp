@@ -2199,6 +2199,18 @@ async function atualizarStatus(table, id, status, rowId) {
   // Se aprovando, criar conta no Auth e enviar magic link
   if (status === 'aprovado') {
     await criarContaEEnviarAcesso(table, id);
+  } else if (status === 'rejeitado') {
+    // Revogar acesso imediatamente: deleta auth user (invalida sessão), mantém waitlist
+    try {
+      const res = await sbFetch('/rest/v1/rpc/admin_revogar_acesso', {
+        method: 'POST',
+        body: JSON.stringify({ p_tabela: table, p_id: id })
+      });
+      if (!res.ok) console.warn('[revogar_acesso] erro:', await res.text());
+    } catch (e) {
+      console.warn('[revogar_acesso] exceção:', e);
+    }
+    showToast('Rejeitado — acesso revogado imediatamente', 'success');
   } else {
     showToast(`Status atualizado para "${status}"`, 'success');
   }
