@@ -2974,6 +2974,9 @@ function _applyJuridicoFocusMode(active) {
     if (sub) sub.textContent = waiting
       ? 'Você receberá uma notificação assim que sua conta for liberada.'
       : 'São necessários para formalizar contratos com as marcas.';
+    // Fase 2b: já tem oportunidade, esconde botão "Criar agora"
+    const cta = banner.querySelector('.focus-banner-cta');
+    if (cta) cta.style.display = waiting ? 'none' : '';
     banner.classList.add('active');
   }
   document.getElementById('setupGuideBtn')?.style.setProperty('display', 'none', 'important');
