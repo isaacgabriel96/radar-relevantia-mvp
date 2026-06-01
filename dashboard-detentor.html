@@ -3124,6 +3124,7 @@ const _NOTIF_ICONS = {
   conta_aprovada:       { icon: '🎉', color: 'green'  },
   conta_bloqueada:      { icon: '⚠️', color: 'red'    },
   aguardando_aprovacao: { icon: '⏳', color: 'orange' },
+  juridico_recebido:    { icon: '✅', color: 'green'  },
 };
 function _notifMeta(type) {
   return _NOTIF_ICONS[type] || { icon: '🔔', color: 'gray' };
@@ -6077,8 +6078,37 @@ async function saveJuridico() {
     document.getElementById('btnEditJuridico').textContent = 'Editar';
     OB_DET.juridico = true;
     updateSetupGuide();
-    _updateJuridicoBanner(); // remove banner imediatamente após salvar
+    _updateJuridicoBanner();
     showToast('Dados jurídicos salvos!', 'success');
+
+    // Notificação no sino: confirma recebimento e informa que está aguardando aprovação
+    try {
+      const { data: { session: s } } = await sb.auth.getSession();
+      if (s && !OB_DET.podePublicar) {
+        // Só cria se ainda não tem permissão (caso contrário não precisa de aprovação)
+        const hoje = new Date().toISOString().slice(0, 10);
+        const chk = await fetch(
+          SUPABASE_URL + '/rest/v1/notifications?user_id=eq.' + s.user.id +
+          '&type=eq.juridico_recebido&created_at=gte.' + hoje + 'T00:00:00Z&limit=1',
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + s.access_token } }
+        );
+        const existing = chk.ok ? await chk.json() : [];
+        if (existing.length === 0) {
+          await fetch(SUPABASE_URL + '/rest/v1/notifications', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + s.access_token,
+                       'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+              user_id: s.user.id,
+              type: 'juridico_recebido',
+              title: '✅ Dados jurídicos recebidos',
+              description: 'Suas informações jurídicas foram salvas. Nossa equipe irá analisar e liberar sua conta para publicar em breve.',
+              data: { section: 'configuracoes', sub: 'juridico' }
+            })
+          });
+        }
+      }
+    } catch(_) {}
   }
 }
 
