@@ -2833,8 +2833,13 @@ function _applyJuridicoFocusMode(active) {
     // Libera nav items (caso ainda bloqueados)
     document.querySelectorAll('.nav-item.nav-locked-item').forEach(el => el.classList.remove('nav-locked-item'));
     document.querySelectorAll('.bottom-nav-item.nav-locked').forEach(el => el.classList.remove('nav-locked'));
-    // Libera sub-tabs
+    // Libera sub-tabs de configurações
     JURIDICO_LOCKED_TABS.forEach(id => document.getElementById(id)?.classList.remove('sub-tab-locked'));
+    // Restaura abas de Minhas Oportunidades
+    ['subtab-negociacoes', 'subtab-deals', 'subtab-solicitacoes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
     if (banner) banner.classList.remove('active');
     return;
   }
@@ -2858,6 +2863,12 @@ function _applyJuridicoFocusMode(active) {
 
   // Bloqueia sub-tabs de configurações (exceto jurídico)
   JURIDICO_LOCKED_TABS.forEach(id => document.getElementById(id)?.classList.add('sub-tab-locked'));
+
+  // Oculta abas de Minhas Oportunidades (só Publicadas fica visível)
+  ['subtab-negociacoes', 'subtab-deals', 'subtab-solicitacoes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 }
 
 // ─── FOCUS MODE (primeiro acesso) ───
