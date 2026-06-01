@@ -508,21 +508,17 @@ body.admin-view-mode .sidebar-nav .nav-section-label:not(:nth-of-type(2)) { disp
 .sg-highlight { border-color: var(--gold,#B8860B) !important; animation: sgHighlight 1.3s ease-in-out 3; }
 .sg-highlight:focus, .sg-highlight:focus-within { animation: none; border-color: var(--gold,#B8860B) !important; }
 .sgp-item:hover { background: #fafafa; }
-.sgp-item.done { opacity: 0.5; cursor: default; pointer-events: none; }
+.sgp-item.done { display: none; }
 .sgp-check {
   width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
   border: 1.5px solid #d1c084; display: flex; align-items: center; justify-content: center;
   background: #fff; transition: all 0.2s;
 }
-.sgp-item.done .sgp-check { background: #dcfce7; border-color: #86efac; }
 .sgp-check-icon { display: none; }
-.sgp-item.done .sgp-check-icon { display: block; }
 .sgp-item-body { flex: 1; min-width: 0; }
 .sgp-item-title { font-size: 13px; font-weight: 600; color: #1a1200; line-height: 1.4; }
-.sgp-item.done .sgp-item-title { text-decoration: line-through; color: #aaa; }
 .sgp-item-desc { font-size: 12px; color: #888; margin-top: 2px; line-height: 1.4; }
 .sgp-item-arrow { color: #ccc; font-size: 15px; margin-top: 2px; flex-shrink: 0; }
-.sgp-item.done .sgp-item-arrow { display: none; }
 @media (max-width: 768px) {
   .setup-guide-panel { width: 100%; border-radius: 0; top: 64px; }
   .setup-guide-btn { padding: 6px 8px; border-radius: 8px; }
@@ -2844,6 +2840,7 @@ function _applyJuridicoFocusMode(active) {
     if (sub)   sub.textContent   = 'São necessários para formalizar contratos com as marcas.';
     banner.classList.add('active');
   }
+  document.getElementById('setupGuideBtn')?.style.setProperty('display', 'none', 'important');
 
   // Bloqueia sidebar: dashboard e voz (skeleton)
   document.querySelectorAll('.nav-item[data-section]').forEach(el => {
@@ -2886,6 +2883,7 @@ function _applyFocusMode(active) {
 
   banner.classList.add('active');
   localStorage.setItem('rr_focus_active', '1');
+  document.getElementById('setupGuideBtn')?.style.setProperty('display', 'none', 'important');
 
   // Bloqueia itens do sidebar
   document.querySelectorAll('.nav-item[data-section]').forEach(el => {
@@ -2905,23 +2903,35 @@ const OB_DET = { perfil: false, juridico: false, equipe: false, oportunidade: fa
 
 function updateSetupGuide() {
   if (localStorage.getItem(OB_KEY_DET)) return;
+
+  // Guia só aparece após dados jurídicos aprovados
+  const btn = document.getElementById('setupGuideBtn');
+  if (!OB_DET.juridico) {
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+
   const items = [
-    { id: 'ob-perfil',      done: OB_DET.perfil },
-    { id: 'ob-juridico',    done: OB_DET.juridico },
-    { id: 'ob-equipe',      done: OB_DET.equipe },
-    { id: 'ob-oportunidade',done: OB_DET.oportunidade },
-    { id: 'ob-negociacao',  done: OB_DET.negociacao },
+    { id: 'ob-perfil',       done: OB_DET.perfil },
+    { id: 'ob-juridico',     done: OB_DET.juridico },
+    { id: 'ob-equipe',       done: OB_DET.equipe },
+    { id: 'ob-oportunidade', done: OB_DET.oportunidade },
+    { id: 'ob-negociacao',   done: OB_DET.negociacao },
   ];
-  const doneCount = items.filter(i => i.done).length;
-  const total = items.length;
 
   items.forEach(({ id, done }) => {
     const el = document.getElementById(id);
     if (el) el.classList.toggle('done', done);
   });
 
+  const doneCount  = items.filter(i => i.done).length;
+  const total      = items.length;
+  const pending    = total - doneCount;
+
   const sub = document.getElementById('sgpSubtitle');
-  if (sub) sub.textContent = `${doneCount} de ${total} concluído${doneCount !== 1 ? 's' : ''}`;
+  if (sub) sub.textContent = pending > 0
+    ? `${pending} item${pending !== 1 ? 's' : ''} pendente${pending !== 1 ? 's' : ''}`
+    : 'Tudo concluído!';
 
   const ring = document.getElementById('setupGuideRing');
   if (ring) {
@@ -2929,21 +2939,20 @@ function updateSetupGuide() {
     ring.style.strokeDashoffset = circ - (circ * doneCount / total);
   }
 
-  const btn = document.getElementById('setupGuideBtn');
   if (btn) {
     btn.style.display = 'flex';
     const lbl = document.getElementById('setupGuideBtnLabel');
-    if (lbl) lbl.textContent = `Guia de início · ${doneCount}/${total}`;
+    if (lbl) lbl.textContent = pending > 0 ? `Guia de início · ${pending} pendente${pending !== 1 ? 's' : ''}` : 'Guia de início';
   }
 
   if (doneCount === total) {
     setTimeout(() => {
-      const panel = document.getElementById('setupGuidePanel');
+      const panel   = document.getElementById('setupGuidePanel');
       const overlay = document.getElementById('sgpOverlay');
-      const btnEl = document.getElementById('setupGuideBtn');
-      if (panel) panel.classList.remove('open');
+      const btnEl   = document.getElementById('setupGuideBtn');
+      if (panel)   panel.classList.remove('open');
       if (overlay) overlay.classList.remove('open');
-      if (btnEl) btnEl.style.display = 'none';
+      if (btnEl)   btnEl.style.display = 'none';
       localStorage.setItem(OB_KEY_DET, '1');
     }, 1400);
   }
