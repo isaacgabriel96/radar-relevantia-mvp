@@ -647,7 +647,8 @@ tbody tr:last-child td { border-bottom: none; }
 .neg-opp-chip.pendente { background: #FFF8E1; color: #B45309; border: 1px solid rgba(180,83,9,0.18); }
 .neg-opp-chip.analise  { background: #EFF6FF; color: #2563EB; border: 1px solid rgba(37,99,235,0.18); }
 .neg-opp-chip.aceita   { background: #ECFDF5; color: #059669; border: 1px solid rgba(5,150,105,0.18); }
-.neg-opp-chip.recusada { background: #FEF2F2; color: #DC2626; border: 1px solid rgba(220,38,38,0.15); }
+.neg-opp-chip.recusada   { background: #FEF2F2; color: #DC2626; border: 1px solid rgba(220,38,38,0.15); }
+.neg-opp-chip.cancelada  { background: var(--gray-100); color: var(--gray-500); border: 1px solid var(--gray-200); }
 .neg-opp-arrow { color: var(--gray-300); flex-shrink: 0; }
 
 /* ─── NEGOCIAÇÕES — DETALHE DA OPORTUNIDADE (view 2) ─── */
@@ -1715,11 +1716,12 @@ tbody tr:last-child td { border-bottom: none; }
           </div>
           <!-- Filtros de status -->
           <div class="neg-pills" style="margin-bottom:14px">
-            <button class="neg-pill active" id="detpill-todos"    onclick="filterDetailPill('todos')">Todos</button>
-            <button class="neg-pill"        id="detpill-pendente" onclick="filterDetailPill('pendente')">Pendente</button>
-            <button class="neg-pill"        id="detpill-analise"  onclick="filterDetailPill('analise')">Em análise</button>
-            <button class="neg-pill"        id="detpill-aceita"   onclick="filterDetailPill('aceita')">Aceita</button>
-            <button class="neg-pill"        id="detpill-recusada" onclick="filterDetailPill('recusada')">Recusada</button>
+            <button class="neg-pill active" id="detpill-todos"     onclick="filterDetailPill('todos')">Todos</button>
+            <button class="neg-pill"        id="detpill-pendente"  onclick="filterDetailPill('pendente')">Pendente</button>
+            <button class="neg-pill"        id="detpill-analise"   onclick="filterDetailPill('analise')">Em análise</button>
+            <button class="neg-pill"        id="detpill-aceita"    onclick="filterDetailPill('aceita')">Aceita</button>
+            <button class="neg-pill"        id="detpill-recusada"  onclick="filterDetailPill('recusada')">Recusada</button>
+            <button class="neg-pill"        id="detpill-cancelada" onclick="filterDetailPill('cancelada')">Encerrada</button>
             <span class="neg-pills-count" id="det-pills-count"></span>
           </div>
           <!-- Cards de negociação -->
@@ -3266,6 +3268,8 @@ const _NOTIF_ICONS = {
   juridico_recebido:    { icon: '✅', color: 'green'  },
   oportunidade_aprovada:  { icon: '🚀', color: 'green'  },
   oportunidade_rejeitada: { icon: '📋', color: 'orange' },
+  empresa_aprovada:       { icon: '🏢', color: 'green'  },
+  empresa_rejeitada:      { icon: '🏢', color: 'red'    },
 };
 function _notifMeta(type) {
   return _NOTIF_ICONS[type] || { icon: '🔔', color: 'gray' };
@@ -3326,6 +3330,32 @@ function _initNotifRealtime(session) {
         sub:     (r.data && r.data.sub)     || null
       });
       renderNotifs();
+    })
+    .subscribe();
+}
+
+// Realtime para status de negociações (ex: trigger de oportunidade inativa)
+function _initNegRealtime(session) {
+  if (!sb) return;
+  sb.channel('neg-det-' + session.user.id)
+    .on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'negociacoes',
+      filter: 'detentor_id=eq.' + session.user.id
+    }, (payload) => {
+      const r = payload.new;
+      const idx = NEGOCIACOES.findIndex(n => n.id === r.id);
+      if (idx >= 0) {
+        const n = NEGOCIACOES[idx];
+        n.status      = r.status      || n.status;
+        n.statusLabel = r.status_label || n.statusLabel;
+        n.statusHint  = r.status_hint  || n.statusHint;
+      } else if (r.detentor_id === session.user.id) {
+        // Negociação nova chegou via realtime — recarrega tudo
+        loadNegociacoes().then(() => renderNegociacoes(NEGOCIACOES));
+        return;
+      }
+      if (_negOppAtiva !== null) renderNegCards();
+      else renderNegOppCards();
     })
     .subscribe();
 }
@@ -4721,6 +4751,7 @@ function _negCtaConfig(n) {
   if (s === 'analise')   return { label: 'Ver negociação',   cls: 'ghost',   hint: 'Você está analisando',       urgente: false };
   if (s === 'aceita')    return { label: 'Ver deal',         cls: 'ghost',   hint: '✓ Deal fechado',             urgente: false };
   if (s === 'recusada')  return { label: 'Ver detalhes',     cls: 'ghost',   hint: 'Negociação encerrada',       urgente: false };
+  if (s === 'cancelada') return { label: 'Ver histórico',    cls: 'ghost',   hint: n.statusHint || 'Oportunidade encerrada', urgente: false };
   return { label: 'Ver detalhes', cls: 'ghost', hint: '', urgente: false };
 }
 
@@ -4754,12 +4785,12 @@ function renderNegOppCards() {
     const coverContent = imgCapa ? '' : cfg.icon;
     const total = g.items.length;
     // conta por status
-    const counts = { pendente:0, analise:0, aceita:0, recusada:0 };
+    const counts = { pendente:0, analise:0, aceita:0, recusada:0, cancelada:0 };
     g.items.forEach(n => { if (counts[n.status] !== undefined) counts[n.status]++; });
-    const chips = ['pendente','analise','aceita','recusada']
+    const chips = ['pendente','analise','aceita','recusada','cancelada']
       .filter(s => counts[s] > 0)
       .map(s => {
-        const labels = { pendente:'Pendente', analise:'Em análise', aceita:'Aceita', recusada:'Recusada' };
+        const labels = { pendente:'Pendente', analise:'Em análise', aceita:'Aceita', recusada:'Recusada', cancelada:'Encerrada' };
         return `<span class="neg-opp-chip ${s}">${counts[s]} ${labels[s]}</span>`;
       }).join('');
     return `<div class="neg-opp-card" onclick="openNegOppDetail(${g.opp_id})">
@@ -4898,8 +4929,18 @@ function renderNegThread(thread) {
 }
 
 async function openNegModal(id) {
-  const n = NEGOCIACOES.find(x => x.id === id);
-  if (!n) return;
+  let n = NEGOCIACOES.find(x => x.id === id);
+  if (!n) {
+    // Array stale — tenta recarregar e tentar novamente
+    try {
+      await loadNegociacoes();
+      n = NEGOCIACOES.find(x => x.id === id);
+    } catch(e) {}
+    if (!n) {
+      showToast('Não foi possível abrir a negociação. Recarregue a página.', 'error');
+      return;
+    }
+  }
   _negAtiva = n;
   _modoContraproposta = false;
 
@@ -6061,6 +6102,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   loadNotifs();
+  // Inicia realtime para atualizações de status de negociações
+  sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) _initNegRealtime(session);
+  });
 });
 
 // ─── VOZ DO USUÁRIO ───
