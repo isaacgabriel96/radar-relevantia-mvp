@@ -2614,10 +2614,10 @@ async function togglePodePublicar(perfilId, currentValue) {
 
 // ─── APROVAÇÕES PENDENTES ───────────────────────────────────────────────────
 let _aprovacoesList = [];
+const _aprovAcordeonLoaded = {}; // perfilId → true quando dados já foram carregados
 
 async function loadAprovacoes() {
   try {
-    // Busca detentores com juridico preenchido mas ainda não aprovados pelo admin
     const rPerfis = await sbFetch(
       '/rest/v1/perfis?role=eq.detentor&cadastro_juridico_completo=eq.true&pode_publicar=eq.false' +
       '&select=id,nome,email,empresa'
@@ -2625,17 +2625,16 @@ async function loadAprovacoes() {
     const perfis = await rPerfis.json();
     if (!Array.isArray(perfis) || !perfis.length) { _aprovacoesList = []; renderAprovacoes(); _updateAprovacoesBadge(); return; }
 
-    // Para cada detentor, busca a oportunidade mais recente
+    // Busca a oportunidade mais recente de cada detentor (para preview no header)
     const rOpps = await sbFetch(
       '/rest/v1/oportunidades?detentor_id=in.(' + perfis.map(p => p.id).join(',') + ')' +
-      '&select=id,titulo,categoria,status,detentor_id&order=criado_em.desc'
+      '&select=id,titulo,status,detentor_id&order=criado_em.desc'
     );
     const oppRows = await rOpps.json();
 
-    // Monta lista: um card por detentor, com sua oportunidade mais recente
     _aprovacoesList = perfis.map(p => {
       const opp = (oppRows || []).find(o => o.detentor_id === p.id) || null;
-      return { perfil: p, ...opp, opp_id: opp?.id, opp_titulo: opp?.titulo, opp_categoria: opp?.categoria, opp_status: opp?.status };
+      return { perfil: p, opp_id: opp?.id || '', opp_titulo: opp?.titulo || '', opp_status: opp?.status || '' };
     });
     renderAprovacoes();
     _updateAprovacoesBadge();
@@ -2663,39 +2662,149 @@ function renderAprovacoes() {
     return;
   }
   const statusLabel = { publicada:'✓ Publicada', em_revisao:'⏳ Em análise', rascunho:'📝 Rascunho' };
-  container.innerHTML = _aprovacoesList.map(item => `
-    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px 24px;margin-bottom:12px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-      <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0">
-        ${(item.perfil?.nome||'?').charAt(0).toUpperCase()}
+  container.innerHTML = _aprovacoesList.map(item => {
+    const pid = item.perfil?.id || '';
+    const oppPreview = item.opp_titulo
+      ? `<span style="font-weight:500">${escHtml(item.opp_titulo)}</span> <span style="color:#9ca3af;font-size:11px">${statusLabel[item.opp_status] || item.opp_status || ''}</span>`
+      : `<span style="color:#9ca3af">Nenhuma ainda</span>`;
+    return `
+    <div id="aprov-card-${pid}" style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;margin-bottom:12px;overflow:hidden">
+      <!-- Header clicável -->
+      <div style="padding:18px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;cursor:pointer" onclick="toggleAprovAcordeon('${pid}','${item.opp_id}')">
+        <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0">
+          ${(item.perfil?.nome||'?').charAt(0).toUpperCase()}
+        </div>
+        <div style="flex:1;min-width:160px">
+          <div style="font-weight:600;font-size:15px">${escHtml(item.perfil?.nome||'—')}</div>
+          <div style="font-size:12px;color:#6b7280">${escHtml(item.perfil?.email||'—')} · ${escHtml(item.perfil?.empresa||'—')}</div>
+        </div>
+        <div style="font-size:13px;flex:1;min-width:140px">${oppPreview}</div>
+        <span style="background:#dcfce7;color:#166534;border:1px solid #86efac;border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;flex-shrink:0">⚖️ Jurídico</span>
+        <div style="display:flex;gap:8px;flex-shrink:0" onclick="event.stopPropagation()">
+          <button class="btn btn-sm" style="background:#16a34a;color:#fff;border:none;padding:6px 14px"
+            onclick="aprovarDetentor('${pid}','${item.opp_id}')">✓ Aprovar</button>
+          <button class="btn btn-sm" style="background:#fee2e2;color:#ef4444;border:1px solid rgba(239,68,68,0.2);padding:6px 14px"
+            onclick="mostrarFormRejeitar('${pid}','${item.opp_id}')">✕ Rejeitar</button>
+        </div>
+        <span id="aprov-chevron-${pid}" style="font-size:11px;color:#9ca3af;flex-shrink:0;transition:transform 0.2s">▼ detalhes</span>
       </div>
-      <div style="flex:1;min-width:180px">
-        <div style="font-weight:600;font-size:15px">${escHtml(item.perfil?.nome||'—')}</div>
-        <div style="font-size:13px;color:#6b7280">${escHtml(item.perfil?.email||'—')} · ${escHtml(item.perfil?.empresa||'—')}</div>
+      <!-- Accordion body -->
+      <div id="aprov-body-${pid}" style="display:none;border-top:1px solid #f3f4f6;background:#fafafa;padding:20px 24px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+          <div>
+            <div style="font-weight:700;font-size:13px;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em">⚖️ Dados Jurídicos</div>
+            <div id="aprov-jur-${pid}" style="font-size:13px;color:#6b7280">Carregando…</div>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:13px;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em">📋 Oportunidades</div>
+            <div id="aprov-opps-${pid}" style="font-size:13px;color:#6b7280">Carregando…</div>
+          </div>
+        </div>
+        <!-- Form de rejeição (hidden por padrão) -->
+        <div id="aprov-reject-form-${pid}" style="display:none;margin-top:18px;padding-top:18px;border-top:1px solid #e5e7eb">
+          <label style="font-weight:600;font-size:13px;display:block;margin-bottom:6px;color:#374151">Motivo da rejeição <span style="font-weight:400;color:#9ca3af">(enviado ao detentor como notificação)</span></label>
+          <textarea id="aprov-reject-motivo-${pid}" rows="3" placeholder="Ex: O CNPJ informado não confere com a razão social. Por favor, corrija e reenvie."
+            style="width:100%;padding:10px 12px;border:1.5px solid #d1d5db;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;outline:none"></textarea>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-sm" style="background:#ef4444;color:#fff;border:none;padding:7px 16px"
+              onclick="confirmarRejeicao('${pid}','${item.opp_id}')">Confirmar rejeição</button>
+            <button class="btn btn-sm" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;padding:7px 16px"
+              onclick="cancelarRejeicao('${pid}')">Cancelar</button>
+          </div>
+        </div>
       </div>
-      <div style="flex:1;min-width:160px">
-        <div style="font-size:12px;color:#6b7280;margin-bottom:2px">Oportunidade</div>
-        <div style="font-weight:500;font-size:13px">${escHtml(item.opp_titulo||'Nenhuma ainda')}</div>
-        <div style="font-size:12px;color:#9ca3af">${item.opp_status ? (statusLabel[item.opp_status]||item.opp_status) : '—'}</div>
-      </div>
-      <span style="background:#dcfce7;color:#166534;border:1px solid #86efac;border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600;flex-shrink:0">⚖️ Jurídico preenchido</span>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        <button class="btn btn-sm" style="background:#16a34a;color:#fff;border:none"
-          onclick="aprovarDetentor('${item.perfil?.id}','${item.opp_id||''}')">✓ Aprovar</button>
-        <button class="btn btn-sm" style="background:#fee2e2;color:#ef4444;border:1px solid rgba(239,68,68,0.2)"
-          onclick="rejeitarDetentor('${item.perfil?.id}','${item.opp_id||''}')">✕ Rejeitar</button>
-      </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
-function escHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escHtml(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function toggleAprovAcordeon(perfilId, oppId) {
+  const body    = document.getElementById('aprov-body-' + perfilId);
+  const chevron = document.getElementById('aprov-chevron-' + perfilId);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : '';
+  if (chevron) chevron.textContent = isOpen ? '▼ detalhes' : '▲ fechar';
+  if (!isOpen && !_aprovAcordeonLoaded[perfilId]) {
+    _aprovAcordeonLoaded[perfilId] = true;
+    await Promise.all([
+      _loadAprovJuridico(perfilId),
+      _loadAprovOpps(perfilId, oppId)
+    ]);
+  }
+}
+
+async function _loadAprovJuridico(perfilId) {
+  const el = document.getElementById('aprov-jur-' + perfilId);
+  if (!el) return;
+  try {
+    const session = await getSession();
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_perfil_juridico`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_perfil_id: perfilId })
+    });
+    if (!res.ok) throw new Error(res.status);
+    const rows = await res.json();
+    const d = rows[0];
+    if (!d) { el.textContent = 'Sem dados jurídicos.'; return; }
+    const row = (label, val) => val ? `<div style="margin-bottom:8px"><div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em">${label}</div><div style="font-weight:500;color:#111">${escHtml(val)}</div></div>` : '';
+    el.innerHTML =
+      row('CNPJ', d.cnpj) +
+      row('Razão Social', d.razao_social) +
+      row('CEP', d.cep) +
+      row('Logradouro', d.logradouro ? `${d.logradouro}${d.numero_endereco ? ', ' + d.numero_endereco : ''}${d.complemento ? ' – ' + d.complemento : ''}` : '') +
+      row('Cidade / Estado', d.cidade && d.estado ? `${d.cidade} / ${d.estado}` : (d.cidade || d.estado || '')) +
+      row('Responsável Legal', d.responsavel_legal_nome) +
+      row('CPF do Responsável', d.responsavel_legal_cpf);
+  } catch(e) {
+    if (el) el.innerHTML = `<span style="color:#ef4444">Erro ao carregar dados jurídicos.</span>`;
+    console.error('[_loadAprovJuridico]', e);
+  }
+}
+
+async function _loadAprovOpps(perfilId, firstOppId) {
+  const el = document.getElementById('aprov-opps-' + perfilId);
+  if (!el) return;
+  try {
+    const rOpps = await sbFetch(
+      `/rest/v1/oportunidades?detentor_id=eq.${perfilId}&select=id,titulo,status,ativo,criado_em&order=criado_em.desc&limit=10`
+    );
+    const opps = await rOpps.json();
+    if (!Array.isArray(opps) || !opps.length) { el.textContent = 'Nenhuma oportunidade cadastrada.'; return; }
+    const statusLabel = { publicada:'✓ Publicada', em_revisao:'⏳ Em análise', rascunho:'📝 Rascunho' };
+    const statusColor = { publicada:'#16a34a', em_revisao:'#d97706', rascunho:'#6b7280' };
+    el.innerHTML = opps.map(o => `
+      <div style="padding:8px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:13px;font-weight:500;color:#111">${escHtml(o.titulo || '—')}</div>
+        <span style="font-size:11px;font-weight:600;color:${statusColor[o.status]||'#6b7280'};white-space:nowrap;margin-left:8px">${statusLabel[o.status] || o.status || '—'}</span>
+      </div>`).join('');
+  } catch(e) {
+    if (el) el.innerHTML = `<span style="color:#ef4444">Erro ao carregar oportunidades.</span>`;
+    console.error('[_loadAprovOpps]', e);
+  }
+}
 
 async function aprovarDetentor(perfilId, oppId) {
-  if (!confirm('Aprovar conta deste detentor e publicar sua oportunidade?')) return;
+  if (!confirm('Aprovar conta deste detentor e liberar publicação?')) return;
   try {
     const actions = [adminAction('set-pode-publicar', { perfil_id: perfilId, value: true })];
     if (oppId) actions.push(adminAction('update-oportunidade-as', { opp_id: oppId, opp_data: { status: 'publicada', ativo: true } }));
     await Promise.all(actions);
+    // Notifica o detentor
+    const session = await getSession();
+    await sbFetch('/rest/v1/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        user_id: perfilId,
+        type: 'conta_aprovada',
+        title: 'Conta aprovada! 🎉',
+        description: 'Sua conta foi aprovada. Você já pode publicar suas oportunidades na plataforma.',
+        data: { section: 'oportunidades' }
+      })
+    });
     _aprovacoesList = _aprovacoesList.filter(i => i.perfil?.id !== perfilId);
     renderAprovacoes();
     _updateAprovacoesBadge();
@@ -2706,15 +2815,55 @@ async function aprovarDetentor(perfilId, oppId) {
   }
 }
 
-async function rejeitarDetentor(perfilId, oppId) {
-  if (!confirm('Rejeitar este detentor? A oportunidade será devolvida para rascunho.')) return;
+function mostrarFormRejeitar(perfilId, oppId) {
+  // Garante que o accordion esteja aberto
+  const body = document.getElementById('aprov-body-' + perfilId);
+  const chevron = document.getElementById('aprov-chevron-' + perfilId);
+  if (body && body.style.display === 'none') {
+    body.style.display = '';
+    if (chevron) chevron.textContent = '▲ fechar';
+    if (!_aprovAcordeonLoaded[perfilId]) {
+      _aprovAcordeonLoaded[perfilId] = true;
+      const item = _aprovacoesList.find(i => i.perfil?.id === perfilId);
+      Promise.all([_loadAprovJuridico(perfilId), _loadAprovOpps(perfilId, item?.opp_id || '')]);
+    }
+  }
+  const form = document.getElementById('aprov-reject-form-' + perfilId);
+  if (form) { form.style.display = ''; form.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+  const ta = document.getElementById('aprov-reject-motivo-' + perfilId);
+  if (ta) ta.focus();
+}
+
+function cancelarRejeicao(perfilId) {
+  const form = document.getElementById('aprov-reject-form-' + perfilId);
+  if (form) form.style.display = 'none';
+}
+
+async function confirmarRejeicao(perfilId, oppId) {
+  const ta = document.getElementById('aprov-reject-motivo-' + perfilId);
+  const motivo = ta ? ta.value.trim() : '';
+  if (!motivo) { ta && ta.focus(); showToast('Escreva o motivo antes de confirmar.', 'error'); return; }
   try {
     if (oppId) await adminAction('update-oportunidade-as', { opp_id: oppId, opp_data: { status: 'rascunho', ativo: false } });
+    // Notifica o detentor com o motivo
+    await sbFetch('/rest/v1/notifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        user_id: perfilId,
+        type: 'conta_bloqueada',
+        title: 'Ajustes necessários na sua conta',
+        description: motivo,
+        data: { section: 'configuracoes' }
+      })
+    });
     _aprovacoesList = _aprovacoesList.filter(i => i.perfil?.id !== perfilId);
+    delete _aprovAcordeonLoaded[perfilId];
     renderAprovacoes();
     _updateAprovacoesBadge();
-    showToast('Rejeitado — oportunidade devolvida para rascunho.', 'success');
+    showToast('Rejeitado — notificação enviada ao detentor.', 'success');
   } catch(e) {
+    console.error('[confirmarRejeicao]', e);
     showToast('Erro ao rejeitar.', 'error');
   }
 }
