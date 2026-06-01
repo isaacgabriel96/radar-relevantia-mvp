@@ -6849,13 +6849,11 @@ async function loadSolicitacoes() {
       return;
     }
 
-    // 3. Perfis das marcas solicitantes
+    // 3. Dados das marcas — RPC lê perfis + user_metadata como fallback
     const marcaIds = solRows.map(function(r) { return r.marca_id; }).filter(function(id, i, arr) { return arr.indexOf(id) === i; });
-    const marcaInClause = 'in.(' + marcaIds.map(function(id) { return '"' + id + '"'; }).join(',') + ')';
     const perfisRes = await fetch(
-      SUPABASE_URL + '/rest/v1/perfis?id=' + marcaInClause +
-      '&select=id,nome,empresa,logo_url',
-      { headers: headers }
+      SUPABASE_URL + '/rest/v1/rpc/get_marca_basic_info',
+      { method: 'POST', headers: headers, body: JSON.stringify({ p_ids: marcaIds }) }
     );
     const perfisRows = perfisRes.ok ? await perfisRes.json() : [];
     const perfisMap = {};
