@@ -4631,6 +4631,7 @@ const formState = {
   photoFiles: [],
   editId: null,
   editSlug: null,
+  editStatus: null,     // status da opp em modo edição ('rascunho','em_revisao','publicada','finalizada')
   slugIsValid: false,   // true quando slug foi validado como único
   _pendingDetalhes: null,
   _pendingCotas: null,
@@ -10758,8 +10759,18 @@ async function uploadPhotos(oppId, token) {
 ══════════════════════════════════════════════ */
 async function saveDraft() {
   const data = mergePreviewData(collectOppData());
-  data.status = 'rascunho';
-  data.ativo = false;
+  // Preserva o status atual da oportunidade em modo edição
+  // (não rebaixa publicada/em_revisao para rascunho ao salvar)
+  if (formState.editStatus === 'publicada') {
+    data.status = 'publicada';
+    data.ativo = true;
+  } else if (formState.editStatus === 'em_revisao') {
+    data.status = 'em_revisao';
+    data.ativo = false;
+  } else {
+    data.status = 'rascunho';
+    data.ativo = false;
+  }
 
   // ── Refresh token antes de salvar (Fix 8) ──
   const token = await _getWriteToken();
@@ -10906,8 +10917,14 @@ async function silentSaveDraft() {
     }
 
     const data = mergePreviewData(collectOppData());
-    data.status = 'rascunho';
-    data.ativo = false;
+    // Preserva status atual em modo edição (não rebaixa publicada para rascunho)
+    if (formState.editStatus === 'publicada') {
+      data.status = 'publicada'; data.ativo = true;
+    } else if (formState.editStatus === 'em_revisao') {
+      data.status = 'em_revisao'; data.ativo = false;
+    } else {
+      data.status = 'rascunho'; data.ativo = false;
+    }
     data.detentor_id = userId;
     let oppId = formState.editId;
 
@@ -11273,6 +11290,104 @@ async function _saveJuridicoAndPublish() {
   }
 }
 
+/* ══════════════════════════════════════════════
+   TOPBAR INTELIGENTE — adapta botões ao status da opp
+══════════════════════════════════════════════ */
+function _updateEditTopbar() {
+  const status = formState.editStatus;
+  if (!status) return;
+
+  // Labels e actions por status
+  const cfg = {
+    rascunho:   { label: 'Salvar rascunho',        title: 'Editar Rascunho' },
+    em_revisao: { label: 'Salvar alterações',       title: 'Editar Oportunidade' },
+    publicada:  { label: 'Atualizar oportunidade',  title: 'Editar Oportunidade' },
+    finalizada: { label: 'Reativar oportunidade',   title: 'Editar Oportunidade' },
+  }[status] || { label: 'Salvar rascunho', title: 'Editar Oportunidade' };
+
+  // Título da topbar
+  const topbarTitle = document.querySelector('.topbar-title');
+  if (topbarTitle) topbarTitle.textContent = cfg.title;
+
+  // Atualiza label do botão "Salvar rascunho" na topbar
+  const topbarDraftBtn = document.querySelector('.topbar-right .btn-draft:not(.btn-howto):not(#incentivo-delete-btn)');
+  if (topbarDraftBtn) topbarDraftBtn.textContent = cfg.label;
+
+  // Para publicada: adiciona botão "Encerrar oportunidade" na topbar
+  if (status === 'publicada') {
+    const topbarRight = document.querySelector('.topbar-right');
+    if (topbarRight && !document.getElementById('btn-encerrar-opp')) {
+      const encerrarBtn = document.createElement('button');
+      encerrarBtn.id = 'btn-encerrar-opp';
+      encerrarBtn.className = 'btn-draft';
+      encerrarBtn.style.cssText = 'color:#C83232;border-color:rgba(200,50,50,0.3)';
+      encerrarBtn.textContent = 'Encerrar oportunidade';
+      encerrarBtn.onclick = encerrarOportunidade;
+      // Insere antes do botão de salvar
+      topbarRight.insertBefore(encerrarBtn, topbarDraftBtn);
+    }
+    // Oculta botão "Publicar/Enviar para análise" no step 8
+    document.querySelectorAll('.btn-publish').forEach(b => b.style.display = 'none');
+  }
+
+  // Para em_revisao e finalizada: oculta botão de publicar
+  if (status === 'em_revisao' || status === 'finalizada') {
+    document.querySelectorAll('.btn-publish').forEach(b => b.style.display = 'none');
+  }
+
+  // Atualiza também o botão "Salvar rascunho" dentro do panel-8 (step de revisão)
+  const panel8DraftBtn = document.querySelector('#panel-8 .btn-ghost[onclick="saveDraft()"]');
+  if (panel8DraftBtn) panel8DraftBtn.textContent = cfg.label;
+}
+
+/* Encerra uma oportunidade publicada (status → finalizada, ativo → false) */
+async function encerrarOportunidade() {
+  if (!confirm('Deseja encerrar esta oportunidade? Ela será retirada do Radar e não receberá novos interesses.')) return;
+  const oppId = formState.editId;
+  if (!oppId) return;
+  const token = await _getWriteToken();
+  if (!token) { showToast('Sessão expirada. Faça login novamente.', 'error'); return; }
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'finalizada', ativo: false }),
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+    });
+    if (!res.ok) throw new Error(await res.text());
+    showToast('Oportunidade encerrada com sucesso.', 'success');
+    setTimeout(() => { window.location.href = 'dashboard-detentor.html#oportunidades'; }, 1200);
+  } catch (err) {
+    console.error('[encerrarOportunidade]', err);
+    showToast('Erro ao encerrar. Tente novamente.', 'error');
+  }
+}
+
+/* Reativa uma oportunidade encerrada (status → em_revisao para nova aprovação) */
+async function reativarOportunidade() {
+  if (!confirm('Deseja reativar esta oportunidade? Ela será enviada para análise novamente.')) return;
+  const oppId = formState.editId;
+  if (!oppId) return;
+  // Salva primeiro (captura edições feitas), depois muda status
+  await saveDraft(); // salva com status 'finalizada' (preservado acima)
+  const token = await _getWriteToken();
+  if (!token) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + oppId, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'em_revisao', ativo: false }),
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
+    });
+    if (!res.ok) throw new Error(await res.text());
+    showToast('Oportunidade enviada para análise!', 'success');
+    setTimeout(() => { window.location.href = 'dashboard-detentor.html#oportunidades'; }, 1200);
+  } catch (err) {
+    console.error('[reativarOportunidade]', err);
+    showToast('Erro ao reativar. Tente novamente.', 'error');
+  }
+}
+
 async function publishOpportunity() {
   const data = mergePreviewData(collectOppData());
   // Fluxo de revisão: oportunidades ficam em análise até aprovação admin
@@ -11569,8 +11684,9 @@ function maybePreFillEdit(forceRun = false) {
   try { opp = JSON.parse(raw); } catch(e) { return; }
 
   // Guarda o ID e slug para usar no PATCH ao salvar/publicar e no link de convite
-  if (opp.id)   formState.editId   = opp.id;
-  if (opp.slug) formState.editSlug = opp.slug;
+  if (opp.id)     formState.editId     = opp.id;
+  if (opp.slug)   formState.editSlug   = opp.slug;
+  if (opp.status) formState.editStatus = opp.status;
 
   // Atualiza título da topbar
   const topbarTitle = document.querySelector('.topbar-title');
@@ -11907,6 +12023,8 @@ function maybePreFillEdit(forceRun = false) {
 
   // Ativa stepper clicável em modo edição
   enableClickableStepper();
+  // Adapta topbar ao status da oportunidade (labels, botões extras)
+  _updateEditTopbar();
 }
 
 /**
