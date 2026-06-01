@@ -371,13 +371,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   flex-shrink: 0; transition: opacity 0.15s;
 }
 .focus-banner-cta:hover { opacity: 0.85; }
-.focus-banner-dismiss {
-  background: none; border: none; cursor: pointer;
-  color: rgba(255,255,255,0.22); padding: 0 2px;
-  font-size: 22px; line-height: 1; flex-shrink: 0;
-  transition: color 0.15s; font-family: var(--font-body);
-}
-.focus-banner-dismiss:hover { color: rgba(255,255,255,0.6); }
 
 /* Nav items bloqueados no focus mode */
 .nav-item.nav-locked-item {
@@ -2765,13 +2758,11 @@ function setUserInfo(nome, email) {
 }
 
 // ─── FOCUS MODE (primeiro acesso) ───
-const FOCUS_MODE_KEY   = 'rr_focus_dismissed_det';
-const FOCUS_LOCKED     = new Set(['dashboard']);      // seções bloqueadas
-const FOCUS_LOCKED_TABS = new Set(['negociacoes']);   // sub-tabs bloqueados
+const FOCUS_LOCKED      = new Set(['dashboard']);    // seções bloqueadas
+const FOCUS_LOCKED_TABS = new Set(['negociacoes']);  // sub-tabs bloqueados
 
 function _isFocusModeActive() {
   if (isDemoMode()) return false;
-  if (localStorage.getItem(FOCUS_MODE_KEY)) return false;
   return MINHAS_OPPS.length === 0;
 }
 
@@ -2799,10 +2790,6 @@ function _applyFocusMode(active) {
   });
 }
 
-function dismissFocusMode() {
-  localStorage.setItem(FOCUS_MODE_KEY, '1');
-  _applyFocusMode(false);
-}
 
 // ─── SETUP GUIDE ───
 const OB_KEY_DET = 'rr_sg_done_detentor';
