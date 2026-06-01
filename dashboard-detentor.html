@@ -344,7 +344,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   border-bottom: 2px solid rgba(184,134,11,0.28);
   padding: 12px 32px;
   position: sticky; top: 64px; z-index: 90;
+  margin-left: var(--sidebar-w);
 }
+@media (max-width: 768px) { .focus-banner { margin-left: 0; } }
 .focus-banner.active { display: flex; }
 .focus-pulse {
   width: 9px; height: 9px; border-radius: 50%;
@@ -2758,8 +2760,8 @@ function setUserInfo(nome, email) {
 }
 
 // ─── FOCUS MODE (primeiro acesso) ───
-const FOCUS_LOCKED      = new Set(['dashboard']);    // seções bloqueadas
-const FOCUS_LOCKED_TABS = new Set(['negociacoes']);  // sub-tabs bloqueados
+const FOCUS_LOCKED      = new Set(['dashboard', 'configuracoes', 'voz']); // seções bloqueadas
+const FOCUS_LOCKED_TABS = new Set(['negociacoes', 'deals', 'solicitacoes']); // sub-tabs bloqueados
 
 function _isFocusModeActive() {
   if (isDemoMode()) return false;

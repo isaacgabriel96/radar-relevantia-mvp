@@ -104,7 +104,9 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
   border-bottom: 2px solid rgba(184,134,11,0.28);
   padding: 12px 32px;
   position: sticky; top: 64px; z-index: 90;
+  margin-left: var(--sidebar-w);
 }
+@media (max-width: 768px) { .focus-banner { margin-left: 0; } }
 .focus-banner.active { display: flex; }
 .focus-pulse {
   width: 9px; height: 9px; border-radius: 50%;
@@ -14149,11 +14151,18 @@ function _closeContaEmAnaliseModal() {
   // Propaga o flag para o localStorage (cobre caso de entrada direta via ?onboarding=true)
   localStorage.setItem('rr_focus_active', '1');
 
-  // Links a bloquear: Dashboard e Minhas Oportunidades (sem hash = sem seção específica)
+  // Bloqueia TODA a sidebar — foco total na criação da oportunidade
   document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(el) {
-    const href = (el.getAttribute('href') || '').replace(/^.*\//, '');
-    if (!href.includes('#')) el.classList.add('nav-locked-item');
+    el.classList.add('nav-locked-item');
   });
+
+  // Bloqueia botão "← Oportunidades" no topbar
+  const backBtn = document.querySelector('.topbar-back');
+  if (backBtn) {
+    backBtn.style.opacity = '0.3';
+    backBtn.style.pointerEvents = 'none';
+    backBtn.style.cursor = 'not-allowed';
+  }
 })();
 </script>
 
