@@ -96,6 +96,43 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 .nav-item:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
 .nav-item.active { color: var(--white); background: rgba(201,164,58,0.12); font-weight: 600; }
 .nav-item.nav-locked-item { opacity: 0.3 !important; cursor: not-allowed !important; pointer-events: none; }
+
+/* ─── FOCUS MODE BANNER ─── */
+.focus-banner {
+  display: none; align-items: center; gap: 14px;
+  background: var(--black-2, #1a1200);
+  border-bottom: 2px solid rgba(184,134,11,0.28);
+  padding: 12px 32px;
+  position: sticky; top: 64px; z-index: 90;
+}
+.focus-banner.active { display: flex; }
+.focus-pulse {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+  animation: focus-pulse 2.2s ease-in-out infinite;
+}
+@keyframes focus-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(184,134,11,0.55); }
+  60%       { box-shadow: 0 0 0 8px rgba(184,134,11,0); }
+}
+.focus-banner-body { flex: 1; min-width: 0; }
+.focus-banner-title {
+  font-family: var(--font-heading, 'Poppins', sans-serif);
+  font-size: 13px; font-weight: 600; color: var(--white);
+}
+.focus-banner-sub {
+  font-size: 11.5px; color: rgba(255,255,255,0.42);
+  font-family: var(--font-body, 'DM Sans', sans-serif); margin-top: 2px;
+}
+.focus-banner-steps {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.focus-step {
+  font-size: 11px; font-weight: 600; font-family: var(--font-body, 'DM Sans', sans-serif);
+  color: rgba(255,255,255,0.3); white-space: nowrap;
+}
+.focus-step.active { color: var(--gold); }
+.focus-step-sep { color: rgba(255,255,255,0.15); font-size: 12px; }
 .nav-item.active::before {
   content: ''; position: absolute; left: 0; top: 8px; bottom: 8px;
   width: 3px; border-radius: 0 3px 3px 0; background: var(--gold);
@@ -3503,6 +3540,22 @@ input[type=number] { -moz-appearance: textfield; }
   </div>
 </div>
 
+<!-- Focus mode banner (primeiro acesso) -->
+<div class="focus-banner" id="focusBanner">
+  <div class="focus-pulse"></div>
+  <div class="focus-banner-body">
+    <div class="focus-banner-title">Primeiros passos — crie e publique sua primeira oportunidade</div>
+    <div class="focus-banner-sub">Preencha as 3 etapas e publique para começar a receber propostas de marcas.</div>
+  </div>
+  <div class="focus-banner-steps" id="focusSteps">
+    <span class="focus-step active" id="fstep-1">1 · Sobre</span>
+    <span class="focus-step-sep">›</span>
+    <span class="focus-step" id="fstep-2">2 · Informações</span>
+    <span class="focus-step-sep">›</span>
+    <span class="focus-step" id="fstep-3">3 · Publicar</span>
+  </div>
+</div>
+
 <!-- Main -->
 <main class="main">
   <div class="main-inner">
@@ -6329,6 +6382,12 @@ function _updateProgressDots(n) {
   const label = document.getElementById('mobileProgressStep');
   if (fill) fill.style.width = ((n - 1) / TOTAL_STEPS * 100).toFixed(2) + '%';
   if (label) label.textContent = 'Passo ' + n + ' de ' + TOTAL_STEPS;
+
+  // Sincroniza step do focus banner
+  for (let s = 1; s <= 3; s++) {
+    const el = document.getElementById('fstep-' + s);
+    if (el) el.className = 'focus-step' + (s === activePhase ? ' active' : '');
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -14077,17 +14136,23 @@ function _closeContaEmAnaliseModal() {
   if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
 }
 
-// ─── FOCUS MODE: bloqueia nav de distração enquanto usuário não tem oportunidades ───
+// ─── FOCUS MODE: banner + nav bloqueado enquanto usuário não tem oportunidades ───
 (function() {
   const isActive = localStorage.getItem('rr_focus_active') === '1'
     || new URLSearchParams(window.location.search).get('onboarding') === 'true';
   if (!isActive) return;
 
+  // Mostra o banner
+  const banner = document.getElementById('focusBanner');
+  if (banner) banner.classList.add('active');
+
+  // Propaga o flag para o localStorage (cobre caso de entrada direta via ?onboarding=true)
+  localStorage.setItem('rr_focus_active', '1');
+
   // Links a bloquear: Dashboard e Minhas Oportunidades (sem hash = sem seção específica)
   document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(el) {
-    const href = (el.getAttribute('href') || '').replace(/^.*\//, ''); // só o filename+hash
-    const hasHash = href.includes('#');
-    if (!hasHash) el.classList.add('nav-locked-item'); // bloqueia só os que não têm deep-link
+    const href = (el.getAttribute('href') || '').replace(/^.*\//, '');
+    if (!href.includes('#')) el.classList.add('nav-locked-item');
   });
 })();
 </script>
