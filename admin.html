@@ -2618,17 +2618,19 @@ let _aprovacoesList = [];
 async function loadAprovacoes() {
   try {
     // Busca detentores com juridico preenchido mas ainda não aprovados pelo admin
-    const perfis = await sbFetch(
+    const rPerfis = await sbFetch(
       '/rest/v1/perfis?role=eq.detentor&cadastro_juridico_completo=eq.true&pode_publicar=eq.false' +
       '&select=id,nome,email,empresa'
     );
-    if (!perfis?.length) { _aprovacoesList = []; renderAprovacoes(); _updateAprovacoesBadge(); return; }
+    const perfis = await rPerfis.json();
+    if (!Array.isArray(perfis) || !perfis.length) { _aprovacoesList = []; renderAprovacoes(); _updateAprovacoesBadge(); return; }
 
     // Para cada detentor, busca a oportunidade mais recente
-    const oppRows = await sbFetch(
+    const rOpps = await sbFetch(
       '/rest/v1/oportunidades?detentor_id=in.(' + perfis.map(p => p.id).join(',') + ')' +
       '&select=id,titulo,categoria,status,detentor_id&order=criado_em.desc'
     );
+    const oppRows = await rOpps.json();
 
     // Monta lista: um card por detentor, com sua oportunidade mais recente
     _aprovacoesList = perfis.map(p => {
