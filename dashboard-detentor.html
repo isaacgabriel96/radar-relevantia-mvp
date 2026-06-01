@@ -2730,6 +2730,13 @@ async function init() {
     // Load detentor's own opportunities from Supabase
     try { await loadMinhasOpps(); } catch (e) { console.error('[init] loadMinhasOpps failed:', e); }
 
+    // Onboarding: detentor sem nenhuma oportunidade → redireciona direto para criar
+    // (loading screen ainda visível — sem flash de conteúdo)
+    if (!window._adminViewCtx && !isDemoMode() && MINHAS_OPPS.length === 0) {
+      window.location.href = 'criar-oportunidade.html?onboarding=true';
+      return;
+    }
+
     // Render all views that depend on NEGOCIACOES + MINHAS_OPPS
     renderPublicadas();
     renderNegociacoes(NEGOCIACOES);
@@ -2740,24 +2747,31 @@ async function init() {
     // Pré-carrega solicitações em background para atualizar badge imediatamente
     loadSolicitacoes().catch(function(e) { console.error('[init] loadSolicitacoes bg error:', e); });
 
-    // Aplica focus mode se usuário ainda não criou nenhuma oportunidade
-    const _focusActive = _isFocusModeActive();
-    _applyFocusMode(_focusActive);
+    // Libera/aplica focus mode (caso ainda haja resquício do localStorage)
+    _applyFocusMode(false);
 
     // Em admin view: força "oportunidades" como section inicial.
-    // Admin não deve cair no Dashboard do detentor por padrão.
     if (window._adminViewCtx) {
       showSection('oportunidades');
-    } else if (_focusActive) {
-      // Focus mode: manda direto para Minhas Oportunidades (CTA de criar)
-      showSection('oportunidades');
     } else {
-      // Check hash for deep linking
-      const hash = window.location.hash.replace('#', '');
-      if (hash === 'negociacoes') {
-        showSectionTab('oportunidades', 'negociacoes');
-      } else if (hash && SECTION_TITLES[hash]) {
-        showSection(hash);
+      const params = new URLSearchParams(window.location.search);
+
+      // Vindo de criar-oportunidade após publicar → abre aba Jurídico
+      if (params.get('onboarding_done') === '1') {
+        history.replaceState(null, '', window.location.pathname + '#configuracoes');
+        showSection('configuracoes');
+        setTimeout(() => {
+          switchConfigTab('juridico');
+          showToast('Ótimo! Agora preencha seus dados jurídicos para avançar no processo.', 'success');
+        }, 80);
+      } else {
+        // Deep-link normal pelo hash
+        const hash = window.location.hash.replace('#', '');
+        if (hash === 'negociacoes') {
+          showSectionTab('oportunidades', 'negociacoes');
+        } else if (hash && SECTION_TITLES[hash]) {
+          showSection(hash);
+        }
       }
     }
   } catch (e) {

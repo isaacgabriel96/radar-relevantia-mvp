@@ -13704,13 +13704,13 @@ function exitImpersonateMode() {
 
 /** Vai pro dashboard do detentor preservando ctx do admin (usado após publish/save) */
 function goToDashboardPreservingCtx() {
-  // Oportunidade criada — libera o focus mode antes de redirecionar
+  // Oportunidade criada — libera focus mode e direciona para dados jurídicos
   localStorage.removeItem('rr_focus_active');
   if (window._impersonateCtx) {
     const n = window._impersonateCtx.nonce ? '&_n=' + encodeURIComponent(window._impersonateCtx.nonce) : '';
     window.location.href = 'dashboard-detentor.html?_imp=1' + n + '#oportunidades';
   } else {
-    window.location.href = 'dashboard-detentor.html#oportunidades';
+    window.location.href = 'dashboard-detentor.html?onboarding_done=1#configuracoes';
   }
 }
 
