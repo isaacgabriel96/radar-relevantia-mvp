@@ -10220,18 +10220,27 @@ function removeMkFile() {
  */
 function _mkLoadExistingPdf() {
   const url = formState.existingMkUrl;
-  if (!url || mkPdfDoc) return; // sem URL ou já carregado
+  if (!url) return;
+
+  const _renderReady = function() {
+    mkCurrentPage = 1;
+    const ls = document.getElementById('mkLoadingState');
+    if (ls) ls.style.display = 'none';
+    _mkRenderPage(1);
+    const prev = document.getElementById('mkPrevBtn');
+    const next = document.getElementById('mkNextBtn');
+    if (prev) prev.disabled = true;
+    if (next) next.disabled = mkPdfDoc.numPages <= 1;
+  };
+
+  // Se o preload já terminou, renderiza imediatamente (aparece na hora)
+  if (mkPdfDoc) { _renderReady(); return; }
+
+  // Preload ainda em andamento: aguarda e renderiza assim que terminar
   _mkEnsurePdfJs(function() {
     pdfjsLib.getDocument(url).promise.then(function(pdf) {
       mkPdfDoc = pdf;
-      mkCurrentPage = 1;
-      const ls = document.getElementById('mkLoadingState');
-      if (ls) ls.style.display = 'none';
-      _mkRenderPage(1);
-      const prev = document.getElementById('mkPrevBtn');
-      const next = document.getElementById('mkNextBtn');
-      if (prev) prev.disabled = true;
-      if (next) next.disabled = pdf.numPages <= 1;
+      _renderReady();
     }).catch(function(err) {
       console.warn('[MK] Erro ao carregar PDF existente:', err);
       const ls = document.getElementById('mkLoadingState');
@@ -11806,10 +11815,7 @@ function maybePreFillEdit(forceRun = false) {
     // Guarda URL existente para manter caso nenhum novo arquivo seja selecionado
     formState.existingMkUrl = opp.midia_kit_url;
 
-    // Prepara o viewer visualmente (esconde zona de upload, mostra viewer com placeholder).
-    // NÃO carrega o PDF aqui — o container s3MediaKitWrap ainda está display:none e o
-    // canvas ficaria com dimensões zero. O carregamento real ocorre em _mkLoadExistingPdf(),
-    // chamada quando o container se torna visível (nextStep 4→5, 5→4, etc.).
+    // Prepara o viewer visualmente (esconde zona de upload, mostra viewer com loading)
     document.getElementById('mkUploadState').style.display = 'none';
     document.getElementById('mkViewerPreviewGroup').style.display = 'block';
 
@@ -11818,7 +11824,19 @@ function maybePreFillEdit(forceRun = false) {
     ) || 'apresentação.pdf';
     document.getElementById('mkViewerTitle').textContent = '📄 ' + _mkFileName + ' (atual)';
     document.getElementById('mkLoadingState').style.display = 'block';
-    document.getElementById('mkLoadingState').textContent = 'Clique em "Apresentação" para visualizar o PDF';
+    document.getElementById('mkLoadingState').textContent = 'Carregando apresentação…';
+
+    // Preload: baixa o PDF em background imediatamente.
+    // Quando o usuário navegar até a seção, _mkLoadExistingPdf() apenas renderiza
+    // o documento já carregado — aparece instantaneamente como se tivesse sido
+    // feito o upload na hora.
+    _mkEnsurePdfJs(function() {
+      pdfjsLib.getDocument(opp.midia_kit_url).promise.then(function(pdf) {
+        mkPdfDoc = pdf; // armazena para uso imediato em _mkLoadExistingPdf()
+      }).catch(function(err) {
+        console.warn('[MK] Preload failed:', err);
+      });
+    });
   }
 
   // --- Passo 5: Segmentos / tags ---
