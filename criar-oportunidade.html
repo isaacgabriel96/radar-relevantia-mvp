@@ -11713,16 +11713,34 @@ function maybePreFillEdit(forceRun = false) {
   if (opp.midia_kit_url) {
     // Guarda URL existente para manter caso nenhum novo arquivo seja selecionado
     formState.existingMkUrl = opp.midia_kit_url;
-    // Exibe o nome do arquivo atual no campo de preview
-    const fileName = opp.midia_kit_url.split('/').pop().replace(/^opp-\d+-midia-kit-/, '') || 'apresentação.pdf';
-    const preview = document.getElementById('mkFilePreview');
-    const nameEl  = document.getElementById('mkFileName');
-    const sizeEl  = document.getElementById('mkFileSize');
-    if (preview && nameEl) {
-      nameEl.textContent = '📄 ' + decodeURIComponent(fileName) + ' (atual)';
-      if (sizeEl) sizeEl.textContent = '';
-      preview.style.display = 'flex';
-    }
+
+    // Mostra o viewer (mesmo fluxo do handleMkFile) em vez do upload state
+    document.getElementById('mkUploadState').style.display = 'none';
+    document.getElementById('mkViewerPreviewGroup').style.display = 'block';
+
+    const _mkFileName = decodeURIComponent(
+      opp.midia_kit_url.split('/').pop().replace(/^opp-\d+-midia-kit-/, '')
+    ) || 'apresentação.pdf';
+    document.getElementById('mkViewerTitle').textContent = '📄 ' + _mkFileName + ' (atual)';
+    document.getElementById('mkLoadingState').style.display = 'block';
+    document.getElementById('mkLoadingState').textContent = 'Carregando apresentação…';
+
+    // Carrega o PDF do Storage com pdf.js (mesmo viewer do upload)
+    _mkEnsurePdfJs(function() {
+      pdfjsLib.getDocument(opp.midia_kit_url).promise.then(function(pdf) {
+        mkPdfDoc = pdf;
+        mkCurrentPage = 1;
+        document.getElementById('mkLoadingState').style.display = 'none';
+        _mkRenderPage(1);
+        document.getElementById('mkPrevBtn').disabled = true;
+        document.getElementById('mkNextBtn').disabled = pdf.numPages <= 1;
+      }).catch(function(err) {
+        console.warn('[MK] Erro ao carregar PDF existente:', err);
+        // Falha graceful: mostra nome do arquivo mas sem preview
+        document.getElementById('mkLoadingState').textContent =
+          '📄 ' + _mkFileName + ' · Para substituir, selecione um novo arquivo acima';
+      });
+    });
   }
 
   // --- Passo 5: Segmentos / tags ---
