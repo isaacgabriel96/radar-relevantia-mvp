@@ -95,7 +95,31 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 }
 .nav-item:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
 .nav-item.active { color: var(--white); background: rgba(201,164,58,0.12); font-weight: 600; }
-.nav-item.nav-locked-item { opacity: 0.3 !important; cursor: not-allowed !important; pointer-events: none; }
+/* Nav items bloqueados → skeleton shimmer */
+@keyframes nav-skeleton {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+.nav-item.nav-locked-item {
+  color: transparent !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  position: relative;
+}
+.nav-item.nav-locked-item:hover { background: none !important; }
+.nav-item.nav-locked-item svg { opacity: 0 !important; }
+.nav-item.nav-locked-item::after {
+  content: '';
+  position: absolute; top: 8px; bottom: 8px; left: 10px; right: 16px;
+  border-radius: 6px;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.1) 45%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: nav-skeleton 1.8s ease-in-out infinite;
+}
 
 /* ─── FOCUS MODE BANNER ─── */
 .focus-banner {
