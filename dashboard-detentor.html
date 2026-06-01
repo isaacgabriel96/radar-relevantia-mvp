@@ -2764,11 +2764,17 @@ async function init() {
     if (window._adminViewCtx) {
       showSection('oportunidades');
     } else {
-      // Focus jurídico (fase 2): tem oportunidade mas juridico incompleto
+      // Focus jurídico (fase 2): tem oportunidade mas admin ainda não aprovou
       if (_isJuridicoFocusModeActive()) {
         _applyJuridicoFocusMode(true);
-        showSection('configuracoes');
-        setTimeout(() => switchConfigTab('juridico'), 80);
+        if (!OB_DET.juridico) {
+          // 2a: juridico ainda não preenchido → abre configurações/jurídico
+          showSection('configuracoes');
+          setTimeout(() => switchConfigTab('juridico'), 80);
+        } else {
+          // 2b: juridico preenchido, aguardando aprovação → mostra oportunidades
+          showSection('oportunidades');
+        }
       } else {
         // Deep-link normal pelo hash
         const params = new URLSearchParams(window.location.search);
@@ -2810,7 +2816,8 @@ const JURIDICO_LOCKED_TABS = ['cfg-tab-empresa', 'cfg-tab-conta', 'cfg-tab-finan
 
 function _isJuridicoFocusModeActive() {
   if (isDemoMode() || window._adminViewCtx) return false;
-  return MINHAS_OPPS.length > 0 && !OB_DET.juridico;
+  // Ativo enquanto admin não aprovar (pode_publicar false) e há oportunidade criada
+  return MINHAS_OPPS.length > 0 && !OB_DET.podePublicar;
 }
 
 function _applyJuridicoFocusMode(active) {
@@ -2832,12 +2839,17 @@ function _applyJuridicoFocusMode(active) {
     return;
   }
 
-  // Banner — fase jurídica
+  // Banner — texto varia por sub-fase
   if (banner) {
-    const title = banner.querySelector('.focus-banner-title');
-    const sub   = banner.querySelector('.focus-banner-sub');
-    if (title) title.textContent = 'Quase lá — preencha seus dados jurídicos';
-    if (sub)   sub.textContent   = 'São necessários para formalizar contratos com as marcas.';
+    const waiting = OB_DET.juridico; // juridico preenchido, aguardando aprovação do admin
+    const title   = banner.querySelector('.focus-banner-title');
+    const sub     = banner.querySelector('.focus-banner-sub');
+    if (title) title.textContent = waiting
+      ? 'Conta em análise — o time do Relevantia está revisando suas informações'
+      : 'Quase lá — preencha seus dados jurídicos';
+    if (sub) sub.textContent = waiting
+      ? 'Você será notificado quando sua conta for aprovada.'
+      : 'São necessários para formalizar contratos com as marcas.';
     banner.classList.add('active');
   }
   document.getElementById('setupGuideBtn')?.style.setProperty('display', 'none', 'important');
@@ -3355,8 +3367,8 @@ function showSection(sectionId) {
   // Lazy load section data
   if (sectionId === 'configuracoes') {
     loadEquipe();
-    // Focus jurídico: força aba Jurídico sempre que o usuário abre Configurações
-    if (_isJuridicoFocusModeActive()) setTimeout(() => switchConfigTab('juridico'), 60);
+    // Focus jurídico fase 2a: força aba Jurídico apenas quando dados ainda não preenchidos
+    if (_isJuridicoFocusModeActive() && !OB_DET.juridico) setTimeout(() => switchConfigTab('juridico'), 60);
   }
 }
 
@@ -3438,6 +3450,16 @@ function _initNotifRealtime(session) {
         sub:     (r.data && r.data.sub)     || null
       });
       renderNotifs();
+      // Conta aprovada pelo admin → libera focus mode e recarrega dados
+      if (r.type === 'conta_aprovada') {
+        loadUserInfoDetentor().then(() => {
+          if (OB_DET.podePublicar) {
+            _applyJuridicoFocusMode(false);
+            loadMinhasOpps().then(() => renderPublicadas());
+            showToast('🎉 Conta aprovada! Seja bem-vindo ao Radar Relevantia.', 'success');
+          }
+        });
+      }
     })
     .subscribe();
 }
@@ -6393,9 +6415,10 @@ async function saveJuridico() {
     OB_DET.juridico = true;
     updateSetupGuide();
     _updateJuridicoBanner();
-    // Libera focus jurídico (fase 2 do onboarding)
-    _applyJuridicoFocusMode(false);
-    showToast('Dados jurídicos salvos! Seu perfil está completo.', 'success');
+    // Atualiza banner para "em análise" (foco mantido até admin aprovar)
+    _applyJuridicoFocusMode(true);
+    // Abre modal explicativo
+    document.getElementById('modalJuridicoAnalise')?.classList.add('open');
 
     // Notificação no sino: confirma recebimento e informa que está aguardando aprovação
     try {
@@ -7656,6 +7679,16 @@ function _djpmValidateCpf(cpf) {
 <div id="convite-global-dropdown" style="display:none;position:fixed;z-index:400;background:#fff;border:1px solid var(--gray-200,#e5e7eb);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.13);min-width:270px;max-width:300px;overflow:hidden;"></div>
 
 <!-- ══ Modal: Conta em análise (no_permission) ══ -->
+<!-- Modal: Dados jurídicos enviados para análise -->
+<div class="modal-overlay-det" id="modalJuridicoAnalise" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="cam-box" style="text-align:center">
+    <div class="cam-icon">🎉</div>
+    <div class="cam-title">Dados enviados para análise!</div>
+    <div class="cam-desc">O time do Relevantia vai revisar seus dados jurídicos e sua oportunidade. Você será notificado assim que sua conta for aprovada e você poderá usar a plataforma por completo.</div>
+    <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:8px" onclick="document.getElementById('modalJuridicoAnalise').classList.remove('open')">Entendido</button>
+  </div>
+</div>
+
 <div class="modal-overlay-det" id="modal-conta-analise" onclick="if(event.target===this)_closeContaEmAnaliseModal()">
   <div class="cam-box">
     <div class="cam-icon">🔒</div>

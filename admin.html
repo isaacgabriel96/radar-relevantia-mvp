@@ -542,6 +542,11 @@ tr.row-selected td { background: #FEF2F2; }
       </div>
       <div class="sidebar-section">
         <div class="sidebar-label">Operações</div>
+        <div class="sidebar-item" onclick="showSection('aprovacoes', this)">
+          <span class="sidebar-item-icon">✅</span>
+          Aprovações
+          <span class="sidebar-badge red" id="badgeAprovacoes" style="display:none">0</span>
+        </div>
         <div class="sidebar-item" onclick="showSection('oportunidades', this)">
           <span class="sidebar-item-icon">📋</span>
           Oportunidades
@@ -1125,6 +1130,15 @@ tr.row-selected td { background: #FEF2F2; }
 
       <!-- DEALS -->
       <!-- OPORTUNIDADES -->
+      <!-- ── Aprovações Pendentes ── -->
+      <div id="section-aprovacoes" class="section" style="display:none">
+        <div class="page-header">
+          <h1 class="page-title">Aprovações Pendentes</h1>
+          <p class="page-sub">Detentores com dados jurídicos preenchidos aguardando aprovação para publicar</p>
+        </div>
+        <div id="aprovacoes-list"></div>
+      </div>
+
       <div id="section-oportunidades" class="section">
         <div class="page-header">
           <h1 class="page-title">Oportunidades</h1>
@@ -1659,6 +1673,7 @@ function showSection(name, el) {
   if (name === 'embaixadores')    loadEmbaixadores();
   if (name === 'marcas')          loadMarcas();
   if (name === 'detentores')      loadDetentores();
+  if (name === 'aprovacoes')      loadAprovacoes();
   if (name === 'oportunidades')   loadOportunidades();
   if (name === 'deals')           loadDeals();
   if (name === 'mudancas-marca')  loadMudancasMarca();
@@ -1675,7 +1690,8 @@ async function loadAllData() {
     loadDetentores(),
     loadRecentActivity(),
     loadDeals(),
-    loadMudancasMarca()
+    loadMudancasMarca(),
+    loadAprovacoes()  // carrega badge de aprovações pendentes
   ]);
 }
 
@@ -2593,6 +2609,106 @@ async function togglePodePublicar(perfilId, currentValue) {
   } catch (e) {
     console.error('[togglePodePublicar]', e);
     showToast('Erro ao alterar permissão.', 'error');
+  }
+}
+
+// ─── APROVAÇÕES PENDENTES ───────────────────────────────────────────────────
+let _aprovacoesList = [];
+
+async function loadAprovacoes() {
+  try {
+    // Busca oportunidades em_revisao cujo detentor ainda não tem pode_publicar
+    const rows = await sbFetch(
+      '/rest/v1/oportunidades?status=eq.em_revisao' +
+      '&select=id,titulo,categoria,detentor_id,' +
+      'perfil:perfis!detentor_id(id,nome,email,empresa,cadastro_juridico_completo,pode_publicar)' +
+      '&order=criado_em.desc'
+    );
+    // Filtra: juridico preenchido e ainda não aprovado
+    _aprovacoesList = (rows || []).filter(o =>
+      o.perfil?.cadastro_juridico_completo === true && !o.perfil?.pode_publicar
+    );
+    renderAprovacoes();
+    // Atualiza badge na sidebar
+    const badge = document.getElementById('badgeAprovacoes');
+    if (badge) {
+      badge.textContent = _aprovacoesList.length;
+      badge.style.display = _aprovacoesList.length > 0 ? '' : 'none';
+    }
+  } catch(e) {
+    console.error('[loadAprovacoes]', e);
+  }
+}
+
+function renderAprovacoes() {
+  const container = document.getElementById('aprovacoes-list');
+  if (!container) return;
+  if (_aprovacoesList.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:48px 24px;color:var(--text-light,#6b7280)">
+      <div style="font-size:32px;margin-bottom:12px">✅</div>
+      <div style="font-weight:600;margin-bottom:4px">Nenhuma aprovação pendente</div>
+      <div style="font-size:13px">Todos os detentores foram aprovados.</div>
+    </div>`;
+    return;
+  }
+  container.innerHTML = _aprovacoesList.map(o => `
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:20px 24px;margin-bottom:12px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+      <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex-shrink:0">
+        ${(o.perfil?.nome || '?').charAt(0).toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:180px">
+        <div style="font-weight:600;font-size:15px">${escHtml(o.perfil?.nome || '—')}</div>
+        <div style="font-size:13px;color:#6b7280">${escHtml(o.perfil?.email || '—')} · ${escHtml(o.perfil?.empresa || '—')}</div>
+      </div>
+      <div style="flex:1;min-width:160px">
+        <div style="font-size:12px;color:#6b7280;margin-bottom:2px">Oportunidade em análise</div>
+        <div style="font-weight:500;font-size:13px">${escHtml(o.titulo || '—')}</div>
+        <div style="font-size:12px;color:#9ca3af">${escHtml(o.categoria || '—')}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <span style="background:#dcfce7;color:#166534;border:1px solid #86efac;border-radius:100px;padding:3px 10px;font-size:11px;font-weight:600">⚖️ Jurídico preenchido</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn btn-sm" style="background:#16a34a;color:#fff;border:none"
+          onclick="aprovarDetentor('${o.perfil?.id}','${o.id}')">✓ Aprovar tudo</button>
+        <button class="btn btn-sm" style="background:var(--red-bg,#fee2e2);color:var(--red,#ef4444);border:1px solid rgba(239,68,68,0.2)"
+          onclick="rejeitarDetentor('${o.perfil?.id}','${o.id}')">✕ Rejeitar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function escHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function aprovarDetentor(perfilId, oppId) {
+  if (!confirm('Aprovar conta e publicar oportunidade deste detentor?')) return;
+  try {
+    await Promise.all([
+      adminAction('set-pode-publicar', { perfil_id: perfilId, value: true }),
+      adminAction('update-oportunidade-as', { opp_id: oppId, opp_data: { status: 'publicada', ativo: true } })
+    ]);
+    _aprovacoesList = _aprovacoesList.filter(o => String(o.id) !== String(oppId));
+    renderAprovacoes();
+    const badge = document.getElementById('badgeAprovacoes');
+    if (badge) { badge.textContent = _aprovacoesList.length; badge.style.display = _aprovacoesList.length > 0 ? '' : 'none'; }
+    showToast('Detentor aprovado e oportunidade publicada!', 'success');
+  } catch(e) {
+    console.error('[aprovarDetentor]', e);
+    showToast('Erro ao aprovar. Tente novamente.', 'error');
+  }
+}
+
+async function rejeitarDetentor(perfilId, oppId) {
+  const motivo = prompt('Motivo da rejeição (opcional):') ?? '';
+  try {
+    await adminAction('update-oportunidade-as', { opp_id: oppId, opp_data: { status: 'rascunho', ativo: false } });
+    _aprovacoesList = _aprovacoesList.filter(o => String(o.id) !== String(oppId));
+    renderAprovacoes();
+    const badge = document.getElementById('badgeAprovacoes');
+    if (badge) { badge.textContent = _aprovacoesList.length; badge.style.display = _aprovacoesList.length > 0 ? '' : 'none'; }
+    showToast('Rejeitado — oportunidade devolvida para rascunho.', 'success');
+  } catch(e) {
+    showToast('Erro ao rejeitar.', 'error');
   }
 }
 
