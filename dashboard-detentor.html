@@ -309,6 +309,98 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 }
 .notif-overlay.open { display: block; }
 
+/* ── Modal de notificação detalhada ── */
+.notif-modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(26,18,0,0.55); z-index: 2000;
+  backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.notif-modal-backdrop.open { display: flex; animation: notifModalIn 0.22s cubic-bezier(0.16,1,0.3,1); }
+@keyframes notifModalIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.notif-modal {
+  background: var(--white-warm);
+  border-radius: 20px;
+  width: 100%; max-width: 480px;
+  box-shadow: 0 24px 80px rgba(26,18,0,0.22), 0 2px 8px rgba(26,18,0,0.08);
+  overflow: hidden;
+  animation: notifModalSlide 0.22s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes notifModalSlide {
+  from { transform: translateY(12px) scale(0.98); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+.notif-modal-top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--gray-200);
+}
+.notif-modal-counter {
+  font-size: 11px; font-weight: 600; color: var(--gray-400);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.notif-modal-close {
+  width: 28px; height: 28px; border-radius: 50%; border: none;
+  background: var(--gray-100); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--gray-500); transition: background 0.15s, color 0.15s;
+}
+.notif-modal-close:hover { background: var(--gray-200); color: var(--black); }
+.notif-modal-close svg { width: 14px; height: 14px; }
+.notif-modal-body {
+  padding: 24px 24px 20px;
+}
+.notif-modal-icon-row {
+  display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px;
+}
+.notif-modal-icon {
+  width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.notif-modal-icon.green  { background: var(--green-bg); }
+.notif-modal-icon.blue   { background: rgba(59,130,246,0.10); }
+.notif-modal-icon.orange { background: var(--gold-pale); }
+.notif-modal-icon.red    { background: var(--red-bg); }
+.notif-modal-icon.gray   { background: var(--gray-100); }
+.notif-modal-meta { flex: 1; }
+.notif-modal-title {
+  font-size: 17px; font-weight: 700; color: var(--black);
+  line-height: 1.3; margin-bottom: 4px;
+  font-family: var(--font-heading);
+}
+.notif-modal-time {
+  font-size: 12px; color: var(--gray-400); font-weight: 500;
+}
+.notif-modal-desc {
+  font-size: 14px; color: var(--gray-600); line-height: 1.65;
+  background: var(--gray-100); border-radius: 12px; padding: 14px 16px;
+}
+.notif-modal-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 20px; gap: 10px;
+}
+.notif-modal-nav {
+  display: flex; gap: 6px;
+}
+.notif-modal-nav-btn {
+  width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--gray-200);
+  background: var(--white-warm); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: var(--gray-500); transition: all 0.15s; font-size: 16px;
+}
+.notif-modal-nav-btn:hover:not(:disabled) { background: var(--gray-100); border-color: var(--gray-300); color: var(--black); }
+.notif-modal-nav-btn:disabled { opacity: 0.3; cursor: default; }
+.notif-modal-cta {
+  flex: 1; padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer;
+  background: var(--gold-gradient); color: #fff; font-weight: 600; font-size: 13px;
+  font-family: var(--font-heading); transition: opacity 0.15s; text-align: center;
+  max-width: 220px;
+}
+.notif-modal-cta:hover { opacity: 0.88; }
+.notif-modal-cta.hidden { display: none; }
+
 /* Bottom sheet mobile — aplicado via JS */
 .notif-panel.mobile-sheet {
   position: fixed !important;
@@ -1586,6 +1678,35 @@ tbody tr:last-child td { border-bottom: none; }
   <div class="notif-list" id="notifList"></div>
   <div class="notif-panel-footer">
     <button class="notif-see-all" onclick="closeNotifPanel(); showSectionTab('oportunidades','negociacoes')">Ver todas as notificações</button>
+  </div>
+</div>
+
+<!-- Modal de notificação detalhada -->
+<div class="notif-modal-backdrop" id="notifModalBackdrop" onclick="onNotifModalBackdropClick(event)">
+  <div class="notif-modal" role="dialog" aria-modal="true" aria-labelledby="notifModalTitle">
+    <div class="notif-modal-top">
+      <span class="notif-modal-counter" id="notifModalCounter"></span>
+      <button class="notif-modal-close" onclick="closeNotifModal()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="notif-modal-body">
+      <div class="notif-modal-icon-row">
+        <div class="notif-modal-icon" id="notifModalIcon"></div>
+        <div class="notif-modal-meta">
+          <div class="notif-modal-title" id="notifModalTitle"></div>
+          <div class="notif-modal-time" id="notifModalTime"></div>
+        </div>
+      </div>
+      <div class="notif-modal-desc" id="notifModalDesc"></div>
+    </div>
+    <div class="notif-modal-actions">
+      <div class="notif-modal-nav">
+        <button class="notif-modal-nav-btn" id="notifModalPrev" onclick="navigateNotifModal(-1)" title="Anterior (←)">&#8592;</button>
+        <button class="notif-modal-nav-btn" id="notifModalNext" onclick="navigateNotifModal(1)" title="Próxima (→)">&#8594;</button>
+      </div>
+      <button class="notif-modal-cta" id="notifModalCta" onclick="notifModalGoToSection()">Ver detalhes →</button>
+    </div>
   </div>
 </div>
 
@@ -3521,7 +3642,7 @@ function renderNotifs() {
   }
 
   list.innerHTML = _notifs.map(n => `
-    <div class="notif-item${n.unread ? ' unread' : ''}" onclick="onNotifClick('${n.id}', '${n.section}')">
+    <div class="notif-item${n.unread ? ' unread' : ''}" onclick="onNotifClick('${n.id}')">
       <div class="notif-icon ${n.iconColor}">${n.icon}</div>
       <div class="notif-content">
         <div class="notif-content-title">${n.title}</div>
@@ -3533,29 +3654,108 @@ function renderNotifs() {
   `).join('');
 }
 
-async function onNotifClick(id, section) {
-  const n = _notifs.find(x => x.id === id);
-  if (n) n.unread = false;
-  renderNotifs();
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) await fetch(SUPABASE_URL + '/rest/v1/notifications?id=eq.' + id, {
-      method: 'PATCH',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token,
-                 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ read_at: new Date().toISOString() })
-    });
-  } catch(e) {}
-  if (section) {
-    closeNotifPanel();
-    if (section === 'negociacoes') {
-      showSectionTab('oportunidades', 'negociacoes');
-    } else {
-      showSection(section);
-      // Se a notificação especifica um sub-tab (ex: juridico em Configurações)
-      const sub = n?.sub;
-      if (sub) setTimeout(() => switchConfigTab(sub), 60);
-    }
+let _notifModalIdx = 0;
+
+async function onNotifClick(id) {
+  const idx = _notifs.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  closeNotifPanel();
+  openNotifModal(idx);
+  // Marca como lida
+  const n = _notifs[idx];
+  if (n.unread) {
+    n.unread = false;
+    renderNotifs();
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) await fetch(SUPABASE_URL + '/rest/v1/notifications?id=eq.' + id, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token,
+                   'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ read_at: new Date().toISOString() })
+      });
+    } catch(e) {}
+  }
+}
+
+function openNotifModal(idx) {
+  _notifModalIdx = idx;
+  _renderNotifModal();
+  document.getElementById('notifModalBackdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNotifModal() {
+  document.getElementById('notifModalBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function onNotifModalBackdropClick(e) {
+  if (e.target === document.getElementById('notifModalBackdrop')) closeNotifModal();
+}
+
+function navigateNotifModal(dir) {
+  const next = _notifModalIdx + dir;
+  if (next < 0 || next >= _notifs.length) return;
+  _notifModalIdx = next;
+  // Marca como lida ao navegar
+  const n = _notifs[_notifModalIdx];
+  if (n && n.unread) {
+    n.unread = false;
+    renderNotifs();
+    (async () => {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (session) await fetch(SUPABASE_URL + '/rest/v1/notifications?id=eq.' + n.id, {
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token,
+                     'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ read_at: new Date().toISOString() })
+        });
+      } catch(e) {}
+    })();
+  }
+  _renderNotifModal();
+}
+
+function _renderNotifModal() {
+  const n = _notifs[_notifModalIdx];
+  if (!n) return;
+  const total = _notifs.length;
+  document.getElementById('notifModalCounter').textContent = `${_notifModalIdx + 1} de ${total}`;
+  document.getElementById('notifModalIcon').className = `notif-modal-icon ${n.iconColor}`;
+  document.getElementById('notifModalIcon').textContent = n.icon;
+  document.getElementById('notifModalTitle').textContent = n.title;
+  document.getElementById('notifModalTime').textContent = n.time;
+  document.getElementById('notifModalDesc').textContent = n.desc || 'Sem detalhes adicionais.';
+  // Botões de navegação
+  document.getElementById('notifModalPrev').disabled = (_notifModalIdx === 0);
+  document.getElementById('notifModalNext').disabled = (_notifModalIdx === total - 1);
+  // CTA
+  const cta = document.getElementById('notifModalCta');
+  const _SECTION_LABELS = {
+    negociacoes: 'Ver negociações →',
+    configuracoes: 'Ir para configurações →',
+    dashboard: 'Ir para painel →',
+    oportunidades: 'Ver oportunidades →',
+  };
+  if (n.section) {
+    cta.classList.remove('hidden');
+    cta.textContent = _SECTION_LABELS[n.section] || 'Ver detalhes →';
+  } else {
+    cta.classList.add('hidden');
+  }
+}
+
+function notifModalGoToSection() {
+  const n = _notifs[_notifModalIdx];
+  if (!n) return;
+  closeNotifModal();
+  if (n.section === 'negociacoes') {
+    showSectionTab('oportunidades', 'negociacoes');
+  } else if (n.section) {
+    showSection(n.section);
+    if (n.sub) setTimeout(() => switchConfigTab(n.sub), 60);
   }
 }
 
@@ -3633,6 +3833,13 @@ document.addEventListener('click', function(e) {
 });
 
 document.addEventListener('keydown', function(e) {
+  const modalOpen = document.getElementById('notifModalBackdrop').classList.contains('open');
+  if (modalOpen) {
+    if (e.key === 'Escape')     { e.preventDefault(); closeNotifModal(); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); navigateNotifModal(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); navigateNotifModal(1); }
+    return;
+  }
   if (e.key === 'Escape' && _notifOpen) closeNotifPanel();
 });
 
