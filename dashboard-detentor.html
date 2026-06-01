@@ -2916,9 +2916,9 @@ const OB_DET = { perfil: false, juridico: false, equipe: false, oportunidade: fa
 function updateSetupGuide() {
   if (localStorage.getItem(OB_KEY_DET)) return;
 
-  // Guia só aparece após dados jurídicos aprovados
+  // Guia só aparece após admin aprovar (pode_publicar = true)
   const btn = document.getElementById('setupGuideBtn');
-  if (!OB_DET.juridico) {
+  if (!OB_DET.podePublicar) {
     if (btn) btn.style.display = 'none';
     return;
   }
