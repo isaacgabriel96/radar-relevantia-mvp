@@ -2614,7 +2614,7 @@ async function togglePodePublicar(perfilId, currentValue) {
 
 // ─── APROVAÇÕES PENDENTES ───────────────────────────────────────────────────
 let _aprovacoesList = [];
-const _aprovAcordeonLoaded = {}; // perfilId → true quando dados já foram carregados
+const _aprovAcordeonLoaded = {}; // perfilId → true quando dados já foram carregados (sem cache — sempre recarrega)
 
 async function loadAprovacoes() {
   try {
@@ -2726,8 +2726,8 @@ async function toggleAprovAcordeon(perfilId, oppId) {
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : '';
   if (chevron) chevron.textContent = isOpen ? '▼ detalhes' : '▲ fechar';
-  if (!isOpen && !_aprovAcordeonLoaded[perfilId]) {
-    _aprovAcordeonLoaded[perfilId] = true;
+  if (!isOpen) {
+    // Sempre recarrega ao abrir — garante dados frescos
     await Promise.all([
       _loadAprovJuridico(perfilId),
       _loadAprovOpps(perfilId, oppId)
@@ -2893,11 +2893,8 @@ function mostrarFormRejeitar(perfilId, oppId) {
   if (body && body.style.display === 'none') {
     body.style.display = '';
     if (chevron) chevron.textContent = '▲ fechar';
-    if (!_aprovAcordeonLoaded[perfilId]) {
-      _aprovAcordeonLoaded[perfilId] = true;
-      const item = _aprovacoesList.find(i => i.perfil?.id === perfilId);
-      Promise.all([_loadAprovJuridico(perfilId), _loadAprovOpps(perfilId, item?.opp_id || '')]);
-    }
+    const item = _aprovacoesList.find(i => i.perfil?.id === perfilId);
+    Promise.all([_loadAprovJuridico(perfilId), _loadAprovOpps(perfilId, item?.opp_id || '')]);
   }
   const form = document.getElementById('aprov-reject-form-' + perfilId);
   if (form) { form.style.display = ''; form.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
