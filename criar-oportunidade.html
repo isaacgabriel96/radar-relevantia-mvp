@@ -6025,6 +6025,36 @@ function nextStep(n) {
 
     // FASE 2: Canais visível, Oportunidades ainda não → revelar Oportunidades abaixo (todos visíveis)
     if (!oportunidadesWrap || oportunidadesWrap.style.display === 'none') {
+
+      // ── Validação obrigatória de canais ──────────────────────────────────
+      const _allCanalCards = document.querySelectorAll('#social-networks-container .canal-card');
+
+      // 1. Pelo menos 1 canal com username preenchido
+      const _cardsComUsername = Array.from(_allCanalCards).filter(card => {
+        const inp = document.getElementById('canal-username-' + card.dataset.profileId);
+        return inp?.value.trim();
+      });
+      if (_cardsComUsername.length === 0) {
+        showToast('Adicione pelo menos um canal de rede social antes de continuar.', 'error');
+        const addBtn = document.getElementById('add-canal-btn');
+        if (addBtn) { addBtn.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        return;
+      }
+
+      // 2. Canais com username devem estar salvos (botão "Salvar canal" clicado).
+      //    Se houver algum não salvo, pede ao usuário para salvar antes de continuar.
+      const _primeiroNaoSalvo = _cardsComUsername.find(card => !card.classList.contains('saved'));
+      if (_primeiroNaoSalvo) {
+        showToast('Salve o canal antes de continuar.', 'error');
+        _primeiroNaoSalvo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Abre o painel de audiência para facilitar o preenchimento
+        const pid = _primeiroNaoSalvo.dataset.profileId;
+        const panel = document.getElementById('aud-panel-' + pid);
+        if (panel && !panel.classList.contains('open')) toggleAudiencePanel(pid);
+        return;
+      }
+      // ─────────────────────────────────────────────────────────────────────
+
       // MarcaWrap e CanaisWrap permanecem visíveis — apenas revela Oportunidades abaixo
       if (oportunidadesWrap) oportunidadesWrap.style.display = 'block';
       if (s3Actions) {
