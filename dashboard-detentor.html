@@ -7896,11 +7896,36 @@ function _djpmValidateCpf(cpf) {
 <!-- ══ Modal: Conta em análise (no_permission) ══ -->
 <!-- Modal: Dados jurídicos enviados para análise -->
 <div class="modal-overlay-det" id="modalJuridicoAnalise" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="cam-box" style="text-align:center">
+  <div class="cam-box">
     <div class="cam-icon">🎉</div>
-    <div class="cam-title">Pronto! Agora é com a Relevantia 🎉</div>
-    <div class="cam-desc">Recebemos seus dados jurídicos e sua oportunidade. Nosso time vai revisar tudo em breve — você será notificado aqui assim que sua conta for aprovada.</div>
-    <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:8px" onclick="document.getElementById('modalJuridicoAnalise').classList.remove('open')">Entendido, estou aguardando</button>
+    <div class="cam-title" style="text-align:center">Pronto! Agora é com a Relevantia</div>
+    <div class="cam-desc" style="text-align:center;margin-bottom:20px">Recebemos tudo. Nosso time vai revisar e você terá acesso completo à plataforma assim que os dois itens abaixo forem aprovados:</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:12px;background:var(--gray-100,#F5F0E8);border-radius:10px;padding:12px 14px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gold-pale,#FBF5E6);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">⚖️</div>
+        <div>
+          <div style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--black)">Seus dados jurídicos</div>
+          <div style="font-size:12px;color:var(--gray-400);font-family:var(--font-body);margin-top:1px">CNPJ, razão social e responsável legal</div>
+        </div>
+        <span style="margin-left:auto;font-size:11px;font-weight:600;font-family:var(--font-body);background:#FEF3C7;color:#92400E;padding:3px 8px;border-radius:100px;flex-shrink:0">Em análise</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;background:var(--gray-100,#F5F0E8);border-radius:10px;padding:12px 14px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--gold-pale,#FBF5E6);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">📋</div>
+        <div>
+          <div style="font-family:var(--font-heading);font-size:13px;font-weight:600;color:var(--black)">Sua oportunidade</div>
+          <div style="font-size:12px;color:var(--gray-400);font-family:var(--font-body);margin-top:1px">Conteúdo, imagens e dados da proposta</div>
+        </div>
+        <span style="margin-left:auto;font-size:11px;font-weight:600;font-family:var(--font-body);background:#FEF3C7;color:#92400E;padding:3px 8px;border-radius:100px;flex-shrink:0">Em análise</span>
+      </div>
+    </div>
+
+    <div style="background:var(--blue-bg,rgba(59,130,246,0.08));border-radius:8px;padding:12px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:16px;flex-shrink:0">🔔</span>
+      <span style="font-size:12px;color:var(--gray-500);font-family:var(--font-body);line-height:1.5">Você receberá uma notificação aqui e por e-mail assim que sua conta for aprovada.</span>
+    </div>
+
+    <button class="btn btn-gold" style="width:100%;justify-content:center" onclick="document.getElementById('modalJuridicoAnalise').classList.remove('open')">Entendido, estou aguardando</button>
   </div>
 </div>
 
