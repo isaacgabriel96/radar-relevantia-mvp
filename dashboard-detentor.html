@@ -2164,7 +2164,7 @@ tbody tr:last-child td { border-bottom: none; }
               </div>
             </div>
             <div class="form-actions" id="juridicoActions" style="display:none">
-              <button class="btn btn-gold" onclick="saveJuridico()">Salvar alterações</button>
+              <button class="btn btn-gold" id="btnSaveJuridico" onclick="saveJuridico()">Salvar alterações</button>
               <button class="btn btn-ghost" onclick="toggleEditJuridico()">Cancelar</button>
             </div>
           </div>
@@ -2825,6 +2825,9 @@ function _applyJuridicoFocusMode(active) {
 
   if (!active) {
     localStorage.removeItem(JURIDICO_FOCUS_KEY);
+    // Restaura botão jurídico
+    const btnJur = document.getElementById('btnSaveJuridico');
+    if (btnJur) btnJur.textContent = 'Salvar alterações';
     // Libera nav items (caso ainda bloqueados)
     document.querySelectorAll('.nav-item.nav-locked-item').forEach(el => el.classList.remove('nav-locked-item'));
     document.querySelectorAll('.bottom-nav-item.nav-locked').forEach(el => el.classList.remove('nav-locked'));
@@ -2845,14 +2848,18 @@ function _applyJuridicoFocusMode(active) {
     const title   = banner.querySelector('.focus-banner-title');
     const sub     = banner.querySelector('.focus-banner-sub');
     if (title) title.textContent = waiting
-      ? 'Conta em análise — o time do Relevantia está revisando suas informações'
+      ? 'Aguardando aprovação do Relevantia'
       : 'Quase lá — preencha seus dados jurídicos';
     if (sub) sub.textContent = waiting
-      ? 'Você será notificado quando sua conta for aprovada.'
+      ? 'Você receberá uma notificação assim que sua conta for liberada.'
       : 'São necessários para formalizar contratos com as marcas.';
     banner.classList.add('active');
   }
   document.getElementById('setupGuideBtn')?.style.setProperty('display', 'none', 'important');
+
+  // Botão de salvar jurídico vira "Enviar para análise →"
+  const btnJur = document.getElementById('btnSaveJuridico');
+  if (btnJur) btnJur.textContent = 'Enviar para análise →';
 
   // Bloqueia sidebar: dashboard e voz (skeleton)
   document.querySelectorAll('.nav-item[data-section]').forEach(el => {
@@ -3382,6 +3389,7 @@ const _NOTIF_ICONS = {
   nova_rodada:          { icon: '💬', color: 'blue'   },
   nova_mensagem:        { icon: '✉️', color: 'blue'   },
   proposta_em_analise:  { icon: '🔍', color: 'blue'   },
+  juridico_recebido:    { icon: '✅', color: 'green'  },
   conta_aprovada:       { icon: '🎉', color: 'green'  },
   conta_bloqueada:      { icon: '⚠️', color: 'red'    },
   aguardando_aprovacao: { icon: '⏳', color: 'orange' },
@@ -6440,8 +6448,8 @@ async function saveJuridico() {
             body: JSON.stringify({
               user_id: s.user.id,
               type: 'juridico_recebido',
-              title: '✅ Dados jurídicos recebidos',
-              description: 'Suas informações jurídicas foram salvas. Nossa equipe irá analisar e liberar sua conta para publicar em breve.',
+              title: 'Dados recebidos! Agora é com a Relevantia ✅',
+              description: 'Recebemos seus dados jurídicos e sua oportunidade. Você será notificado assim que sua conta for aprovada.',
               data: { section: 'configuracoes', sub: 'juridico' }
             })
           });
@@ -7683,9 +7691,9 @@ function _djpmValidateCpf(cpf) {
 <div class="modal-overlay-det" id="modalJuridicoAnalise" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="cam-box" style="text-align:center">
     <div class="cam-icon">🎉</div>
-    <div class="cam-title">Dados enviados para análise!</div>
-    <div class="cam-desc">O time do Relevantia vai revisar seus dados jurídicos e sua oportunidade. Você será notificado assim que sua conta for aprovada e você poderá usar a plataforma por completo.</div>
-    <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:8px" onclick="document.getElementById('modalJuridicoAnalise').classList.remove('open')">Entendido</button>
+    <div class="cam-title">Pronto! Agora é com a Relevantia 🎉</div>
+    <div class="cam-desc">Recebemos seus dados jurídicos e sua oportunidade. Nosso time vai revisar tudo em breve — você será notificado aqui assim que sua conta for aprovada.</div>
+    <button class="btn btn-gold" style="width:100%;justify-content:center;margin-top:8px" onclick="document.getElementById('modalJuridicoAnalise').classList.remove('open')">Entendido, estou aguardando</button>
   </div>
 </div>
 
