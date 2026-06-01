@@ -6270,6 +6270,12 @@ async function saveJuridico() {
     p_responsavel_legal_cpf:  patch.responsavel_legal_cpf
   });
 
+  if (error) {
+    console.error('[saveJuridico]', error);
+    showToast('Erro ao salvar dados jurídicos. Tente novamente.', 'error');
+    return;
+  }
+
   if (!error) {
     editingJuridico = false;
     document.querySelectorAll('.juridico-field').forEach(el => el.disabled = true);
