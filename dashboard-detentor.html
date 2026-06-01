@@ -1543,7 +1543,7 @@ tbody tr:last-child td { border-bottom: none; }
 
   <nav class="sidebar-nav">
     <div class="nav-section-label">Visão Geral</div>
-    <a class="nav-item active" data-section="dashboard" onclick="showSection('dashboard')">
+    <a class="nav-item nav-locked-item active" data-section="dashboard" onclick="showSection('dashboard')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
     </a>
@@ -1560,7 +1560,7 @@ tbody tr:last-child td { border-bottom: none; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       Configurações
     </a>
-    <a class="nav-item" data-section="voz" onclick="showSection('voz')">
+    <a class="nav-item nav-locked-item" data-section="voz" onclick="showSection('voz')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
       Fale com o Radar
     </a>
@@ -2593,7 +2593,7 @@ tbody tr:last-child td { border-bottom: none; }
 
 <!-- Bottom nav mobile -->
 <nav class="bottom-nav">
-  <button class="bottom-nav-item active" id="bn-dashboard" onclick="showSection('dashboard')">
+  <button class="bottom-nav-item nav-locked active" id="bn-dashboard" onclick="showSection('dashboard')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
     <span>Dashboard</span>
   </button>
@@ -2601,7 +2601,7 @@ tbody tr:last-child td { border-bottom: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
     <span>Oportunidades</span>
   </button>
-  <button class="bottom-nav-item" id="bn-negociacoes" onclick="showSectionTab('oportunidades','negociacoes')">
+  <button class="bottom-nav-item nav-locked" id="bn-negociacoes" onclick="showSectionTab('oportunidades','negociacoes')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     <span>Negociações</span>
   </button>
@@ -2878,8 +2878,9 @@ async function init() {
     // Pré-carrega solicitações em background para atualizar badge imediatamente
     loadSolicitacoes().catch(function(e) { console.error('[init] loadSolicitacoes bg error:', e); });
 
-    // Libera focus mode fase 1 (não se aplica com oportunidades)
+    // Remove skeletons padrão do HTML para usuários aprovados
     _applyFocusMode(false);
+    _applyJuridicoFocusMode(false);
 
     // Em admin view: força "oportunidades" como section inicial.
     if (window._adminViewCtx) {
@@ -3498,8 +3499,8 @@ function showSection(sectionId) {
   // Lazy load section data
   if (sectionId === 'configuracoes') {
     loadEquipe();
-    // Focus jurídico fase 2a: força aba Jurídico apenas quando dados ainda não preenchidos
-    if (_isJuridicoFocusModeActive() && !OB_DET.juridico) setTimeout(() => switchConfigTab('juridico'), 60);
+    // Focus jurídico: força aba Jurídico (fase 2a = preencher, fase 2b = revisar aguardando)
+    if (_isJuridicoFocusModeActive()) setTimeout(() => switchConfigTab('juridico'), 60);
   }
 }
 
