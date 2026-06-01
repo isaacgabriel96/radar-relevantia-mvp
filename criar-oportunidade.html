@@ -4519,8 +4519,8 @@ input[type=number] { -moz-appearance: textfield; }
 <div class="modal-overlay" id="successModal">
   <div class="modal-box">
     <div class="modal-icon" style="display:flex;justify-content:center"><svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="26" cy="26" r="24" stroke="#B8860B" stroke-width="1.5" fill="rgba(184,134,11,0.06)"/><path d="M16 26l8 8 12-14" stroke="#B8860B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div class="modal-title">Oportunidade enviada! 🎉</div>
-    <div id="success-modal-desc" class="modal-desc">Agora preencha seus dados jurídicos para que o time do Relevantia possa aprovar sua conta.</div>
+    <div class="modal-title" id="success-modal-title">Oportunidade enviada para análise! 🎉</div>
+    <div id="success-modal-desc" class="modal-desc">Nossa equipe vai revisar sua oportunidade em breve. Você será notificado quando ela for publicada no Radar.</div>
     <!-- Link de convite — exibido apenas para visibilidade "convidadas" -->
     <div id="success-share-link-wrap" style="display:none;margin-bottom:16px;padding:14px;background:var(--gray-1);border-radius:var(--radius-md)">
       <div style="font-size:12px;color:var(--gray-4);font-weight:600;margin-bottom:8px">Link de convite</div>
@@ -4532,7 +4532,7 @@ input[type=number] { -moz-appearance: textfield; }
       </div>
     </div>
     <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="goToDashboardPreservingCtx()">
-      Preencher dados jurídicos →
+      Ver minhas oportunidades
     </button>
   </div>
 </div>
@@ -8315,18 +8315,30 @@ function _buildShareLink() {
 
 /** Abre o modal de sucesso populando o link de convite se necessário */
 function _openSuccessModal() {
+  const isEdit      = !!formState.editId && !!formState.editSlug; // editando oportunidade existente
   const isConvidadas = formState.selectedVisibility === 'convidadas';
   const wrap  = document.getElementById('success-share-link-wrap');
   const input = document.getElementById('success-share-link-input');
+  const title = document.getElementById('success-modal-title');
   const desc  = document.getElementById('success-modal-desc');
+
+  // Título: edit vs novo
+  if (title) title.textContent = isEdit
+    ? 'Oportunidade atualizada! ✅'
+    : 'Oportunidade enviada para análise! 🎉';
+
   if (isConvidadas && wrap && input) {
     const link = _buildShareLink();
     input.value = link;
     wrap.style.display = 'block';
-    if (desc) desc.textContent = 'Nossa equipe vai revisar sua oportunidade em breve. Enquanto isso, salve o link para compartilhar com marcas convidadas após a aprovação.';
+    if (desc) desc.textContent = isEdit
+      ? 'Suas alterações foram salvas e enviadas para análise.'
+      : 'Nossa equipe vai revisar em breve. Salve o link para compartilhar com marcas convidadas após a aprovação.';
   } else {
     if (wrap) wrap.style.display = 'none';
-    if (desc) desc.textContent = 'Agora preencha seus dados jurídicos para que o time do Relevantia possa aprovar sua conta.';
+    if (desc) desc.textContent = isEdit
+      ? 'Suas alterações foram salvas. Nossa equipe vai revisar as atualizações em breve.'
+      : 'Nossa equipe vai revisar sua oportunidade em breve. Você será notificado quando ela for publicada no Radar.';
   }
   document.getElementById('successModal').classList.add('open');
 }
@@ -13744,13 +13756,12 @@ function exitImpersonateMode() {
 
 /** Vai pro dashboard do detentor preservando ctx do admin (usado após publish/save) */
 function goToDashboardPreservingCtx() {
-  // Oportunidade criada — libera focus mode e direciona para dados jurídicos
   localStorage.removeItem('rr_focus_active');
   if (window._impersonateCtx) {
     const n = window._impersonateCtx.nonce ? '&_n=' + encodeURIComponent(window._impersonateCtx.nonce) : '';
     window.location.href = 'dashboard-detentor.html?_imp=1' + n + '#oportunidades';
   } else {
-    window.location.href = 'dashboard-detentor.html?onboarding_done=1#configuracoes';
+    window.location.href = 'dashboard-detentor.html#oportunidades';
   }
 }
 
