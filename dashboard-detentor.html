@@ -337,6 +337,59 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 }
 .hamburger svg { width: 22px; height: 22px; }
 
+/* ─── FOCUS MODE (primeiro acesso) ─── */
+.focus-banner {
+  display: none; align-items: center; gap: 14px;
+  background: var(--black);
+  border-bottom: 2px solid rgba(184,134,11,0.28);
+  padding: 12px 32px;
+  position: sticky; top: 64px; z-index: 90;
+}
+.focus-banner.active { display: flex; }
+.focus-pulse {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+  animation: focus-pulse 2.2s ease-in-out infinite;
+}
+@keyframes focus-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(184,134,11,0.55); }
+  60%       { box-shadow: 0 0 0 8px rgba(184,134,11,0); }
+}
+.focus-banner-body { flex: 1; min-width: 0; }
+.focus-banner-title {
+  font-family: var(--font-heading); font-size: 13px; font-weight: 600; color: var(--white);
+}
+.focus-banner-sub {
+  font-size: 11.5px; color: rgba(255,255,255,0.42);
+  font-family: var(--font-body); margin-top: 2px;
+}
+.focus-banner-cta {
+  background: var(--gold-gradient); color: var(--white);
+  border: none; border-radius: 8px; padding: 8px 16px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  font-family: var(--font-body); white-space: nowrap;
+  flex-shrink: 0; transition: opacity 0.15s;
+}
+.focus-banner-cta:hover { opacity: 0.85; }
+.focus-banner-dismiss {
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.22); padding: 0 2px;
+  font-size: 22px; line-height: 1; flex-shrink: 0;
+  transition: color 0.15s; font-family: var(--font-body);
+}
+.focus-banner-dismiss:hover { color: rgba(255,255,255,0.6); }
+
+/* Nav items bloqueados no focus mode */
+.nav-item.nav-locked-item {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+.nav-item.nav-locked-item:hover { background: none !important; color: inherit !important; }
+.bottom-nav-item.nav-locked {
+  opacity: 0.28 !important;
+  cursor: not-allowed !important;
+}
+
 /* ─── MAIN ─── */
 .main { margin-left: var(--sidebar-w); padding-top: 64px; min-height: 100vh; }
 .main-inner { padding: 32px; max-width: 1100px; }
@@ -1072,7 +1125,8 @@ tbody tr:last-child td { border-bottom: none; }
   box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 .toast-success { background: #065F46; color: white; }
-.toast-error { background: #991B1B; color: white; }
+.toast-error   { background: #991B1B; color: white; }
+.toast-info    { background: var(--black); color: white; border: 1px solid rgba(184,134,11,0.3); }
 @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
 
 /* ─── VOZ DO USUÁRIO ─── */
@@ -1505,6 +1559,17 @@ tbody tr:last-child td { border-bottom: none; }
   <div class="notif-panel-footer">
     <button class="notif-see-all" onclick="closeNotifPanel(); showSectionTab('oportunidades','negociacoes')">Ver todas as notificações</button>
   </div>
+</div>
+
+<!-- Focus mode banner (primeiro acesso, 0 oportunidades) -->
+<div class="focus-banner" id="focusBanner">
+  <div class="focus-pulse"></div>
+  <div class="focus-banner-body">
+    <div class="focus-banner-title">Primeiros passos — crie sua primeira oportunidade</div>
+    <div class="focus-banner-sub">Marcas vão encontrá-la e poderão enviar propostas de patrocínio.</div>
+  </div>
+  <button class="focus-banner-cta" onclick="window.location.href='criar-oportunidade.html'">Criar agora →</button>
+  <button class="focus-banner-dismiss" onclick="dismissFocusMode()" title="Dispensar">×</button>
 </div>
 
 <!-- Main content -->
@@ -2570,6 +2635,11 @@ const SECTION_TITLES = {
 
 // Atalho: vai para uma seção E ativa uma sub-tab específica
 function showSectionTab(sectionId, subTab) {
+  // Focus mode: bloqueia sub-tabs enquanto usuário ainda não criou a primeira oportunidade
+  if (_isFocusModeActive() && FOCUS_LOCKED_TABS.has(subTab)) {
+    showToast('Crie sua primeira oportunidade para acessar as negociações.', 'info');
+    return;
+  }
   showSection(sectionId);
   // Aguarda o DOM atualizar antes de trocar a sub-tab
   setTimeout(() => {
@@ -2652,9 +2722,16 @@ async function init() {
     // Pré-carrega solicitações em background para atualizar badge imediatamente
     loadSolicitacoes().catch(function(e) { console.error('[init] loadSolicitacoes bg error:', e); });
 
+    // Aplica focus mode se usuário ainda não criou nenhuma oportunidade
+    const _focusActive = _isFocusModeActive();
+    _applyFocusMode(_focusActive);
+
     // Em admin view: força "oportunidades" como section inicial.
     // Admin não deve cair no Dashboard do detentor por padrão.
     if (window._adminViewCtx) {
+      showSection('oportunidades');
+    } else if (_focusActive) {
+      // Focus mode: manda direto para Minhas Oportunidades (CTA de criar)
       showSection('oportunidades');
     } else {
       // Check hash for deep linking
@@ -2684,6 +2761,46 @@ function setUserInfo(nome, email) {
   document.getElementById('sidebarEmail').textContent = email;
   document.getElementById('sidebarAvatar').textContent = initials;
   document.getElementById('topbarAvatar').textContent = initials;
+}
+
+// ─── FOCUS MODE (primeiro acesso) ───
+const FOCUS_MODE_KEY   = 'rr_focus_dismissed_det';
+const FOCUS_LOCKED     = new Set(['dashboard']);      // seções bloqueadas
+const FOCUS_LOCKED_TABS = new Set(['negociacoes']);   // sub-tabs bloqueados
+
+function _isFocusModeActive() {
+  if (isDemoMode()) return false;
+  if (localStorage.getItem(FOCUS_MODE_KEY)) return false;
+  return MINHAS_OPPS.length === 0;
+}
+
+function _applyFocusMode(active) {
+  const banner = document.getElementById('focusBanner');
+  if (!banner) return;
+
+  if (!active) {
+    banner.classList.remove('active');
+    document.querySelectorAll('.nav-item.nav-locked-item').forEach(el => el.classList.remove('nav-locked-item'));
+    document.querySelectorAll('.bottom-nav-item.nav-locked').forEach(el => el.classList.remove('nav-locked'));
+    return;
+  }
+
+  banner.classList.add('active');
+
+  // Bloqueia itens do sidebar
+  document.querySelectorAll('.nav-item[data-section]').forEach(el => {
+    if (FOCUS_LOCKED.has(el.dataset.section)) el.classList.add('nav-locked-item');
+  });
+
+  // Bloqueia itens do bottom nav mobile
+  ['bn-dashboard', 'bn-negociacoes'].forEach(id => {
+    document.getElementById(id)?.classList.add('nav-locked');
+  });
+}
+
+function dismissFocusMode() {
+  localStorage.setItem(FOCUS_MODE_KEY, '1');
+  _applyFocusMode(false);
 }
 
 // ─── SETUP GUIDE ───
@@ -3076,6 +3193,12 @@ function showSection(sectionId) {
   // Admin não deve poder mexer em Configurações/Equipe/Voz/Dashboard do detentor.
   if (window._adminViewCtx && sectionId !== 'oportunidades') {
     sectionId = 'oportunidades';
+  }
+
+  // Focus mode: bloqueia seções enquanto usuário ainda não criou a primeira oportunidade
+  if (_isFocusModeActive() && FOCUS_LOCKED.has(sectionId)) {
+    showToast('Crie sua primeira oportunidade para desbloquear o dashboard completo.', 'info');
+    return;
   }
 
   // Hide all sections
@@ -3986,7 +4109,8 @@ function showToast(message, type = 'success') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = 'toast toast-' + type;
-  toast.innerHTML = (type === 'success' ? '✓' : '✕') + ' ' + message;
+  const icons = { success: '✓', error: '✕', info: '🔒' };
+  toast.innerHTML = (icons[type] || '•') + ' ' + message;
   container.appendChild(toast);
   setTimeout(() => {
     toast.style.opacity = '0';
