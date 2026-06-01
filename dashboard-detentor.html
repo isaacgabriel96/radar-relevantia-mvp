@@ -3514,6 +3514,7 @@ const _NOTIF_ICONS = {
   nova_rodada:          { icon: '💬', color: 'blue'   },
   nova_mensagem:        { icon: '✉️', color: 'blue'   },
   proposta_em_analise:  { icon: '🔍', color: 'blue'   },
+  nova_solicitacao_acesso: { icon: '🔐', color: 'orange' },
   juridico_recebido:    { icon: '✅', color: 'green'  },
   conta_aprovada:       { icon: '🎉', color: 'green'  },
   conta_bloqueada:      { icon: '⚠️', color: 'red'    },
@@ -3738,9 +3739,10 @@ function _renderNotifModal() {
   // CTA
   const cta = document.getElementById('notifModalCta');
   const _SECTION_LABELS = {
-    negociacoes: 'Ver negociações →',
+    negociacoes:   'Ver negociações →',
+    solicitacoes:  'Ver solicitações →',
     configuracoes: 'Ir para configurações →',
-    dashboard: 'Ir para painel →',
+    dashboard:     'Ir para painel →',
     oportunidades: 'Ver oportunidades →',
   };
   if (n.section) {
@@ -3757,6 +3759,8 @@ function notifModalGoToSection() {
   closeNotifModal();
   if (n.section === 'negociacoes') {
     showSectionTab('oportunidades', 'negociacoes');
+  } else if (n.section === 'solicitacoes') {
+    showSectionTab('oportunidades', 'solicitacoes');
   } else if (n.section) {
     showSection(n.section);
     if (n.sub) setTimeout(() => switchConfigTab(n.sub), 60);
