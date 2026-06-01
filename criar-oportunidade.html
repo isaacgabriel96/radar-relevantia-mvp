@@ -126,15 +126,6 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
   font-size: 11.5px; color: rgba(255,255,255,0.42);
   font-family: var(--font-body, 'DM Sans', sans-serif); margin-top: 2px;
 }
-.focus-banner-steps {
-  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-}
-.focus-step {
-  font-size: 11px; font-weight: 600; font-family: var(--font-body, 'DM Sans', sans-serif);
-  color: rgba(255,255,255,0.3); white-space: nowrap;
-}
-.focus-step.active { color: var(--gold); }
-.focus-step-sep { color: rgba(255,255,255,0.15); font-size: 12px; }
 .nav-item.active::before {
   content: ''; position: absolute; left: 0; top: 8px; bottom: 8px;
   width: 3px; border-radius: 0 3px 3px 0; background: var(--gold);
@@ -3549,13 +3540,6 @@ input[type=number] { -moz-appearance: textfield; }
     <div class="focus-banner-title">Primeiros passos — crie e publique sua primeira oportunidade</div>
     <div class="focus-banner-sub">Preencha as 3 etapas e publique para começar a receber propostas de marcas.</div>
   </div>
-  <div class="focus-banner-steps" id="focusSteps">
-    <span class="focus-step active" id="fstep-1">1 · Sobre</span>
-    <span class="focus-step-sep">›</span>
-    <span class="focus-step" id="fstep-2">2 · Informações</span>
-    <span class="focus-step-sep">›</span>
-    <span class="focus-step" id="fstep-3">3 · Publicar</span>
-  </div>
 </div>
 
 <!-- Main -->
@@ -6385,11 +6369,6 @@ function _updateProgressDots(n) {
   if (fill) fill.style.width = ((n - 1) / TOTAL_STEPS * 100).toFixed(2) + '%';
   if (label) label.textContent = 'Passo ' + n + ' de ' + TOTAL_STEPS;
 
-  // Sincroniza step do focus banner
-  for (let s = 1; s <= 3; s++) {
-    const el = document.getElementById('fstep-' + s);
-    if (el) el.className = 'focus-step' + (s === activePhase ? ' active' : '');
-  }
 }
 
 /* ══════════════════════════════════════════════
