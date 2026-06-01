@@ -2478,8 +2478,8 @@ function renderOportunidades(filter, btn) {
           ${o.detentor_id ? `
           <button class="btn btn-sm" style="padding:4px 10px;font-size:12px;${o.perfil_detentor?.pode_publicar ? 'background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)' : 'background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)'}"
             onclick="togglePodePublicar('${o.detentor_id}', ${!!o.perfil_detentor?.pode_publicar})"
-            title="${o.perfil_detentor?.pode_publicar ? 'Bloquear publicação deste detentor' : 'Liberar publicação deste detentor'}">
-            ${o.perfil_detentor?.pode_publicar ? '🔒 Bloquear' : '🔓 Liberar'}
+            title="${o.perfil_detentor?.pode_publicar ? 'Bloquear conta deste detentor' : 'Liberar conta deste detentor para publicar'}">
+            ${o.perfil_detentor?.pode_publicar ? '🔒 Bloquear Conta' : '🔓 Liberar Conta'}
           </button>
           ` : ''}
           ${o.detentor_id && o.perfil_detentor?.cadastro_juridico_completo ? `
