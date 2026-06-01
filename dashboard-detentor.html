@@ -1569,7 +1569,6 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="focus-banner-sub">Marcas vão encontrá-la e poderão enviar propostas de patrocínio.</div>
   </div>
   <button class="focus-banner-cta" onclick="window.location.href='criar-oportunidade.html'">Criar agora →</button>
-  <button class="focus-banner-dismiss" onclick="dismissFocusMode()" title="Dispensar">×</button>
 </div>
 
 <!-- Main content -->
@@ -4288,13 +4287,26 @@ async function enviarParaRevisao(id) {
   if (check === 'no_juridico') {
     OB_DET.juridico = false;
     showToast('Complete seus dados jurídicos antes de enviar para análise.', 'error');
-    setTimeout(() => {
-      window.location.href = 'criar-oportunidade.html?edit=' + id;
-    }, 1200);
+    setTimeout(() => editarOportunidade(id), 1200);
     return;
   }
-  // Validar campos obrigatórios da oportunidade antes de mudar status
-  // Os dados em MINHAS_OPPS refletem o que está salvo no banco
+
+  // Busca dados frescos do banco antes de validar (evita falsos negativos por cache)
+  try {
+    const tokenFresh = await _getWriteToken();
+    if (tokenFresh) {
+      const resFresh = await fetch(
+        SUPABASE_URL + '/rest/v1/oportunidades?select=titulo,descricao_curta,imagem_capa,imagens,redes_sociais&id=eq.' + id,
+        { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + tokenFresh } }
+      );
+      if (resFresh.ok) {
+        const freshRows = await resFresh.json();
+        if (freshRows[0]) Object.assign(opp, freshRows[0]);
+      }
+    }
+  } catch (_) { /* falha silenciosa — usa dados em cache */ }
+
+  // Validar campos obrigatórios da oportunidade
   const camposIncompletos = [];
   if (!opp.titulo?.trim())          camposIncompletos.push('Nome da oportunidade');
   if (!opp.descricao_curta?.trim()) camposIncompletos.push('Descrição');
@@ -4303,10 +4315,7 @@ async function enviarParaRevisao(id) {
 
   if (camposIncompletos.length > 0) {
     showToast('Complete os campos obrigatórios antes de enviar: ' + camposIncompletos.join(', '), 'error');
-    // Redirecionar para o editor onde a validação completa irá rodar
-    setTimeout(() => {
-      window.location.href = 'criar-oportunidade.html?edit=' + id;
-    }, 1800);
+    setTimeout(() => editarOportunidade(id), 1800);
     return;
   }
 
