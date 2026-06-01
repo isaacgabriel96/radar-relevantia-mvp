@@ -407,6 +407,20 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
   background: rgba(255,255,255,0.07);
 }
 
+/* Sub-tabs bloqueados no focus jurídico → skeleton estático */
+.sub-tab.sub-tab-locked {
+  color: transparent !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  position: relative;
+}
+.sub-tab.sub-tab-locked::after {
+  content: '';
+  position: absolute; inset: 8px 10px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.07);
+}
+
 /* ─── MAIN ─── */
 .main { margin-left: var(--sidebar-w); padding-top: 64px; min-height: 100vh; }
 .main-inner { padding: 32px; max-width: 1100px; }
@@ -2747,8 +2761,13 @@ async function init() {
     // Pré-carrega solicitações em background para atualizar badge imediatamente
     loadSolicitacoes().catch(function(e) { console.error('[init] loadSolicitacoes bg error:', e); });
 
-    // Libera/aplica focus mode (caso ainda haja resquício do localStorage)
+    // Libera focus mode fase 1 (não se aplica com oportunidades)
     _applyFocusMode(false);
+
+    // Aplica focus jurídico (fase 2) se flag ativo e juridico ainda incompleto
+    if (_isJuridicoFocusModeActive()) {
+      _applyJuridicoFocusMode(true);
+    }
 
     // Em admin view: força "oportunidades" como section inicial.
     if (window._adminViewCtx) {
@@ -2756,14 +2775,16 @@ async function init() {
     } else {
       const params = new URLSearchParams(window.location.search);
 
-      // Vindo de criar-oportunidade após publicar → abre aba Jurídico
+      // Vindo de criar-oportunidade após publicar → ativa focus jurídico
       if (params.get('onboarding_done') === '1') {
         history.replaceState(null, '', window.location.pathname + '#configuracoes');
+        // Só ativa a fase 2 se juridico ainda não está completo
+        if (!OB_DET.juridico) {
+          localStorage.setItem(JURIDICO_FOCUS_KEY, '1');
+          _applyJuridicoFocusMode(true);
+        }
         showSection('configuracoes');
-        setTimeout(() => {
-          switchConfigTab('juridico');
-          showToast('Ótimo! Agora preencha seus dados jurídicos para avançar no processo.', 'success');
-        }, 80);
+        setTimeout(() => switchConfigTab('juridico'), 80);
       } else {
         // Deep-link normal pelo hash
         const hash = window.location.hash.replace('#', '');
@@ -2793,6 +2814,50 @@ function setUserInfo(nome, email) {
   document.getElementById('sidebarEmail').textContent = email;
   document.getElementById('sidebarAvatar').textContent = initials;
   document.getElementById('topbarAvatar').textContent = initials;
+}
+
+// ─── FOCUS JURÍDICO (fase 2 do onboarding) ───
+const JURIDICO_FOCUS_KEY = 'rr_focus_juridico';
+const JURIDICO_LOCKED_TABS = ['cfg-tab-empresa', 'cfg-tab-conta', 'cfg-tab-financeiro', 'cfg-tab-equipe'];
+
+function _isJuridicoFocusModeActive() {
+  if (isDemoMode()) return false;
+  return localStorage.getItem(JURIDICO_FOCUS_KEY) === '1' && !OB_DET.juridico;
+}
+
+function _applyJuridicoFocusMode(active) {
+  const banner = document.getElementById('focusBanner');
+
+  if (!active) {
+    localStorage.removeItem(JURIDICO_FOCUS_KEY);
+    // Libera nav items (caso ainda bloqueados)
+    document.querySelectorAll('.nav-item.nav-locked-item').forEach(el => el.classList.remove('nav-locked-item'));
+    document.querySelectorAll('.bottom-nav-item.nav-locked').forEach(el => el.classList.remove('nav-locked'));
+    // Libera sub-tabs
+    JURIDICO_LOCKED_TABS.forEach(id => document.getElementById(id)?.classList.remove('sub-tab-locked'));
+    if (banner) banner.classList.remove('active');
+    return;
+  }
+
+  // Banner — fase jurídica
+  if (banner) {
+    const title = banner.querySelector('.focus-banner-title');
+    const sub   = banner.querySelector('.focus-banner-sub');
+    if (title) title.textContent = 'Quase lá — preencha seus dados jurídicos';
+    if (sub)   sub.textContent   = 'São necessários para formalizar contratos com as marcas.';
+    banner.classList.add('active');
+  }
+
+  // Bloqueia sidebar: dashboard e voz (skeleton)
+  document.querySelectorAll('.nav-item[data-section]').forEach(el => {
+    if (FOCUS_LOCKED.has(el.dataset.section)) el.classList.add('nav-locked-item');
+  });
+  ['bn-dashboard', 'bn-negociacoes'].forEach(id => {
+    document.getElementById(id)?.classList.add('nav-locked');
+  });
+
+  // Bloqueia sub-tabs de configurações (exceto jurídico)
+  JURIDICO_LOCKED_TABS.forEach(id => document.getElementById(id)?.classList.add('sub-tab-locked'));
 }
 
 // ─── FOCUS MODE (primeiro acesso) ───
@@ -3276,7 +3341,11 @@ function showSection(sectionId) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   // Lazy load section data
-  if (sectionId === 'configuracoes') loadEquipe();
+  if (sectionId === 'configuracoes') {
+    loadEquipe();
+    // Focus jurídico: força aba Jurídico sempre que o usuário abre Configurações
+    if (_isJuridicoFocusModeActive()) setTimeout(() => switchConfigTab('juridico'), 60);
+  }
 }
 
 // ─── NOTIFICAÇÕES ───
@@ -6311,7 +6380,9 @@ async function saveJuridico() {
     OB_DET.juridico = true;
     updateSetupGuide();
     _updateJuridicoBanner();
-    showToast('Dados jurídicos salvos!', 'success');
+    // Libera focus jurídico (fase 2 do onboarding)
+    _applyJuridicoFocusMode(false);
+    showToast('Dados jurídicos salvos! Seu perfil está completo.', 'success');
 
     // Notificação no sino: confirma recebimento e informa que está aguardando aprovação
     try {
