@@ -3157,7 +3157,8 @@ async function loadNotifs() {
       title: r.title, desc: r.description || '',
       time: _notifTimeAgo(r.created_at),
       unread: !r.read_at,
-      section: (r.data && r.data.section) || 'negociacoes'
+      section: (r.data && r.data.section) || 'negociacoes',
+      sub:     (r.data && r.data.sub)     || null
     }));
     _initNotifRealtime(session);
   } catch(e) { _notifs = []; }
@@ -3179,7 +3180,8 @@ function _initNotifRealtime(session) {
         title: r.title, desc: r.description || '',
         time: _notifTimeAgo(r.created_at),
         unread: true,
-        section: (r.data && r.data.section) || 'negociacoes'
+        section: (r.data && r.data.section) || 'negociacoes',
+        sub:     (r.data && r.data.sub)     || null
       });
       renderNotifs();
     })
@@ -3236,8 +3238,14 @@ async function onNotifClick(id, section) {
   } catch(e) {}
   if (section) {
     closeNotifPanel();
-    if (section === 'negociacoes') showSectionTab('oportunidades', 'negociacoes');
-    else showSection(section);
+    if (section === 'negociacoes') {
+      showSectionTab('oportunidades', 'negociacoes');
+    } else {
+      showSection(section);
+      // Se a notificação especifica um sub-tab (ex: juridico em Configurações)
+      const sub = n?.sub;
+      if (sub) setTimeout(() => switchConfigTab(sub), 60);
+    }
   }
 }
 
@@ -6069,6 +6077,7 @@ async function saveJuridico() {
     document.getElementById('btnEditJuridico').textContent = 'Editar';
     OB_DET.juridico = true;
     updateSetupGuide();
+    _updateJuridicoBanner(); // remove banner imediatamente após salvar
     showToast('Dados jurídicos salvos!', 'success');
   }
 }
@@ -7266,7 +7275,7 @@ async function _showContaEmAnaliseModal() {
           type: 'aguardando_aprovacao',
           title: '⏳ Conta aguardando aprovação',
           description: 'Sua conta está em análise. Preencha seus dados jurídicos para agilizar o processo.',
-          data: { section: 'configuracoes' }
+          data: { section: 'configuracoes', sub: 'juridico' }
         })
       });
     }
