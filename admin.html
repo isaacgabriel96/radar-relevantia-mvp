@@ -2735,6 +2735,34 @@ async function toggleAprovAcordeon(perfilId, oppId) {
   }
 }
 
+// Copia texto para clipboard e mostra toast
+function _copyField(text, label) {
+  navigator.clipboard.writeText(text)
+    .then(() => showToast(label + ' copiado!', 'success'))
+    .catch(() => showToast('Não foi possível copiar.', 'error'));
+}
+
+// Abre dashboard ou criação de oportunidade em modo impersonation
+function _aprovOpenImpersonate(perfilId, nome, email, dest) {
+  const session = currentSession;
+  if (!session?.access_token) { showToast('Sessão admin expirada.', 'error'); return; }
+  const nonce = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(36).slice(2));
+  const ctx = {
+    target_user_id: perfilId,
+    target_nome:    nome,
+    target_email:   email,
+    admin_token:    session.access_token,
+    expires_at:     Math.floor(Date.now() / 1000) + 1800,
+    nonce,
+  };
+  localStorage.setItem('sb_impersonate_ctx__' + nonce, JSON.stringify(ctx));
+  const url = dest === 'criar'
+    ? `criar-oportunidade.html?_imp=1&_n=${encodeURIComponent(nonce)}`
+    : `dashboard-detentor.html?_imp=1&_n=${encodeURIComponent(nonce)}#oportunidades`;
+  window.open(url, '_blank');
+  showToast(dest === 'criar' ? `Criando oportunidade como ${nome}` : `Abrindo portal de ${nome}`, 'success');
+}
+
 async function _loadAprovJuridico(perfilId) {
   const el = document.getElementById('aprov-jur-' + perfilId);
   if (!el) return;
@@ -2749,13 +2777,32 @@ async function _loadAprovJuridico(perfilId) {
     const rows = await res.json();
     const d = rows[0];
     if (!d) { el.textContent = 'Sem dados jurídicos.'; return; }
-    const row = (label, val) => val ? `<div style="margin-bottom:8px"><div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.04em">${label}</div><div style="font-weight:500;color:#111">${escHtml(val)}</div></div>` : '';
+
+    // Monta valor do logradouro completo
+    const logradouroCompleto = [d.logradouro, d.numero_endereco, d.complemento].filter(Boolean).join(', ');
+    const cidadeEstado = [d.cidade, d.estado].filter(Boolean).join(' / ');
+
+    const row = (label, val) => {
+      if (!val) return '';
+      const safeVal = val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return `<div style="margin-bottom:10px;display:flex;align-items:flex-start;gap:6px">
+        <div style="flex:1">
+          <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1px">${label}</div>
+          <div style="font-weight:500;color:#111;font-size:13px">${escHtml(val)}</div>
+        </div>
+        <button onclick="_copyField('${safeVal}','${label}')"
+          title="Copiar ${label}"
+          style="margin-top:2px;padding:3px 7px;border:1px solid #e5e7eb;border-radius:5px;background:#fff;cursor:pointer;font-size:11px;color:#6b7280;flex-shrink:0;line-height:1"
+          onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#fff'">📋</button>
+      </div>`;
+    };
+
     el.innerHTML =
       row('CNPJ', d.cnpj) +
       row('Razão Social', d.razao_social) +
       row('CEP', d.cep) +
-      row('Logradouro', d.logradouro ? `${d.logradouro}${d.numero_endereco ? ', ' + d.numero_endereco : ''}${d.complemento ? ' – ' + d.complemento : ''}` : '') +
-      row('Cidade / Estado', d.cidade && d.estado ? `${d.cidade} / ${d.estado}` : (d.cidade || d.estado || '')) +
+      row('Logradouro', logradouroCompleto) +
+      row('Cidade / Estado', cidadeEstado) +
       row('Responsável Legal', d.responsavel_legal_nome) +
       row('CPF do Responsável', d.responsavel_legal_cpf);
   } catch(e) {
@@ -2767,21 +2814,45 @@ async function _loadAprovJuridico(perfilId) {
 async function _loadAprovOpps(perfilId, firstOppId) {
   const el = document.getElementById('aprov-opps-' + perfilId);
   if (!el) return;
+
+  // Encontra nome/email do detentor para impersonation
+  const item = _aprovacoesList.find(i => i.perfil?.id === perfilId);
+  const nome  = escHtml(item?.perfil?.nome  || '');
+  const email = escHtml(item?.perfil?.email || '');
+  const safeNome  = (item?.perfil?.nome  || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const safeEmail = (item?.perfil?.email || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+  // Botões de ação sempre visíveis
+  const actionBar = `
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-sm" style="background:#f3f4f6;color:#374151;border:1px solid #d1d5db;font-size:12px;padding:5px 12px"
+        onclick="_aprovOpenImpersonate('${perfilId}','${safeNome}','${safeEmail}','ver')"
+        title="Abrir portal do detentor em modo leitura">👁 Ver Portal</button>
+      <button class="btn btn-sm" style="background:#fefce8;color:#92400e;border:1px solid #fcd34d;font-size:12px;padding:5px 12px"
+        onclick="_aprovOpenImpersonate('${perfilId}','${safeNome}','${safeEmail}','criar')"
+        title="Criar oportunidade como este detentor">➕ Criar Oportunidade</button>
+    </div>`;
+
   try {
     const rOpps = await sbFetch(
       `/rest/v1/oportunidades?detentor_id=eq.${perfilId}&select=id,titulo,status,ativo,criado_em&order=criado_em.desc&limit=10`
     );
     const opps = await rOpps.json();
-    if (!Array.isArray(opps) || !opps.length) { el.textContent = 'Nenhuma oportunidade cadastrada.'; return; }
     const statusLabel = { publicada:'✓ Publicada', em_revisao:'⏳ Em análise', rascunho:'📝 Rascunho' };
     const statusColor = { publicada:'#16a34a', em_revisao:'#d97706', rascunho:'#6b7280' };
-    el.innerHTML = opps.map(o => `
+
+    if (!Array.isArray(opps) || !opps.length) {
+      el.innerHTML = actionBar + `<div style="font-size:13px;color:#9ca3af;font-style:italic">Nenhuma oportunidade cadastrada ainda.</div>`;
+      return;
+    }
+
+    el.innerHTML = actionBar + opps.map(o => `
       <div style="padding:8px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
         <div style="font-size:13px;font-weight:500;color:#111">${escHtml(o.titulo || '—')}</div>
         <span style="font-size:11px;font-weight:600;color:${statusColor[o.status]||'#6b7280'};white-space:nowrap;margin-left:8px">${statusLabel[o.status] || o.status || '—'}</span>
       </div>`).join('');
   } catch(e) {
-    if (el) el.innerHTML = `<span style="color:#ef4444">Erro ao carregar oportunidades.</span>`;
+    if (el) el.innerHTML = actionBar + `<span style="color:#ef4444">Erro ao carregar oportunidades.</span>`;
     console.error('[_loadAprovOpps]', e);
   }
 }
