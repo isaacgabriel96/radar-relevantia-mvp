@@ -11059,15 +11059,16 @@ async function _jpmLookupCnpj(cnpjVal) {
     const r = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + raw);
     if (!r.ok) return;
     const d = await r.json();
-    const sv = (id, val) => { const el = document.getElementById(id); if (el && !el.value) el.value = val || ''; };
-    sv('jpm-razao',      d.razao_social);
-    if (d.cep) sv('jpm-cep', d.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/,'$1-$2'));
-    sv('jpm-logradouro', d.logradouro);
-    sv('jpm-numero',     d.numero);
-    sv('jpm-complemento',d.complemento);
-    sv('jpm-cidade',     d.municipio);
+    // Sobrescreve empresa e endereço sempre — preserva nome e CPF do responsável
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    set('jpm-razao',      d.razao_social);
+    set('jpm-cep',        d.cep ? d.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/,'$1-$2') : '');
+    set('jpm-logradouro', d.logradouro);
+    set('jpm-numero',     d.numero);
+    set('jpm-complemento',d.complemento);
+    set('jpm-cidade',     d.municipio);
     const estadoEl = document.getElementById('jpm-estado');
-    if (estadoEl && !estadoEl.value && d.uf) estadoEl.value = d.uf;
+    if (estadoEl) estadoEl.value = d.uf || '';
     showToast('Dados do CNPJ preenchidos automaticamente.', 'success');
   } catch(_) {}
 }

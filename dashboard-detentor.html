@@ -4960,10 +4960,11 @@ async function openNegModal(id) {
     pendente:  { cls:'pendente',  label:'Pendente',    hint:'Aguardando sua resposta' },
     aceita:    { cls:'aceita',    label:'Aceita',      hint:'Proposta aprovada. Entre em contato com a marca.' },
     analise:   { cls:'analise',   label:'Em análise',  hint:'O time da Relevantia está mediando' },
-    recusada:  { cls:'recusada',  label:'Recusada',    hint:'Não foi possível avançar neste momento' }
+    recusada:  { cls:'recusada',  label:'Recusada',    hint:'Não foi possível avançar neste momento' },
+    cancelada: { cls:'recusada',  label:n.statusLabel || 'Encerrada', hint:n.statusHint || 'Esta negociação foi encerrada.' }
   };
-  const s = statusMap[n.status] || { cls:'', label:n.statusLabel, hint:'' };
-  statusWrap.classList.add(s.cls);
+  const s = statusMap[n.status] || { cls:'', label:n.statusLabel || n.status, hint:n.statusHint || '' };
+  if (s.cls) statusWrap.classList.add(s.cls);
   document.getElementById('mn-status-label').textContent = s.label;
   document.getElementById('mn-status-hint').textContent = s.hint;
 
@@ -6202,24 +6203,18 @@ async function _lookupCnpj(cnpjVal, prefix) {
     const r = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + raw);
     if (!r.ok) return;
     const d = await r.json();
-    const sv = (id, val) => {
-      const el = document.getElementById(id);
-      if (el && !el.disabled && !el.value) el.value = val || '';
-    };
-    // Razão social — sempre preenche se vazio
-    const razaoEl = document.getElementById(prefix + '-razao');
-    if (razaoEl && !razaoEl.disabled && !razaoEl.value) razaoEl.value = d.razao_social || '';
-    // Endereço — só preenche campos vazios
-    if (d.cep) {
-      const cepFmt = d.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/, '$1-$2');
-      sv(prefix + '-cep', cepFmt);
-    }
-    sv(prefix + '-logradouro', d.logradouro);
-    sv(prefix + '-numero',     d.numero);
-    sv(prefix + '-complemento',d.complemento);
-    sv(prefix + (prefix === 'jur' ? '-cidade' : '-cidade'), d.municipio);
+    // Sobrescreve empresa e endereço sempre (CNPJ mudou, dados antigos não fazem sentido)
+    // Preserva apenas nome e CPF do responsável legal (dados pessoais não mudam com o CNPJ)
+    const set = (id, val) => { const el = document.getElementById(id); if (el && !el.disabled) el.value = val || ''; };
+    set(prefix + '-razao',      d.razao_social);
+    if (d.cep) set(prefix + '-cep', d.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/, '$1-$2'));
+    else       set(prefix + '-cep', '');
+    set(prefix + '-logradouro', d.logradouro);
+    set(prefix + '-numero',     d.numero);
+    set(prefix + '-complemento',d.complemento);
+    set(prefix + '-cidade',     d.municipio);
     const estadoEl = document.getElementById(prefix + '-estado');
-    if (estadoEl && !estadoEl.disabled && !estadoEl.value && d.uf) estadoEl.value = d.uf;
+    if (estadoEl && !estadoEl.disabled) estadoEl.value = d.uf || '';
     showToast('Dados do CNPJ preenchidos automaticamente.', 'success');
   } catch(_) {}
 }
