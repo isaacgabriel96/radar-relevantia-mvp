@@ -6304,16 +6304,17 @@ async function _lookupCnpj(cnpjVal, prefix) {
     const d = await r.json();
     // Sobrescreve empresa e endereço sempre (CNPJ mudou, dados antigos não fazem sentido)
     // Preserva apenas nome e CPF do responsável legal (dados pessoais não mudam com o CNPJ)
-    const set = (id, val) => { const el = document.getElementById(id); if (el && !el.disabled) el.value = val || ''; };
+    // Nota: el.value = x funciona em inputs disabled — o atributo só bloqueia interação do usuário
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
     set(prefix + '-razao',      d.razao_social);
-    if (d.cep) set(prefix + '-cep', d.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/, '$1-$2'));
-    else       set(prefix + '-cep', '');
-    set(prefix + '-logradouro', d.logradouro);
+    const cepFmt = d.cep ? d.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/, '$1-$2') : '';
+    set(prefix + '-cep',        cepFmt);
+    set(prefix + '-logradouro', (d.descricao_tipo_de_logradouro ? d.descricao_tipo_de_logradouro + ' ' : '') + (d.logradouro || ''));
     set(prefix + '-numero',     d.numero);
     set(prefix + '-complemento',d.complemento);
     set(prefix + '-cidade',     d.municipio);
     const estadoEl = document.getElementById(prefix + '-estado');
-    if (estadoEl && !estadoEl.disabled) estadoEl.value = d.uf || '';
+    if (estadoEl) estadoEl.value = d.uf || '';
     showToast('Dados do CNPJ preenchidos automaticamente.', 'success');
   } catch(_) {}
 }
