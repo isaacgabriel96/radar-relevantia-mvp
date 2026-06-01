@@ -5983,7 +5983,7 @@ function nextStep(n) {
   // ─── CASO ESPECIAL: step 4 → 5 (revelar Mídia Kit inline) ───
   if (n === 5 && prev === 4) {
     // Não esconder panel-3, não chamar s3Leave()
-    if (mkWrap) mkWrap.style.display = 'block';
+    if (mkWrap) { mkWrap.style.display = 'block'; _mkLoadExistingPdf(); }
     // Atualizar botões do step-actions para contexto step 5
     if (s3Actions) {
       s3Actions.innerHTML =
@@ -6267,7 +6267,7 @@ function nextStep(n) {
     // Esconder Marca Parceira se estava visível, mostrar Mídia Kit
     const marcaWrap = document.getElementById('s3MarcaWrap');
     if (marcaWrap) marcaWrap.style.display = 'none';
-    if (mkWrap) mkWrap.style.display = 'block';
+    if (mkWrap) { mkWrap.style.display = 'block'; _mkLoadExistingPdf(); }
     if (s3Actions) {
       s3Actions.innerHTML =
         '<button class="btn btn-ghost" onclick="nextStep(4)">← Voltar</button>' +
@@ -6289,7 +6289,7 @@ function nextStep(n) {
       s3Enter();
     }
     // Mostrar Mídia Kit e Marca Parceira
-    if (mkWrap) mkWrap.style.display = 'block';
+    if (mkWrap) { mkWrap.style.display = 'block'; _mkLoadExistingPdf(); }
     const marcaWrap6 = document.getElementById('s3MarcaWrap');
     if (marcaWrap6) marcaWrap6.style.display = 'block';
     if (s3Actions) {
@@ -10205,6 +10205,34 @@ function removeMkFile() {
   document.getElementById('mkViewerTitle').textContent = '—';
 }
 
+/**
+ * Carrega e renderiza o PDF existente (modo edição) no viewer.
+ * Deve ser chamado DEPOIS que s3MediaKitWrap se tornar visível,
+ * para que o canvas tenha dimensões corretas ao renderizar.
+ */
+function _mkLoadExistingPdf() {
+  const url = formState.existingMkUrl;
+  if (!url || mkPdfDoc) return; // sem URL ou já carregado
+  _mkEnsurePdfJs(function() {
+    pdfjsLib.getDocument(url).promise.then(function(pdf) {
+      mkPdfDoc = pdf;
+      mkCurrentPage = 1;
+      const ls = document.getElementById('mkLoadingState');
+      if (ls) ls.style.display = 'none';
+      _mkRenderPage(1);
+      const prev = document.getElementById('mkPrevBtn');
+      const next = document.getElementById('mkNextBtn');
+      if (prev) prev.disabled = true;
+      if (next) next.disabled = pdf.numPages <= 1;
+    }).catch(function(err) {
+      console.warn('[MK] Erro ao carregar PDF existente:', err);
+      const ls = document.getElementById('mkLoadingState');
+      const fn = decodeURIComponent(url.split('/').pop().replace(/^opp-\d+-midia-kit-/, '')) || 'apresentação.pdf';
+      if (ls) ls.textContent = '📄 ' + fn + ' · Para substituir, selecione um novo arquivo';
+    });
+  });
+}
+
 function _mkEnsurePdfJs(cb) {
   if (window.pdfjsLib) { cb(); return; }
   const s = document.createElement('script');
@@ -11770,7 +11798,10 @@ function maybePreFillEdit(forceRun = false) {
     // Guarda URL existente para manter caso nenhum novo arquivo seja selecionado
     formState.existingMkUrl = opp.midia_kit_url;
 
-    // Mostra o viewer (mesmo fluxo do handleMkFile) em vez do upload state
+    // Prepara o viewer visualmente (esconde zona de upload, mostra viewer com placeholder).
+    // NÃO carrega o PDF aqui — o container s3MediaKitWrap ainda está display:none e o
+    // canvas ficaria com dimensões zero. O carregamento real ocorre em _mkLoadExistingPdf(),
+    // chamada quando o container se torna visível (nextStep 4→5, 5→4, etc.).
     document.getElementById('mkUploadState').style.display = 'none';
     document.getElementById('mkViewerPreviewGroup').style.display = 'block';
 
@@ -11779,24 +11810,7 @@ function maybePreFillEdit(forceRun = false) {
     ) || 'apresentação.pdf';
     document.getElementById('mkViewerTitle').textContent = '📄 ' + _mkFileName + ' (atual)';
     document.getElementById('mkLoadingState').style.display = 'block';
-    document.getElementById('mkLoadingState').textContent = 'Carregando apresentação…';
-
-    // Carrega o PDF do Storage com pdf.js (mesmo viewer do upload)
-    _mkEnsurePdfJs(function() {
-      pdfjsLib.getDocument(opp.midia_kit_url).promise.then(function(pdf) {
-        mkPdfDoc = pdf;
-        mkCurrentPage = 1;
-        document.getElementById('mkLoadingState').style.display = 'none';
-        _mkRenderPage(1);
-        document.getElementById('mkPrevBtn').disabled = true;
-        document.getElementById('mkNextBtn').disabled = pdf.numPages <= 1;
-      }).catch(function(err) {
-        console.warn('[MK] Erro ao carregar PDF existente:', err);
-        // Falha graceful: mostra nome do arquivo mas sem preview
-        document.getElementById('mkLoadingState').textContent =
-          '📄 ' + _mkFileName + ' · Para substituir, selecione um novo arquivo acima';
-      });
-    });
+    document.getElementById('mkLoadingState').textContent = 'Clique em "Apresentação" para visualizar o PDF';
   }
 
   // --- Passo 5: Segmentos / tags ---
