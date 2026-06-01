@@ -6111,6 +6111,10 @@ function nextStep(n) {
 
       // MarcaWrap e CanaisWrap permanecem visíveis — apenas revela Oportunidades abaixo
       if (oportunidadesWrap) oportunidadesWrap.style.display = 'block';
+      // Restaura cotas pendentes (modo edição) — só tem efeito se ainda não foram aplicadas
+      if (formState._pendingCotas || formState._pendingCotasHabilitadas) {
+        _applyPendingDetalhes(formState.selectedTemplate);
+      }
       if (s3Actions) {
         s3Actions.innerHTML =
           '<button class="btn btn-ghost" onclick="nextStep(6)">← Voltar</button>' +
@@ -6244,6 +6248,10 @@ function nextStep(n) {
     if (canaisWrap) canaisWrap.style.display = 'block';
     if (oportunidadesWrap) oportunidadesWrap.style.display = 'block';
     if (segInlineWrap) segInlineWrap.style.display = 'block';
+    // Restaura cotas pendentes se ainda não aplicadas
+    if (formState._pendingCotas || formState._pendingCotasHabilitadas) {
+      _applyPendingDetalhes(formState.selectedTemplate);
+    }
     if (s3Actions) {
       s3Actions.innerHTML =
         '<button class="btn btn-ghost" onclick="nextStep(6)">← Voltar</button>' +
