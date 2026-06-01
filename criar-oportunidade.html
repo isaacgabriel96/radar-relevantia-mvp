@@ -95,6 +95,7 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 }
 .nav-item:hover { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
 .nav-item.active { color: var(--white); background: rgba(201,164,58,0.12); font-weight: 600; }
+.nav-item.nav-locked-item { opacity: 0.3 !important; cursor: not-allowed !important; pointer-events: none; }
 .nav-item.active::before {
   content: ''; position: absolute; left: 0; top: 8px; bottom: 8px;
   width: 3px; border-radius: 0 3px 3px 0; background: var(--gold);
@@ -14075,6 +14076,20 @@ function _closeContaEmAnaliseModal() {
   const modal = document.getElementById('modal-conta-analise-criar');
   if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
 }
+
+// ─── FOCUS MODE: bloqueia nav de distração enquanto usuário não tem oportunidades ───
+(function() {
+  const isActive = localStorage.getItem('rr_focus_active') === '1'
+    || new URLSearchParams(window.location.search).get('onboarding') === 'true';
+  if (!isActive) return;
+
+  // Links a bloquear: Dashboard e Minhas Oportunidades (sem hash = sem seção específica)
+  document.querySelectorAll('.sidebar-nav .nav-item').forEach(function(el) {
+    const href = (el.getAttribute('href') || '').replace(/^.*\//, ''); // só o filename+hash
+    const hasHash = href.includes('#');
+    if (!hasHash) el.classList.add('nav-locked-item'); // bloqueia só os que não têm deep-link
+  });
+})();
 </script>
 
 <!-- ══ Modal Conta em Análise ══ -->

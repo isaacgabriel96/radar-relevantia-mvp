@@ -2774,10 +2774,12 @@ function _applyFocusMode(active) {
     banner.classList.remove('active');
     document.querySelectorAll('.nav-item.nav-locked-item').forEach(el => el.classList.remove('nav-locked-item'));
     document.querySelectorAll('.bottom-nav-item.nav-locked').forEach(el => el.classList.remove('nav-locked'));
+    localStorage.removeItem('rr_focus_active');
     return;
   }
 
   banner.classList.add('active');
+  localStorage.setItem('rr_focus_active', '1');
 
   // Bloqueia itens do sidebar
   document.querySelectorAll('.nav-item[data-section]').forEach(el => {
