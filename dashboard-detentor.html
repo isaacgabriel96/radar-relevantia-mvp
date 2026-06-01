@@ -2764,29 +2764,21 @@ async function init() {
     // Libera focus mode fase 1 (não se aplica com oportunidades)
     _applyFocusMode(false);
 
-    // Aplica focus jurídico (fase 2) se flag ativo e juridico ainda incompleto
-    if (_isJuridicoFocusModeActive()) {
-      _applyJuridicoFocusMode(true);
-    }
-
     // Em admin view: força "oportunidades" como section inicial.
     if (window._adminViewCtx) {
       showSection('oportunidades');
     } else {
-      const params = new URLSearchParams(window.location.search);
-
-      // Vindo de criar-oportunidade após publicar → ativa focus jurídico
-      if (params.get('onboarding_done') === '1') {
-        history.replaceState(null, '', window.location.pathname + '#configuracoes');
-        // Só ativa a fase 2 se juridico ainda não está completo
-        if (!OB_DET.juridico) {
-          localStorage.setItem(JURIDICO_FOCUS_KEY, '1');
-          _applyJuridicoFocusMode(true);
-        }
+      // Focus jurídico (fase 2): tem oportunidade mas juridico incompleto
+      if (_isJuridicoFocusModeActive()) {
+        _applyJuridicoFocusMode(true);
         showSection('configuracoes');
         setTimeout(() => switchConfigTab('juridico'), 80);
       } else {
         // Deep-link normal pelo hash
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('onboarding_done') === '1') {
+          history.replaceState(null, '', window.location.pathname + '#configuracoes');
+        }
         const hash = window.location.hash.replace('#', '');
         if (hash === 'negociacoes') {
           showSectionTab('oportunidades', 'negociacoes');
@@ -2821,8 +2813,8 @@ const JURIDICO_FOCUS_KEY = 'rr_focus_juridico';
 const JURIDICO_LOCKED_TABS = ['cfg-tab-empresa', 'cfg-tab-conta', 'cfg-tab-financeiro', 'cfg-tab-equipe'];
 
 function _isJuridicoFocusModeActive() {
-  if (isDemoMode()) return false;
-  return localStorage.getItem(JURIDICO_FOCUS_KEY) === '1' && !OB_DET.juridico;
+  if (isDemoMode() || window._adminViewCtx) return false;
+  return MINHAS_OPPS.length > 0 && !OB_DET.juridico;
 }
 
 function _applyJuridicoFocusMode(active) {
