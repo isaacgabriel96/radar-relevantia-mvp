@@ -3011,6 +3011,23 @@ function populateDetenorFields(p) {
       setLogoFallback();
     }
   }
+
+  // Restore pending badge if there's a change awaiting approval
+  const existingBadge = document.getElementById('empresaPendenteBadge');
+  if (p.empresa_change_pending) {
+    if (!existingBadge) {
+      const nomeEl2 = document.getElementById('empresaLogoNome');
+      if (nomeEl2) {
+        const badge = document.createElement('span');
+        badge.id = 'empresaPendenteBadge';
+        badge.textContent = 'Aguardando aprovação';
+        badge.style.cssText = 'font-size:10px;font-weight:600;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:100px;padding:2px 8px;margin-left:8px;vertical-align:middle;display:inline-block';
+        nomeEl2.parentNode.appendChild(badge);
+      }
+    }
+  } else if (existingBadge) {
+    existingBadge.remove();
+  }
 }
 
 // ─── LOAD USER INFO (SDK → localStorage → MOCK fallback) ───
@@ -3061,7 +3078,7 @@ async function loadUserInfoDetentor() {
         // Tentar buscar nome real na tabela perfis
         try {
           const token = session.access_token;
-          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa,email,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url,cadastro_juridico_completo,pode_publicar&limit=1', {
+          const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + session.user.id + '&select=nome,empresa,email,segmento,telefone,website,descricao,cargo,empresa_domain,logo_url,cadastro_juridico_completo,pode_publicar,empresa_change_pending&limit=1', {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
           });
           if (res.ok) {
@@ -3622,37 +3639,29 @@ async function confirmarSolicitacaoMudancaEmpresa() {
   if (!_dashSelectedBrand) return;
 
   try {
-    const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) {
-      const userId = session.user.id;
-      const token  = session.access_token;
-      const payload = {
-        empresa_change_pending: JSON.stringify({
-          name:         _dashSelectedBrand.name        || '',
-          domain:       _dashSelectedBrand.domain      || '',
-          icon:         _dashSelectedBrand.icon        || '',
-          description:  _dashSelectedBrand.description || '',
-          website:      _dashSelectedBrand.website     || '',
-          requested_at: new Date().toISOString()
-        })
-      };
+    const token = await _getWriteToken();
+    if (token) {
+      const pendingJson = JSON.stringify({
+        name:         _dashSelectedBrand.name        || '',
+        domain:       _dashSelectedBrand.domain      || '',
+        icon:         _dashSelectedBrand.icon        || '',
+        description:  _dashSelectedBrand.description || '',
+        website:      _dashSelectedBrand.website     || '',
+        requested_at: new Date().toISOString()
+      });
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/perfis?id=eq.${userId}`,
+        `${SUPABASE_URL}/rest/v1/rpc/submit_empresa_change_request`,
         {
-          method: 'PATCH',
+          method: 'POST',
           headers: {
             'apikey':        SUPABASE_KEY,
             'Authorization': `Bearer ${token}`,
-            'Content-Type':  'application/json',
-            'Prefer':        'return=minimal'
+            'Content-Type':  'application/json'
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ pending_json: pendingJson })
         }
       );
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error('Erro ao salvar mudança pendente:', errText);
-      }
+      if (!res.ok) console.error('Erro ao salvar mudança pendente:', await res.text());
     }
   } catch (e) {
     console.error('Erro ao salvar empresa_change_pending:', e);

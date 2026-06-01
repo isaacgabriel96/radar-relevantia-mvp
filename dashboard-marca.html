@@ -2392,7 +2392,7 @@ async function loadUserInfo() {
         try {
           const token = await getValidToken();
           if (token) {
-            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,segmento,website,descricao,telefone,cargo,empresa_domain,logo_url,cadastro_juridico_completo&id=eq.' + user.id, {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,segmento,website,descricao,telefone,cargo,empresa_domain,logo_url,cadastro_juridico_completo,empresa_change_pending&id=eq.' + user.id, {
               headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
             });
             if (res.ok) {
@@ -2692,6 +2692,26 @@ function populateConfigFields(p) {
   }
   if (marcaFields[2]) marcaFields[2].value = p.website || '';
   if (marcaFields[3]) marcaFields[3].value = p.descricao || '';
+
+  // Restore pending badge if there's a change awaiting approval
+  const existingBadge = document.getElementById('marcaPendenteBadge');
+  if (p.empresa_change_pending) {
+    let pending = {};
+    try { pending = JSON.parse(p.empresa_change_pending); } catch (_) {}
+    if (!existingBadge) {
+      const nomeEl = document.getElementById('marcaLogoNome');
+      if (nomeEl) {
+        const badge = document.createElement('span');
+        badge.id = 'marcaPendenteBadge';
+        badge.textContent = 'Aguardando aprovação';
+        badge.style.cssText = 'font-size:10px;font-weight:600;color:#B45309;background:#FEF3C7;border:1px solid #FCD34D;border-radius:100px;padding:2px 8px;margin-left:8px;vertical-align:middle;display:inline-block';
+        nomeEl.parentNode.appendChild(badge);
+      }
+    }
+  } else if (existingBadge) {
+    existingBadge.remove();
+  }
+
   // Populate juridico if not editing
   if (!editingJuridicoMarca) populateJuridicoMarca(p);
 
@@ -3572,31 +3592,24 @@ async function confirmarSolicitacaoMudancaMarca() {
   const fields = document.querySelectorAll('.marca-field');
 
   if (!isDemoMode()) {
-    const userId = await getAuthUserId();
-    const token  = await _getWriteToken();
-    if (userId && token) {
-      const payload = {
-        id: userId,
-        empresa_change_pending: JSON.stringify({
-          name:         _marcaSelectedBrand.name        || '',
-          domain:       _marcaSelectedBrand.domain      || '',
-          icon:         _marcaSelectedBrand.icon        || _marcaSelectedBrand.logoDataUrl || '',
-          description:  _marcaSelectedBrand.description || '',
-          website:      _marcaSelectedBrand.website     || '',
-          requested_at: new Date().toISOString()
-        }),
-        // Also persist other editable fields in the same upsert
-        segmento:  fields[1]?.value || null,
-        website:   fields[2]?.value?.trim() || null,
-        descricao: fields[3]?.value?.trim() || null
-      };
+    const token = await _getWriteToken();
+    if (token) {
+      const pendingJson = JSON.stringify({
+        name:         _marcaSelectedBrand.name        || '',
+        domain:       _marcaSelectedBrand.domain      || '',
+        icon:         _marcaSelectedBrand.icon        || _marcaSelectedBrand.logoDataUrl || '',
+        description:  _marcaSelectedBrand.description || '',
+        website:      _marcaSelectedBrand.website     || '',
+        requested_at: new Date().toISOString()
+      });
       try {
-        await fetch(SUPABASE_URL + '/rest/v1/perfis', {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/submit_empresa_change_request', {
           method: 'POST',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-          body: JSON.stringify(payload)
+            'Content-Type': 'application/json' },
+          body: JSON.stringify({ pending_json: pendingJson })
         });
+        if (!res.ok) console.error('Erro ao salvar empresa_change_pending:', await res.text());
       } catch (e) {
         console.error('Erro ao salvar empresa_change_pending:', e);
       }
