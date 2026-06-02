@@ -964,7 +964,7 @@ body::after {
         </p>
         <div style="display:flex;gap:12px;align-items:center;">
           <button class="btn-back" onclick="goToTut(3)">← Voltar</button>
-          <button class="btn-primary" onclick="goToTut(5)">Acessar meu dashboard →</button>
+          <button class="btn-primary" onclick="goToTut(5)">Criar minha primeira campanha →</button>
         </div>
       </div>
 
@@ -1035,10 +1035,10 @@ body::after {
         Bem-vindo ao Radar, <em id="firstName">bem-vindo</em> !
       </h1>
       <p class="panel-sub" style="margin:0 auto 36px;max-width:380px;">
-        Sua conta está configurada. Agora explore as oportunidades disponíveis e encontre as parcerias ideais para sua marca.
+        Sua conta está configurada. Vamos criar sua primeira campanha para começar a encontrar as parcerias ideais para sua marca.
       </p>
       <button class="btn-primary" onclick="goToDashboard()" style="max-width:360px;margin:0 auto;">
-        Acessar meu dashboard →
+        Criar minha primeira campanha →
       </button>
     </div>
   </div>
@@ -1286,8 +1286,8 @@ async function setPassword() {
 
 /* ── DASHBOARD & LOGOUT ── */
 function goToDashboard() {
-  if (previewMode) { showToast('Preview: redirecionaria para o dashboard →', ''); return; }
-  window.location.href = '/dashboard-marca.html';
+  if (previewMode) { showToast('Preview: redirecionaria para criação de campanha →', ''); return; }
+  window.location.href = '/dashboard-marca.html?nova_campanha=1';
 }
 
 function doLogout() {

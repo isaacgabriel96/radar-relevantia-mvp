@@ -847,6 +847,43 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-campanha-criar:hover:not(:disabled) { background: var(--gold-gradient); box-shadow: 0 6px 20px rgba(184,134,11,0.35); transform: translateY(-1px); }
 .btn-campanha-criar:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* ─── MODAL SALVAR EM CAMPANHA (Airbnb-style) ─── */
+.msc-overlay { position: fixed; inset: 0; background: rgba(30,22,0,0.48); backdrop-filter: blur(4px); z-index: 600; display: none; align-items: flex-end; justify-content: center; padding: 0; }
+.msc-overlay.open { display: flex; }
+@media (min-width: 600px) { .msc-overlay { align-items: center; padding: 20px; } }
+.msc-modal { background: var(--white); border-radius: 20px 20px 0 0; width: 100%; max-width: 540px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(30,22,0,0.14); overflow: hidden; }
+@media (min-width: 600px) { .msc-modal { border-radius: 20px; max-height: 80vh; } }
+.msc-header { display: flex; align-items: center; justify-content: center; padding: 16px 20px 0; position: relative; flex-shrink: 0; }
+.msc-title { font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--black); }
+.msc-close { position: absolute; left: 16px; top: 50%; transform: translateY(-50%) translateY(4px); background: var(--gray-100); border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); transition: background 0.15s; }
+.msc-close:hover { background: var(--gray-200); color: var(--black); }
+.msc-list { overflow-y: auto; flex: 1; padding: 14px 16px; display: flex; flex-direction: column; gap: 0; }
+.msc-item { display: flex; align-items: center; gap: 14px; padding: 12px 8px; border-radius: 12px; cursor: pointer; transition: background 0.15s; border: none; background: none; width: 100%; text-align: left; }
+.msc-item:hover { background: var(--gray-100); }
+.msc-mosaic { width: 68px; height: 68px; border-radius: 10px; overflow: hidden; flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; background: var(--gray-100); }
+.msc-mosaic.single { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.msc-mosaic.two { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+.msc-mosaic-cell { overflow: hidden; background: var(--gray-100); display: flex; align-items: center; justify-content: center; }
+.msc-mosaic-cell img { width: 100%; height: 100%; object-fit: cover; }
+.msc-mosaic-cell.placeholder { background: linear-gradient(135deg, #f0ece0, #e8e0cc); }
+.msc-item-info { flex: 1; min-width: 0; }
+.msc-item-nome { font-size: 14px; font-weight: 600; color: var(--black); line-height: 1.3; }
+.msc-item-count { font-size: 12px; color: var(--gray-3); margin-top: 2px; }
+.msc-item-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--gray-200); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.18s; }
+.msc-item.in-list .msc-item-check { background: var(--black); border-color: var(--black); }
+.msc-footer { padding: 12px 16px 20px; border-top: 1px solid var(--gray-100); flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+.msc-btn-nova { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-radius: 12px; border: 1.5px dashed var(--gray-200); background: none; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--black); width: 100%; transition: border-color 0.15s, background 0.15s; }
+.msc-btn-nova:hover { border-color: var(--gold); background: rgba(184,134,11,0.04); }
+.msc-empty-hint { text-align: center; padding: 24px 20px; color: var(--gray-3); font-size: 13px; }
+
+/* ─── CAMPANHA CARDS — preview mosaico ─── */
+.campanha-pasta-mosaic { width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; background: var(--gray-100); margin-bottom: 12px; }
+.campanha-pasta-mosaic.no-images { background: linear-gradient(135deg, #f5f0e0, #e8dfc0); display: flex; align-items: center; justify-content: center; }
+.campanha-pasta-mosaic.one-image { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.campanha-pasta-mosaic.two-images { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
+.campanha-pasta-mosaic-cell { overflow: hidden; background: var(--gray-100); }
+.campanha-pasta-mosaic-cell img { width: 100%; height: 100%; object-fit: cover; }
+
 /* ─── DEALS FECHADOS — ACCORDION POR OPP ─── */
 .deals-opp-group { display: flex; flex-direction: column; gap: 12px; }
 .deals-opp-accordion { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
@@ -2195,6 +2232,23 @@ tbody tr:last-child td { border-bottom: none; }
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- Modal: Salvar em Campanha (Airbnb-style) -->
+<div class="msc-overlay" id="msc-overlay" onclick="if(event.target===this)closeSalvarCampanhaModal()">
+  <div class="msc-modal">
+    <div class="msc-header">
+      <button class="msc-close" onclick="closeSalvarCampanhaModal()">✕</button>
+      <div class="msc-title">Salvar em campanha</div>
+    </div>
+    <div class="msc-list" id="msc-list"><!-- preenchido por JS --></div>
+    <div class="msc-footer">
+      <button class="msc-btn-nova" onclick="openNovaCampanhaFromModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova campanha
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Criar / Editar Campanha -->
 <div class="modal-campanha-overlay" id="modal-campanha-overlay" onclick="if(event.target===this)closeCriarCampanhaModal()">
   <div class="modal-campanha">
@@ -2367,6 +2421,14 @@ async function init() {
     const hash = window.location.hash.replace('#', '');
     if (hash && SECTION_TITLES[hash]) {
       showSection(hash);
+    }
+
+    // Primeiro acesso vindo do acesso-marca: navega para campanhas e abre modal
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('nova_campanha') === '1') {
+      history.replaceState(null, '', window.location.pathname + (hash ? '#' + hash : ''));
+      showSection('propostas');
+      setTimeout(() => openCriarCampanhaModal(), 400);
     }
   } catch (e) {
     console.error('[init] Critical error:', e);
@@ -3091,7 +3153,7 @@ function renderOpportunities(opps) {
         <div class="olc-hero-tag">${opp.category}</div>
         ${!hasBg && total > 1 ? `<div class="olc-hero-dots">${dots}</div>` : ''}
         ${approvalBadgeHtml}
-        <button class="opp-fav-btn${isFav ? ' active' : ''}" data-id="${opp.id}" onclick="toggleFav(event, ${opp.id})" title="${isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}">
+        <button class="opp-fav-btn${isFav ? ' active' : ''}" data-id="${opp.id}" onclick="openSalvarCampanhaModal(event, ${opp.id})" title="Salvar em campanha">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </button>
       </div>
@@ -3147,22 +3209,133 @@ function heroSlide(e, dot, idx) {
   hero.querySelector('.olc-hero-count-cur').textContent = idx + 1;
 }
 
-// ─── FAVORITOS ───
-let _favIds = JSON.parse(localStorage.getItem('rr_favoritos_v1') || '[]');
+// ─── FAVORITOS / CAMPANHAS DE OPORTUNIDADES ───
+// _favIds = opp IDs que estão em pelo menos 1 campanha (derivado de _CAMPANHA_OPPS)
+let _favIds = [];
 let _favFilter = false;
 
-function saveFavs() {
-  localStorage.setItem('rr_favoritos_v1', JSON.stringify(_favIds));
+// _CAMPANHA_OPPS: { campanha_id: Set<oportunidade_id> }
+let _CAMPANHA_OPPS = {};
+
+function _rebuildFavIds() {
+  const set = new Set();
+  Object.values(_CAMPANHA_OPPS).forEach(s => s.forEach(id => set.add(id)));
+  _favIds = [...set];
+  document.querySelectorAll('.opp-fav-btn').forEach(btn => {
+    const id = Number(btn.dataset.id);
+    btn.classList.toggle('active', _favIds.includes(id));
+  });
+  _updateFavCount();
 }
 
-function toggleFav(e, oppId) {
+async function loadCampanhaOpps() {
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+  if (!session || !session.user) return;
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?select=campanha_id,oportunidade_id&marca_id=eq.' + session.user.id, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    _CAMPANHA_OPPS = {};
+    rows.forEach(r => {
+      if (!_CAMPANHA_OPPS[r.campanha_id]) _CAMPANHA_OPPS[r.campanha_id] = new Set();
+      _CAMPANHA_OPPS[r.campanha_id].add(r.oportunidade_id);
+    });
+    _rebuildFavIds();
+  } catch(e) { /* silencioso */ }
+}
+
+// ─── MODAL SALVAR EM CAMPANHA ───
+let _msc_opp_id = null;
+
+function openSalvarCampanhaModal(e, oppId) {
   e.preventDefault(); e.stopPropagation();
-  const idx = _favIds.indexOf(oppId);
-  if (idx === -1) { _favIds.push(oppId); } else { _favIds.splice(idx, 1); }
-  saveFavs();
-  const btn = document.querySelector(`.opp-fav-btn[data-id="${oppId}"]`);
-  if (btn) btn.classList.toggle('active', _favIds.includes(oppId));
-  _updateFavCount();
+  _msc_opp_id = oppId;
+  _renderMscList();
+  document.getElementById('msc-overlay').classList.add('open');
+}
+
+function closeSalvarCampanhaModal() {
+  document.getElementById('msc-overlay').classList.remove('open');
+  _msc_opp_id = null;
+}
+
+function _renderMscList() {
+  const list = document.getElementById('msc-list');
+  if (!list) return;
+  if (!_CAMPANHAS.length) {
+    list.innerHTML = '<div class="msc-empty-hint">Crie uma campanha para começar a organizar suas oportunidades.</div>';
+    return;
+  }
+  list.innerHTML = _CAMPANHAS.map(c => {
+    const oppSet = _CAMPANHA_OPPS[c.id] || new Set();
+    const isIn = oppSet.has(_msc_opp_id);
+    const oppIds = [...oppSet].slice(0, 4);
+    const previewOpps = oppIds.map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
+    const mosaic = _buildMscMosaic(previewOpps);
+    const count = oppSet.size;
+    return `<button class="msc-item${isIn ? ' in-list' : ''}" onclick="toggleOppInCampanha('${c.id}', ${_msc_opp_id})">
+      <div class="msc-mosaic${previewOpps.length === 0 ? '' : previewOpps.length === 1 ? ' single' : previewOpps.length === 2 ? ' two' : ''}">${mosaic}</div>
+      <div class="msc-item-info">
+        <div class="msc-item-nome">${c.nome}</div>
+        <div class="msc-item-count">${count} oportunidade${count !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="msc-item-check">
+        ${isIn ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function _buildMscMosaic(opps) {
+  if (!opps.length) return '<div class="msc-mosaic-cell placeholder"></div><div class="msc-mosaic-cell placeholder"></div><div class="msc-mosaic-cell placeholder"></div><div class="msc-mosaic-cell placeholder"></div>';
+  const cells = opps.slice(0, 4).map(o => {
+    const img = (o.images && o.images[0]) || '';
+    return img
+      ? `<div class="msc-mosaic-cell"><img src="${img}" alt="" loading="lazy"></div>`
+      : `<div class="msc-mosaic-cell placeholder"></div>`;
+  });
+  while (cells.length < 4) cells.push('<div class="msc-mosaic-cell placeholder"></div>');
+  return cells.join('');
+}
+
+async function toggleOppInCampanha(campanhaId, oppId) {
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+  if (!session || !session.user) return;
+  if (!_CAMPANHA_OPPS[campanhaId]) _CAMPANHA_OPPS[campanhaId] = new Set();
+  const isIn = _CAMPANHA_OPPS[campanhaId].has(oppId);
+  if (isIn) {
+    // Remover
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?campanha_id=eq.' + campanhaId + '&oportunidade_id=eq.' + oppId + '&marca_id=eq.' + session.user.id, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    });
+    if (res.ok) {
+      _CAMPANHA_OPPS[campanhaId].delete(oppId);
+      _rebuildFavIds();
+      _renderMscList();
+      if (typeof showToast === 'function') showToast('Removido da campanha.', 'info');
+    }
+  } else {
+    // Adicionar
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ campanha_id: campanhaId, oportunidade_id: oppId, marca_id: session.user.id })
+    });
+    if (res.ok) {
+      _CAMPANHA_OPPS[campanhaId].add(oppId);
+      _rebuildFavIds();
+      _renderMscList();
+      if (typeof showToast === 'function') showToast('Salvo em "' + (_CAMPANHAS.find(c => c.id === campanhaId) || {}).nome + '"!', 'success');
+    }
+  }
+}
+
+function openNovaCampanhaFromModal() {
+  closeSalvarCampanhaModal();
+  openCriarCampanhaModal(null, _msc_opp_id);
 }
 
 function toggleFavFilter() {
