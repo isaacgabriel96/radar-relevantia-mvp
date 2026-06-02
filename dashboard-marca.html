@@ -3819,7 +3819,12 @@ function ffSumaryChips(filtrosJson) {
 
 // Abre o picker de campanhas para salvar filtros (ou salva direto se estiver editando uma campanha)
 function ffOpenCampPicker() {
-  if (_ffEditingCampanhaId) { ffSaveFiltrosToCampanha(_ffEditingCampanhaId); ffClose(); return; }
+  if (_ffEditingCampanhaId) {
+    const id = _ffEditingCampanhaId;
+    ffClose(); // fecha o modal (reseta _ffEditingCampanhaId)
+    ffSaveFiltrosToCampanha(id); // salva e recarrega o detalhe
+    return;
+  }
   const list = document.getElementById('ff-camp-picker-list');
   if (!list) return;
   if (!_CAMPANHAS.length) {
@@ -3855,10 +3860,14 @@ async function ffSaveFiltrosToCampanha(campanhaId) {
     body: JSON.stringify({ filtros })
   });
   if (res.ok) {
-    // Atualiza local
     const c = _CAMPANHAS.find(x => x.id === campanhaId);
     if (c) c.filtros = filtros;
     if (typeof showToast === 'function') showToast('Filtros salvos em "' + (c ? c.nome : 'campanha') + '"!', 'success');
+    // Recarrega o detalhe se estiver aberto para mostrar os chips
+    const detSection = document.getElementById('campanha-propostas-section');
+    if (detSection && detSection.style.display !== 'none' && c) {
+      abrirCampanhaDetalhe(campanhaId, c.nome);
+    }
   } else {
     if (typeof showToast === 'function') showToast('Erro ao salvar filtros.', 'error');
   }
@@ -6173,14 +6182,17 @@ async function salvarCampanha() {
         }
         _mc_pending_opp_id = null;
         _mc_pending_filtros = null;
-        // Nova campanha → abre direto o detalhe para configurar filtros
+        // Nova campanha → abre detalhe e imediatamente abre modal de filtros
         await loadCampanhas();
         renderCampanhasPanel();
         if (newId) {
           const nova = _CAMPANHAS.find(x => x.id === newId);
-          if (nova) abrirCampanhaDetalhe(nova.id, nova.nome);
+          if (nova) {
+            abrirCampanhaDetalhe(nova.id, nova.nome);
+            setTimeout(() => ffEditFiltrosCampanha(nova.id), 120);
+          }
         }
-        if (typeof showToast === 'function') showToast('Campanha criada! Configure seus filtros.', 'success');
+        if (typeof showToast === 'function') showToast('Campanha criada!', 'success');
         return;
       }
       await loadCampanhas();
