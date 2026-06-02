@@ -4719,60 +4719,70 @@ function initLivePreview() {
   }
 
   // ── Paste global inteligente (Ctrl+V) ───────────────────────────────────────
-  // Roteia para o campo correto com base no que está visível na UI:
-  //   1. Seção de Oportunidades (cotas) visível → vai para a cota aberta
-  //   2. Foto principal visível (step 3/4) → vai para lpProcessFiles
-  //   3. Qualquer outro contexto → ignora (evita paste acidental)
-  let _lastActiveCotaCard = null; // rastreia a última cota com que o usuário interagiu
-  document.addEventListener('focusin', function(e) {
-    const card = e.target.closest('.cota-card');
-    if (card) _lastActiveCotaCard = card;
-  });
+  // Rastreia a ÚLTIMA interação explícita do usuário com cada campo de foto.
+  // Roteamento baseado em interação, não em visibilidade (que é ambígua quando
+  // múltiplas seções estão expandidas simultaneamente).
+  //
+  //   _pasteTarget = 'main'  → foto principal da oportunidade
+  //   _pasteTarget = 'cota'  → cota específica (_activeCotaCard)
+  //   _pasteTarget = null    → nenhuma interação ainda → paste ignorado
+  //
+  let _pasteTarget    = null;
+  let _activeCotaCard = null;
 
+  function _setPasteTarget(target, cotaCard) {
+    _pasteTarget    = target;
+    _activeCotaCard = cotaCard || null;
+  }
+
+  // Foto principal: qualquer interação na upload zone ou grid de fotos
+  (function() {
+    var area = document.getElementById('photoUploadArea');
+    var grid = document.getElementById('photosGridLP');
+    function markMain() { _setPasteTarget('main'); }
+    if (area) { area.addEventListener('click', markMain); area.addEventListener('dragover', markMain); }
+    if (grid) { grid.addEventListener('click', markMain); }
+  })();
+
+  // Cotas: qualquer interação (clique, foco, dragover) dentro de um .cota-card
+  document.addEventListener('focusin', function(e) {
+    var card = e.target.closest('.cota-card');
+    if (card) _setPasteTarget('cota', card);
+  });
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.cota-card');
+    if (card) _setPasteTarget('cota', card);
+    // Clicou fora de qualquer cota mas dentro da foto principal → marca main
+    else if (e.target.closest('#photoUploadArea') || e.target.closest('#photosGridLP')) {
+      _setPasteTarget('main');
+    }
+  }, true); // capture para detectar antes de stopPropagation
+
+  // Paste router
   document.addEventListener('paste', function(e) {
-    // Ignora paste em campos de texto nativos (inputs, textareas, contenteditable)
-    const tag = e.target.tagName;
+    // Nunca intercepta paste em campos de texto nativos
+    var tag = e.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
 
     // Extrai imagem do clipboard
-    const items = e.clipboardData && e.clipboardData.items;
+    var items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
-    let imageFile = null;
+    var imageFile = null;
     for (var i = 0; i < items.length; i++) {
       if (items[i].kind === 'file' && items[i].type.startsWith('image/')) {
-        imageFile = items[i].getAsFile();
-        break;
+        imageFile = items[i].getAsFile(); break;
       }
     }
     if (!imageFile) return;
 
-    // Roteamento: seção de Oportunidades visível?
-    const oppsWrap = document.getElementById('s3OportunidadesWrap');
-    const oppsVisible = oppsWrap && oppsWrap.style.display !== 'none';
-    if (oppsVisible) {
-      // Usa a última cota interagida, ou a primeira aberta, ou a primeira existente
-      const card = _lastActiveCotaCard ||
-                   document.querySelector('.cota-card:not(.preview-mode)') ||
-                   document.querySelector('.cota-card');
-      if (card) {
-        e.preventDefault();
-        _cotaAddFile(imageFile, card);
-        return;
-      }
-    }
-
-    // Roteamento: área de foto principal visível (panel-2/3 com a upload zone)?
-    const photoArea = document.getElementById('photoUploadArea') ||
-                      document.getElementById('photosGridLP');
-    const panel2 = document.getElementById('panel-2');
-    const panel3 = document.getElementById('panel-3');
-    const mainPhotoVisible = (panel2 && panel2.style.display !== 'none') ||
-                             (panel3 && panel3.style.display !== 'none');
-    if (mainPhotoVisible && lpUploadedPhotos.length < LP_MAX_PHOTOS) {
+    if (_pasteTarget === 'cota' && _activeCotaCard) {
+      e.preventDefault();
+      _cotaAddFile(imageFile, _activeCotaCard);
+    } else if (_pasteTarget === 'main' && lpUploadedPhotos.length < LP_MAX_PHOTOS) {
       e.preventDefault();
       lpProcessFiles([imageFile]);
     }
-    // Qualquer outro contexto: ignora silenciosamente
+    // _pasteTarget === null → ignora: usuário nunca interagiu com nenhum campo de foto
   });
   // ────────────────────────────────────────────────────────────────────────────
 
