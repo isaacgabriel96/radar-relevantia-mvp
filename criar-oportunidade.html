@@ -3992,6 +3992,11 @@ input[type=number] { -moz-appearance: textfield; }
                           </div>
                         </div>
                       </div>
+                      <!-- Aviso de undo: aparece após remover um PDF existente -->
+                      <div id="mkRestoreBar" style="display:none;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;background:#fdf6e3;border:1px solid var(--gold-border,#e8d4a0);margin-top:8px">
+                        <span style="font-size:13px;color:var(--gray-4)">📄 <span id="mkRestoreFileName"></span> <span style="color:var(--gray-3)">(removido)</span></span>
+                        <button type="button" onclick="mkRestoreFile()" style="margin-left:auto;font-size:12px;font-weight:600;color:var(--brown-warm);background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;border:1px solid var(--gold-border,#e8d4a0)">↩ Restaurar</button>
+                      </div>
                     </div><!-- /mkUploadState -->
 
                     <!-- Estado com PDF: apenas o viewer + botão remover -->
@@ -10265,6 +10270,10 @@ function handleMkFile(file) {
     return;
   }
   mkPdfFile = file;
+  // Upload de novo arquivo — descarta o undo pendente
+  _mkRemovedUrl = null; _mkRemovedDoc = null;
+  const rb = document.getElementById('mkRestoreBar');
+  if (rb) rb.style.display = 'none';
   // Esconde upload zone + aviso, mostra apenas o viewer
   document.getElementById('mkUploadState').style.display = 'none';
   document.getElementById('mkViewerPreviewGroup').style.display = 'block';
@@ -10289,17 +10298,26 @@ function handleMkFile(file) {
   });
 }
 
+// Guarda o estado do PDF removido para permitir restauração
+let _mkRemovedUrl = null;
+let _mkRemovedDoc = null;
+
 function removeMkFile() {
+  // Salva o estado atual antes de apagar (para poder restaurar)
+  _mkRemovedUrl = formState.existingMkUrl || null;
+  _mkRemovedDoc = mkPdfDoc || null;
+
   mkPdfFile = null;
   mkPdfDoc = null;
-  formState.existingMkUrl = null; // limpa URL existente — PDF será removido ao salvar
+  formState.existingMkUrl = null;
   mkCurrentPage = 1;
   document.getElementById('mkFileInput').value = '';
-  // Esconde viewer, reaparece upload zone + aviso
+
+  // Esconde viewer, mostra upload zone
   document.getElementById('mkViewerPreviewGroup').style.display = 'none';
   document.getElementById('mkUploadState').style.display = 'block';
   const wrap = document.getElementById('mkCanvasWrap');
-  const canvas = wrap.querySelector('canvas');
+  const canvas = wrap?.querySelector('canvas');
   if (canvas) canvas.remove();
   document.getElementById('mkLoadingState').style.display = 'block';
   document.getElementById('mkLoadingState').textContent = 'Carregando apresentação…';
@@ -10307,6 +10325,49 @@ function removeMkFile() {
   document.getElementById('mkNextBtn').disabled = true;
   document.getElementById('mkPageInfo').textContent = '— / —';
   document.getElementById('mkViewerTitle').textContent = '—';
+
+  // Exibe o restore bar se havia um PDF existente
+  const restoreBar  = document.getElementById('mkRestoreBar');
+  const restoreName = document.getElementById('mkRestoreFileName');
+  if (restoreBar && _mkRemovedUrl) {
+    const fn = decodeURIComponent(_mkRemovedUrl.split('/').pop().replace(/^opp-\d+-midia-kit-/, '')) || 'apresentação.pdf';
+    if (restoreName) restoreName.textContent = fn;
+    restoreBar.style.display = 'flex';
+  }
+}
+
+/** Restaura o PDF removido, voltando ao estado anterior ao clique no X */
+function mkRestoreFile() {
+  if (!_mkRemovedUrl) return;
+
+  formState.existingMkUrl = _mkRemovedUrl;
+  mkPdfDoc = _mkRemovedDoc;
+
+  // Esconde restore bar e upload zone, mostra viewer
+  const restoreBar = document.getElementById('mkRestoreBar');
+  if (restoreBar) restoreBar.style.display = 'none';
+  document.getElementById('mkUploadState').style.display = 'none';
+  document.getElementById('mkViewerPreviewGroup').style.display = 'block';
+
+  const fn = decodeURIComponent(_mkRemovedUrl.split('/').pop().replace(/^opp-\d+-midia-kit-/, '')) || 'apresentação.pdf';
+  document.getElementById('mkViewerTitle').textContent = '📄 ' + fn + ' (atual)';
+
+  if (mkPdfDoc) {
+    // Documento já estava em memória — renderiza direto
+    document.getElementById('mkLoadingState').style.display = 'none';
+    mkCurrentPage = 1;
+    _mkRenderPage(1);
+    document.getElementById('mkPrevBtn').disabled = true;
+    document.getElementById('mkNextBtn').disabled = mkPdfDoc.numPages <= 1;
+  } else {
+    // Recarrega da URL
+    document.getElementById('mkLoadingState').style.display = 'block';
+    document.getElementById('mkLoadingState').textContent = 'Carregando apresentação…';
+    _mkLoadExistingPdf();
+  }
+
+  _mkRemovedUrl = null;
+  _mkRemovedDoc = null;
 }
 
 /**
