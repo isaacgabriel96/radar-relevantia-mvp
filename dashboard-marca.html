@@ -2277,7 +2277,7 @@ function loadOpportunities(callback) {
   }
 
   // Produção: busca do Supabase
-  fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,preco_minimo,icone,bg_gradient,imagens,imagem_capa,imagens_focal,tags,descricao_curta,rating,visibilidade,perfis:detentor_id(slug,empresa,empresa_domain,logo_url)&ativo=eq.true&order=id.asc', {
+  fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,preco_minimo,icone,bg_gradient,imagens,imagem_capa,imagens_focal,tags,descricao_curta,rating,visibilidade,perfis:detentor_id(slug,empresa,empresa_domain,logo_url)&ativo=eq.true&status=eq.publicada&order=id.asc', {
     headers: {
       'apikey': SUPABASE_KEY,
       'Content-Type': 'application/json'
