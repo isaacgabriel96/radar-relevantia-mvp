@@ -145,6 +145,20 @@ body { font-family: 'DM Sans', sans-serif; background: var(--gray-100); color: v
 .sidebar-user-info { flex: 1; min-width: 0; }
 .sidebar-user-name { font-size: 13px; font-weight: 600; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sidebar-user-email { font-size: 11px; color: rgba(255,255,255,0.25); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ─── SIDEBAR USER SKELETON (enquanto dados carregam) ─── */
+@keyframes sb-shimmer { 0%,100% { opacity: 0.07; } 50% { opacity: 0.15; } }
+.sidebar-user-name:empty::after {
+  content: ''; display: block; height: 12px; width: 108px; border-radius: 4px;
+  background: rgba(255,255,255,0.22); animation: sb-shimmer 1.4s ease infinite;
+}
+.sidebar-user-email:empty::after {
+  content: ''; display: block; height: 9px; width: 136px; border-radius: 4px; margin-top: 4px;
+  background: rgba(255,255,255,0.12); animation: sb-shimmer 1.4s ease infinite 0.2s;
+}
+.sidebar-user-avatar:empty {
+  background: rgba(255,255,255,0.08); animation: sb-shimmer 1.4s ease infinite 0.1s;
+}
 .btn-logout-sb { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.2); transition: color 0.15s; padding: 4px; flex-shrink: 0; }
 .btn-logout-sb:hover { color: var(--red); }
 .btn-logout-sb svg { width: 16px; height: 16px; }
@@ -1174,11 +1188,11 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="sidebar-user" onclick="showSection('configuracoes')">
       <div class="sidebar-user-avatar" id="sidebarAvatar">
         <img id="sidebarAvatarImg" src="" alt="" style="width:100%;height:100%;object-fit:contain;display:none;border-radius:50%">
-        <span id="sidebarAvatarFb">NB</span>
+        <span id="sidebarAvatarFb"></span>
       </div>
       <div class="sidebar-user-info">
-        <div class="sidebar-user-name" id="sidebarName">Nike Brasil</div>
-        <div class="sidebar-user-email" id="sidebarEmail">contato@nikebrasil.com</div>
+        <div class="sidebar-user-name" id="sidebarName"></div>
+        <div class="sidebar-user-email" id="sidebarEmail"></div>
       </div>
       <button class="btn-logout-sb" onclick="event.stopPropagation(); doLogout();" title="Sair">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
@@ -2492,9 +2506,9 @@ async function loadUserInfo() {
 }
 
 function loadInteressesCount() {
-  const favs = JSON.parse(localStorage.getItem('rr_favoritos_v1') || '[]');
-  document.getElementById('kpi-salvas').textContent = favs.length;
-  OB_MARCA.salvar = favs.length > 0;
+  const n = _favIds.length;
+  document.getElementById('kpi-salvas').textContent = n;
+  OB_MARCA.salvar = n > 0;
   updateSetupGuide();
 }
 
@@ -5298,6 +5312,8 @@ async function loadCampanhas() {
     const badge = document.getElementById('prop-campanhas-badge');
     if (badge) badge.textContent = _CAMPANHAS.length;
   } catch(e) { _CAMPANHAS = []; }
+  // Carrega as oportunidades salvas em cada campanha (para coração + preview)
+  loadCampanhaOpps();
 }
 
 function renderCampanhasPanel() {
@@ -5314,11 +5330,25 @@ function renderCampanhasPanel() {
   }
   if (empty) empty.style.display = 'none';
 
-  const statusLabels = { planejamento: 'Planejamento', ativa: 'Ativa', concluida: 'Concluída' };
   grid.innerHTML = _CAMPANHAS.map(c => {
-    const propsNaCampanha = (typeof PROPOSTAS !== 'undefined' ? PROPOSTAS : []).filter(p => p.campanha_id === c.id);
-    const n = propsNaCampanha.length;
+    const oppSet = _CAMPANHA_OPPS[c.id] || new Set();
+    const n = oppSet.size;
     const nomeEsc = c.nome.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    // Mosaico: pega até 4 oportunidades com imagem
+    const oppIds = [...oppSet].slice(0, 4);
+    const previewOpps = oppIds.map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
+    const hasImages = previewOpps.some(o => o.images && o.images[0]);
+    const mosaicClass = hasImages
+      ? (previewOpps.length === 1 ? 'one-image' : previewOpps.length === 2 ? 'two-images' : '')
+      : 'no-images';
+    const mosaicCells = hasImages
+      ? previewOpps.slice(0, 4).map(o => {
+          const img = o.images && o.images[0] ? o.images[0] : '';
+          return img
+            ? `<div class="campanha-pasta-mosaic-cell"><img src="${img}" alt="" loading="lazy"></div>`
+            : `<div class="campanha-pasta-mosaic-cell" style="background:${o._bgGradient||'#f0ece0'};display:flex;align-items:center;justify-content:center"><span style="font-size:22px">${o._icon||''}</span></div>`;
+        }).join('')
+      : `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
 
     return `<div class="campanha-pasta" onclick="abrirCampanhaDetalhe('${c.id}','${nomeEsc}')">
       <div class="campanha-pasta-actions">
@@ -5329,9 +5359,9 @@ function renderCampanhasPanel() {
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
         </button>
       </div>
-      <div class="campanha-pasta-label">Campanha</div>
+      <div class="campanha-pasta-mosaic ${mosaicClass}">${mosaicCells}</div>
       <div class="campanha-pasta-nome">${c.nome}</div>
-      <div class="campanha-pasta-count">${n} proposta${n !== 1 ? 's' : ''}</div>
+      <div class="campanha-pasta-count">${n} oportunidade${n !== 1 ? 's' : ''} salva${n !== 1 ? 's' : ''}</div>
       <div class="campanha-pasta-meta">
         <span></span>
         <svg class="campanha-pasta-arrow" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -5350,22 +5380,65 @@ function abrirCampanhaDetalhe(campanhaId, campanhaNome) {
   if (!section || !detalheGrid) return;
 
   if (nomeEl) nomeEl.textContent = campanhaNome;
-  // oculta grid de pastas e toolbar, mostra detalhe
   if (cardsGrid) cardsGrid.style.display = 'none';
   if (toolbar) toolbar.style.display = 'none';
   if (empty) empty.style.display = 'none';
   section.style.display = '';
 
-  const props = (typeof PROPOSTAS !== 'undefined' ? PROPOSTAS : []).filter(p => p.campanha_id === campanhaId);
-  if (!props.length) {
-    detalheGrid.innerHTML = emptyStateHtml('campanhas', 'Pasta vazia', 'Ao manifestar interesse em uma oportunidade, selecione esta campanha para ela aparecer aqui.')
+  const oppSet = _CAMPANHA_OPPS[campanhaId] || new Set();
+  const opps = [...oppSet].map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
+
+  if (!opps.length) {
+    detalheGrid.innerHTML = emptyStateHtml('campanhas', 'Nenhuma oportunidade salva', 'Clique no coração nas oportunidades e salve nesta campanha.')
       + `<div style="text-align:center;margin-top:16px"><button class="btn btn-campanha-criar btn-sm" onclick="showSection('oportunidades')">Explorar oportunidades →</button></div>`;
     return;
   }
-  const catalogMap = {};
-  (MOCK_OPPORTUNITIES || []).forEach(o => { catalogMap[o.id] = o; });
+
   detalheGrid.className = 'opp-grid';
-  detalheGrid.innerHTML = props.map(p => _buildPropostaCard(p, catalogMap)).join('');
+  detalheGrid.innerHTML = opps.map(opp => {
+    const imgs = opp.images || [];
+    const img0 = imgs[0] || '';
+    const heroContent = img0
+      ? `<img src="${img0}" alt="${opp.title}" style="width:100%;height:100%;object-fit:cover">`
+      : `<div style="width:100%;height:100%;background:${opp._bgGradient||'#f0ece0'};display:flex;align-items:center;justify-content:center"><span style="font-size:40px">${opp._icon||''}</span></div>`;
+    const isApproval = opp.visibilidade === 'aprovacao';
+    const cardTag = isApproval ? 'div' : 'a';
+    const cardHref = isApproval ? '' : `href="oportunidade-detalhe.html?${opp.slug ? '@' + opp.slug : 'id=' + opp.id}"`;
+    return `<${cardTag} class="opp-card" ${cardHref} data-id="${opp.id}" style="position:relative">
+      <div class="olc-hero" style="position:relative">
+        ${heroContent}
+        <div class="olc-hero-tag">${opp.category}</div>
+        <button class="opp-fav-btn active" data-id="${opp.id}" onclick="openSalvarCampanhaModal(event,${opp.id})" title="Gerenciar campanhas" style="position:absolute;top:10px;right:10px;z-index:10">
+          <svg viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+      </div>
+      <div class="opp-card-body">
+        <div class="opp-card-title">${opp.title}</div>
+        <div class="opp-card-desc">${opp.desc}</div>
+        <div class="opp-card-divider"></div>
+        <div class="opp-card-footer">
+          <div style="font-size:12px;color:var(--gray-3)">${opp.org || ''}</div>
+          <button class="btn btn-ghost btn-sm" style="font-size:12px" onclick="event.stopPropagation();event.preventDefault();removeOppFromCampanha('${campanhaId}',${opp.id})">Remover</button>
+        </div>
+      </div>
+    </${cardTag}>`;
+  }).join('');
+}
+
+async function removeOppFromCampanha(campanhaId, oppId) {
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+  if (!session || !session.user) return;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?campanha_id=eq.' + campanhaId + '&oportunidade_id=eq.' + oppId + '&marca_id=eq.' + session.user.id, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+  });
+  if (res.ok) {
+    if (_CAMPANHA_OPPS[campanhaId]) _CAMPANHA_OPPS[campanhaId].delete(oppId);
+    _rebuildFavIds();
+    const c = _CAMPANHAS.find(x => x.id === campanhaId);
+    abrirCampanhaDetalhe(campanhaId, c ? c.nome : '');
+    if (typeof showToast === 'function') showToast('Oportunidade removida da campanha.', 'info');
+  }
 }
 
 function fecharCampanhaDetalhe() {
@@ -5382,7 +5455,10 @@ function fecharCampanhaDetalhe() {
   }
 }
 
-function openCriarCampanhaModal(campanha) {
+let _mc_pending_opp_id = null;
+
+function openCriarCampanhaModal(campanha, pendingOppId) {
+  _mc_pending_opp_id = pendingOppId || null;
   const overlay = document.getElementById('modal-campanha-overlay');
   const titleEl = document.getElementById('modal-campanha-title');
   const btnSalvar = document.getElementById('mc-btn-salvar');
@@ -5465,6 +5541,19 @@ async function salvarCampanha() {
     }
     if (res.ok) {
       closeCriarCampanhaModal();
+      // Se havia oportunidade pendente e é uma campanha nova, salva nela
+      if (!editId && _mc_pending_opp_id) {
+        const newCampanha = await res.json();
+        const newId = Array.isArray(newCampanha) ? newCampanha[0].id : newCampanha.id;
+        if (newId) {
+          await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades', {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ campanha_id: newId, oportunidade_id: _mc_pending_opp_id, marca_id: marcaId })
+          });
+        }
+        _mc_pending_opp_id = null;
+      }
       await loadCampanhas();
       renderCampanhasPanel();
       const badge = document.getElementById('prop-campanhas-badge');
