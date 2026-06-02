@@ -1850,7 +1850,7 @@ tbody tr:last-child td { border-bottom: none; }
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label">CNPJ</label>
-                <input class="form-input juridico-marca-field" id="jur-marca-cnpj" type="text" placeholder="00.000.000/0000-00" disabled>
+                <input class="form-input juridico-marca-field" id="jur-marca-cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18" disabled oninput="_marcaMaskCnpj(this)" onblur="_marcaLookupCnpj(this.value)">
               </div>
               <div class="form-group">
                 <label class="form-label">Razão Social</label>
@@ -1859,7 +1859,7 @@ tbody tr:last-child td { border-bottom: none; }
               <div class="form-group">
                 <label class="form-label">CEP</label>
                 <div style="display:flex;gap:8px">
-                  <input class="form-input juridico-marca-field" id="jur-marca-cep" type="text" placeholder="00000-000" disabled oninput="buscarCepMarca(this.value)">
+                  <input class="form-input juridico-marca-field" id="jur-marca-cep" type="text" placeholder="00000-000" maxlength="9" disabled oninput="_marcaMaskCep(this)">
                 </div>
               </div>
               <div class="form-group">
@@ -1888,7 +1888,7 @@ tbody tr:last-child td { border-bottom: none; }
               </div>
               <div class="form-group">
                 <label class="form-label">Responsável Legal — CPF</label>
-                <input class="form-input juridico-marca-field" id="jur-marca-resp-cpf" type="text" placeholder="000.000.000-00" disabled>
+                <input class="form-input juridico-marca-field" id="jur-marca-resp-cpf" type="text" placeholder="000.000.000-00" maxlength="14" disabled oninput="_marcaMaskCpf(this)">
               </div>
             </div>
             <div class="form-actions" id="jurMarcaActions" style="display:none">
@@ -2793,7 +2793,8 @@ function populateConfigFields(p) {
   }
 
   // Populate juridico if not editing
-  if (!editingJuridicoMarca) populateJuridicoMarca(p);
+  // Dados jurídicos são criptografados — precisam do RPC get_perfil_juridico para decriptar
+  if (!editingJuridicoMarca) loadJuridicoMarca();
 
   // Resp fields: [0]=nome, [1]=email, [2]=phone input (tel), [3]=cargo (select)
   const respFields = document.querySelectorAll('.resp-field');
@@ -5072,6 +5073,7 @@ function switchConfigTab(tab) {
   });
   if (tab === 'equipe') loadEquipe();
   if (tab === 'financeiro') loadFinanceiroMarca();
+  if (tab === 'juridico') loadJuridicoMarca();
 }
 
 function switchVozTab(tab) {
@@ -6710,6 +6712,65 @@ function marcarCardSolicitado(oppId, status) {
 }
 
 // ─── JURÍDICO MARCA ───
+
+function _marcaMaskCnpj(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,14);
+  if (v.length > 12) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{0,2}).*/,'$1.$2.$3/$4-$5');
+  else if (v.length > 8) v = v.replace(/^(\d{2})(\d{3})(\d{3})(\d*).*/,'$1.$2.$3/$4');
+  else if (v.length > 5) v = v.replace(/^(\d{2})(\d{3})(\d*).*/,'$1.$2.$3');
+  else if (v.length > 2) v = v.replace(/^(\d{2})(\d*).*/,'$1.$2');
+  el.value = v;
+}
+
+function _marcaMaskCpf(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if (v.length > 9) v = v.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/,'$1.$2.$3-$4');
+  else if (v.length > 6) v = v.replace(/^(\d{3})(\d{3})(\d*).*/,'$1.$2.$3');
+  else if (v.length > 3) v = v.replace(/^(\d{3})(\d*).*/,'$1.$2');
+  el.value = v;
+}
+
+function _marcaMaskCep(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) v = v.replace(/^(\d{5})(\d*)/,'$1-$2');
+  el.value = v;
+  if (v.replace('-','').length === 8) buscarCepMarca(v.replace(/\D/g,''));
+}
+
+function _marcaValidateCnpj(cnpj) {
+  const n = cnpj.replace(/\D/g,'');
+  if (n.length !== 14 || /^(\d)\1+$/.test(n)) return false;
+  const calc = (s, w) => { let t=0; for(let i=0;i<s;i++) t+=parseInt(n[i])*(w-i<2?w-i+8:w-i); const r=t%11; return r<2?0:11-r; };
+  return calc(12,5)===parseInt(n[12]) && calc(13,6)===parseInt(n[13]);
+}
+
+function _marcaValidateCpf(cpf) {
+  const n = cpf.replace(/\D/g,'');
+  if (n.length !== 11 || /^(\d)\1+$/.test(n)) return false;
+  const calc = (s) => { let t=0; for(let i=0;i<s;i++) t+=parseInt(n[i])*(s+1-i); const r=(t*10)%11; return r>=10?0:r; };
+  return calc(9)===parseInt(n[9]) && calc(10)===parseInt(n[10]);
+}
+
+async function _marcaLookupCnpj(cnpjVal) {
+  const raw = cnpjVal.replace(/\D/g,'');
+  if (raw.length !== 14) return;
+  try {
+    const r = await fetch('https://brasilapi.com.br/api/cnpj/v1/' + raw);
+    if (!r.ok) return;
+    const d = await r.json();
+    // Sobrescreve empresa/endereço; preserva nome e CPF do responsável
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    set('jur-marca-razao',      d.razao_social);
+    set('jur-marca-cep',        d.cep ? d.cep.replace(/\D/g,'').replace(/^(\d{5})(\d{3})$/,'$1-$2') : '');
+    set('jur-marca-logradouro', (d.descricao_tipo_de_logradouro ? d.descricao_tipo_de_logradouro + ' ' : '') + (d.logradouro || ''));
+    set('jur-marca-numero',     d.numero);
+    set('jur-marca-complemento',d.complemento);
+    set('jur-marca-cidade',     d.municipio);
+    set('jur-marca-estado',     d.uf);
+    showToast('Dados do CNPJ preenchidos automaticamente.', 'success');
+  } catch(_) {}
+}
+
 let editingJuridicoMarca = false;
 function toggleEditJuridicoMarca() {
   editingJuridicoMarca = !editingJuridicoMarca;
@@ -6720,6 +6781,26 @@ function toggleEditJuridicoMarca() {
 
 async function saveJuridicoMarca() {
   const get = id => document.getElementById(id)?.value.trim() || null;
+
+  // Validar campos obrigatórios antes de salvar
+  const required = [
+    { id: 'jur-marca-cnpj',     label: 'CNPJ' },
+    { id: 'jur-marca-razao',    label: 'Razão Social' },
+    { id: 'jur-marca-cep',      label: 'CEP' },
+    { id: 'jur-marca-logradouro', label: 'Logradouro' },
+    { id: 'jur-marca-numero',   label: 'Número' },
+    { id: 'jur-marca-cidade',   label: 'Cidade' },
+    { id: 'jur-marca-estado',   label: 'Estado' },
+    { id: 'jur-marca-resp-nome', label: 'Nome do responsável' },
+    { id: 'jur-marca-resp-cpf', label: 'CPF do responsável' },
+  ];
+  for (const f of required) {
+    const val = document.getElementById(f.id)?.value?.trim() || '';
+    if (!val) { showToast('Preencha o campo: ' + f.label, 'error'); document.getElementById(f.id)?.focus(); return; }
+  }
+  if (!_marcaValidateCnpj(get('jur-marca-cnpj') || '')) { showToast('CNPJ inválido. Verifique os dígitos.', 'error'); return; }
+  if (!_marcaValidateCpf(get('jur-marca-resp-cpf') || '')) { showToast('CPF inválido. Verifique os dígitos.', 'error'); return; }
+
   const updates = {
     cnpj:                  get('jur-marca-cnpj'),
     razao_social:          get('jur-marca-razao'),
