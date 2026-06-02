@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════════════╗
+  ║  RASCUNHO — NÃO PUBLICAR / NÃO LINKAR                                   ║
+  ╠══════════════════════════════════════════════════════════════════════════╣
+  ║  Origem: cadastro-marca.html — Step 3 (removido em 2026-06-02)          ║
+  ║  Motivo: prematuro no onboarding; será reaproveitado no fluxo de        ║
+  ║          criação de campanha (dashboard-marca.html → nova campanha).    ║
+  ║                                                                          ║
+  ║  O que está aqui:                                                        ║
+  ║  • HTML completo do painel "Objetivos, Investimento & Categorias"       ║
+  ║  • CSS específico dos componentes (objective-card, budget-card,         ║
+  ║    audience-chip, geo sliders, age sliders, gender split)               ║
+  ║  • JS: toggleObjective, selectBudget, toggleCategoria, validateStep3,  ║
+  ║    updateGender, updateAge, geo helpers                                  ║
+  ║  • Integração com Supabase: campos objetivos, orcamento, categorias     ║
+  ║                                                                          ║
+  ║  Como reutilizar:                                                        ║
+  ║  1. Copie o bloco <section id="step-objetivos"> para o modal/página     ║
+  ║     de criação de campanha.                                              ║
+  ║  2. Copie o bloco <style id="css-objetivos"> para o <head>.             ║
+  ║  3. Copie o bloco <script id="js-objetivos"> para o final do <body>.    ║
+  ║  4. Ajuste o submitForm() para incluir os campos coletados aqui.        ║
+  ╚══════════════════════════════════════════════════════════════════════════╝
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[RASCUNHO] Objetivos, Investimento & Categorias — para reuso em criação de campanha</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- ═══ CSS DOS COMPONENTES ═══════════════════════════════════════════════ -->
+<style id="css-objetivos">
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C96A;
+    --gold-pale: #F5EDD6;
+    --black: #0A0A0A;
+    --gray-mid: #4A4A4A;
+    --gray-light: #9A9A9A;
+    --gray-border: #E5E5E5;
+    --gray-bg: #F8F8F6;
+    --white: #FFFFFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--white); color: var(--black); padding: 48px 64px; max-width: 900px; }
+
+  /* ── CHIPS ── */
+  .chips-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
+  .chip { padding: 8px 14px; border-radius: 100px; border: 1.5px solid var(--gray-border); font-size: 12px; font-weight: 500; color: var(--gray-mid); cursor: pointer; transition: all 0.2s; user-select: none; }
+  .chip:hover { border-color: var(--gold); color: var(--gold); }
+  .chip.selected { background: var(--black); border-color: var(--black); color: var(--white); }
+
+  /* ── BUDGET ── */
+  .budget-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .budget-card { padding: 14px 10px; border: 1.5px solid var(--gray-border); border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .budget-card:hover { border-color: var(--gold); }
+  .budget-card.selected { border-color: var(--gold); background: var(--gold-pale); }
+  .budget-card .value { font-size: 13px; font-weight: 600; color: var(--black); display: block; margin-bottom: 2px; }
+  .budget-card .label { font-size: 10px; color: var(--gray-light); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── OBJECTIVES ── */
+  .objectives-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .objective-card { padding: 16px; border: 1.5px solid var(--gray-border); border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: flex-start; gap: 12px; }
+  .objective-card:hover { border-color: var(--gold); background: rgba(201,168,76,0.03); }
+  .objective-card.selected { border-color: var(--gold); background: var(--gold-pale); }
+  .obj-icon { width: 38px; height: 38px; border-radius: 8px; background: var(--gray-bg); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .objective-card.selected .obj-icon { background: rgba(201,168,76,0.2); }
+  .obj-text .title { font-size: 13px; font-weight: 600; color: var(--black); margin-bottom: 3px; }
+  .obj-text .desc { font-size: 11px; color: var(--gray-light); line-height: 1.4; }
+
+  /* ── AUDIENCE / CATEGORIAS ── */
+  .audience-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .audience-chip { padding: 12px; border: 1.5px solid var(--gray-border); border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .audience-chip:hover { border-color: var(--gold); }
+  .audience-chip.selected { border-color: var(--gold); background: var(--gold-pale); }
+  .audience-chip .emoji { font-size: 22px; display: block; margin-bottom: 4px; }
+  .audience-chip .name { font-size: 11px; font-weight: 500; color: var(--gray-mid); }
+  .audience-chip.selected .name { color: var(--black); }
+
+  /* ── SECTION LABEL & HELPERS ── */
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-light); margin-bottom: 14px; margin-top: 8px; }
+  .input-hint { font-size: 11px; color: var(--gray-light); margin-top: 4px; line-height: 1.4; }
+  .step-header { margin-bottom: 40px; }
+  .step-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .step-badge::before { content: ''; display: block; width: 20px; height: 1px; background: var(--gold); }
+  .step-title { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 600; color: var(--black); margin-bottom: 8px; line-height: 1.2; }
+  .step-subtitle { font-size: 14px; color: var(--gray-light); line-height: 1.6; }
+  .field-error { display: none; font-size: 11px; color: #C0392B; }
+  .field-error.show { display: inline; }
+  .progress-bar-wrap { background: var(--gray-border); height: 2px; border-radius: 2px; margin-bottom: 40px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ═══ HTML DO PAINEL ════════════════════════════════════════════════════ -->
+<section id="step-objetivos">
+  <div class="step-header">
+    <div class="step-badge">Passo — de —</div><!-- ajustar numeração ao integrar -->
+    <h1 class="step-title">Objetivos, Investimento &amp; Categorias</h1>
+    <p class="step-subtitle">O que você quer conquistar e em quais universos sua marca quer estar presente?</p>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:90%"></div></div>
+
+  <div class="section-label" style="display:flex;align-items:center;gap:6px;">
+    Principais objetivos de marketing <span style="color:var(--gold)">*</span>
+    <span style="font-size:11px;font-weight:400;color:var(--gray-light);">(selecione até 3)</span>
+    <span class="field-error" id="objetivoError" style="margin:0 0 0 auto">Selecione ao menos 1 objetivo.</span>
+  </div>
+  <div class="objectives-grid" id="objectives-grid" style="margin-bottom:28px;">
+    <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🚀</div><div class="obj-text"><div class="title">Awareness de marca</div><div class="desc">Aumentar reconhecimento e visibilidade</div></div></div>
+    <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🤝</div><div class="obj-text"><div class="title">Associação de imagem</div><div class="desc">Conectar marca a valores e causas</div></div></div>
+    <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🎯</div><div class="obj-text"><div class="title">Geração de leads</div><div class="desc">Capturar contatos qualificados</div></div></div>
+    <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🛒</div><div class="obj-text"><div class="title">Vendas e conversão</div><div class="desc">Impulsionar resultados comerciais diretos</div></div></div>
+    <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">💬</div><div class="obj-text"><div class="title">Engajamento social</div><div class="desc">Crescimento em redes sociais</div></div></div>
+    <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🏆</div><div class="obj-text"><div class="title">Relacionamento B2B</div><div class="desc">Networking e ativação corporativa</div></div></div>
+  </div>
+
+  <div class="section-label" style="display:flex;align-items:center;gap:6px;">
+    Orçamento anual para patrocínios <span style="color:var(--gold)">*</span>
+    <span class="field-error" id="orcamentoError" style="margin:0 0 0 auto">Selecione o orçamento.</span>
+  </div>
+  <div class="budget-options" id="budget-options" style="margin-bottom:28px;">
+    <div class="budget-card" onclick="selectBudget(this)"><span class="value">Até R$ 50k</span><span class="label">Iniciante</span></div>
+    <div class="budget-card" onclick="selectBudget(this)"><span class="value">R$ 50k–200k</span><span class="label">Crescimento</span></div>
+    <div class="budget-card" onclick="selectBudget(this)"><span class="value">R$ 200k–1M</span><span class="label">Scale</span></div>
+    <div class="budget-card" onclick="selectBudget(this)"><span class="value">Acima de R$ 1M</span><span class="label">Enterprise</span></div>
+  </div>
+
+  <div class="section-label" style="display:flex;align-items:center;gap:6px;">
+    Categorias de interesse <span style="color:var(--gold)">*</span>
+    <span class="field-error" id="categoriaError" style="margin:0 0 0 auto">Selecione ao menos 1 categoria.</span>
+  </div>
+  <p class="input-hint" style="margin-bottom:16px;">Universos temáticos onde sua marca quer estar presente. Usado para cruzar com eventos, influenciadores e propriedades cadastradas no Radar.</p>
+  <div class="audience-grid" id="categorias-grid" style="margin-bottom:28px;">
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎵</span><span class="name">Música</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">⚽</span><span class="name">Esporte</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🌾</span><span class="name">Agro &amp; Campo</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎤</span><span class="name">Entretenimento</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎪</span><span class="name">Eventos &amp; Espaços</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">📱</span><span class="name">Digital &amp; Tecnologia</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🤝</span><span class="name">Causas &amp; Propósito</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🏛️</span><span class="name">Institucional &amp; B2B</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">👗</span><span class="name">Moda &amp; Beleza</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🏥</span><span class="name">Saúde &amp; Bem-estar</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎓</span><span class="name">Educação</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🚗</span><span class="name">Automobilismo &amp; Mobilidade</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🏠</span><span class="name">Casa &amp; Decoração</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">✈️</span><span class="name">Viagem &amp; Turismo</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🐾</span><span class="name">Pets</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎮</span><span class="name">Games &amp; Esports</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🌱</span><span class="name">Sustentabilidade</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🍺</span><span class="name">Bebidas</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">💼</span><span class="name">Empreendedorismo &amp; Negócios</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🍽️</span><span class="name">Gastronomia</span></div>
+    <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🌟</span><span class="name">Lifestyle</span></div>
+  </div>
+</section>
+
+<!-- ═══ JS DOS COMPONENTES ════════════════════════════════════════════════ -->
+<script id="js-objetivos">
+  // ── OBJETIVO TOGGLE (máx. 3 seleções) ──
+  function toggleObjective(el) {
+    const sel = document.querySelectorAll('.objective-card.selected');
+    if (el.classList.contains('selected')) {
+      el.classList.remove('selected');
+    } else if (sel.length < 3) {
+      el.classList.add('selected');
+    }
+    // Limpa erro ao selecionar
+    if (document.querySelectorAll('.objective-card.selected').length > 0) {
+      document.getElementById('objetivoError')?.classList.remove('show');
+      document.getElementById('objectives-grid')?.classList.remove('error');
+    }
+  }
+
+  // ── BUDGET SELECT ──
+  function selectBudget(el) {
+    document.querySelectorAll('.budget-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('orcamentoError')?.classList.remove('show');
+    document.getElementById('budget-options')?.classList.remove('error');
+  }
+
+  // ── CATEGORIA TOGGLE ──
+  function toggleCategoria(el) {
+    el.classList.toggle('selected');
+    if (el.classList.contains('selected')) {
+      document.getElementById('categoriaError')?.classList.remove('show');
+      document.getElementById('categorias-grid')?.classList.remove('error');
+    }
+  }
+
+  // ── VALIDAÇÃO (retorna true se ok) ──
+  function validateObjetivosCampanha() {
+    let ok = true;
+    // objetivos
+    const objSel = document.querySelectorAll('#objectives-grid .objective-card.selected');
+    if (objSel.length === 0) {
+      document.getElementById('objetivoError')?.classList.add('show');
+      document.getElementById('objectives-grid')?.classList.add('error');
+      ok = false;
+    } else {
+      document.getElementById('objetivoError')?.classList.remove('show');
+      document.getElementById('objectives-grid')?.classList.remove('error');
+    }
+    // orçamento
+    const budgSel = document.querySelector('#budget-options .budget-card.selected');
+    if (!budgSel) {
+      document.getElementById('orcamentoError')?.classList.add('show');
+      document.getElementById('budget-options')?.classList.add('error');
+      ok = false;
+    } else {
+      document.getElementById('orcamentoError')?.classList.remove('show');
+      document.getElementById('budget-options')?.classList.remove('error');
+    }
+    // categorias
+    const catSel = document.querySelectorAll('#categorias-grid .audience-chip.selected');
+    if (catSel.length === 0) {
+      document.getElementById('categoriaError')?.classList.add('show');
+      document.getElementById('categorias-grid')?.classList.add('error');
+      ok = false;
+    } else {
+      document.getElementById('categoriaError')?.classList.remove('show');
+      document.getElementById('categorias-grid')?.classList.remove('error');
+    }
+    if (!ok) {
+      const firstErr = document.querySelector('#objectives-grid.error, #budget-options.error, #categorias-grid.error');
+      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return ok;
+  }
+
+  // ── COLETA DE DADOS (retorna objeto pronto para Supabase) ──
+  function coletarDadosObjetivosCampanha() {
+    const objetivos = Array.from(
+      document.querySelectorAll('#objectives-grid .objective-card.selected')
+    ).map(c => c.querySelector('.title')?.textContent.trim() || '');
+
+    const orcEl = document.querySelector('#budget-options .budget-card.selected');
+    const orcamento = orcEl ? (orcEl.querySelector('.value')?.textContent.trim() || '') : '';
+
+    const categorias = Array.from(
+      document.querySelectorAll('#categorias-grid .audience-chip.selected')
+    ).map(c => c.querySelector('.name')?.textContent.trim() || '');
+
+    return { objetivos, orcamento, categorias };
+  }
+
+  /*
+  ── EXEMPLO DE USO ao submeter campanha ──
+
+  if (!validateObjetivosCampanha()) return;
+  const dadosCampanha = coletarDadosObjetivosCampanha();
+  // dadosCampanha = { objetivos: [...], orcamento: 'R$ 50k–200k', categorias: [...] }
+  // Incluir no payload do Supabase junto com os outros dados da campanha.
+  */
+</script>
+</body>
+</html>

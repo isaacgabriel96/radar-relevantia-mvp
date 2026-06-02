@@ -533,10 +533,6 @@
           <div class="step-dot">2</div>
           <div class="step-info"><div class="step-name">Empresa</div><div class="step-desc">Vincule ou crie uma empresa</div></div>
         </div>
-        <div class="step-item" id="nav-step-3">
-          <div class="step-dot">3</div>
-          <div class="step-info"><div class="step-name">Objetivos</div><div class="step-desc">Metas de marketing e negócios</div></div>
-        </div>
       </nav>
     </div>
     <div class="panel-bottom">
@@ -555,7 +551,7 @@
     <!-- STEP 1 -->
     <div class="step-panel active" id="step-1">
       <div class="step-header">
-        <div class="step-badge">Passo 1 de 3</div>
+        <div class="step-badge">Passo 1 de 2</div>
         <h1 class="step-title">Seu perfil de acesso</h1>
         <p class="step-subtitle">Dados pessoais do usuário responsável pela conta da marca.</p>
       </div>
@@ -686,11 +682,11 @@
     <!-- STEP 2 -->
     <div class="step-panel" id="step-2">
       <div class="step-header">
-        <div class="step-badge">Passo 2 de 3</div>
+        <div class="step-badge">Passo 2 de 2</div>
         <h1 class="step-title">Encontre sua empresa</h1>
         <p class="step-subtitle">Digite o nome da empresa para localizar e vincular sua conta.</p>
       </div>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:66%"></div></div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:90%"></div></div>
 
       <div class="company-search-box">
         <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -735,75 +731,6 @@
           <svg viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Voltar
         </button>
-        <button class="btn-next" onclick="goToStep(3)">Continuar <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      </div>
-    </div>
-
-    <!-- STEP 3 -->
-    <div class="step-panel" id="step-3">
-      <div class="step-header">
-        <div class="step-badge">Passo 3 de 3</div>
-        <h1 class="step-title">Objetivos, Investimento &amp; Categorias</h1>
-        <p class="step-subtitle">O que você quer conquistar e em quais universos sua marca quer estar presente?</p>
-      </div>
-      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:90%"></div></div>
-
-      <div class="section-label" style="display:flex;align-items:center;gap:6px;">
-        Principais objetivos de marketing <span class="req">*</span>
-        <span style="font-size:11px;font-weight:400;color:var(--gray-light);">(selecione até 3)</span>
-        <span class="field-error" id="objetivoError" style="margin:0 0 0 auto;font-size:11px;">Selecione ao menos 1 objetivo.</span>
-      </div>
-      <div class="objectives-grid" id="objectives-grid" style="margin-bottom:28px;">
-        <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🚀</div><div class="obj-text"><div class="title">Awareness de marca</div><div class="desc">Aumentar reconhecimento e visibilidade</div></div></div>
-        <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🤝</div><div class="obj-text"><div class="title">Associação de imagem</div><div class="desc">Conectar marca a valores e causas</div></div></div>
-        <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🎯</div><div class="obj-text"><div class="title">Geração de leads</div><div class="desc">Capturar contatos qualificados</div></div></div>
-        <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🛒</div><div class="obj-text"><div class="title">Vendas e conversão</div><div class="desc">Impulsionar resultados comerciais diretos</div></div></div>
-        <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">💬</div><div class="obj-text"><div class="title">Engajamento social</div><div class="desc">Crescimento em redes sociais</div></div></div>
-        <div class="objective-card" onclick="toggleObjective(this)"><div class="obj-icon">🏆</div><div class="obj-text"><div class="title">Relacionamento B2B</div><div class="desc">Networking e ativação corporativa</div></div></div>
-      </div>
-
-      <div class="section-label" style="display:flex;align-items:center;gap:6px;">
-        Orçamento anual para patrocínios <span class="req">*</span>
-        <span class="field-error" id="orcamentoError" style="margin:0 0 0 auto;font-size:11px;">Selecione o orçamento.</span>
-      </div>
-      <div class="budget-options" id="budget-options" style="margin-bottom:28px;">
-        <div class="budget-card" onclick="selectBudget(this)"><span class="value">Até R$ 50k</span><span class="label">Iniciante</span></div>
-        <div class="budget-card" onclick="selectBudget(this)"><span class="value">R$ 50k–200k</span><span class="label">Crescimento</span></div>
-        <div class="budget-card" onclick="selectBudget(this)"><span class="value">R$ 200k–1M</span><span class="label">Scale</span></div>
-        <div class="budget-card" onclick="selectBudget(this)"><span class="value">Acima de R$ 1M</span><span class="label">Enterprise</span></div>
-      </div>
-
-      <div class="section-label" style="display:flex;align-items:center;gap:6px;">
-        Categorias de interesse <span class="req">*</span>
-        <span class="field-error" id="categoriaError" style="margin:0 0 0 auto;font-size:11px;">Selecione ao menos 1 categoria.</span>
-      </div>
-      <p class="input-hint" style="margin-bottom:16px;">Universos temáticos onde sua marca quer estar presente. Usado para cruzar com eventos, influenciadores e propriedades cadastradas no Radar.</p>
-      <div class="audience-grid" id="categorias-grid" style="margin-bottom:28px;">
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎵</span><span class="name">Música</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">⚽</span><span class="name">Esporte</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🌾</span><span class="name">Agro & Campo</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎤</span><span class="name">Entretenimento</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎪</span><span class="name">Eventos & Espaços</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">📱</span><span class="name">Digital & Tecnologia</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🤝</span><span class="name">Causas & Propósito</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🏛️</span><span class="name">Institucional & B2B</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">👗</span><span class="name">Moda & Beleza</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🏥</span><span class="name">Saúde & Bem-estar</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎓</span><span class="name">Educação</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🚗</span><span class="name">Automobilismo & Mobilidade</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🏠</span><span class="name">Casa & Decoração</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">✈️</span><span class="name">Viagem & Turismo</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🐾</span><span class="name">Pets</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🎮</span><span class="name">Games & Esports</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🌱</span><span class="name">Sustentabilidade</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🍺</span><span class="name">Bebidas</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">💼</span><span class="name">Empreendedorismo & Negócios</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🍽️</span><span class="name">Gastronomia</span></div>
-        <div class="audience-chip" onclick="toggleCategoria(this)"><span class="emoji">🌟</span><span class="name">Lifestyle</span></div>
-      </div>
-
-      <div class="step-actions">
-        <button class="btn-back" onclick="goToStep(2)"><svg viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Voltar</button>
         <button class="btn-next btn-submit" onclick="submitForm()">Enviar cadastro <svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
     </div>
@@ -993,15 +920,12 @@
     if (step > currentStep && currentStep === 2) {
       if (!validateStep2()) return;
     }
-    if (step > currentStep && currentStep === 3) {
-      if (!validateStep3()) return;
-    }
     document.getElementById('step-' + currentStep).classList.remove('active');
     document.getElementById('nav-step-' + currentStep).classList.remove('active');
     document.getElementById('nav-step-' + currentStep).classList.add('completed');
     currentStep = step;
     document.getElementById('step-' + currentStep).classList.add('active');
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 2; i++) {
       const nav = document.getElementById('nav-step-' + i);
       nav.classList.remove('active','completed');
       if (i < step) nav.classList.add('completed');
@@ -1032,19 +956,8 @@
   }
 
   async function submitForm() {
-    // Valida categorias de interesse (step 3)
-    const catSel = document.querySelectorAll('#categorias-grid .audience-chip.selected');
-    const catErr = document.getElementById('categoriaError');
-    const catGrid = document.getElementById('categorias-grid');
-    if (catSel.length === 0) {
-      catErr.classList.add('show');
-      catGrid.classList.add('error');
-      catGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    } else {
-      catErr.classList.remove('show');
-      catGrid.classList.remove('error');
-    }
+    // Valida step 2 antes de submeter
+    if (!validateStep2()) return;
 
     // ─── Coleta todos os dados do formulário ───
 
@@ -1063,17 +976,10 @@
     const cnpj     = ''; // não coletado neste fluxo
     const segmento = ''; // não coletado neste fluxo
 
-    // Step 3 — objetivos
-    const objetivos = Array.from(
-      document.querySelectorAll('#objectives-grid .objective-card.selected')
-    ).map(c => c.querySelector('.objective-label')?.textContent.trim() || c.textContent.trim());
-
-    // Step 3 — orçamento
-    const orcEl = document.querySelector('#budget-options .budget-card.selected');
-    const orcamento = orcEl ? (orcEl.querySelector('.value')?.textContent.trim() || '') : '';
-
-    // Step 3 — categorias de interesse
-    const categorias = Array.from(catSel).map(c => c.querySelector('.name')?.textContent.trim() || c.textContent.trim());
+    // Objetivos/orçamento/categorias — coletados no fluxo de campanha (ver _draft/step3-objetivos-campanha.html)
+    const objetivos  = [];
+    const orcamento  = '';
+    const categorias = [];
 
     // ─── Indicação & Código ───
     const indicacao_nome = document.getElementById('referredBy').value.trim();
@@ -1108,8 +1014,8 @@
       });
 
       // ─── Mostra tela de sucesso ───
-      for (let i = 1; i <= 3; i++) document.getElementById('step-' + i).classList.remove('active');
-      for (let i = 1; i <= 3; i++) {
+      for (let i = 1; i <= 2; i++) document.getElementById('step-' + i).classList.remove('active');
+      for (let i = 1; i <= 2; i++) {
         const nav = document.getElementById('nav-step-' + i);
         nav.classList.remove('active');
         nav.classList.add('completed');
@@ -1447,62 +1353,6 @@
     const valid = urlPattern.test(input.value.trim());
     input.classList[valid ? 'remove' : 'add']('error');
     if (errEl) errEl.classList[valid ? 'remove' : 'add']('show');
-  }
-
-  // ── VALIDAÇÃO STEP 3 ──
-  function validateStep3() {
-    let ok = true;
-    // objetivos
-    const objSel = document.querySelectorAll('#objectives-grid .objective-card.selected');
-    const objErr = document.getElementById('objetivoError');
-    const objGrid = document.getElementById('objectives-grid');
-    if (objSel.length === 0) {
-      objErr.classList.add('show');
-      objGrid.classList.add('error');
-      ok = false;
-    } else {
-      objErr.classList.remove('show');
-      objGrid.classList.remove('error');
-    }
-    // orçamento
-    const budgSel = document.querySelector('#budget-options .budget-card.selected');
-    const budgErr = document.getElementById('orcamentoError');
-    const budgWrap = document.getElementById('budget-options');
-    if (!budgSel) {
-      budgErr.classList.add('show');
-      budgWrap.classList.add('error');
-      ok = false;
-    } else {
-      budgErr.classList.remove('show');
-      budgWrap.classList.remove('error');
-    }
-    // categorias de interesse
-    const catSel = document.querySelectorAll('#categorias-grid .audience-chip.selected');
-    const catErr = document.getElementById('categoriaError');
-    const catGrid = document.getElementById('categorias-grid');
-    if (catSel.length === 0) {
-      catErr.classList.add('show');
-      catGrid.classList.add('error');
-      ok = false;
-    } else {
-      catErr.classList.remove('show');
-      catGrid.classList.remove('error');
-    }
-    if (!ok) {
-      const firstErr = document.querySelector('#objectives-grid.error, #budget-options.error, #categorias-grid.error');
-      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    return ok;
-  }
-
-  // ── CATEGORIA TOGGLE ──
-  function toggleCategoria(el) {
-    el.classList.toggle('selected');
-    // limpa erro assim que selecionar
-    if (el.classList.contains('selected')) {
-      document.getElementById('categoriaError')?.classList.remove('show');
-      document.getElementById('categorias-grid')?.classList.remove('error');
-    }
   }
 
   // ── GENDER SPLIT ──
