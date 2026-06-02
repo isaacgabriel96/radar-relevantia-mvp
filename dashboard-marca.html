@@ -2778,6 +2778,11 @@ function showSection(sectionId) {
 
   // Lazy load section data
   if (sectionId === 'configuracoes') loadEquipe();
+
+  // Recarrega oportunidades sempre que o usuário abre a seção — garante dados frescos
+  if (sectionId === 'oportunidades') {
+    loadOpportunities(opps => { renderOpportunities(opps); carregarEstadoAcessos(); });
+  }
 }
 
 // ─── NOTIFICAÇÕES ───
