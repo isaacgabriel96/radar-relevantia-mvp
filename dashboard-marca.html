@@ -898,6 +898,71 @@ tbody tr:last-child td { border-bottom: none; }
 .campanha-pasta-mosaic-cell { overflow: hidden; background: var(--gray-100); }
 .campanha-pasta-mosaic-cell img { width: 100%; height: 100%; object-fit: cover; }
 
+/* ─── MODAL FILTROS INTELIGENTES ─── */
+.ff-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--white); border: 1.5px solid var(--gray-300); border-radius: 100px; padding: 0 18px; font-size: 14px; font-weight: 600; color: var(--black); cursor: pointer; font-family: var(--font-body); transition: all .18s; white-space: nowrap; height: 44px; flex-shrink: 0; }
+.ff-btn:hover { border-color: var(--gold); }
+.ff-btn svg { width: 16px; height: 16px; }
+.ff-btn .ff-badge { background: var(--black); color: var(--white); border-radius: 100px; font-size: 11px; font-weight: 700; min-width: 18px; height: 18px; display: none; align-items: center; justify-content: center; padding: 0 5px; }
+.ff-btn.has-filters { border-color: var(--gold); background: var(--gold-pale); }
+.ff-btn.has-filters .ff-badge { display: inline-flex; }
+
+.ff-overlay { position: fixed; inset: 0; background: rgba(30,22,0,0.5); backdrop-filter: blur(4px); z-index: 600; display: none; align-items: flex-end; justify-content: center; padding: 0; }
+.ff-overlay.open { display: flex; }
+@media (min-width: 600px) { .ff-overlay { align-items: center; padding: 20px; } }
+.ff-modal { background: var(--white); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 -8px 40px rgba(30,22,0,0.16); overflow: hidden; }
+@media (min-width: 600px) { .ff-modal { border-radius: 20px; max-height: 86vh; } }
+.ff-head { display: flex; align-items: center; justify-content: center; padding: 18px 22px; border-bottom: 1px solid var(--gray-100); position: relative; flex-shrink: 0; }
+.ff-head h2 { font-family: var(--font-heading); font-size: 16px; font-weight: 600; margin: 0; }
+.ff-close { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 50%; background: var(--gray-100); border: none; cursor: pointer; font-size: 15px; color: var(--gray-500); display: flex; align-items: center; justify-content: center; }
+.ff-close:hover { background: var(--gray-200); }
+.ff-body { overflow-y: auto; padding: 4px 26px; flex: 1; }
+.ff-body::-webkit-scrollbar { width: 8px; }
+.ff-body::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+.ff-group { padding: 24px 0; border-bottom: 1px solid var(--gray-100); }
+.ff-group:last-child { border-bottom: none; }
+.ff-glabel { font-family: var(--font-heading); font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.ff-ghint { font-size: 12.5px; color: var(--gray-3); margin-bottom: 16px; line-height: 1.4; }
+.ff-segmented { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.ff-seg { padding: 14px 6px; border: 1.5px solid var(--gray-200); border-radius: 14px; background: var(--white); cursor: pointer; text-align: center; transition: all .16s; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ff-seg svg { width: 22px; height: 22px; stroke: var(--gray-500); transition: stroke .16s; }
+.ff-seg span { font-size: 11.5px; font-weight: 600; color: var(--gray-4); line-height: 1.2; }
+.ff-seg:hover { border-color: var(--gray-300); }
+.ff-seg.active { border-color: var(--black); background: var(--gold-pale); }
+.ff-seg.active svg { stroke: var(--gold); }
+.ff-seg.active span { color: var(--black); }
+.ff-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ff-chip { padding: 9px 16px; border: 1.5px solid var(--gray-200); border-radius: 100px; background: var(--white); cursor: pointer; font-size: 13px; font-weight: 500; color: var(--gray-4); transition: all .15s; font-family: var(--font-body); }
+.ff-chip:hover { border-color: var(--gray-300); }
+.ff-chip.active { background: var(--black); border-color: var(--black); color: var(--white); font-weight: 600; }
+.ff-folder { border: 1.5px solid var(--gray-200); border-radius: 14px; margin-bottom: 10px; overflow: hidden; transition: border-color .18s; }
+.ff-folder.open { border-color: var(--gray-300); }
+.ff-fhead { display: flex; align-items: center; gap: 12px; padding: 16px 18px; cursor: pointer; user-select: none; transition: background .15s; }
+.ff-fhead:hover { background: var(--gray-100); }
+.ff-ficon { width: 34px; height: 34px; border-radius: 9px; background: var(--gold-pale); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ff-ficon svg { width: 17px; height: 17px; stroke: var(--gold); }
+.ff-fmeta { flex: 1; }
+.ff-fname { font-size: 14px; font-weight: 600; color: var(--black); display: flex; align-items: center; gap: 7px; }
+.ff-fsub { font-size: 12px; color: var(--gray-3); margin-top: 1px; }
+.ff-fcount { font-size: 11px; font-weight: 700; color: var(--gold); background: var(--gold-pale); border-radius: 100px; padding: 1px 8px; }
+.ff-chevron { width: 18px; height: 18px; stroke: var(--gray-3); transition: transform .22s; flex-shrink: 0; }
+.ff-folder.open .ff-chevron { transform: rotate(180deg); }
+.ff-fbody { display: none; padding: 4px 18px 20px; border-top: 1px solid var(--gray-100); }
+.ff-folder.open .ff-fbody { display: block; }
+.ff-subfield { margin-top: 16px; }
+.ff-sublabel { font-size: 12px; font-weight: 600; color: var(--gray-4); margin-bottom: 9px; }
+.ff-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
+.ff-toggle-row:not(:last-child) { border-bottom: 1px solid var(--gray-100); }
+.ff-tinfo .ff-ttitle { font-size: 14px; font-weight: 600; }
+.ff-tinfo .ff-tsub { font-size: 12px; color: var(--gray-3); margin-top: 2px; }
+.ff-switch { width: 44px; height: 26px; background: var(--gray-200); border-radius: 100px; position: relative; cursor: pointer; transition: background .2s; flex-shrink: 0; border: none; }
+.ff-switch.on { background: var(--gold); }
+.ff-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: var(--white); border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.ff-switch.on::after { transform: translateX(18px); }
+.ff-foot { display: flex; align-items: center; justify-content: space-between; padding: 16px 26px; border-top: 1px solid var(--gray-100); flex-shrink: 0; }
+.ff-clear { background: none; border: none; font-size: 14px; font-weight: 600; color: var(--black); cursor: pointer; text-decoration: underline; font-family: var(--font-body); }
+.ff-apply { background: var(--black); color: var(--white); border: none; border-radius: 100px; padding: 13px 26px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font-body); transition: all .2s; }
+.ff-apply:hover { background: var(--gold-gradient); box-shadow: 0 6px 20px rgba(184,134,11,0.35); }
+
 /* ─── DEALS FECHADOS — ACCORDION POR OPP ─── */
 .deals-opp-group { display: flex; flex-direction: column; gap: 12px; }
 .deals-opp-accordion { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; }
@@ -1416,6 +1481,10 @@ tbody tr:last-child td { border-bottom: none; }
             <option value="Curitiba">Curitiba</option>
             <option value="Online">Online</option>
           </select>
+          <button class="ff-btn" id="ffBtn" onclick="ffOpen()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+            Filtros <span class="ff-badge" id="ffBadge">0</span>
+          </button>
         </div>
 
         <!-- Opportunity grid -->
@@ -2261,6 +2330,98 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<!-- Modal: Filtros Inteligentes -->
+<div class="ff-overlay" id="ff-overlay" onclick="if(event.target===this)ffClose()">
+  <div class="ff-modal">
+    <div class="ff-head">
+      <button class="ff-close" onclick="ffClose()">✕</button>
+      <h2>Filtros</h2>
+    </div>
+    <div class="ff-body">
+
+      <!-- Tipo de oportunidade -->
+      <div class="ff-group">
+        <div class="ff-glabel">Tipo de oportunidade</div>
+        <div class="ff-ghint">Escolher um tipo abre os filtros específicos dele abaixo.</div>
+        <div class="ff-segmented">
+          <div class="ff-seg active" data-tipo="todos" onclick="ffPickTipo(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span>Todos</span>
+          </div>
+          <div class="ff-seg" data-tipo="personalidade" onclick="ffPickTipo(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+            <span>Personalidade</span>
+          </div>
+          <div class="ff-seg" data-tipo="evento" onclick="ffPickTipo(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Evento</span>
+          </div>
+          <div class="ff-seg" data-tipo="artista" onclick="ffPickTipo(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            <span>Artista Musical</span>
+          </div>
+          <div class="ff-seg" data-tipo="midia" onclick="ffPickTipo(this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><polygon points="10 9 15 12 10 15"/></svg>
+            <span>Mídia</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Segmento -->
+      <div class="ff-group">
+        <div class="ff-glabel">Segmento</div>
+        <div class="ff-ghint">Que audiência a marca quer atingir. Múltipla seleção.</div>
+        <div class="ff-chips" id="ff-segmento"></div>
+      </div>
+
+      <!-- Alcance -->
+      <div class="ff-group">
+        <div class="ff-glabel">Alcance</div>
+        <div class="ff-ghint">Escala de cobertura da oportunidade.</div>
+        <div class="ff-chips" id="ff-alcance"></div>
+      </div>
+
+      <!-- Investimento -->
+      <div class="ff-group">
+        <div class="ff-glabel">Investimento</div>
+        <div class="ff-ghint">Faixa de valor a partir do preço mínimo da oportunidade.</div>
+        <div class="ff-chips" id="ff-invest"></div>
+      </div>
+
+      <!-- Pastas por formato -->
+      <div class="ff-group">
+        <div class="ff-glabel">Detalhes por formato</div>
+        <div class="ff-ghint">Cada formato abre uma pasta com seus campos. Escolher um tipo lá em cima abre só a pasta dele.</div>
+        <div id="ff-folders"></div>
+      </div>
+
+      <!-- Extras -->
+      <div class="ff-group">
+        <div class="ff-glabel">Extras</div>
+        <div class="ff-toggle-row">
+          <div class="ff-tinfo">
+            <div class="ff-ttitle">Projeto incentivado</div>
+            <div class="ff-tsub">Permite captação via lei de incentivo (Rouanet, LIE…)</div>
+          </div>
+          <button class="ff-switch" data-toggle="incentivo" onclick="ffToggleSwitch(this)"></button>
+        </div>
+        <div class="ff-toggle-row">
+          <div class="ff-tinfo">
+            <div class="ff-ttitle">Com cotas disponíveis</div>
+            <div class="ff-tsub">Oportunidades com pacotes de patrocínio definidos</div>
+          </div>
+          <button class="ff-switch" data-toggle="cotas" onclick="ffToggleSwitch(this)"></button>
+        </div>
+      </div>
+
+    </div>
+    <div class="ff-foot">
+      <button class="ff-clear" onclick="ffClear()">Limpar tudo</button>
+      <button class="ff-apply" id="ffApply" onclick="ffApply()">Ver oportunidades</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Criar / Editar Campanha -->
 <div class="modal-campanha-overlay" id="modal-campanha-overlay" onclick="if(event.target===this)closeCriarCampanhaModal()">
   <div class="modal-campanha">
@@ -2326,6 +2487,10 @@ function mapDbOpp(row) {
     _tags:       row.tags || [],
     _imagemCapa: row.imagem_capa || null,
     _imagensFocal: row.imagens_focal || {},
+    _categoriaSlug: row.categoria_slug || null,
+    _detalhes:   row.detalhes || {},
+    _projetoIncentivado: !!row.projeto_incentivado,
+    _cotasHabilitadas:   !!row.cotas_habilitadas,
     visibilidade: row.visibilidade || 'publica'
   };
 }
@@ -2343,7 +2508,7 @@ function loadOpportunities(callback) {
   }
 
   // Produção: busca do Supabase
-  fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,localizacao,alcance,preco_minimo,icone,bg_gradient,imagens,imagem_capa,imagens_focal,tags,descricao_curta,rating,visibilidade,perfis:detentor_id(slug,empresa,empresa_domain,logo_url)&ativo=eq.true&status=eq.publicada&order=id.asc', {
+  fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,slug,titulo,categoria,categoria_slug,detalhes,projeto_incentivado,cotas_habilitadas,localizacao,alcance,preco_minimo,icone,bg_gradient,imagens,imagem_capa,imagens_focal,tags,descricao_curta,rating,visibilidade,perfis:detentor_id(slug,empresa,empresa_domain,logo_url)&ativo=eq.true&status=eq.publicada&order=id.asc', {
     headers: {
       'apikey': SUPABASE_KEY,
       'Content-Type': 'application/json'
@@ -3372,19 +3537,238 @@ function _updateFavCount() {
 }
 
 // ─── FILTER OPPORTUNITIES ───
-function filterOpportunities() {
-  const search = document.getElementById('searchOpp').value.toLowerCase();
+// ═══════════ FILTROS INTELIGENTES (modal) ═══════════
+// Opções 100% fiéis ao criar-oportunidade.html
+const FF_SEGMENTOS = ['Esportes e fitness','Moda e lifestyle','Tecnologia e inovação','Alimentação e bebidas','Finanças e investimentos','Saúde e bem-estar','Educação','Entretenimento','Automobilismo','Games e eSports','Música','Família e maternidade','Negócios e empreendedorismo','Beleza e cuidados','Turismo e viagens','Sustentabilidade','Cultura e arte','Luxo e alto padrão'];
+const FF_ALCANCE = ['Regional','Nacional','Internacional'];
+const FF_INVEST = [
+  {l:'Até R$ 10k', min:0, max:10000},
+  {l:'R$ 10k – 50k', min:10000, max:50000},
+  {l:'R$ 50k – 200k', min:50000, max:200000},
+  {l:'R$ 200k+', min:200000, max:Infinity}
+];
+const _FF_IC = {
+  personalidade: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>',
+  evento: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+  artista: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+  midia: '<svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z"/><polygon points="10 9 15 12 10 15"/></svg>'
+};
+// Cada pasta espelha um template. grp = id do grupo; key = chave EXATA em detalhes.
+const FF_FOLDERS = [
+  { key:'personalidade', name:'Personalidade', sub:'Tipo · nicho principal · idioma', fields:[
+    { grp:'p_tipo', dkey:'Tipo', label:'Tipo', opts:['Creator','Celebridade','Apresentador(a)','Especialista / Palestrante','Jornalista','Atleta','Ator / Atriz','Comediante','Streamer','Podcaster','Modelo'] },
+    { grp:'p_nicho', dkey:'Nicho principal', label:'Nicho principal', opts:['Esporte','Moda','Beleza','Gastronomia','Tecnologia','Finanças','Humor','Cinema & Séries','Lifestyle','Fitness & Saúde','Música','Games & eSports','Educação','Viagens','Automotivo','Pets','Família','Sustentabilidade','Negócios & Empreendedorismo','Casa & Decoração','Saúde Mental & Bem-estar','Luxo'] },
+    { grp:'p_idioma', dkey:'Idioma do conteúdo', label:'Idioma do conteúdo', opts:['Português','Inglês','Espanhol','Francês','Alemão','Italiano','Japonês','Mandarim / Chinês','Árabe','Russo','Coreano','Hindi'] }
+  ]},
+  { key:'evento', name:'Evento', sub:'Tipo · formato · público · perfil', fields:[
+    { grp:'e_tipo', dkey:'Tipo de evento', label:'Tipo de evento', opts:['Festival','Show / Espetáculo','Stand-up / Humor','Conferência / Congresso','Workshop / Capacitação','Feira','Exposição','Networking','Negócios / B2B','Torneio Esportivo','Corrida / Atletismo','Campeonato','Esports / Gaming','Rodeio','Desfile de Moda','Premiação / Award','Hackathon','Lançamento de Produto','Evento Corporativo','Meetup / Comunidade','Gastronomia','Causas / Filantropia','Formatura','Religioso / Celebração'] },
+    { grp:'e_formato', dkey:'Formato', label:'Formato', opts:['Presencial','Online'] },
+    { grp:'e_publico', dkey:'Público esperado', label:'Público esperado', opts:[{l:'Até 100',v:'Até 100 pessoas'},{l:'100 a 500',v:'100 a 500 pessoas'},{l:'500 a 2k',v:'500 a 2.000'},{l:'2k a 10k',v:'2.000 a 10.000'},{l:'10k a 50k',v:'10.000 a 50.000'},{l:'50k+',v:'Mais de 50.000'}] },
+    { grp:'e_abrang', dkey:'Abrangência', label:'Abrangência', opts:['Regional','Nacional','Internacional'] },
+    { grp:'e_perfil', dkey:'Perfil socioeconômico dominante', label:'Perfil socioeconômico', opts:[{l:'Classe A',v:'A (renda alta)'},{l:'Classe A/B',v:'A/B (renda média-alta)'},{l:'Classe B/C',v:'B/C (renda média)'},{l:'Classe C/D',v:'C/D (renda média-baixa)'},{l:'Todos',v:'Todos os perfis'}] }
+  ]},
+  { key:'artista', name:'Artista Musical', sub:'Estilo · shows/mês · público', fields:[
+    { grp:'a_estilo', dkey:'Estilo musical', label:'Estilo musical', opts:['Sertanejo','Funk','Pagode','Samba','Axé','Forró','Piseiro','Brega Funk','MPB','Bossa Nova','Gospel','Pop','Rock','Metal / Hard Rock','Indie / Alternativo','Hip-Hop','Rap','Trap','R&B / Soul','Eletrônica','Reggae','Reggaeton','Jazz / Blues','Country','K-Pop'] },
+    { grp:'a_shows', dkey:'Média de shows por mês', label:'Média de shows por mês', opts:[{l:'Esporádico',v:'Esporádico (menos de 1 por mês)'},{l:'1 a 2',v:'1 a 2 shows por mês'},{l:'3 a 5',v:'3 a 5 shows por mês'},{l:'6 a 10',v:'6 a 10 shows por mês'},{l:'11 a 20',v:'11 a 20 shows por mês'},{l:'21 a 30',v:'21 a 30 shows por mês'},{l:'Mais de 30',v:'Mais de 30 shows por mês'}] },
+    { grp:'a_publico', dkey:'Média de público por show', label:'Média de público por show', opts:[{l:'Até 500',v:'Até 500 pessoas'},{l:'500 a 2k',v:'500 a 2.000'},{l:'2k a 5k',v:'2.000 a 5.000'},{l:'5k a 20k',v:'5.000 a 20.000'},{l:'20k a 50k',v:'20.000 a 50.000'},{l:'50k+',v:'Mais de 50.000'}] },
+    { grp:'a_abrang', dkey:'Abrangência dos shows', label:'Abrangência dos shows', opts:['Regional','Nacional','Internacional'] }
+  ]},
+  { key:'midia', name:'Mídia', sub:'Veículo · nicho editorial · frequência', fields:[
+    { grp:'m_veiculo', dkey:'Tipo de veículo', label:'Tipo de veículo', opts:['Portal / Site','Revista','Jornal','Rádio','TV Aberta','TV Fechada / Pay-TV','Canal Streaming','Canal Jornalístico','Podcast','Newsletter','Canal YouTube','Perfil Instagram','Perfil TikTok','Página Facebook','App','Mídia Externa','Conglomerado de Mídia'] },
+    { grp:'m_nicho', dkey:'Nicho editorial', label:'Nicho editorial', opts:['Esporte','Moda','Beleza','Gastronomia','Tecnologia','Finanças','Humor','Cinema & Séries','Lifestyle','Fitness & Saúde','Música','Games & eSports','Educação','Viagens','Automotivo','Pets','Família','Sustentabilidade','Negócios & Empreendedorismo','Casa & Decoração','Saúde Mental & Bem-estar','Luxo','Política & Jornalismo','Agro & Rural','Jurídico','Religião & Espiritualidade'] },
+    { grp:'m_freq', dkey:'Frequência de publicação', label:'Frequência de publicação', opts:['Diário','Semanal','Quinzenal','Mensal'] },
+    { grp:'m_abrang', dkey:'Abrangência', label:'Abrangência', opts:['Regional','Nacional','Internacional'] }
+  ]}
+];
+
+// Config de matching por grupo (mode + chave)
+const FF_GROUP_CFG = (function(){
+  const cfg = {
+    segmento: { mode:'tags' },
+    alcance:  { mode:'alcance' },
+    invest:   { mode:'invest' }
+  };
+  FF_FOLDERS.forEach(f => f.fields.forEach(fl => { cfg[fl.grp] = { mode:'det', key:fl.dkey }; }));
+  return cfg;
+})();
+
+let _ffState = { tipo:'todos', sel:{}, toggles:{ incentivo:false, cotas:false } };
+let _ffRendered = false;
+
+function _ffChipHtml(grp, opt) {
+  const o = (typeof opt === 'string') ? { l:opt, v:opt } : opt;
+  return `<div class="ff-chip" data-grp="${grp}" data-val="${o.v.replace(/"/g,'&quot;')}" onclick="ffToggleChip(this)">${o.l}</div>`;
+}
+
+function ffRenderModal() {
+  if (_ffRendered) return;
+  document.getElementById('ff-segmento').innerHTML = FF_SEGMENTOS.map(s => _ffChipHtml('segmento', s)).join('');
+  document.getElementById('ff-alcance').innerHTML = FF_ALCANCE.map(s => _ffChipHtml('alcance', s)).join('');
+  document.getElementById('ff-invest').innerHTML = FF_INVEST.map((r,i) => _ffChipHtml('invest', {l:r.l, v:String(i)})).join('');
+  document.getElementById('ff-folders').innerHTML = FF_FOLDERS.map(f => `
+    <div class="ff-folder" data-folder="${f.key}">
+      <div class="ff-fhead" onclick="this.parentElement.classList.toggle('open')">
+        <div class="ff-ficon">${_FF_IC[f.key]}</div>
+        <div class="ff-fmeta">
+          <div class="ff-fname">${f.name}<span class="ff-fcount" data-fcount="${f.key}" style="display:none"></span></div>
+          <div class="ff-fsub">${f.sub}</div>
+        </div>
+        <svg class="ff-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="ff-fbody">
+        ${f.fields.map(fl => `
+          <div class="ff-subfield">
+            <div class="ff-sublabel">${fl.label}</div>
+            <div class="ff-chips">${fl.opts.map(o => _ffChipHtml(fl.grp, o)).join('')}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+  _ffRendered = true;
+}
+
+function ffOpen() {
+  ffRenderModal();
+  document.getElementById('ff-overlay').classList.add('open');
+  ffLiveCount();
+}
+function ffClose() { document.getElementById('ff-overlay').classList.remove('open'); }
+
+function ffToggleChip(el) {
+  const grp = el.dataset.grp, val = el.dataset.val;
+  if (!_ffState.sel[grp]) _ffState.sel[grp] = new Set();
+  if (_ffState.sel[grp].has(val)) _ffState.sel[grp].delete(val); else _ffState.sel[grp].add(val);
+  if (_ffState.sel[grp].size === 0) delete _ffState.sel[grp];
+  el.classList.toggle('active');
+  ffUpdateFolderCounts();
+  ffLiveCount();
+}
+
+function ffToggleSwitch(el) {
+  const key = el.dataset.toggle;
+  _ffState.toggles[key] = !_ffState.toggles[key];
+  el.classList.toggle('on', _ffState.toggles[key]);
+  ffLiveCount();
+}
+
+function ffPickTipo(el) {
+  const tipo = el.dataset.tipo;
+  _ffState.tipo = tipo;
+  document.querySelectorAll('.ff-seg').forEach(s => s.classList.toggle('active', s === el));
+  document.querySelectorAll('.ff-folder').forEach(f => {
+    const match = f.dataset.folder === tipo;
+    if (tipo === 'todos') { f.style.display = ''; f.classList.remove('open'); }
+    else {
+      f.style.display = match ? '' : 'none';
+      f.classList.toggle('open', match);
+      // limpa seleções de pastas escondidas
+      if (!match) {
+        f.querySelectorAll('.ff-chip.active').forEach(c => {
+          c.classList.remove('active');
+          const g = c.dataset.grp;
+          if (_ffState.sel[g]) { _ffState.sel[g].delete(c.dataset.val); if (!_ffState.sel[g].size) delete _ffState.sel[g]; }
+        });
+      }
+    }
+  });
+  ffUpdateFolderCounts();
+  ffLiveCount();
+}
+
+function ffUpdateFolderCounts() {
+  FF_FOLDERS.forEach(f => {
+    let n = 0;
+    f.fields.forEach(fl => { if (_ffState.sel[fl.grp]) n += _ffState.sel[fl.grp].size; });
+    const el = document.querySelector(`[data-fcount="${f.key}"]`);
+    if (el) { el.textContent = n; el.style.display = n ? '' : 'none'; }
+  });
+}
+
+// Predicado do modal: opp passa em todos os grupos ativos?
+function ffMatch(opp) {
+  if (_ffState.tipo !== 'todos' && opp._categoriaSlug !== _ffState.tipo) return false;
+  const det = opp._detalhes || {};
+  for (const grp in _ffState.sel) {
+    const set = _ffState.sel[grp];
+    if (!set || !set.size) continue;
+    const cfg = FF_GROUP_CFG[grp];
+    if (!cfg) continue;
+    if (cfg.mode === 'tags') {
+      if (!(opp._tags || []).some(t => set.has(t))) return false;
+    } else if (cfg.mode === 'alcance') {
+      const vals = [det['Abrangência'], det['Abrangência dos shows']].filter(Boolean);
+      if (!vals.some(v => set.has(v))) return false;
+    } else if (cfg.mode === 'invest') {
+      const p = opp._price;
+      if (p == null) return false;
+      let ok = false;
+      set.forEach(idx => { const r = FF_INVEST[+idx]; if (r && p >= r.min && p < r.max) ok = true; });
+      if (!ok) return false;
+    } else if (cfg.mode === 'det') {
+      const v = det[cfg.key];
+      if (v == null) return false;
+      if (Array.isArray(v)) { if (!v.some(x => set.has(x))) return false; }
+      else { if (!set.has(v)) return false; }
+    }
+  }
+  if (_ffState.toggles.incentivo && !opp._projetoIncentivado) return false;
+  if (_ffState.toggles.cotas && !opp._cotasHabilitadas) return false;
+  return true;
+}
+
+function ffActiveCount() {
+  let n = (_ffState.tipo !== 'todos') ? 1 : 0;
+  for (const g in _ffState.sel) n += _ffState.sel[g].size;
+  if (_ffState.toggles.incentivo) n++;
+  if (_ffState.toggles.cotas) n++;
+  return n;
+}
+
+function ffLiveCount() {
+  const count = MOCK_OPPORTUNITIES.filter(o => _oppMatchesBase(o) && ffMatch(o)).length;
+  const btn = document.getElementById('ffApply');
+  if (btn) btn.textContent = `Ver ${count} oportunidade${count !== 1 ? 's' : ''}`;
+}
+
+function ffApply() {
+  filterOpportunities();
+  ffUpdateBadge();
+  ffClose();
+}
+
+function ffUpdateBadge() {
+  const n = ffActiveCount();
+  const btn = document.getElementById('ffBtn');
+  const badge = document.getElementById('ffBadge');
+  if (badge) badge.textContent = n;
+  if (btn) btn.classList.toggle('has-filters', n > 0);
+}
+
+function ffClear() {
+  _ffState = { tipo:'todos', sel:{}, toggles:{ incentivo:false, cotas:false } };
+  document.querySelectorAll('.ff-chip.active').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.ff-switch.on').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.ff-seg').forEach(s => s.classList.toggle('active', s.dataset.tipo === 'todos'));
+  document.querySelectorAll('.ff-folder').forEach(f => { f.style.display = ''; f.classList.remove('open'); });
+  ffUpdateFolderCounts();
+  ffLiveCount();
+  ffUpdateBadge();
+  filterOpportunities();
+}
+
+// Predicado base (busca + dropdowns legados + filtro de campanhas)
+function _oppMatchesBase(opp) {
+  const search = (document.getElementById('searchOpp').value || '').toLowerCase();
   const segmento = document.getElementById('filterSegmento').value;
   const regiao = document.getElementById('filterRegiao').value;
+  const matchSearch = !search || opp.title.toLowerCase().includes(search) || (opp.desc || '').toLowerCase().includes(search);
+  const matchSegmento = !segmento || opp.category === segmento;
+  const matchRegiao = !regiao || opp.city === regiao;
+  const matchFav = !_favFilter || _favIds.includes(opp.id);
+  return matchSearch && matchSegmento && matchRegiao && matchFav;
+}
 
-  const filtered = MOCK_OPPORTUNITIES.filter(opp => {
-    const matchSearch = !search || opp.title.toLowerCase().includes(search) || opp.desc.toLowerCase().includes(search);
-    const matchSegmento = !segmento || opp.category === segmento;
-    const matchRegiao = !regiao || opp.city === regiao;
-    const matchFav = !_favFilter || _favIds.includes(opp.id);
-    return matchSearch && matchSegmento && matchRegiao && matchFav;
-  });
-
+function filterOpportunities() {
+  const filtered = MOCK_OPPORTUNITIES.filter(opp => _oppMatchesBase(opp) && ffMatch(opp));
   renderOpportunities(filtered);
 }
 
