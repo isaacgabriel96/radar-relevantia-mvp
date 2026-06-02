@@ -5984,7 +5984,7 @@ function nextStep(n) {
   // ─── CASO ESPECIAL: step 4 → 5 (revelar Mídia Kit inline) ───
   if (n === 5 && prev === 4) {
     // Não esconder panel-3, não chamar s3Leave()
-    if (mkWrap) { mkWrap.style.display = 'block'; _mkLoadExistingPdf(); }
+    if (mkWrap) { mkWrap.style.display = 'block'; requestAnimationFrame(_mkLoadExistingPdf); }
     // Atualizar botões do step-actions para contexto step 5
     if (s3Actions) {
       s3Actions.innerHTML =
@@ -6276,7 +6276,7 @@ function nextStep(n) {
     // Esconder Marca Parceira se estava visível, mostrar Mídia Kit
     const marcaWrap = document.getElementById('s3MarcaWrap');
     if (marcaWrap) marcaWrap.style.display = 'none';
-    if (mkWrap) { mkWrap.style.display = 'block'; _mkLoadExistingPdf(); }
+    if (mkWrap) { mkWrap.style.display = 'block'; requestAnimationFrame(_mkLoadExistingPdf); }
     if (s3Actions) {
       s3Actions.innerHTML =
         '<button class="btn btn-ghost" onclick="nextStep(4)">← Voltar</button>' +
@@ -6298,7 +6298,7 @@ function nextStep(n) {
       s3Enter();
     }
     // Mostrar Mídia Kit e Marca Parceira
-    if (mkWrap) { mkWrap.style.display = 'block'; _mkLoadExistingPdf(); }
+    if (mkWrap) { mkWrap.style.display = 'block'; requestAnimationFrame(_mkLoadExistingPdf); }
     const marcaWrap6 = document.getElementById('s3MarcaWrap');
     if (marcaWrap6) marcaWrap6.style.display = 'block';
     if (s3Actions) {
