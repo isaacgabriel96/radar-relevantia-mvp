@@ -2480,7 +2480,7 @@ tbody tr:last-child td { border-bottom: none; }
       <input type="hidden" id="mc-descricao">
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn btn-ghost" onclick="closeCriarCampanhaModal()" style="flex:1">Cancelar</button>
-        <button class="btn btn-campanha-criar" id="mc-btn-salvar" disabled onclick="salvarCampanha()" style="flex:2;border-radius:100px">Criar campanha</button>
+        <button id="mc-btn-salvar" disabled onclick="salvarCampanha()" style="flex:2;border-radius:100px;border:none;background:var(--black);color:var(--white);font-size:14px;font-weight:700;font-family:var(--font-body);padding:12px 20px;cursor:pointer;transition:opacity .2s;opacity:0.4" onmouseenter="if(!this.disabled)this.style.opacity='.82'" onmouseleave="this.style.opacity=this.disabled?'0.4':'1'">Criar campanha</button>
       </div>
     </div>
   </div>
@@ -6085,7 +6085,8 @@ function closeCriarCampanhaModal() {
 function _mcValidate() {
   const btn = document.getElementById('mc-btn-salvar');
   const nome = (document.getElementById('mc-nome') || {}).value || '';
-  if (btn) btn.disabled = !nome.trim();
+  const valid = !!nome.trim();
+  if (btn) { btn.disabled = !valid; btn.style.opacity = valid ? '1' : '0.4'; }
 }
 
 function editarCampanha(campanhaId) {
