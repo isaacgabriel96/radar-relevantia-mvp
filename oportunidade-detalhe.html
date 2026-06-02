@@ -3919,30 +3919,6 @@ function openCriarCampanhaInline() {
           <label style="display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-4);margin-bottom:6px">Objetivo <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-3)">(opcional)</span></label>
           <input id="nc-descricao" type="text" placeholder="Ex: Brand awareness Q2" style="width:100%;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);padding:10px 12px;font-size:14px;font-family:var(--font-body);color:var(--black);outline:none;box-sizing:border-box">
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div>
-            <label style="display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-4);margin-bottom:6px">Budget total <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-3)">(R$)</span></label>
-            <input id="nc-budget" type="number" min="0" placeholder="0" style="width:100%;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);padding:10px 12px;font-size:14px;font-family:var(--font-body);color:var(--black);outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <label style="display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-4);margin-bottom:6px">Status</label>
-            <select id="nc-status" style="width:100%;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);padding:10px 12px;font-size:14px;font-family:var(--font-body);color:var(--black);outline:none;box-sizing:border-box;background:var(--white)">
-              <option value="planejamento">Planejamento</option>
-              <option value="ativa">Ativa</option>
-              <option value="concluida">Concluída</option>
-            </select>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div>
-            <label style="display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-4);margin-bottom:6px">Início</label>
-            <input id="nc-inicio" type="date" style="width:100%;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);padding:10px 12px;font-size:14px;font-family:var(--font-body);color:var(--black);outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <label style="display:block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-4);margin-bottom:6px">Fim</label>
-            <input id="nc-fim" type="date" style="width:100%;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);padding:10px 12px;font-size:14px;font-family:var(--font-body);color:var(--black);outline:none;box-sizing:border-box">
-          </div>
-        </div>
         <div style="display:flex;gap:10px;margin-top:4px">
           <button onclick="document.getElementById('mini-campanha-overlay').style.display='none'" style="flex:1;padding:11px;border-radius:100px;border:1.5px solid var(--gray-2);background:none;font-size:14px;font-weight:500;font-family:var(--font-body);cursor:pointer;color:var(--gray-4)">Cancelar</button>
           <button id="nc-btn" disabled onclick="_salvarNovaCampanha()" style="flex:2;padding:11px;border-radius:100px;border:none;background:var(--black);color:var(--white);font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;opacity:0.4;transition:opacity .2s" onmouseenter="if(!this.disabled)this.style.opacity='.85'" onmouseleave="this.style.opacity=this.disabled?'.4':'1'">Criar campanha</button>
@@ -3969,11 +3945,7 @@ async function _salvarNovaCampanha() {
   var payload = {
     marca_id: marcaId,
     nome: nome.trim(),
-    descricao: (document.getElementById('nc-descricao') || {}).value || null,
-    budget_total: parseFloat((document.getElementById('nc-budget') || {}).value) || null,
-    status: (document.getElementById('nc-status') || {}).value || 'planejamento',
-    data_inicio: (document.getElementById('nc-inicio') || {}).value || null,
-    data_fim: (document.getElementById('nc-fim') || {}).value || null
+    descricao: (document.getElementById('nc-descricao') || {}).value || null
   };
 
   try {
