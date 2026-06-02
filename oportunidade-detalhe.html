@@ -693,6 +693,14 @@ a { text-decoration: none; color: inherit; }
   font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
 }
 .btn-interest:hover { opacity: 0.85; }
+.btn-interest-done {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px; background: var(--gray-1); color: var(--gray-500);
+  border: 1.5px solid var(--gray-200); border-radius: var(--radius-pill);
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  text-decoration: none; text-align: center; box-sizing: border-box;
+  transition: all 0.15s; cursor: default;
+}
 .btn-contact {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
   padding: 12px; background: transparent; color: var(--text);
@@ -2771,7 +2779,7 @@ function renderPage(oppOverride) {
         cotasHtml += '<span class="opp-card-h-vagas' + (isExclusive ? ' exclusive' : '') + '">' +
           vagasNum + ' vaga' + (vagasNum !== 1 ? 's' : '') + (isExclusive ? ' — exclusivo' : ' disponível' + (vagasNum !== 1 ? 'is' : '')) + '</span>';
       } else { cotasHtml += '<span></span>'; }
-      cotasHtml += '<span class="opp-card-h-link">' + (i === 0 ? 'Clique para ver detalhes →' : 'Ver detalhes →') + '</span>';
+      cotasHtml += '<span class="opp-card-h-link">Ver detalhes →</span>';
       cotasHtml += '</div>';
       cotasHtml += '</div>';// body
       cotasHtml += '</div>';// card
@@ -2893,9 +2901,9 @@ function renderPage(oppOverride) {
 
     // CTA
     if (window._MARCA_JA_MANIFESTOU) {
-      h += '<a href="dashboard-marca.html#propostas" style="display:block;width:100%;margin-top:20px;padding:14px;border-radius:100px;background:var(--gray-1,#F5F0E8);color:var(--gray-500,#7A6A58);border:1.5px solid var(--gray-200,#E0D8CC);font-size:14px;font-weight:600;text-align:center;text-decoration:none;font-family:inherit;box-sizing:border-box">Ver negociação →</a>';
+      h += '<a href="dashboard-marca.html#propostas" class="btn-interest-done" style="margin-top:20px">Ver negociação →</a>';
     } else {
-      h += '<button onclick="closeOppModal();openModal()" style="width:100%;margin-top:20px;padding:14px;border-radius:100px;background:var(--black);color:var(--white);font-size:14px;font-weight:600;border:none;cursor:pointer;font-family:inherit">＋ Manifestar interesse nesta oportunidade</button>';
+      h += '<button class="btn-interest" onclick="closeOppModal();openModal()" style="width:100%;margin-top:20px"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Manifestar interesse</button>';
     }
     h += '</div>';// content
     h += '</div>';// inner
