@@ -2322,6 +2322,11 @@ async function init() {
           window.location.href = '/index.html';
           return;
         }
+        // Guard: bloqueia acesso ao dashboard se ainda não passou pelo acesso-marca
+        if (user.user_metadata?.senha_provisoria === true) {
+          window.location.href = 'acesso-marca.html';
+          return;
+        }
       } catch (_) {
         localStorage.removeItem('sb_marca_session');
         window.location.href = '/index.html';

@@ -421,8 +421,12 @@ function redirecionar(data) {
     localStorage.removeItem('sb_detentor_session');
     localStorage.removeItem('sb_admin_session');
     localStorage.setItem('sb_marca_session', JSON.stringify(data));
-    const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
-    window.location.href = redirectUrl ? decodeURIComponent(redirectUrl) : 'dashboard-marca.html';
+    if (meta.senha_provisoria === true) {
+      window.location.href = 'acesso-marca.html';
+    } else {
+      const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
+      window.location.href = redirectUrl ? decodeURIComponent(redirectUrl) : 'dashboard-marca.html';
+    }
   } else {
     // Tipo não definido no cadastro — exibe erro orientativo
     showToast('Conta sem tipo definido. Contate hello@relevantia.com.br', 'error');
@@ -589,8 +593,13 @@ function init() {
       const s = JSON.parse(sessionMarca);
       const now = Math.floor(Date.now() / 1000);
       if (s.expires_at && now < s.expires_at) {
-        const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
-        window.location.href = redirectUrl ? decodeURIComponent(redirectUrl) : 'dashboard-marca.html';
+        const meta = s.user?.user_metadata || {};
+        if (meta.senha_provisoria === true) {
+          window.location.href = 'acesso-marca.html';
+        } else {
+          const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
+          window.location.href = redirectUrl ? decodeURIComponent(redirectUrl) : 'dashboard-marca.html';
+        }
         return;
       }
     } catch {}

@@ -2822,6 +2822,11 @@ async function init() {
           window.location.href = '/index.html';
           return;
         }
+        // Guard: bloqueia acesso ao dashboard se ainda não passou pelo acesso-detentor
+        if (user.user_metadata?.senha_provisoria === true) {
+          window.location.href = 'acesso-detentor.html';
+          return;
+        }
       } catch (_) {
         localStorage.removeItem('sb_detentor_session');
         window.location.href = '/index.html';
