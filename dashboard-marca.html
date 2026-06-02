@@ -2480,7 +2480,7 @@ tbody tr:last-child td { border-bottom: none; }
       <input type="hidden" id="mc-descricao">
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn btn-ghost" onclick="closeCriarCampanhaModal()" style="flex:1">Cancelar</button>
-        <button class="btn btn-campanha-criar" id="mc-btn-salvar" disabled onclick="salvarCampanha()" style="flex:2">Criar campanha</button>
+        <button class="btn btn-campanha-criar" id="mc-btn-salvar" disabled onclick="salvarCampanha()" style="flex:2;border-radius:100px">Criar campanha</button>
       </div>
     </div>
   </div>
@@ -5949,8 +5949,25 @@ function abrirCampanhaDetalhe(campanhaId, campanhaNome) {
   const opps = [...oppSet].map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
 
   if (!opps.length) {
-    detalheGrid.innerHTML = emptyStateHtml('campanhas', 'Nenhuma oportunidade salva', 'Clique no coração nas oportunidades e salve nesta campanha.')
-      + `<div style="text-align:center;margin-top:16px"><button class="btn btn-campanha-criar btn-sm" onclick="showSection('oportunidades')">Explorar oportunidades →</button></div>`;
+    const temFiltros = c && c.filtros;
+    detalheGrid.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:16px;align-items:center;padding:40px 20px">
+        ${!temFiltros ? `
+        <div style="width:100%;max-width:480px;border:2px dashed rgba(184,134,11,0.35);border-radius:16px;padding:28px 24px;text-align:center;background:rgba(184,134,11,0.04)">
+          <div style="font-size:28px;margin-bottom:10px">🎯</div>
+          <div style="font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--black);margin-bottom:6px">Defina o perfil desta campanha</div>
+          <div style="font-size:13px;color:var(--gray-3);margin-bottom:18px;line-height:1.5">Salve filtros para que o Radar entenda o que você está buscando e mostre as oportunidades certas.</div>
+          <button class="btn btn-campanha-criar" style="border-radius:100px;margin:0 auto" onclick="ffEditFiltrosCampanha('${campanhaId}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;margin-right:6px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Definir filtros da campanha
+          </button>
+        </div>
+        <div style="font-size:12px;color:var(--gray-2)">ou</div>` : ''}
+        <div style="text-align:center">
+          <div style="font-size:13px;color:var(--gray-3);margin-bottom:12px">Adicione oportunidades manualmente clicando no coração ao explorar</div>
+          <button class="btn btn-ghost btn-sm" onclick="showSection('oportunidades')">Explorar oportunidades →</button>
+        </div>
+      </div>`;
     return;
   }
 
@@ -6155,10 +6172,19 @@ async function salvarCampanha() {
         }
         _mc_pending_opp_id = null;
         _mc_pending_filtros = null;
+        // Nova campanha → abre direto o detalhe para configurar filtros
+        await loadCampanhas();
+        renderCampanhasPanel();
+        if (newId) {
+          const nova = _CAMPANHAS.find(x => x.id === newId);
+          if (nova) abrirCampanhaDetalhe(nova.id, nova.nome);
+        }
+        if (typeof showToast === 'function') showToast('Campanha criada! Configure seus filtros.', 'success');
+        return;
       }
       await loadCampanhas();
       renderCampanhasPanel();
-      if (typeof showToast === 'function') showToast(editId ? 'Campanha atualizada!' : 'Campanha criada!', 'success');
+      if (typeof showToast === 'function') showToast('Campanha atualizada!', 'success');
     } else {
       if (typeof showToast === 'function') showToast('Erro ao salvar campanha.', 'error');
       if (btn) btn.disabled = false;
