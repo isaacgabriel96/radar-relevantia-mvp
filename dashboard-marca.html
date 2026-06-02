@@ -1114,7 +1114,7 @@ tbody tr:last-child td { border-bottom: none; }
   .page-title { font-size: 22px; }
   .page-header { flex-direction: column; }
   .filter-bar { flex-direction: column; }
-  .filter-bar .form-input, .filter-bar .form-select { width: 100%; min-width: unset; }
+  .filter-bar .form-input, .filter-bar .form-select, .filter-bar .ff-btn { width: 100%; min-width: unset; }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -1465,26 +1465,11 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="sub-panel active" id="subpanel-opp-explorar">
         <!-- Filter bar -->
         <div class="filter-bar">
-          <input class="form-input" type="text" placeholder="Buscar oportunidades..." id="searchOpp" oninput="filterOpportunities()">
-          <select class="form-select" id="filterSegmento" onchange="filterOpportunities()">
-            <option value="">Todos os segmentos</option>
-            <option value="Esporte">Esporte</option>
-            <option value="Música">Música</option>
-            <option value="Tecnologia">Tecnologia</option>
-            <option value="Mídia Digital">Mídia Digital</option>
-          </select>
-          <select class="form-select" id="filterRegiao" onchange="filterOpportunities()">
-            <option value="">Todas as regiões</option>
-            <option value="São Paulo">São Paulo</option>
-            <option value="Salvador">Salvador</option>
-            <option value="Florianópolis">Florianópolis</option>
-            <option value="Curitiba">Curitiba</option>
-            <option value="Online">Online</option>
-          </select>
           <button class="ff-btn" id="ffBtn" onclick="ffOpen()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
             Filtros <span class="ff-badge" id="ffBadge">0</span>
           </button>
+          <input class="form-input" type="text" placeholder="Buscar oportunidades..." id="searchOpp" oninput="filterOpportunities()">
         </div>
 
         <!-- Opportunity grid -->
@@ -3755,16 +3740,13 @@ function ffClear() {
   filterOpportunities();
 }
 
-// Predicado base (busca + dropdowns legados + filtro de campanhas)
+// Predicado base (busca + filtro de campanhas)
 function _oppMatchesBase(opp) {
-  const search = (document.getElementById('searchOpp').value || '').toLowerCase();
-  const segmento = document.getElementById('filterSegmento').value;
-  const regiao = document.getElementById('filterRegiao').value;
+  const searchEl = document.getElementById('searchOpp');
+  const search = (searchEl ? searchEl.value : '').toLowerCase();
   const matchSearch = !search || opp.title.toLowerCase().includes(search) || (opp.desc || '').toLowerCase().includes(search);
-  const matchSegmento = !segmento || opp.category === segmento;
-  const matchRegiao = !regiao || opp.city === regiao;
   const matchFav = !_favFilter || _favIds.includes(opp.id);
-  return matchSearch && matchSegmento && matchRegiao && matchFav;
+  return matchSearch && matchFav;
 }
 
 function filterOpportunities() {
