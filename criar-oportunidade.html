@@ -1925,6 +1925,10 @@ input[type=number] { -moz-appearance: textfield; }
 #cotas-list .cota-card { margin-bottom: 0; }
 /* Em preview-mode o wrapper .cota-card fica invisível — a borda é do .opp-card-h-preview interno */
 #cotas-list .cota-card.preview-mode { border: none; border-radius: 0; background: transparent; }
+.cota-drop-zone { user-select: none; }
+.cota-drop-zone.drag-over { border-color: var(--brown-warm); background: #fdf6e3; }
+.cota-drop-zone.has-max { opacity: .45; pointer-events: none; }
+.cota-photo-thumb { width:80px;height:80px;border-radius:8px;overflow:hidden;position:relative;border:1px solid var(--gray-2);flex-shrink:0; }
 
 /* ── Cota Preview — card horizontal igual oportunidade-detalhe ── */
 .opp-card-h-preview {
@@ -6589,6 +6593,25 @@ function _applyPendingDetalhes(tplKey) {
           if (nomeEl) nomeEl.value = cota.nome || '';
           if (valorEl) valorEl.value = cota.valor || '';
           if (vagasEl) vagasEl.value = cota.vagas || '';
+          // Descrição
+          const descEl = card.querySelector('.cota-descricao');
+          if (descEl && cota.descricao) descEl.value = cota.descricao;
+          // Mostrar valor
+          const mostrarEl = card.querySelector('.cota-mostrar-valor');
+          if (mostrarEl) mostrarEl.checked = cota.mostrar_valor !== false;
+          // Moeda
+          const moedaEl = card.querySelector('.cota-moeda');
+          if (moedaEl && cota.moeda) moedaEl.value = cota.moeda;
+          // Fotos existentes — restaura thumbs com data-existing-url para uploadCotaPhotos preservar
+          const grid = card.querySelector('.cota-photos-grid');
+          if (grid && Array.isArray(cota.imagens) && cota.imagens.length > 0) {
+            cota.imagens.forEach(function(url) {
+              if (!url) return;
+              const thumb = _buildCotaThumb(url, true);
+              grid.appendChild(thumb);
+            });
+            _cotaUpdateDropZone(card);
+          }
           // Benefícios
           const benefList = card.querySelector('.cota-beneficios-list');
           if (benefList && Array.isArray(cota.beneficios) && cota.beneficios.length > 0) {
@@ -9759,9 +9782,15 @@ function addCota() {
       </div>
       <div class="form-group" style="margin-bottom:16px">
         <label style="font-size:12px;font-weight:600;color:var(--gray-3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:6px">Fotos <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-3)">(até 3)</span></label>
-        <div class="cota-photos-grid" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        <div class="cota-photos-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"></div>
         <input type="file" class="cota-photo-input" accept="image/*" multiple style="display:none" onchange="handleCotaPhotoSelect(this)">
-        <button type="button" class="btn btn-ghost" style="padding:7px 16px;font-size:12px;margin-top:6px" onclick="this.previousElementSibling.click()">+ Adicionar fotos</button>
+        <div class="cota-drop-zone" onclick="_cotaDropZoneClick(this)"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="_cotaHandleDrop(event,this)"
+          style="border:1.5px dashed var(--gray-2);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--white-warm)">
+          <span style="font-size:12px;color:var(--gray-3)">📷 Arraste, cole (Ctrl+V) ou <span style="color:var(--brown-warm);text-decoration:underline">clique para selecionar</span></span>
+        </div>
       </div>
       <div style="margin-bottom:20px">
         <label style="font-size:12px;font-weight:600;color:var(--gray-3);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:8px">Benefícios incluídos</label>
@@ -10092,30 +10121,84 @@ function maskCurrency(el) {
 }
 
 // ── Per-cota photo upload handling ──
+/* ── Helpers de foto de cota ── */
+
+/** Cria um thumb de foto para o grid da cota */
+function _buildCotaThumb(src, isExisting) {
+  const thumb = document.createElement('div');
+  thumb.className = 'cota-photo-thumb';
+  if (isExisting) thumb.setAttribute('data-existing-url', src);
+  thumb.innerHTML =
+    '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover" alt="">' +
+    '<button type="button" onclick="_cotaRemoveThumb(this)" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1">&times;</button>';
+  return thumb;
+}
+
+/** Atualiza o estado da drop zone (esconde se já tem 3 fotos) */
+function _cotaUpdateDropZone(card) {
+  const grid = card.querySelector('.cota-photos-grid');
+  const dz   = card.querySelector('.cota-drop-zone');
+  if (!grid || !dz) return;
+  const count = grid.querySelectorAll('.cota-photo-thumb').length;
+  dz.classList.toggle('has-max', count >= 3);
+}
+
+/** Remove thumb e reativa drop zone */
+function _cotaRemoveThumb(btn) {
+  const thumb = btn.closest('.cota-photo-thumb');
+  const card  = btn.closest('.cota-card');
+  if (thumb) thumb.remove();
+  if (card)  _cotaUpdateDropZone(card);
+}
+
+/** Adiciona um File ao grid da cota */
+function _cotaAddFile(file, card) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const grid = card.querySelector('.cota-photos-grid');
+  if (!grid) return;
+  if (grid.querySelectorAll('.cota-photo-thumb').length >= 3) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    grid.appendChild(_buildCotaThumb(e.target.result, false));
+    _cotaUpdateDropZone(card);
+  };
+  reader.readAsDataURL(file);
+}
+
+/** Clique na drop zone → abre o file picker da cota */
+function _cotaDropZoneClick(dz) {
+  const input = dz.closest('.cota-card')?.querySelector('.cota-photo-input');
+  if (input) input.click();
+}
+
+/** Drop de arquivo(s) na drop zone */
+function _cotaHandleDrop(e, dz) {
+  e.preventDefault();
+  dz.classList.remove('drag-over');
+  const card = dz.closest('.cota-card');
+  if (!card) return;
+  Array.from(e.dataTransfer.files).forEach(f => _cotaAddFile(f, card));
+}
+
+/** Paste global — aplica à cota card que tiver foco (se houver) */
+document.addEventListener('paste', function(e) {
+  const card = document.activeElement?.closest('.cota-card') ||
+               document.querySelector('.cota-card:focus-within');
+  if (!card) return;
+  const items = e.clipboardData?.items || [];
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      _cotaAddFile(item.getAsFile(), card);
+      break;
+    }
+  }
+});
+
 function handleCotaPhotoSelect(input) {
   const card = input.closest('.cota-card');
   if (!card) return;
-  const grid = card.querySelector('.cota-photos-grid');
-  if (!grid) return;
-  const files = Array.from(input.files || []);
-  const existing = grid.querySelectorAll('.cota-photo-thumb').length;
-  const maxPhotos = 3;
-  const remaining = maxPhotos - existing;
-  if (remaining <= 0) { input.value = ''; return; }
-
-  files.slice(0, remaining).forEach(function(file) {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const thumb = document.createElement('div');
-      thumb.className = 'cota-photo-thumb';
-      thumb.style.cssText = 'width:80px;height:80px;border-radius:8px;overflow:hidden;position:relative;border:1px solid var(--gray-2);flex-shrink:0';
-      thumb.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">' +
-        '<button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.6);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1">&times;</button>';
-      grid.appendChild(thumb);
-    };
-    reader.readAsDataURL(file);
-  });
+  Array.from(input.files || []).forEach(f => _cotaAddFile(f, card));
   input.value = '';
 }
 
