@@ -2477,10 +2477,7 @@ tbody tr:last-child td { border-bottom: none; }
         <label class="form-label">Nome <span style="color:#e53e3e">*</span></label>
         <input class="form-input" type="text" id="mc-nome" placeholder="Ex: Campanha Q2 2026" oninput="_mcValidate()">
       </div>
-      <div class="form-group">
-        <label class="form-label">Objetivo <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--gray-300)">(opcional)</span></label>
-        <input class="form-input" type="text" id="mc-descricao" placeholder="Ex: Brand awareness no Q2">
-      </div>
+      <input type="hidden" id="mc-descricao">
       <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn btn-ghost" onclick="closeCriarCampanhaModal()" style="flex:1">Cancelar</button>
         <button class="btn btn-campanha-criar" id="mc-btn-salvar" disabled onclick="salvarCampanha()" style="flex:2">Criar campanha</button>
