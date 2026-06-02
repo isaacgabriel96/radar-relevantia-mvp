@@ -14432,9 +14432,15 @@ function _closeContaEmAnaliseModal() {
 </script>
 
 <!-- ══ Modal Conta em Análise ══ -->
-<div class="modal-overlay" id="modal-conta-analise-criar" onclick="if(event.target===this)_closeContaEmAnaliseModal()" style="display:none;align-items:center;justify-content:center;padding:24px">
+<div class="modal-overlay" id="modal-conta-analise-criar" style="display:none;align-items:center;justify-content:center;padding:24px">
   <div style="background:#fff;border-radius:18px;padding:32px 28px 24px;width:100%;max-width:440px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.18)">
-    <div style="font-size:44px;margin-bottom:12px">🔒</div>
+    <div style="display:flex;justify-content:center;margin-bottom:16px">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="26" cy="26" r="24" stroke="#B8860B" stroke-width="1.5" fill="rgba(184,134,11,0.06)"/>
+        <circle cx="26" cy="26" r="9" stroke="#B8860B" stroke-width="1.8"/>
+        <path d="M26 20v6.5l4 2.5" stroke="#B8860B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
     <div style="font-family:var(--font-heading);font-size:20px;font-weight:700;color:var(--text-dark);margin-bottom:10px">Sua conta está em análise</div>
     <div style="font-size:14px;color:var(--gray-3);line-height:1.6;margin-bottom:20px">Para publicar no Radar, nossa equipe precisa validar sua conta. Enquanto aguarda, complete seus dados jurídicos — isso acelera o processo de aprovação.</div>
     <div style="background:#FAF7F2;border-radius:10px;padding:14px 16px;margin-bottom:22px;text-align:left;display:flex;flex-direction:column;gap:8px">
@@ -14442,8 +14448,7 @@ function _closeContaEmAnaliseModal() {
       <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>Nossa equipe revisa e aprova sua conta</div>
       <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>Você recebe uma notificação e já pode publicar</div>
     </div>
-    <button onclick="_closeContaEmAnaliseModal();window.location.href='dashboard-detentor.html#configuracoes'" style="width:100%;height:46px;border:none;border-radius:10px;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;font-family:var(--font-heading);font-weight:700;font-size:14px;cursor:pointer;margin-bottom:8px">Preencher dados jurídicos</button>
-    <button onclick="_closeContaEmAnaliseModal()" style="width:100%;height:40px;border:1.5px solid #E0D8CC;border-radius:10px;background:transparent;color:#5C4C38;font-family:var(--font-heading);font-weight:600;font-size:13px;cursor:pointer">Entendido</button>
+    <button onclick="_closeContaEmAnaliseModal();window.location.href='dashboard-detentor.html#configuracoes'" style="width:100%;height:46px;border:none;border-radius:10px;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;font-family:var(--font-heading);font-weight:700;font-size:14px;cursor:pointer">Preencher dados jurídicos</button>
   </div>
 </div>
 
