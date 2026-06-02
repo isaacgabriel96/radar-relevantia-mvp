@@ -958,10 +958,43 @@ tbody tr:last-child td { border-bottom: none; }
 .ff-switch.on { background: var(--gold); }
 .ff-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: var(--white); border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
 .ff-switch.on::after { transform: translateX(18px); }
-.ff-foot { display: flex; align-items: center; justify-content: space-between; padding: 16px 26px; border-top: 1px solid var(--gray-100); flex-shrink: 0; }
+.ff-foot { display: flex; align-items: center; justify-content: space-between; padding: 16px 26px; border-top: 1px solid var(--gray-100); flex-shrink: 0; gap: 10px; flex-wrap: wrap; }
+.ff-foot-left { display: flex; align-items: center; gap: 10px; }
 .ff-clear { background: none; border: none; font-size: 14px; font-weight: 600; color: var(--black); cursor: pointer; text-decoration: underline; font-family: var(--font-body); }
+.ff-save-camp { display: flex; align-items: center; gap: 6px; background: none; border: 1.5px solid var(--gray-200); border-radius: 100px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--gray-3); cursor: pointer; font-family: var(--font-body); transition: all .18s; }
+.ff-save-camp:not(:disabled):hover { border-color: var(--gold); color: var(--black); }
+.ff-save-camp:disabled { opacity: 0.38; cursor: not-allowed; }
+.ff-save-camp svg { width: 13px; height: 13px; flex-shrink: 0; }
 .ff-apply { background: var(--black); color: var(--white); border: none; border-radius: 100px; padding: 13px 26px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font-body); transition: all .2s; }
 .ff-apply:hover { background: var(--gold-gradient); box-shadow: 0 6px 20px rgba(184,134,11,0.35); }
+
+/* ─── CAMPANHA — filtros salvos ─── */
+.camp-filtros-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px 18px; background: rgba(184,134,11,0.06); border: 1.5px solid rgba(184,134,11,0.18); border-radius: 12px; margin-bottom: 20px; }
+.camp-filtros-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gray-3); flex-shrink: 0; }
+.camp-filtro-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 100px; background: rgba(184,134,11,0.12); border: 1px solid rgba(184,134,11,0.25); font-size: 12px; font-weight: 600; color: #6b4d00; }
+.camp-filtros-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.camp-filtros-ver { display: flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 100px; background: var(--black); color: var(--white); font-size: 12px; font-weight: 700; border: none; cursor: pointer; font-family: var(--font-body); transition: opacity .18s; }
+.camp-filtros-ver:hover { opacity: .82; }
+.camp-filtros-edit { background: none; border: 1.5px solid var(--gray-200); border-radius: 100px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--gray-3); cursor: pointer; font-family: var(--font-body); transition: all .15s; }
+.camp-filtros-edit:hover { border-color: var(--black); color: var(--black); }
+/* Indicador no card de campanha */
+.campanha-pasta-filtro-badge { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 11px; color: #6b4d00; background: rgba(184,134,11,0.1); border-radius: 100px; padding: 3px 8px; width: fit-content; }
+
+/* Mini-modal salvar filtros em campanha */
+.ff-camp-picker-overlay { position: fixed; inset: 0; background: rgba(30,22,0,0.4); backdrop-filter: blur(3px); z-index: 700; display: none; align-items: center; justify-content: center; padding: 20px; }
+.ff-camp-picker-overlay.open { display: flex; }
+.ff-camp-picker { background: var(--white); border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(30,22,0,0.16); overflow: hidden; }
+.ff-camp-picker-head { padding: 18px 20px 0; display: flex; align-items: center; justify-content: space-between; }
+.ff-camp-picker-title { font-family: var(--font-heading); font-size: 16px; font-weight: 700; color: var(--black); }
+.ff-camp-picker-close { background: var(--gray-100); border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; color: var(--gray-3); }
+.ff-camp-picker-list { padding: 12px 12px 0; max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.ff-camp-picker-item { display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 10px; cursor: pointer; border: none; background: none; width: 100%; text-align: left; transition: background .15s; }
+.ff-camp-picker-item:hover { background: var(--gray-100); }
+.ff-camp-picker-nome { font-size: 14px; font-weight: 600; color: var(--black); }
+.ff-camp-picker-count { font-size: 12px; color: var(--gray-3); }
+.ff-camp-picker-foot { padding: 12px; border-top: 1px solid var(--gray-100); margin-top: 10px; }
+.ff-camp-picker-nova { display: flex; align-items: center; gap: 8px; padding: 11px 14px; border-radius: 10px; border: 1.5px dashed var(--gray-200); background: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--black); width: 100%; transition: border-color .15s, background .15s; }
+.ff-camp-picker-nova:hover { border-color: var(--gold); background: rgba(184,134,11,0.04); }
 
 /* ─── DEALS FECHADOS — ACCORDION POR OPP ─── */
 .deals-opp-group { display: flex; flex-direction: column; gap: 12px; }
@@ -1579,6 +1612,7 @@ tbody tr:last-child td { border-bottom: none; }
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gray-2)"><polyline points="9 18 15 12 9 6"/></svg>
           <span class="campanha-detalhe-titulo" id="campanha-detalhe-nome"></span>
         </div>
+        <div id="campanha-filtros-bar" class="camp-filtros-bar" style="display:none"></div>
         <div id="campanha-detalhe-grid"></div>
       </div>
     </div><!-- /sec-campanhas -->
@@ -2401,8 +2435,31 @@ tbody tr:last-child td { border-bottom: none; }
 
     </div>
     <div class="ff-foot">
-      <button class="ff-clear" onclick="ffClear()">Limpar tudo</button>
+      <div class="ff-foot-left">
+        <button class="ff-clear" onclick="ffClear()">Limpar tudo</button>
+        <button class="ff-save-camp" id="ffSaveCampBtn" disabled onclick="ffOpenCampPicker()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Salvar em campanha
+        </button>
+      </div>
       <button class="ff-apply" id="ffApply" onclick="ffApply()">Ver oportunidades</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mini-modal: Salvar filtros em campanha -->
+<div class="ff-camp-picker-overlay" id="ff-camp-picker-overlay" onclick="if(event.target===this)ffCloseCampPicker()">
+  <div class="ff-camp-picker">
+    <div class="ff-camp-picker-head">
+      <div class="ff-camp-picker-title">Salvar filtros em campanha</div>
+      <button class="ff-camp-picker-close" onclick="ffCloseCampPicker()">✕</button>
+    </div>
+    <div class="ff-camp-picker-list" id="ff-camp-picker-list"><!-- preenchido por JS --></div>
+    <div class="ff-camp-picker-foot">
+      <button class="ff-camp-picker-nova" onclick="ffCloseCampPicker(); openCriarCampanhaModal(null, null, _ffState)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nova campanha com estes filtros
+      </button>
     </div>
   </div>
 </div>
@@ -3578,6 +3635,7 @@ const FF_GROUP_CFG = (function(){
 })();
 
 let _ffState = { tipo:'todos', sel:{}, toggles:{ incentivo:false, cotas:false } };
+let _ffEditingCampanhaId = null;
 let _ffRendered = false;
 
 function _ffChipHtml(grp, opt) {
@@ -3620,6 +3678,10 @@ function ffOpen() {
 function ffClose() {
   document.getElementById('ff-overlay').classList.remove('open');
   document.body.style.overflow = '';
+  // Reseta modo edição de campanha e restaura botão
+  _ffEditingCampanhaId = null;
+  const saveBtn = document.getElementById('ffSaveCampBtn');
+  if (saveBtn) saveBtn.textContent = 'Salvar em campanha';
 }
 
 function ffToggleChip(el) {
@@ -3716,12 +3778,119 @@ function ffLiveCount() {
   const count = MOCK_OPPORTUNITIES.filter(o => _oppMatchesBase(o) && ffMatch(o)).length;
   const btn = document.getElementById('ffApply');
   if (btn) btn.textContent = `Ver ${count} oportunidade${count !== 1 ? 's' : ''}`;
+  const saveBtn = document.getElementById('ffSaveCampBtn');
+  if (saveBtn) saveBtn.disabled = ffActiveCount() === 0;
 }
 
 function ffApply() {
   filterOpportunities();
   ffUpdateBadge();
   ffClose();
+}
+
+// ─── SALVAR FILTROS EM CAMPANHA ───
+
+// Serializa _ffState para JSON salvo no Supabase (Sets → arrays)
+function ffSerializeState(state) {
+  const sel = {};
+  for (const g in state.sel) sel[g] = [...state.sel[g]];
+  return { tipo: state.tipo, sel, toggles: state.toggles };
+}
+
+// Reconstrói _ffState a partir do JSON do Supabase (arrays → Sets)
+function ffDeserializeState(json) {
+  if (!json) return null;
+  const sel = {};
+  for (const g in (json.sel || {})) sel[g] = new Set(json.sel[g]);
+  return { tipo: json.tipo || 'todos', sel, toggles: json.toggles || { incentivo: false, cotas: false } };
+}
+
+// Gera chips de resumo para exibir nos cards/detalhe de campanha
+function ffSumaryChips(filtrosJson) {
+  if (!filtrosJson) return [];
+  const chips = [];
+  const TIPO_LABELS = { personalidade: 'Personalidade', evento: 'Evento', artista: 'Artista Musical', midia: 'Mídia' };
+  if (filtrosJson.tipo && filtrosJson.tipo !== 'todos') chips.push(TIPO_LABELS[filtrosJson.tipo] || filtrosJson.tipo);
+  const sel = filtrosJson.sel || {};
+  if (sel.segmento) sel.segmento.slice(0,2).forEach(s => chips.push(s));
+  if (sel.alcance)  sel.alcance.slice(0,1).forEach(s => chips.push(s));
+  if (sel.invest)   chips.push('Investimento filtrado');
+  if ((filtrosJson.toggles || {}).incentivo) chips.push('Incentivado');
+  if ((filtrosJson.toggles || {}).cotas)    chips.push('Com cotas');
+  return chips;
+}
+
+// Abre o picker de campanhas para salvar filtros (ou salva direto se estiver editando uma campanha)
+function ffOpenCampPicker() {
+  if (_ffEditingCampanhaId) { ffSaveFiltrosToCampanha(_ffEditingCampanhaId); ffClose(); return; }
+  const list = document.getElementById('ff-camp-picker-list');
+  if (!list) return;
+  if (!_CAMPANHAS.length) {
+    list.innerHTML = '<div style="padding:16px 10px;font-size:13px;color:var(--gray-3);text-align:center">Nenhuma campanha criada ainda.</div>';
+  } else {
+    list.innerHTML = _CAMPANHAS.map(c => {
+      const n = (_CAMPANHA_OPPS[c.id] || new Set()).size;
+      const temFiltro = !!c.filtros;
+      return `<button class="ff-camp-picker-item" onclick="ffSaveFiltrosToCampanha('${c.id}')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <div>
+          <div class="ff-camp-picker-nome">${c.nome}${temFiltro ? ' <span style="font-size:10px;color:var(--gold);font-weight:700">● filtro salvo</span>' : ''}</div>
+          <div class="ff-camp-picker-count">${n} oportunidade${n !== 1 ? 's' : ''} salva${n !== 1 ? 's' : ''}</div>
+        </div>
+      </button>`;
+    }).join('');
+  }
+  document.getElementById('ff-camp-picker-overlay').classList.add('open');
+}
+
+function ffCloseCampPicker() {
+  document.getElementById('ff-camp-picker-overlay').classList.remove('open');
+}
+
+async function ffSaveFiltrosToCampanha(campanhaId) {
+  ffCloseCampPicker();
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
+  if (!session || !session.user) return;
+  const filtros = ffSerializeState(_ffState);
+  const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas?id=eq.' + campanhaId, {
+    method: 'PATCH',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ filtros })
+  });
+  if (res.ok) {
+    // Atualiza local
+    const c = _CAMPANHAS.find(x => x.id === campanhaId);
+    if (c) c.filtros = filtros;
+    if (typeof showToast === 'function') showToast('Filtros salvos em "' + (c ? c.nome : 'campanha') + '"!', 'success');
+  } else {
+    if (typeof showToast === 'function') showToast('Erro ao salvar filtros.', 'error');
+  }
+}
+
+// Aplica os filtros de uma campanha e vai para Explorar
+function aplicarFiltrosDaCampanha(campanhaId) {
+  const c = _CAMPANHAS.find(x => x.id === campanhaId);
+  if (!c || !c.filtros) return;
+  const state = ffDeserializeState(c.filtros);
+  if (!state) return;
+  _ffState = state;
+  // Re-renderiza o modal para refletir o estado restaurado
+  _ffRendered = false;
+  ffRenderModal();
+  // Restaura visual: tipo
+  document.querySelectorAll('.ff-seg').forEach(s => s.classList.toggle('active', s.dataset.tipo === _ffState.tipo));
+  // Restaura chips
+  document.querySelectorAll('.ff-chip').forEach(c => {
+    const grp = c.dataset.grp, val = c.dataset.val;
+    const active = _ffState.sel[grp] && _ffState.sel[grp].has(val);
+    c.classList.toggle('active', active);
+  });
+  // Restaura toggles
+  document.querySelectorAll('.ff-switch').forEach(s => {
+    s.classList.toggle('on', !!_ffState.toggles[s.dataset.toggle]);
+  });
+  ffApply();
+  showSection('oportunidades');
 }
 
 function ffUpdateBadge() {
@@ -5757,6 +5926,28 @@ function abrirCampanhaDetalhe(campanhaId, campanhaNome) {
   if (empty) empty.style.display = 'none';
   section.style.display = '';
 
+  // Barra de filtros salvos
+  const c = _CAMPANHAS.find(x => x.id === campanhaId);
+  const filtrosBar = document.getElementById('campanha-filtros-bar');
+  if (filtrosBar) {
+    if (c && c.filtros) {
+      const chips = ffSumaryChips(c.filtros);
+      filtrosBar.style.display = '';
+      filtrosBar.innerHTML = `
+        <span class="camp-filtros-label">Filtro salvo</span>
+        ${chips.map(ch => `<span class="camp-filtro-chip">${ch}</span>`).join('')}
+        <div class="camp-filtros-actions">
+          <button class="camp-filtros-edit" onclick="ffEditFiltrosCampanha('${campanhaId}')">Editar</button>
+          <button class="camp-filtros-ver" onclick="aplicarFiltrosDaCampanha('${campanhaId}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            Ver oportunidades compatíveis
+          </button>
+        </div>`;
+    } else {
+      filtrosBar.style.display = 'none';
+    }
+  }
+
   const oppSet = _CAMPANHA_OPPS[campanhaId] || new Set();
   const opps = [...oppSet].map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
 
@@ -5824,10 +6015,44 @@ function fecharCampanhaDetalhe() {
   }
 }
 
-let _mc_pending_opp_id = null;
+// Editar filtros salvos de uma campanha — abre o modal de filtros pré-carregado
+// e ao aplicar salva de volta na campanha
+function ffEditFiltrosCampanha(campanhaId) {
+  const c = _CAMPANHAS.find(x => x.id === campanhaId);
+  if (!c) return;
+  _ffEditingCampanhaId = campanhaId;
+  // Carrega o estado dos filtros da campanha
+  if (c.filtros) {
+    const state = ffDeserializeState(c.filtros);
+    if (state) {
+      _ffState = state;
+      _ffRendered = false;
+      ffRenderModal();
+      document.querySelectorAll('.ff-seg').forEach(s => s.classList.toggle('active', s.dataset.tipo === _ffState.tipo));
+      document.querySelectorAll('.ff-chip').forEach(el => {
+        const active = _ffState.sel[el.dataset.grp] && _ffState.sel[el.dataset.grp].has(el.dataset.val);
+        el.classList.toggle('active', active);
+      });
+      document.querySelectorAll('.ff-switch').forEach(s => {
+        s.classList.toggle('on', !!_ffState.toggles[s.dataset.toggle]);
+      });
+    }
+  }
+  // Altera o botão "Salvar em campanha" para salvar de volta na mesma campanha
+  const saveBtn = document.getElementById('ffSaveCampBtn');
+  if (saveBtn) { saveBtn.textContent = 'Atualizar filtros'; saveBtn.disabled = false; }
+  ffOpen();
+}
 
-function openCriarCampanhaModal(campanha, pendingOppId) {
+// Ao fechar o modal de filtros, reseta o estado de edição
+const _ffClose_orig = typeof ffClose === 'function' ? ffClose : null;
+
+let _mc_pending_opp_id = null;
+let _mc_pending_filtros = null;
+
+function openCriarCampanhaModal(campanha, pendingOppId, pendingFiltros) {
   _mc_pending_opp_id = pendingOppId || null;
+  _mc_pending_filtros = pendingFiltros || null;
   const overlay = document.getElementById('modal-campanha-overlay');
   const titleEl = document.getElementById('modal-campanha-title');
   const btnSalvar = document.getElementById('mc-btn-salvar');
@@ -5910,18 +6135,29 @@ async function salvarCampanha() {
     }
     if (res.ok) {
       closeCriarCampanhaModal();
-      // Se havia oportunidade pendente e é uma campanha nova, salva nela
-      if (!editId && _mc_pending_opp_id) {
+      if (!editId) {
         const newCampanha = await res.json();
         const newId = Array.isArray(newCampanha) ? newCampanha[0].id : newCampanha.id;
         if (newId) {
-          await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades', {
-            method: 'POST',
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-            body: JSON.stringify({ campanha_id: newId, oportunidade_id: _mc_pending_opp_id, marca_id: marcaId })
-          });
+          // Salva oportunidade pendente
+          if (_mc_pending_opp_id) {
+            await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades', {
+              method: 'POST',
+              headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+              body: JSON.stringify({ campanha_id: newId, oportunidade_id: _mc_pending_opp_id, marca_id: marcaId })
+            });
+          }
+          // Salva filtros pendentes
+          if (_mc_pending_filtros) {
+            await fetch(SUPABASE_URL + '/rest/v1/campanhas?id=eq.' + newId, {
+              method: 'PATCH',
+              headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+              body: JSON.stringify({ filtros: ffSerializeState(_mc_pending_filtros) })
+            });
+          }
         }
         _mc_pending_opp_id = null;
+        _mc_pending_filtros = null;
       }
       await loadCampanhas();
       renderCampanhasPanel();
