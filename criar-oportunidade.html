@@ -4718,31 +4718,6 @@ function initLivePreview() {
     });
   }
 
-  // Colar imagem (Ctrl+V / Cmd+V) em qualquer momento
-  document.addEventListener('paste', function(e) {
-    // Ignora se o foco estiver dentro de uma cota card ou da seção de oportunidades
-    // (o paste nessas áreas é tratado pelo botão dedicado _cotaPasteFromClipboard)
-    if (e.target.closest('.cota-card') || e.target.closest('#s3OportunidadesWrap')) return;
-    if (document.activeElement?.closest('.cota-card')) return;
-
-    if (lpUploadedPhotos.length >= LP_MAX_PHOTOS) return;
-    var items = e.clipboardData && e.clipboardData.items;
-    if (!items) return;
-    var files = [];
-    for (var i = 0; i < items.length; i++) {
-      var kind = items[i].kind;
-      var type = items[i].type || '';
-      if (kind === 'file' && type.startsWith('image/')) {
-        var f = items[i].getAsFile();
-        if (f) files.push(f);
-      }
-    }
-    if (files.length) {
-      e.preventDefault();
-      lpProcessFiles(files);
-    }
-  });
-
   // Drag & drop no grid (quando já há fotos)
   var photosGrid = document.getElementById('photosGridLP');
   if (photosGrid) {
