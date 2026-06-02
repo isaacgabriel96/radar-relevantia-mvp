@@ -913,7 +913,7 @@ tbody tr:last-child td { border-bottom: none; }
 @media (min-width: 600px) { .ff-modal { border-radius: 20px; max-height: 86vh; } }
 .ff-head { display: flex; align-items: center; justify-content: center; padding: 18px 22px; border-bottom: 1px solid var(--gray-100); position: relative; flex-shrink: 0; }
 .ff-head h2 { font-family: var(--font-heading); font-size: 16px; font-weight: 600; margin: 0; }
-.ff-close { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 50%; background: var(--gray-100); border: none; cursor: pointer; font-size: 15px; color: var(--gray-500); display: flex; align-items: center; justify-content: center; }
+.ff-close { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 50%; background: var(--gray-100); border: none; cursor: pointer; font-size: 15px; color: var(--gray-500); display: flex; align-items: center; justify-content: center; }
 .ff-close:hover { background: var(--gray-200); }
 .ff-body { overflow-y: auto; padding: 4px 26px; flex: 1; }
 .ff-body::-webkit-scrollbar { width: 8px; }
@@ -3614,9 +3614,13 @@ function ffRenderModal() {
 function ffOpen() {
   ffRenderModal();
   document.getElementById('ff-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
   ffLiveCount();
 }
-function ffClose() { document.getElementById('ff-overlay').classList.remove('open'); }
+function ffClose() {
+  document.getElementById('ff-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
 
 function ffToggleChip(el) {
   const grp = el.dataset.grp, val = el.dataset.val;
