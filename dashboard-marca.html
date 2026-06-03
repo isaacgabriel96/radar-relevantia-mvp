@@ -1154,6 +1154,79 @@ tbody tr:last-child td { border-bottom: none; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
   .opp-grid { grid-template-columns: 1fr 1fr; }
 }
+
+/* ─── Modal Agente: Criar Campanha (cam-*) ─── */
+.cam-overlay{position:fixed;inset:0;background:rgba(30,22,0,0.5);backdrop-filter:blur(6px);z-index:600;display:none;align-items:center;justify-content:center;padding:20px}
+.cam-overlay.open{display:flex}
+.cam-modal{background:var(--white);border-radius:20px;width:100%;max-width:560px;max-height:90vh;box-shadow:0 24px 64px rgba(30,22,0,0.22);overflow:hidden;display:flex;flex-direction:column}
+.cam-header{display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid var(--gray-2);flex-shrink:0}
+.cam-header-icon{width:32px;height:32px;border-radius:50%;background:var(--gold-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.cam-header-title{font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--black)}
+.cam-header-badge{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--brown-warm);background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.22);padding:3px 8px;border-radius:var(--radius-pill)}
+.cam-close{margin-left:auto;background:none;border:none;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--gray-3);flex-shrink:0;transition:background .15s}
+.cam-close:hover{background:var(--gray-1);color:var(--black)}
+.cam-prompt-body{padding:24px 22px;flex:1;display:flex;flex-direction:column;gap:14px}
+.cam-prompt-label{font-size:14px;font-weight:600;color:var(--black)}
+.cam-prompt-hint{font-size:13px;color:var(--gray-3);margin-top:-8px;line-height:1.5}
+.cam-prompt-textarea{width:100%;padding:12px 14px;border:1.5px solid var(--gray-2);border-radius:12px;font-size:14px;font-family:var(--font-body);color:var(--text);background:var(--gray-1);outline:none;resize:none;min-height:90px;line-height:1.6;transition:border .18s,background .18s}
+.cam-prompt-textarea:focus{border-color:var(--gold);background:var(--white)}
+.cam-prompt-btn{padding:12px 24px;background:var(--black);color:var(--white);border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;align-self:flex-end;display:flex;align-items:center;gap:6px}
+.cam-prompt-btn:hover:not(:disabled){background:#2C1E00}
+.cam-prompt-btn:disabled{opacity:.4;cursor:not-allowed}
+.cam-chat-body{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:320px}
+.cam-thread{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.cam-thread::-webkit-scrollbar{width:4px}
+.cam-thread::-webkit-scrollbar-thumb{background:var(--gray-2);border-radius:2px}
+.cam-msg{display:flex;gap:8px;align-items:flex-start}
+.cam-msg.user{flex-direction:row-reverse}
+.cam-msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.cam-msg.agent .cam-msg-avatar{background:var(--gold-gradient);color:#fff}
+.cam-msg.user .cam-msg-avatar{background:var(--gray-2);color:var(--gray-4)}
+.cam-msg-bubble{max-width:76%;padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.55}
+.cam-msg.agent .cam-msg-bubble{background:var(--gray-1);border:1px solid var(--gray-2);border-radius:12px 12px 12px 3px}
+.cam-msg.user .cam-msg-bubble{background:var(--black);color:#fff;border-radius:12px 12px 3px 12px}
+.cam-typing-dots{display:flex;gap:4px;padding:4px 2px}
+.cam-typing-dots span{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:camDot 1.4s ease infinite}
+.cam-typing-dots span:nth-child(2){animation-delay:.2s}
+.cam-typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes camDot{0%,80%,100%{opacity:.25;transform:scale(.9)}40%{opacity:1;transform:scale(1.1)}}
+.cam-options{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.cam-option-btn{padding:8px 12px;background:var(--white);border:1.5px solid var(--gray-2);border-radius:8px;font-size:12px;font-family:var(--font-body);color:var(--text);cursor:pointer;text-align:left;transition:all .15s;display:flex;align-items:center;gap:8px}
+.cam-option-btn:hover{border-color:var(--gold);background:rgba(184,134,11,.05)}
+.cam-option-btn[data-selected="true"]{border-color:var(--gold);background:rgba(184,134,11,.08);color:var(--brown-warm)}
+.cam-option-num{width:20px;height:20px;border-radius:50%;background:var(--gold-gradient);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cam-input-row{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--gray-2);align-items:flex-end;flex-shrink:0}
+.cam-input{flex:1;padding:9px 12px;border:1.5px solid var(--gray-2);border-radius:12px;font-size:13px;font-family:var(--font-body);color:var(--text);background:var(--gray-1);outline:none;resize:none;min-height:38px;max-height:100px;overflow-y:auto;transition:all .18s;line-height:1.5}
+.cam-input:focus{border-color:var(--gold);background:var(--white)}
+.cam-btn-send{padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;flex-shrink:0}
+.cam-btn-send:hover:not(:disabled){background:#2C1E00}
+.cam-btn-send:disabled{opacity:.4;cursor:not-allowed}
+.cam-result{padding:14px 18px 18px;border-top:1px solid var(--gray-2);flex-shrink:0}
+.cam-result-card{background:rgba(184,134,11,.05);border:1.5px solid rgba(184,134,11,.22);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.cam-result-nome{font-family:var(--font-heading);font-size:15px;font-weight:700;color:var(--black);margin-bottom:4px}
+.cam-result-desc{font-size:12px;color:var(--gray-3);margin-bottom:8px;line-height:1.5}
+.cam-result-chips{display:flex;flex-wrap:wrap;gap:5px}
+.cam-result-chip{padding:2px 10px;border-radius:100px;background:rgba(184,134,11,.12);border:1px solid rgba(184,134,11,.25);font-size:11px;font-weight:600;color:#6b4d00}
+.cam-result-actions{display:flex;gap:8px}
+.cam-btn-confirmar{flex:1;padding:12px;background:var(--gold-gradient);color:#fff;border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:700;font-family:var(--font-heading);cursor:pointer;transition:all .15s}
+.cam-btn-confirmar:hover:not(:disabled){opacity:.9;transform:translateY(-1px)}
+.cam-btn-confirmar:disabled{opacity:.5;cursor:not-allowed}
+.cam-btn-refazer{padding:12px 18px;background:none;border:1.5px solid var(--gray-2);border-radius:var(--radius-pill);font-size:13px;color:var(--gray-3);font-family:var(--font-body);cursor:pointer;transition:all .15s}
+.cam-btn-refazer:hover{border-color:var(--gray-3);color:var(--black)}
+.cam-error{font-size:12px;color:#DC2626;padding:4px 18px;flex-shrink:0;display:none}
+.cam-error.visible{display:block}
+.cam-loading-phase{font-size:12px;color:var(--gray-3);font-style:italic}
+.cam-loading-dots::after{content:'';animation:camLoadDots 1.2s steps(4,end) infinite}
+@keyframes camLoadDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+.cam-bus-section{margin-bottom:4px}
+.cam-bus-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-3);margin-bottom:8px}
+.cam-bus{display:flex;flex-wrap:wrap;gap:6px}
+.cam-bu-chip{padding:6px 14px;border:1.5px solid var(--gray-2);border-radius:var(--radius-pill);font-size:13px;font-family:var(--font-body);color:var(--gray-4);background:var(--white);cursor:pointer;transition:all .15s;font-weight:500}
+.cam-bu-chip:hover{border-color:var(--gold);color:var(--brown-warm);background:rgba(184,134,11,.04)}
+.cam-bu-chip.selected{border-color:var(--gold);background:rgba(184,134,11,.10);color:var(--brown-warm);font-weight:600}
+.cam-prompt-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cam-manual-link{font-size:12px;color:var(--gray-3);background:none;border:none;cursor:pointer;font-family:var(--font-body);text-decoration:underline;padding:0;flex-shrink:0}
+.cam-manual-link:hover{color:var(--black)}
 </style>
 </head>
 <body>
@@ -2486,6 +2559,56 @@ tbody tr:last-child td { border-bottom: none; }
   </div>
 </div>
 
+<!-- Modal Agente: Criar Campanha com IA -->
+<div class="cam-overlay" id="cam-overlay" onclick="if(event.target===this)camClose()">
+  <div class="cam-modal">
+    <div class="cam-header">
+      <div class="cam-header-icon">✦</div>
+      <div class="cam-header-title">Nova campanha</div>
+      <span class="cam-header-badge">com IA</span>
+      <button class="cam-close" onclick="camClose()">✕</button>
+    </div>
+
+    <!-- Step 1: prompt inicial -->
+    <div class="cam-prompt-body" id="cam-prompt-step">
+      <div id="cam-bus-section" class="cam-bus-section" style="display:none">
+        <div class="cam-bus-label">Para qual negócio?</div>
+        <div class="cam-bus" id="cam-bus-chips"></div>
+      </div>
+      <div>
+        <div class="cam-prompt-label">Qual o objetivo desta campanha?</div>
+        <div class="cam-prompt-hint">Descreva o que você quer alcançar — o agente vai configurar os filtros e criar o nome para você.</div>
+      </div>
+      <textarea class="cam-prompt-textarea" id="cam-prompt-input" placeholder="Ex: Quero patrocinar eventos de lifestyle em SP para lançar minha nova linha de produtos..." oninput="camValidatePrompt()" onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.metaKey){event.preventDefault();camIniciar()}"></textarea>
+      <div class="cam-prompt-footer">
+        <button class="cam-manual-link" onclick="camAbrirManual()">Criar manualmente</button>
+        <button class="cam-prompt-btn" id="cam-prompt-btn" disabled onclick="camIniciar()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Criar com IA →
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: chat -->
+    <div class="cam-chat-body" id="cam-chat-step" style="display:none">
+      <div class="cam-thread" id="cam-thread"></div>
+      <div class="cam-error" id="cam-error"></div>
+      <div class="cam-input-row" id="cam-input-row">
+        <textarea class="cam-input" id="cam-input" placeholder="Responda ao agente..." rows="1" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();camEnviar()}"></textarea>
+        <button class="cam-btn-send" id="cam-btn-send" onclick="camEnviar()">Enviar</button>
+      </div>
+      <!-- Step 3: result (dentro do chat-step) -->
+      <div class="cam-result" id="cam-result-step" style="display:none">
+        <div class="cam-result-card" id="cam-result-card"></div>
+        <div class="cam-result-actions">
+          <button class="cam-btn-refazer" onclick="camRefazer()">Ajustar</button>
+          <button class="cam-btn-confirmar" id="cam-btn-confirmar" onclick="camConfirmar()">✦ Criar campanha →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ═══════════════════════════════════════
    RADAR RELEVANTIA — Dashboard Marca MVP
@@ -2632,7 +2755,7 @@ async function init() {
     updateDashboardKPIs();
     renderDashboardTimeline();
     renderDashboardPropostasRecentes();
-    loadCampanhas();
+    await loadCampanhas();
 
     // Check hash for deep linking
     const hash = window.location.hash.replace('#', '');
@@ -2676,13 +2799,14 @@ async function loadUserInfo() {
         try {
           const token = await getValidToken();
           if (token) {
-            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,segmento,website,descricao,telefone,cargo,empresa_domain,logo_url,cadastro_juridico_completo,empresa_change_pending&id=eq.' + user.id, {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,segmento,website,descricao,telefone,cargo,empresa_domain,logo_url,cadastro_juridico_completo,empresa_change_pending,brand_brief&id=eq.' + user.id, {
               headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
             });
             if (res.ok) {
               const rows = await res.json();
               if (rows.length > 0) {
                 const p = rows[0];
+                window._dashBrandProfile = p;
                 setUserInfo(p.nome || nome, p.email || email, p.empresa);
                 populateConfigFields(p);
               }
@@ -6074,6 +6198,12 @@ let _mc_pending_opp_id = null;
 let _mc_pending_filtros = null;
 
 function openCriarCampanhaModal(campanha, pendingOppId, pendingFiltros) {
+  // Nova campanha sem filtros pendentes → agente de IA
+  if (!campanha && !pendingFiltros) {
+    if (typeof camOpen === 'function') camOpen(pendingOppId || null);
+    return;
+  }
+  // Editar existente ou salvar filtros como campanha → modal simples
   _mc_pending_opp_id = pendingOppId || null;
   _mc_pending_filtros = pendingFiltros || null;
   const overlay = document.getElementById('modal-campanha-overlay');
@@ -7522,6 +7652,319 @@ async function loadFinanceiroMarca() {
   // const lista = document.getElementById('finMarcaPagamentosLista');
   // TODO: buscar pagamentos pendentes via API
 }
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════
+   AGENTE DE CRIAÇÃO DE CAMPANHAS  (cam-*)
+   ══════════════════════════════════════════════════ */
+(function(){
+  const CAM_API_BASE = window.location.protocol === 'file:' ? 'https://radar-relevantia.com.br' : '';
+  let _st = { loading: false, history: [], lastResult: null, pendingOppId: null };
+
+  function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function _html(t){ return _esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
+  function _showErr(m){ const e=document.getElementById('cam-error'); if(e){e.textContent=m;e.classList.toggle('visible',!!m);} }
+  function _setLoading(on){
+    _st.loading=on;
+    const s=document.getElementById('cam-btn-send'),i=document.getElementById('cam-input');
+    if(s)s.disabled=on; if(i)i.disabled=on;
+  }
+  function _addMsg(role,html,isTyping=false){
+    const t=document.getElementById('cam-thread');
+    const d=document.createElement('div'); d.className=`cam-msg ${role}`;
+    d.innerHTML=`<div class="cam-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="cam-msg-bubble">${isTyping?'<div class="cam-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
+    if(isTyping)d.id='cam-typing-msg';
+    t.appendChild(d); t.scrollTop=t.scrollHeight; return d;
+  }
+  function _removeTyping(){ const e=document.getElementById('cam-typing-msg'); if(e)e.remove(); }
+  function _phaseUpdate(phases,idx){
+    const el=document.getElementById('cam-typing-msg'); if(!el)return;
+    el.querySelector('.cam-msg-bubble').innerHTML=`<span class="cam-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="cam-loading-dots"></span></span>`;
+  }
+
+  async function _callAPI(messages, brandProfile, token){
+    const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),150000);
+    try {
+      const r=await fetch(CAM_API_BASE+'/api/gemini-campaign-agent',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+        body:JSON.stringify({messages,brandProfile}),
+        signal:ctrl.signal
+      });
+      clearTimeout(timer);
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(data.error||`Erro HTTP ${r.status}`);
+      if(!data.text)throw new Error('Resposta vazia.');
+      return data.text;
+    } catch(err){ clearTimeout(timer); if(err.name==='AbortError')throw new Error('IA demorou. Tente novamente.'); throw err; }
+  }
+
+  function _parse(raw){
+    try{ return JSON.parse(raw.trim().replace(/^```json\s*/i,'').replace(/```\s*$/,'')); }
+    catch(e){ return null; }
+  }
+
+  function _getChips(filtro){
+    const chips=[];
+    if(!filtro)return chips;
+    const TIPO={personalidade:'Personalidade',evento:'Evento',artista:'Artista Musical',midia:'Mídia'};
+    if(filtro.tipo&&filtro.tipo!=='todos')chips.push(TIPO[filtro.tipo]||filtro.tipo);
+    const s=filtro.sel||{};
+    if(s.segmento)s.segmento.forEach(x=>chips.push(x));
+    if(s.alcance)s.alcance.forEach(x=>chips.push(x));
+    const IL=['Até R$ 10k','R$ 10k–50k','R$ 50k–200k','R$ 200k+'];
+    if(s.invest)s.invest.forEach(i=>{if(IL[+i])chips.push(IL[+i]);});
+    if((filtro.toggles||{}).incentivo)chips.push('Lei de Incentivo');
+    if((filtro.toggles||{}).cotas)chips.push('Com cotas');
+    return chips;
+  }
+
+  function _mostrarResult(campanha){
+    if(!campanha)return;
+    const chips=_getChips(campanha.filtro);
+    let html=`<div class="cam-result-nome">${_esc(campanha.nome||'Nova Campanha')}</div>`;
+    if(campanha.descricao_objetivo)html+=`<div class="cam-result-desc">${_esc(campanha.descricao_objetivo)}</div>`;
+    if(chips.length)html+=`<div class="cam-result-chips">${chips.map(c=>`<span class="cam-result-chip">${_esc(c)}</span>`).join('')}</div>`;
+    document.getElementById('cam-result-card').innerHTML=html;
+    document.getElementById('cam-result-step').style.display='block';
+    document.getElementById('cam-input-row').style.display='none';
+    _st.lastResult=campanha;
+  }
+
+  function _renderMsg(parsed){
+    if(!parsed){ _addMsg('agent','<span style="color:#DC2626">❌ Erro. Tente novamente.</span>'); return; }
+    let html='';
+    if(parsed.resumo)html+=`${_html(parsed.resumo)}<br><br>`;
+    if(parsed.concluido){
+      html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br><span style="font-size:12px;color:#A89880">Revise abaixo e confirme para criar.</span>`;
+      _addMsg('agent',html);
+      setTimeout(()=>_mostrarResult(parsed.campanha),300);
+      return;
+    }
+    if(parsed.pergunta)html+=_html(parsed.pergunta);
+    if(parsed.opcoes?.length){
+      const mid='cam_opts_'+Date.now();
+      const isMulti=!!parsed.multiselect;
+      let oHtml=`<div class="cam-options" id="${mid}">`;
+      parsed.opcoes.forEach((o,i)=>{
+        if(isMulti){
+          oHtml+=`<button type="button" class="cam-option-btn" data-opc="${_esc(o)}" data-group="${mid}" onclick="window._camToggleOpc(this)"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
+        } else {
+          oHtml+=`<button type="button" class="cam-option-btn" onclick="window._camSelOpc(${JSON.stringify(o)})"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
+        }
+      });
+      if(isMulti)oHtml+=`<button type="button" id="cam_confirm_${mid}" onclick="window._camEnviarMulti('${mid}')" style="display:none;margin-top:4px;padding:10px 18px;background:#1A1200;color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;width:100%">Confirmar seleção →</button>`;
+      oHtml+=`<button type="button" class="cam-option-btn" style="color:var(--gray-3)" onclick="document.getElementById('cam-input').focus()"><span class="cam-option-num" style="background:var(--gray-2);color:var(--gray-4)">${parsed.opcoes.length+1}</span><span>Descreva melhor</span></button>`;
+      oHtml+='</div>';
+      html+=oHtml;
+    }
+    _addMsg('agent',html);
+  }
+
+  function _buildBusChips(){
+    const brief=window._dashBrandProfile?.brand_brief;
+    const negocios=brief?.negocios?.valor??brief?.negocios??[];
+    const section=document.getElementById('cam-bus-section');
+    const chips=document.getElementById('cam-bus-chips');
+    if(!section||!chips)return;
+    if(!negocios.length){section.style.display='none';return;}
+    chips.innerHTML='';
+    negocios.forEach(n=>{
+      const nome=typeof n==='string'?n:(n.nome||''); if(!nome)return;
+      const btn=document.createElement('button');
+      btn.type='button'; btn.className='cam-bu-chip';
+      btn.textContent=nome; btn.dataset.negocio=nome;
+      btn.onclick=()=>_camToggleBu(btn);
+      chips.appendChild(btn);
+    });
+    ['Campanha institucional','Outro projeto'].forEach(label=>{
+      const btn=document.createElement('button');
+      btn.type='button'; btn.className='cam-bu-chip';
+      btn.textContent=label; btn.dataset.negocio=label;
+      btn.onclick=()=>_camToggleBu(btn);
+      chips.appendChild(btn);
+    });
+    section.style.display='block';
+  }
+
+  function _camToggleBu(btn){
+    const wasSelected=btn.classList.contains('selected');
+    document.querySelectorAll('#cam-bus-chips .cam-bu-chip').forEach(b=>b.classList.remove('selected'));
+    if(!wasSelected)btn.classList.add('selected');
+  }
+
+  // ── API pública ──────────────────────────────────────────────────
+  window.camOpen = function(pendingOppId){
+    _st={loading:false,history:[],lastResult:null,pendingOppId:pendingOppId||null};
+    const ps=document.getElementById('cam-prompt-step');
+    const cs=document.getElementById('cam-chat-step');
+    ps.style.display='flex'; ps.style.flexDirection='column';
+    cs.style.display='none';
+    document.getElementById('cam-result-step').style.display='none';
+    document.getElementById('cam-input-row').style.display='flex';
+    document.getElementById('cam-thread').innerHTML='';
+    document.getElementById('cam-prompt-input').value='';
+    document.getElementById('cam-prompt-btn').disabled=true;
+    _showErr('');
+    _buildBusChips();
+    document.getElementById('cam-overlay').classList.add('open');
+    setTimeout(()=>document.getElementById('cam-prompt-input')?.focus(),120);
+  };
+
+  window.camClose = function(){
+    document.getElementById('cam-overlay').classList.remove('open');
+  };
+
+  window.camValidatePrompt = function(){
+    const v=(document.getElementById('cam-prompt-input')?.value||'').trim();
+    const btn=document.getElementById('cam-prompt-btn');
+    if(btn)btn.disabled=!v;
+  };
+
+  window.camRefazer = function(){
+    document.getElementById('cam-result-step').style.display='none';
+    document.getElementById('cam-input-row').style.display='flex';
+    _st.lastResult=null;
+    setTimeout(()=>document.getElementById('cam-input')?.focus(),80);
+  };
+
+  window.camIniciar = async function(){
+    const desc=(document.getElementById('cam-prompt-input')?.value||'').trim();
+    if(!desc)return;
+    const session=typeof getSessionAsync==='function'?await getSessionAsync('brand'):null;
+    const token=session?.access_token;
+    if(!token){ alert('Sessão expirada. Faça login novamente.'); return; }
+    const brandProfile=window._dashBrandProfile||null;
+
+    const selectedBuBtn=document.querySelector('#cam-bus-chips .cam-bu-chip.selected');
+    const selectedBu=selectedBuBtn?selectedBuBtn.dataset.negocio:null;
+    const firstMsg=selectedBu?`Negócio foco: ${selectedBu}\n\nObjectivo: ${desc}`:desc;
+
+    document.getElementById('cam-prompt-step').style.display='none';
+    document.getElementById('cam-chat-step').style.display='flex';
+
+    _addMsg('user',_html(selectedBu?`[${selectedBu}] ${desc}`:desc));
+    _setLoading(true); _addMsg('agent','',true);
+
+    const phases=['🧠 Analisando o perfil da marca','✦ Configurando filtros','✍️ Criando proposta de campanha'];
+    let pi=0; const pt=setInterval(()=>_phaseUpdate(phases,++pi),3000);
+    try {
+      _st.history=[{role:'user',content:firstMsg}];
+      const raw=await _callAPI(_st.history,brandProfile,token);
+      clearInterval(pt); _removeTyping();
+      _st.history.push({role:'assistant',content:raw});
+      _renderMsg(_parse(raw));
+    } catch(err){
+      clearInterval(pt); _removeTyping();
+      _showErr(err.message||'Erro ao processar.');
+    } finally { _setLoading(false); }
+  };
+
+  window.camAbrirManual = function(){
+    const pendingOppId=_st.pendingOppId;
+    window.camClose();
+    _mc_pending_opp_id=pendingOppId||null;
+    _mc_pending_filtros=null;
+    document.getElementById('mc-edit-id').value='';
+    document.getElementById('mc-nome').value='';
+    document.getElementById('mc-descricao').value='';
+    const titleEl=document.getElementById('modal-campanha-title');
+    const btnSalvar=document.getElementById('mc-btn-salvar');
+    if(titleEl)titleEl.textContent='Nova campanha';
+    if(btnSalvar){btnSalvar.textContent='Criar campanha';btnSalvar.disabled=true;btnSalvar.style.opacity='0.4';}
+    document.getElementById('modal-campanha-overlay')?.classList.add('open');
+  };
+
+  window.camEnviar = async function(){
+    if(_st.loading)return;
+    const input=document.getElementById('cam-input');
+    const text=(input?.value||'').trim(); if(!text)return;
+    _showErr(''); input.value=''; input.style.height='auto';
+    _addMsg('user',_html(text)); _st.history.push({role:'user',content:text});
+    _setLoading(true); _addMsg('agent','',true);
+    const phases=['🧠 Processando','✦ Ajustando filtros'];
+    let pi=0; const pt=setInterval(()=>_phaseUpdate(phases,++pi),3000);
+    const session=typeof getSessionAsync==='function'?await getSessionAsync('brand'):null;
+    const token=session?.access_token;
+    try {
+      if(!token)throw new Error('Sessão expirada.');
+      const raw=await _callAPI(_st.history,window._dashBrandProfile||null,token);
+      clearInterval(pt); _removeTyping();
+      _st.history.push({role:'assistant',content:raw});
+      _renderMsg(_parse(raw));
+    } catch(err){
+      clearInterval(pt); _removeTyping();
+      _showErr(err.message||'Erro.');
+    } finally { _setLoading(false); const t=document.getElementById('cam-thread');if(t)t.scrollTop=999999; }
+  };
+
+  window._camSelOpc=function(text){ if(_st.loading)return; const i=document.getElementById('cam-input'); if(i){i.value=text;window.camEnviar();} };
+  window._camToggleOpc=function(btn){
+    if(_st.loading)return;
+    const sel=btn.getAttribute('data-selected')==='true';
+    btn.setAttribute('data-selected',sel?'false':'true');
+    btn.style.borderColor=sel?'':'#B8860B';
+    btn.style.background=sel?'':'rgba(184,134,11,0.08)';
+    btn.style.color=sel?'':'#7A5C1E';
+    const gid=btn.getAttribute('data-group');
+    const container=document.getElementById(gid); if(!container)return;
+    const any=container.querySelectorAll('[data-selected="true"]').length>0;
+    const cb=document.getElementById('cam_confirm_'+gid);
+    if(cb)cb.style.display=any?'block':'none';
+  };
+  window._camEnviarMulti=function(gid){
+    if(_st.loading)return;
+    const container=document.getElementById(gid); if(!container)return;
+    const sel=[...container.querySelectorAll('[data-selected="true"]')].map(b=>b.dataset.opc).filter(Boolean);
+    if(!sel.length)return;
+    const i=document.getElementById('cam-input'); if(i){i.value=sel.join(', ');window.camEnviar();}
+  };
+
+  window.camConfirmar = async function(){
+    const campanha=_st.lastResult; if(!campanha)return;
+    const btn=document.getElementById('cam-btn-confirmar');
+    if(btn){btn.disabled=true;btn.textContent='Criando...';}
+    const session=typeof getSessionAsync==='function'?await getSessionAsync('brand'):null;
+    const marcaId=session?.user?.id, token=session?.access_token;
+    if(!marcaId||!token){ if(btn){btn.disabled=false;btn.textContent='✦ Criar campanha →';} return; }
+
+    const payload={
+      marca_id:marcaId,
+      nome:campanha.nome||'Nova Campanha',
+      descricao:campanha.descricao_objetivo||null
+    };
+    if(campanha.filtro)payload.filtros=campanha.filtro;
+
+    try {
+      const res=await fetch(SUPABASE_URL+'/rest/v1/campanhas',{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'},
+        body:JSON.stringify(payload)
+      });
+      if(!res.ok)throw new Error('Erro ao salvar.');
+      const data=await res.json();
+      const newId=Array.isArray(data)?data[0]?.id:data?.id;
+
+      if(newId&&_st.pendingOppId){
+        await fetch(SUPABASE_URL+'/rest/v1/campanha_oportunidades',{
+          method:'POST',
+          headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
+          body:JSON.stringify({campanha_id:newId,oportunidade_id:_st.pendingOppId,marca_id:marcaId})
+        });
+      }
+
+      window.camClose();
+      await loadCampanhas();
+      renderCampanhasPanel();
+      if(typeof showToast==='function')showToast('Campanha criada com IA!','success');
+      if(newId){ const nova=_CAMPANHAS.find(x=>x.id===newId); if(nova)abrirCampanhaDetalhe(nova.id,nova.nome); }
+    } catch(err){
+      if(typeof showToast==='function')showToast('Erro ao criar campanha.','error');
+      if(btn){btn.disabled=false;btn.textContent='✦ Criar campanha →';}
+    }
+  };
+})();
 </script>
 
 </body>
