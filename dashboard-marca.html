@@ -3662,11 +3662,12 @@ function _rebuildFavIds() {
 }
 
 async function loadCampanhaOpps() {
-  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
-  if (!session || !session.user) return;
+  const marcaId = await getAuthUserId();
+  const token   = await getValidToken();
+  if (!marcaId || !token) return;
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?select=campanha_id,oportunidade_id&marca_id=eq.' + session.user.id, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?select=campanha_id,oportunidade_id&marca_id=eq.' + marcaId, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
     if (!res.ok) return;
     const rows = await res.json();
@@ -3734,15 +3735,16 @@ function _buildMscMosaic(opps) {
 }
 
 async function toggleOppInCampanha(campanhaId, oppId) {
-  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
-  if (!session || !session.user) return;
+  const marcaId = await getAuthUserId();
+  const token   = await getValidToken();
+  if (!marcaId || !token) return;
   if (!_CAMPANHA_OPPS[campanhaId]) _CAMPANHA_OPPS[campanhaId] = new Set();
   const isIn = _CAMPANHA_OPPS[campanhaId].has(oppId);
   if (isIn) {
     // Remover
-    const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?campanha_id=eq.' + campanhaId + '&oportunidade_id=eq.' + oppId + '&marca_id=eq.' + session.user.id, {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?campanha_id=eq.' + campanhaId + '&oportunidade_id=eq.' + oppId + '&marca_id=eq.' + marcaId, {
       method: 'DELETE',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
     if (res.ok) {
       _CAMPANHA_OPPS[campanhaId].delete(oppId);
@@ -3754,8 +3756,8 @@ async function toggleOppInCampanha(campanhaId, oppId) {
     // Adicionar
     const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades', {
       method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ campanha_id: campanhaId, oportunidade_id: oppId, marca_id: session.user.id })
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ campanha_id: campanhaId, oportunidade_id: oppId, marca_id: marcaId })
     });
     if (res.ok) {
       _CAMPANHA_OPPS[campanhaId].add(oppId);
@@ -4062,12 +4064,12 @@ function ffCloseCampPicker() {
 
 async function ffSaveFiltrosToCampanha(campanhaId) {
   ffCloseCampPicker();
-  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
-  if (!session || !session.user) return;
+  const token = await getValidToken();
+  if (!token) return;
   const filtros = ffSerializeState(_ffState);
   const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas?id=eq.' + campanhaId, {
     method: 'PATCH',
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
     body: JSON.stringify({ filtros })
   });
   if (res.ok) {
@@ -6079,12 +6081,12 @@ function switchPropostasTab(tab) {
 let _CAMPANHAS = [];
 
 async function loadCampanhas() {
-  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
-  const marcaId = session && session.user ? session.user.id : null;
-  if (!marcaId) return;
+  const marcaId = await getAuthUserId();
+  const token   = await getValidToken();
+  if (!marcaId || !token) return;
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas?select=*&marca_id=eq.' + marcaId + '&order=created_at.desc', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
     _CAMPANHAS = res.ok ? (await res.json()) : [];
     const badge = document.getElementById('navBadgeCampanhas');
@@ -6247,11 +6249,12 @@ function abrirCampanhaDetalhe(campanhaId, campanhaNome) {
 }
 
 async function removeOppFromCampanha(campanhaId, oppId) {
-  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
-  if (!session || !session.user) return;
-  const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?campanha_id=eq.' + campanhaId + '&oportunidade_id=eq.' + oppId + '&marca_id=eq.' + session.user.id, {
+  const marcaId = await getAuthUserId();
+  const token   = await getValidToken();
+  if (!marcaId || !token) return;
+  const res = await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades?campanha_id=eq.' + campanhaId + '&oportunidade_id=eq.' + oppId + '&marca_id=eq.' + marcaId, {
     method: 'DELETE',
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
   });
   if (res.ok) {
     if (_CAMPANHA_OPPS[campanhaId]) _CAMPANHA_OPPS[campanhaId].delete(oppId);
@@ -6346,12 +6349,12 @@ function editarCampanha(campanhaId) {
 
 async function deletarCampanha(campanhaId, campanhaNome) {
   if (!confirm(`Excluir a campanha "${campanhaNome}"?\n\nAs propostas vinculadas não serão excluídas.`)) return;
-  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
-  if (!session) return;
+  const token = await getValidToken();
+  if (!token) return;
   try {
     const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas?id=eq.' + campanhaId, {
       method: 'DELETE',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token }
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
     if (res.ok) {
       await loadCampanhas();
@@ -6369,9 +6372,9 @@ async function salvarCampanha() {
   const btn = document.getElementById('mc-btn-salvar');
   if (btn) btn.disabled = true;
 
-  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : (typeof getSession === 'function' ? getSession('brand') : null);
-  const marcaId = session && session.user ? session.user.id : null;
-  if (!marcaId) return;
+  const marcaId = await getAuthUserId();
+  const token   = await getValidToken();
+  if (!marcaId || !token) { if (btn) btn.disabled = false; return; }
 
   const editId = document.getElementById('mc-edit-id').value;
   const nome = (document.getElementById('mc-nome') || {}).value || '';
@@ -6387,14 +6390,14 @@ async function salvarCampanha() {
     if (editId) {
       res = await fetch(SUPABASE_URL + '/rest/v1/campanhas?id=eq.' + editId, {
         method: 'PATCH',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
         body: JSON.stringify(payload)
       });
     } else {
       payload.marca_id = marcaId;
       res = await fetch(SUPABASE_URL + '/rest/v1/campanhas', {
         method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
         body: JSON.stringify(payload)
       });
     }
@@ -6408,7 +6411,7 @@ async function salvarCampanha() {
           if (_mc_pending_opp_id) {
             await fetch(SUPABASE_URL + '/rest/v1/campanha_oportunidades', {
               method: 'POST',
-              headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+              headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
               body: JSON.stringify({ campanha_id: newId, oportunidade_id: _mc_pending_opp_id, marca_id: marcaId })
             });
           }
@@ -7980,8 +7983,7 @@ async function loadFinanceiroMarca() {
   window.camIniciar = async function(){
     const desc=(document.getElementById('cam-prompt-input')?.value||'').trim();
     if(!desc)return;
-    const session=typeof getSessionAsync==='function'?await getSessionAsync('brand'):null;
-    const token=session?.access_token;
+    const token=await getValidToken();
     if(!token){ alert('Sessão expirada. Faça login novamente.'); return; }
     const brandProfile=window._dashBrandProfile||null;
 
@@ -8039,8 +8041,7 @@ async function loadFinanceiroMarca() {
     _setLoading(true); _addMsg('agent','',true);
     const phases=['🧠 Processando','✦ Ajustando filtros'];
     let pi=0; const pt=setInterval(()=>_phaseUpdate(phases,++pi),3000);
-    const session=typeof getSessionAsync==='function'?await getSessionAsync('brand'):null;
-    const token=session?.access_token;
+    const token=await getValidToken();
     try {
       if(!token)throw new Error('Sessão expirada.');
       const raw=await _callAPI(_st.history,window._dashBrandProfile||null,token);
@@ -8080,8 +8081,7 @@ async function loadFinanceiroMarca() {
     const isUpdate=!!_st.editingCampanha;
     const btn=document.getElementById('cam-btn-confirmar');
     if(btn){btn.disabled=true;btn.textContent=isUpdate?'Atualizando...':'Criando...';}
-    const session=typeof getSessionAsync==='function'?await getSessionAsync('brand'):null;
-    const marcaId=session?.user?.id, token=session?.access_token;
+    const marcaId=await getAuthUserId(), token=await getValidToken();
     if(!marcaId||!token){ if(btn){btn.disabled=false;btn.textContent=isUpdate?'✦ Atualizar campanha →':'✦ Criar campanha →';} return; }
 
     const payload={
