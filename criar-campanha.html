@@ -160,13 +160,13 @@
   <a class="topbar-logo" href="#">✦ Radar Relevantia</a>
   <span class="topbar-sep">/</span>
   <span class="topbar-title">Criar campanha</span>
-  <div class="topbar-right"><span class="topbar-badge">Teste</span></div>
+  <div class="topbar-right"><a href="/dashboard-marca.html" id="linkPular" style="font-size:12px;color:var(--gray-3);text-decoration:none">Pular por agora →</a></div>
 </div>
 
 <div class="main"><div class="main-inner">
 
-  <!-- Token -->
-  <div id="token-section">
+  <!-- Token (fallback teste local — oculto em produção; só aparece sem sessão) -->
+  <div id="token-section" class="hidden">
     <div class="token-label">Token de acesso (teste local)<span class="token-ok" id="tokenOk">✓ Ativo</span></div>
     <div class="token-row">
       <input type="password" class="token-input" id="tokenInput" placeholder="Cole seu JWT…" />
@@ -275,17 +275,51 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/core.js"></script>
 <script>
-const _st = { history:[], lastResult:null, loading:false, token:null, brandProfile:null };
+const _st = { history:[], lastResult:null, loading:false, token:null, brandProfile:null, marcaId:null };
 const API_BASE = window.location.protocol==='file:' ? 'https://radar-relevantia.com.br' : '';
 
 // ── Auth ──────────────────────────────────────────────────────────
 async function getToken() {
   if (_st.token) return _st.token;
-  try { const b=await getSessionAsync('brand'); if(b?.access_token) return b.access_token; } catch(e){}
+  try { const b=await getSessionAsync('brand'); if(b?.access_token){ _st.marcaId=b.user?.id; return b.access_token; } } catch(e){}
   try { const r=await getSessionAsync('rightsholder'); if(r?.access_token) return r.access_token; } catch(e){}
   return null;
 }
-(async()=>{ const t=await getToken(); if(t){_st.token=t;document.getElementById('token-section').classList.add('hidden');} })();
+
+// ── Init: exige sessão e carrega o brand_brief real do agente de marca ──
+(async () => {
+  const t = await getToken();
+  // Sem sessão → volta para o acesso de marca
+  if (!t) { window.location.href = '/acesso-marca.html'; return; }
+  _st.token = t;
+  document.getElementById('token-section')?.classList.add('hidden');
+
+  // Resolve marcaId (caso getToken não tenha capturado)
+  if (!_st.marcaId) {
+    try { const b = await getSessionAsync('brand'); _st.marcaId = b?.user?.id || null; } catch(e){}
+  }
+
+  // Busca o brand_brief gerado pelo agente de marca
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + _st.marcaId + '&select=empresa,brand_brief&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _st.token }
+    });
+    const data = await res.json().catch(() => []);
+    const brief = data?.[0]?.brand_brief;
+    if (brief) {
+      // brand_brief tem o mesmo shape esperado por mostrarBrandCard ({campo:{valor}})
+      _st.brandProfile = brief;
+      mostrarBrandCard(brief);
+    } else {
+      // Ainda não passou pelo agente de marca → faz o onboarding primeiro
+      window.location.href = '/onboarding-marca.html';
+    }
+  } catch(e) {
+    console.warn('Erro ao carregar brand_brief:', e);
+  }
+})();
+
+// Fallback de teste local (token manual) — usado só quando não há sessão
 function usarToken(){
   const v=document.getElementById('tokenInput').value.trim();
   if(!v||v.split('.').length!==3){alert('Token inválido.');return;}
@@ -619,10 +653,44 @@ function mostrarCampanha() {
   document.getElementById('section-campanha').scrollIntoView({behavior:'smooth'});
 }
 
-function criarCampanha(){
-  console.log('[campaign-agent] Campanha:', _st.lastResult?.campanha);
-  const btn=document.getElementById('btnCriar');
-  btn.textContent='✓ Campanha criada!';btn.classList.add('saved');btn.disabled=true;
+async function criarCampanha(){
+  const c = _st.lastResult?.campanha;
+  if (!c) { showError('Nenhuma campanha configurada.'); return; }
+  const btn = document.getElementById('btnCriar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando…';
+
+  // Mapeia a saída do agente → colunas da tabela campanhas.
+  // c.filtro já tem o shape { tipo, sel, toggles } esperado por ffDeserializeState no dashboard.
+  const payload = {
+    nome: (c.nome || 'Minha primeira campanha').trim(),
+    descricao: c.descricao_objetivo || c.negocio_alvo || null,
+    marca_id: _st.marcaId,
+    filtros: c.filtro || null
+  };
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + _st.token,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    btn.textContent = '✓ Campanha criada!';
+    btn.classList.add('saved');
+    // Segue para o dashboard
+    setTimeout(() => { window.location.href = '/dashboard-marca.html'; }, 700);
+  } catch(e) {
+    console.error('[campaign-agent] Erro ao criar campanha:', e);
+    showError('Erro ao salvar a campanha. Tente novamente.');
+    btn.disabled = false;
+    btn.textContent = '✦ Criar esta campanha →';
+  }
 }
 
 function reiniciar(){

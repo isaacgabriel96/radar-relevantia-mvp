@@ -426,7 +426,8 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     const data = await res.json().catch(()=>[]);
     const perfil = data?.[0];
 
-    if (perfil?.brand_brief) { window.location.href='/dashboard-marca.html?nova_campanha=1'; return; }
+    // Já tem brief do agente de marca → segue para o agente de campanha (próximo passo do onboarding)
+    if (perfil?.brand_brief) { window.location.href='/criar-campanha.html'; return; }
 
     const empresa = perfil?.empresa || '';
     _st.brandName = empresa;
@@ -855,8 +856,8 @@ async function salvarPerfil() {
     }
   } catch(e) { console.warn('Erro ao salvar brief:', e); }
 
-  // Redireciona para o dashboard independente do resultado do save
-  window.location.href = '/dashboard-marca.html?nova_campanha=1';
+  // Brief salvo → segue para o agente de campanha (criar a 1ª campanha)
+  window.location.href = '/criar-campanha.html';
 }
 
 function reiniciar() {
