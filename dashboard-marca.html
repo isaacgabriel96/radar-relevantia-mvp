@@ -1684,6 +1684,10 @@ tbody tr:last-child td { border-bottom: none; }
           </button>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gray-2)"><polyline points="9 18 15 12 9 6"/></svg>
           <span class="campanha-detalhe-titulo" id="campanha-detalhe-nome"></span>
+          <button id="btn-atualizar-campanha" class="camp-filtros-edit" style="margin-left:auto;display:flex;align-items:center;gap:5px" onclick="camAtualizarCampanha()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Atualizar com IA
+          </button>
         </div>
         <div id="campanha-filtros-bar" class="camp-filtros-bar" style="display:none"></div>
         <div id="campanha-detalhe-grid"></div>
@@ -6044,6 +6048,7 @@ function renderCampanhasPanel() {
 }
 
 function abrirCampanhaDetalhe(campanhaId, campanhaNome) {
+  window._currentCampanhaId = campanhaId;
   const section = document.getElementById('campanha-propostas-section');
   const nomeEl = document.getElementById('campanha-detalhe-nome');
   const detalheGrid = document.getElementById('campanha-detalhe-grid');
@@ -7660,7 +7665,7 @@ async function loadFinanceiroMarca() {
    ══════════════════════════════════════════════════ */
 (function(){
   const CAM_API_BASE = window.location.protocol === 'file:' ? 'https://radar-relevantia.com.br' : '';
-  let _st = { loading: false, history: [], lastResult: null, pendingOppId: null };
+  let _st = { loading: false, history: [], lastResult: null, pendingOppId: null, editingCampanha: null };
 
   function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function _html(t){ return _esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
@@ -7735,6 +7740,8 @@ async function loadFinanceiroMarca() {
     document.getElementById('cam-result-card').innerHTML=html;
     document.getElementById('cam-result-step').style.display='block';
     document.getElementById('cam-input-row').style.display='none';
+    const btnConfirmar=document.getElementById('cam-btn-confirmar');
+    if(btnConfirmar)btnConfirmar.textContent=_st.editingCampanha?'✦ Atualizar campanha →':'✦ Criar campanha →';
     _st.lastResult=campanha;
   }
 
@@ -7768,30 +7775,26 @@ async function loadFinanceiroMarca() {
     _addMsg('agent',html);
   }
 
-  function _buildBusChips(){
+  function _buildBusChips(preSelected=[]){
     const brief=window._dashBrandProfile?.brand_brief;
     const negocios=brief?.negocios?.valor??brief?.negocios??[];
     const section=document.getElementById('cam-bus-section');
     const chips=document.getElementById('cam-bus-chips');
     if(!section||!chips)return;
     chips.innerHTML='';
-    // Adiciona chips dos negócios da marca (se existirem)
-    (Array.isArray(negocios)?negocios:[]).forEach(n=>{
-      const nome=typeof n==='string'?n:(n.nome||''); if(!nome)return;
+    const preSet=new Set(preSelected.map(s=>String(s).trim().toLowerCase()));
+    const makeChip=(nome)=>{
       const btn=document.createElement('button');
       btn.type='button'; btn.className='cam-bu-chip';
       btn.textContent=nome; btn.dataset.negocio=nome;
+      if(preSet.has(nome.trim().toLowerCase()))btn.classList.add('selected');
       btn.onclick=()=>_camToggleBu(btn);
       chips.appendChild(btn);
+    };
+    (Array.isArray(negocios)?negocios:[]).forEach(n=>{
+      const nome=typeof n==='string'?n:(n.nome||''); if(nome)makeChip(nome);
     });
-    // Sempre adiciona opções institucionais
-    ['Campanha institucional','Outro projeto'].forEach(label=>{
-      const btn=document.createElement('button');
-      btn.type='button'; btn.className='cam-bu-chip';
-      btn.textContent=label; btn.dataset.negocio=label;
-      btn.onclick=()=>_camToggleBu(btn);
-      chips.appendChild(btn);
-    });
+    ['Campanha institucional','Outro projeto'].forEach(makeChip);
     section.style.display='block';
   }
 
@@ -7800,8 +7803,8 @@ async function loadFinanceiroMarca() {
   }
 
   // ── API pública ──────────────────────────────────────────────────
-  window.camOpen = function(pendingOppId){
-    _st={loading:false,history:[],lastResult:null,pendingOppId:pendingOppId||null};
+  window.camOpen = function(pendingOppId, existingCampanha){
+    _st={loading:false,history:[],lastResult:null,pendingOppId:pendingOppId||null,editingCampanha:existingCampanha||null};
     const ps=document.getElementById('cam-prompt-step');
     const cs=document.getElementById('cam-chat-step');
     ps.style.display='flex'; ps.style.flexDirection='column';
@@ -7812,7 +7815,19 @@ async function loadFinanceiroMarca() {
     document.getElementById('cam-prompt-input').value='';
     document.getElementById('cam-prompt-btn').disabled=true;
     _showErr('');
-    _buildBusChips();
+    const preSelected=existingCampanha?.negocios||[];
+    _buildBusChips(preSelected);
+    // Atualiza label e badge do header
+    const title=document.querySelector('.cam-header-title');
+    const badge=document.querySelector('.cam-header-badge');
+    if(title)title.textContent=existingCampanha?'Atualizar campanha':'Nova campanha';
+    if(badge)badge.textContent='com IA';
+    // Preenche o prompt com contexto existente se for edição
+    if(existingCampanha){
+      const hint=document.getElementById('cam-prompt-hint');
+      if(hint)hint.textContent='Descreva o que quer ajustar — contexto, público, negócios ou filtros.';
+      document.getElementById('cam-prompt-input').placeholder='Ex: Quero ampliar o público para incluir jovens adultos e adicionar eventos de música...';
+    }
     document.getElementById('cam-overlay').classList.add('open');
     setTimeout(()=>document.getElementById('cam-prompt-input')?.focus(),120);
   };
@@ -7843,7 +7858,13 @@ async function loadFinanceiroMarca() {
     const brandProfile=window._dashBrandProfile||null;
 
     const selectedBus=[...document.querySelectorAll('#cam-bus-chips .cam-bu-chip.selected')].map(b=>b.dataset.negocio).filter(Boolean);
-    const firstMsg=selectedBus.length?`Negócios foco: ${selectedBus.join(', ')}\n\nObjectivo: ${desc}`:desc;
+    const existing=_st.editingCampanha;
+    let firstMsg='';
+    if(existing){
+      firstMsg=`[CAMPANHA EXISTENTE]\nNome: ${existing.nome||''}\nContexto: ${existing.contexto||'(não definido)'}\nPúblico: ${existing.definicao_publico||'(não definido)'}\nNegócios: ${(existing.negocios||[]).join(', ')||'(não definido)'}\nFiltros: ${existing.filtros?JSON.stringify(existing.filtros):'(não definido)'}\n\n`;
+    }
+    if(selectedBus.length)firstMsg+=`[NEGÓCIOS SELECIONADOS]\n${selectedBus.join(', ')}\n\n`;
+    firstMsg+=`[PEDIDO DO USUÁRIO]\n${desc}`;
     const userLabel=selectedBus.length?`[${selectedBus.join(', ')}] ${desc}`:desc;
 
     document.getElementById('cam-prompt-step').style.display='none';
@@ -7928,14 +7949,14 @@ async function loadFinanceiroMarca() {
 
   window.camConfirmar = async function(){
     const campanha=_st.lastResult; if(!campanha)return;
+    const isUpdate=!!_st.editingCampanha;
     const btn=document.getElementById('cam-btn-confirmar');
-    if(btn){btn.disabled=true;btn.textContent='Criando...';}
+    if(btn){btn.disabled=true;btn.textContent=isUpdate?'Atualizando...':'Criando...';}
     const session=typeof getSessionAsync==='function'?await getSessionAsync('brand'):null;
     const marcaId=session?.user?.id, token=session?.access_token;
-    if(!marcaId||!token){ if(btn){btn.disabled=false;btn.textContent='✦ Criar campanha →';} return; }
+    if(!marcaId||!token){ if(btn){btn.disabled=false;btn.textContent=isUpdate?'✦ Atualizar campanha →':'✦ Criar campanha →';} return; }
 
     const payload={
-      marca_id:marcaId,
       nome:campanha.nome||'Nova Campanha',
       descricao:campanha.descricao_objetivo||null,
       contexto:campanha.contexto||null,
@@ -7945,32 +7966,49 @@ async function loadFinanceiroMarca() {
     if(campanha.filtro)payload.filtros=campanha.filtro;
 
     try {
-      const res=await fetch(SUPABASE_URL+'/rest/v1/campanhas',{
-        method:'POST',
-        headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'},
-        body:JSON.stringify(payload)
-      });
+      let res, targetId;
+      if(isUpdate){
+        targetId=_st.editingCampanha.id;
+        res=await fetch(SUPABASE_URL+'/rest/v1/campanhas?id=eq.'+targetId,{
+          method:'PATCH',
+          headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'},
+          body:JSON.stringify(payload)
+        });
+      } else {
+        payload.marca_id=marcaId;
+        res=await fetch(SUPABASE_URL+'/rest/v1/campanhas',{
+          method:'POST',
+          headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'},
+          body:JSON.stringify(payload)
+        });
+      }
       if(!res.ok)throw new Error('Erro ao salvar.');
       const data=await res.json();
-      const newId=Array.isArray(data)?data[0]?.id:data?.id;
+      const savedId=targetId||(Array.isArray(data)?data[0]?.id:data?.id);
 
-      if(newId&&_st.pendingOppId){
+      if(!isUpdate&&savedId&&_st.pendingOppId){
         await fetch(SUPABASE_URL+'/rest/v1/campanha_oportunidades',{
           method:'POST',
           headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
-          body:JSON.stringify({campanha_id:newId,oportunidade_id:_st.pendingOppId,marca_id:marcaId})
+          body:JSON.stringify({campanha_id:savedId,oportunidade_id:_st.pendingOppId,marca_id:marcaId})
         });
       }
 
       window.camClose();
       await loadCampanhas();
       renderCampanhasPanel();
-      if(typeof showToast==='function')showToast('Campanha criada com IA!','success');
-      if(newId){ const nova=_CAMPANHAS.find(x=>x.id===newId); if(nova)abrirCampanhaDetalhe(nova.id,nova.nome); }
+      if(typeof showToast==='function')showToast(isUpdate?'Campanha atualizada!':'Campanha criada com IA!','success');
+      if(savedId){ const c=_CAMPANHAS.find(x=>x.id===savedId); if(c)abrirCampanhaDetalhe(c.id,c.nome); }
     } catch(err){
-      if(typeof showToast==='function')showToast('Erro ao criar campanha.','error');
-      if(btn){btn.disabled=false;btn.textContent='✦ Criar campanha →';}
+      if(typeof showToast==='function')showToast('Erro ao salvar campanha.','error');
+      if(btn){btn.disabled=false;btn.textContent=isUpdate?'✦ Atualizar campanha →':'✦ Criar campanha →';}
     }
+  };
+
+  window.camAtualizarCampanha = function(){
+    const campanha=(window._CAMPANHAS||[]).find(x=>x.id===window._currentCampanhaId);
+    if(!campanha){if(typeof showToast==='function')showToast('Campanha não encontrada.','error');return;}
+    window.camOpen(null, campanha);
   };
 })();
 </script>
