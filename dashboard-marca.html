@@ -8085,7 +8085,7 @@ async function loadFinanceiroMarca() {
         targetId=_st.editingCampanha.id;
         res=await fetch(SUPABASE_URL+'/rest/v1/campanhas?id=eq.'+targetId,{
           method:'PATCH',
-          headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'},
+          headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
           body:JSON.stringify(payload)
         });
       } else {
@@ -8097,8 +8097,11 @@ async function loadFinanceiroMarca() {
         });
       }
       if(!res.ok)throw new Error('Erro ao salvar.');
-      const data=await res.json();
-      const savedId=targetId||(Array.isArray(data)?data[0]?.id:data?.id);
+      let savedId=targetId;
+      if(!isUpdate){
+        const data=await res.json().catch(()=>({}));
+        savedId=Array.isArray(data)?data[0]?.id:data?.id;
+      }
 
       if(!isUpdate&&savedId&&_st.pendingOppId){
         await fetch(SUPABASE_URL+'/rest/v1/campanha_oportunidades',{
