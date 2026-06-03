@@ -6,6 +6,9 @@
 .Spotlight-V100
 .Trashes
 
+# ── Claude Code (worktrees / sessões internas) ────────────────
+.claude/
+
 # ── IDE / Editores ────────────────────────────────────────────
 .vscode/
 .idea/
