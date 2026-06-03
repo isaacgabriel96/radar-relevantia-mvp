@@ -68,8 +68,10 @@ export default async function handler(req, res) {
   const systemPrompt = loadSystemPrompt();
   if (!systemPrompt) return res.status(500).json({ error: 'Arquivo de configuração do agente não encontrado.' });
 
-  async function callGemini(requestBody, label = 'gemini') {
+  async function callGemini(requestBody, label = 'gemini', attempt = 1) {
+    const MAX_RETRIES = 3;
     const t0 = Date.now();
+
     const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -79,6 +81,16 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       const message = err.error?.message || `HTTP ${response.status}`;
+
+      // Retry automático em 429 (rate limit) e 5xx (instabilidade) com backoff
+      const isRetryable = response.status === 429 || response.status >= 500;
+      if (isRetryable && attempt < MAX_RETRIES) {
+        const waitMs = attempt * 3000; // 3s, 6s
+        console.warn(`[${label}] HTTP ${response.status} — retry ${attempt}/${MAX_RETRIES - 1} em ${waitMs}ms`);
+        await new Promise(r => setTimeout(r, waitMs));
+        return callGemini(requestBody, label, attempt + 1);
+      }
+
       console.error(`[${label}] HTTP ${response.status} em ${Date.now() - t0}ms: ${message}`);
       throw Object.assign(new Error(message), { httpStatus: response.status, detail: err });
     }
@@ -96,7 +108,7 @@ export default async function handler(req, res) {
 
     const parts = candidate?.content?.parts || [];
     const text = parts.filter(p => p.text && !p.thought).map(p => p.text).join('');
-    console.log(`[${label}] OK em ${Date.now() - t0}ms (${text.length} chars)`);
+    console.log(`[${label}] OK em ${Date.now() - t0}ms (${text.length} chars, tentativa ${attempt})`);
     return { text, finishReason, parts };
   }
 
