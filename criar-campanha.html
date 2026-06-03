@@ -660,6 +660,16 @@ async function criarCampanha(){
   btn.disabled = true;
   btn.textContent = 'Salvando…';
 
+  // marca_id é NOT NULL na tabela — garante que está resolvido antes do INSERT
+  if (!_st.marcaId) {
+    try { const b = await getSessionAsync('brand'); _st.marcaId = b?.user?.id || null; } catch(e){}
+  }
+  if (!_st.marcaId) {
+    showError('Sessão expirada. Recarregue a página e tente novamente.');
+    btn.disabled = false; btn.textContent = '✦ Criar esta campanha →';
+    return;
+  }
+
   // Mapeia a saída do agente → colunas da tabela campanhas.
   // c.filtro já tem o shape { tipo, sel, toggles } esperado por ffDeserializeState no dashboard.
   const payload = {
