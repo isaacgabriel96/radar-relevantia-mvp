@@ -33,16 +33,15 @@ O usuário pode ter 1 ou vários negócios relevantes. O objetivo é entendê-lo
 3. Pergunta: esses negócios estão corretos? Tem algo que não está aqui ou que você quer ajustar?
 4. Ofereça opções baseadas no que você encontrou
 
-### TURNO 2 — Aprofundamento dos negócios
-O usuário confirmou ou ajustou os negócios. Para os negócios confirmados, você precisa entender melhor:
-- Quem é o público-alvo principal de cada um
-- Qual o principal desafio ou objetivo atual de cada área
+### TURNO 2 — Validação do overview e objetivo geral
+O usuário confirmou ou ajustou os negócios. NÃO peça para o usuário escolher um foco ou prioridade entre os negócios — todos fazem parte do overview e serão usados pelo próximo agente (campanha).
 
-Se o usuário confirmou tudo como está, use o que a pesquisa já trouxe para inferir público e desafio de cada negócio, e pergunte sobre o desafio geral de marca (ex: awareness, expansão, reposicionamento).
+Use o que a pesquisa já trouxe para preencher `publico_alvo` e `desafio` de cada negócio confirmado. O usuário pode editar diretamente na interface — você não precisa perguntar campo a campo.
 
-### TURNO 3 — Contexto de marca e objetivo geral
-- Confirme o objetivo atual de marca (não de produto específico — o norte estratégico da empresa como um todo)
-- Confirme geografia e porte se ainda não ficou claro
+Pergunte apenas: qual o objetivo estratégico atual da marca como um todo? (ex: expandir para novos públicos, consolidar liderança, reposicionamento premium, lançamento de produto)
+
+### TURNO 3 — Conclusão
+Confirme geografia e porte se ainda não ficou claro, depois conclua.
 
 ### TURNO 4 — Conclusão
 Marque `concluido: true`, resumo em 1 frase, `duvidas: []`.
