@@ -569,55 +569,108 @@ function parseResp(raw) {
   catch(e) { console.warn('[brand-agent] parse:', e.message); return null; }
 }
 
-/* ── Atualiza campo de negócio inline ───────────────────────── */
+/* ── Helpers de negócios (CRUD inline) ──────────────────────── */
+function getNegociosArr() {
+  const p = _st.lastResult?.perfil;
+  if (!p) return [];
+  return p.negocios?.valor ?? p.negocios ?? [];
+}
+
 window.updateNegocio = function(idx, field, value) {
-  const arr = _st.lastResult?.perfil?.negocios?.valor ?? _st.lastResult?.perfil?.negocios;
-  if (Array.isArray(arr) && arr[idx]) arr[idx][field] = value;
+  const arr = getNegociosArr();
+  if (arr[idx]) arr[idx][field] = value;
 };
 
-/* ── Negócios como accordion com edição inline ──────────────── */
+window.removeNegocio = function(idx) {
+  const arr = getNegociosArr();
+  arr.splice(idx, 1);
+  rerenderNegociosList();
+};
+
+window.addNegocio = function() {
+  const arr = getNegociosArr();
+  arr.push({ nome:'', tipo:'produto', descricao:'', publico_alvo:'', desafio:'' });
+  rerenderNegociosList();
+  // Abre o último accordion automaticamente
+  setTimeout(() => {
+    const details = document.querySelectorAll('#negociosList details');
+    if (details.length) { const last = details[details.length-1]; last.open=true; last.querySelector('input')?.focus(); }
+  }, 50);
+};
+
+function rerenderNegociosList() {
+  const el = document.getElementById('negociosList');
+  if (el) el.outerHTML = buildNegociosList(getNegociosArr());
+}
+
+/* ── Negócios como accordion com edição inline + CRUD ───────── */
 function buildNegociosList(negocios) {
-  if (!negocios?.length) return '';
-  let h = `<div style="display:flex;flex-direction:column;gap:6px;margin:10px 0 14px">`;
+  if (!negocios) negocios = [];
+  const editStyle = `width:100%;border:none;border-bottom:1.5px solid #E0D8CC;background:transparent;
+    font-size:11.5px;color:#5C4C38;font-family:'DM Sans',sans-serif;padding:3px 0;
+    outline:none;resize:none;line-height:1.5`;
+  const inputStyle = `width:100%;border:none;border-bottom:1.5px solid #E0D8CC;background:transparent;
+    font-size:13px;font-weight:600;color:#1A1200;font-family:'DM Sans',sans-serif;padding:3px 0;outline:none`;
+
+  let h = `<div id="negociosList" style="display:flex;flex-direction:column;gap:6px;margin:10px 0 14px">`;
+
+  if (!negocios.length) {
+    h += `<div style="font-size:12px;color:#A89880;padding:10px 0">Nenhum negócio cadastrado ainda.</div>`;
+  }
+
   negocios.forEach((n, idx) => {
     const nome   = typeof n==='string' ? n : (n.nome||'');
-    const tipo   = typeof n==='object' ? (n.tipo||'') : '';
+    const tipo   = typeof n==='object' ? (n.tipo||'produto') : 'produto';
     const descr  = typeof n==='object' ? (n.descricao||'') : '';
     const pub    = typeof n==='object' ? (n.publico_alvo||'') : '';
     const desafio= typeof n==='object' ? (n.desafio||'') : '';
-    const hasDetail = descr||pub||desafio;
 
-    const editStyle = `width:100%;border:none;border-bottom:1.5px solid #E0D8CC;background:transparent;
-      font-size:11.5px;color:#5C4C38;font-family:'DM Sans',sans-serif;padding:3px 0;
-      outline:none;resize:none;line-height:1.5`;
-
-    if (hasDetail) {
-      h += `<details style="background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;overflow:hidden">
-        <summary style="padding:10px 13px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:#1A1200;user-select:none">
-          <span>${esc(nome)}${tipo?`<span style="margin-left:6px;font-size:10px;font-weight:500;color:#A89880;text-transform:uppercase;letter-spacing:.4px">${esc(tipo)}</span>`:''}</span>
+    h += `<details style="background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;overflow:hidden">
+      <summary style="padding:10px 13px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:#1A1200;user-select:none">
+        <span style="flex:1;min-width:0">
+          ${nome ? esc(nome) : '<span style="color:#A89880;font-weight:400">Novo negócio</span>'}
+          ${tipo?`<span style="margin-left:6px;font-size:10px;font-weight:500;color:#A89880;text-transform:uppercase;letter-spacing:.4px">${esc(tipo)}</span>`:''}
+        </span>
+        <span style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <button type="button" onclick="event.preventDefault();event.stopPropagation();removeNegocio(${idx})"
+            style="background:none;border:none;cursor:pointer;font-size:13px;color:#A89880;padding:2px 4px;line-height:1"
+            title="Remover">✕</button>
           <span style="font-size:11px;color:#A89880;font-weight:400">✎ editar</span>
-        </summary>
-        <div style="padding:9px 13px 12px;display:flex;flex-direction:column;gap:8px;border-top:1px solid #F0EBE1">
-          ${descr ? `<div style="font-size:12px;color:#5C4C38;line-height:1.5">${esc(descr)}</div>` : ''}
-          <div>
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:3px">Público-alvo</div>
-            <textarea style="${editStyle}" rows="2"
-              oninput="updateNegocio(${idx},'publico_alvo',this.value)"
-              placeholder="Quem usa / para quem se destina">${esc(pub)}</textarea>
-          </div>
-          <div>
-            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:3px">Desafio atual</div>
-            <textarea style="${editStyle}" rows="2"
-              oninput="updateNegocio(${idx},'desafio',this.value)"
-              placeholder="Principal objetivo ou dor desta área">${esc(desafio)}</textarea>
-          </div>
+        </span>
+      </summary>
+      <div style="padding:9px 13px 12px;display:flex;flex-direction:column;gap:10px;border-top:1px solid #F0EBE1">
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:3px">Nome</div>
+          <input type="text" style="${inputStyle}" value="${esc(nome)}"
+            oninput="updateNegocio(${idx},'nome',this.value)" placeholder="Nome do negócio" />
         </div>
-      </details>`;
-    } else {
-      h += `<div style="padding:10px 13px;background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;font-size:13px;font-weight:600;color:#1A1200">${esc(nome)}</div>`;
-    }
+        ${descr ? `<div style="font-size:12px;color:#5C4C38;line-height:1.5">${esc(descr)}</div>` : ''}
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:3px">Público-alvo</div>
+          <textarea style="${editStyle}" rows="2"
+            oninput="updateNegocio(${idx},'publico_alvo',this.value)"
+            placeholder="Quem usa / para quem se destina">${esc(pub)}</textarea>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:3px">Desafio atual</div>
+          <textarea style="${editStyle}" rows="2"
+            oninput="updateNegocio(${idx},'desafio',this.value)"
+            placeholder="Principal objetivo ou dor desta área">${esc(desafio)}</textarea>
+        </div>
+      </div>
+    </details>`;
   });
-  h += `<div style="font-size:11px;color:#A89880;margin-top:2px">✎ Clique em cada negócio para revisar e editar público e desafio</div>`;
+
+  h += `<button type="button" onclick="addNegocio()"
+    style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:transparent;
+    border:1.5px dashed #E0D8CC;border-radius:10px;font-size:13px;color:#A89880;
+    cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;width:100%"
+    onmouseover="this.style.borderColor='#B8860B';this.style.color='#B8860B'"
+    onmouseout="this.style.borderColor='#E0D8CC';this.style.color='#A89880'">
+    <span style="font-size:16px;line-height:1">＋</span> Adicionar negócio
+  </button>`;
+
+  h += `<div style="font-size:11px;color:#A89880;margin-top:2px">✎ Clique para editar · ✕ para remover · ＋ para adicionar</div>`;
   h += `</div>`;
   return h;
 }
