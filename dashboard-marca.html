@@ -3277,7 +3277,10 @@ function showSection(sectionId) {
     loadOpportunities(opps => { renderOpportunities(opps); carregarEstadoAcessos(); });
   }
 
-  if (sectionId === 'campanhas') renderCampanhasPanel();
+  if (sectionId === 'campanhas') {
+    renderCampanhasPanel();                                   // feedback imediato com o que já houver em cache
+    loadCampanhas().then(() => renderCampanhasPanel());       // refetch + re-render quando os dados chegam (resolve race de sessão)
+  }
 }
 
 // ─── NOTIFICAÇÕES ───
@@ -6084,7 +6087,7 @@ async function loadCampanhas() {
     if (badge) { badge.textContent = _CAMPANHAS.length; badge.style.display = _CAMPANHAS.length ? '' : 'none'; }
   } catch(e) { _CAMPANHAS = []; }
   // Carrega as oportunidades salvas em cada campanha (para coração + preview)
-  loadCampanhaOpps();
+  await loadCampanhaOpps();
 }
 
 function renderCampanhasPanel() {
