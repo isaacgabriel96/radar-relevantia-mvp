@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Campanha — Radar Relevantia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #B8860B; --gold-light: #C8A84B;
+      --gold-gradient: linear-gradient(135deg,#B8860B,#C8A84B);
+      --gold-muted: rgba(184,134,11,0.12); --gold-border: rgba(184,134,11,0.35);
+      --black: #1A1200; --white: #FFFFFF;
+      --gray-body: #FAF8F5; --gray-1: #F5F0E8; --gray-2: #E0D8CC;
+      --gray-3: #A89880; --gray-4: #5C4C38; --brown-warm: #7A5C1E;
+      --text: #1A1200;
+      --font-heading: 'Playfair Display', serif;
+      --font-body: 'DM Sans', sans-serif;
+      --shadow-sm: 0 1px 3px rgba(30,22,0,0.12);
+      --shadow-md: 0 4px 12px rgba(30,22,0,0.10);
+      --radius-pill: 100px; --radius-lg: 16px; --radius-base: 10px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font-body);background:var(--gray-body);color:var(--text);font-size:15px;line-height:1.6}
+
+    /* Topbar */
+    .topbar{position:fixed;left:0;top:0;right:0;height:64px;z-index:90;background:rgba(250,248,245,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--gray-2);display:flex;align-items:center;padding:0 32px;gap:12px}
+    .topbar-logo{font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--gold);text-decoration:none;white-space:nowrap}
+    .topbar-sep{color:var(--gray-2)}
+    .topbar-title{font-family:var(--font-heading);font-size:17px;font-weight:600;color:var(--text)}
+    .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+    .topbar-badge{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--gold);background:var(--gold-muted);border:1px solid var(--gold-border);padding:4px 11px;border-radius:var(--radius-pill)}
+
+    .main{padding-top:64px;min-height:100vh}
+    .main-inner{padding:40px 32px 80px;max-width:780px;margin:0 auto}
+
+    /* Token */
+    #token-section{background:var(--white);border:1.5px dashed var(--gray-2);border-radius:var(--radius-base);padding:14px 18px;margin-bottom:20px}
+    #token-section.hidden{display:none}
+    .token-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-3);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+    .token-ok{color:#16a34a;font-size:11px;display:none}.token-ok.on{display:inline}
+    .token-row{display:flex;gap:8px}
+    .token-input{flex:1;padding:8px 11px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:11px;font-family:monospace;color:var(--text);background:var(--gray-1);outline:none}
+    .token-input:focus{border-color:var(--gold);background:var(--white)}
+    .token-btn{padding:8px 14px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-base);font-size:12px;font-weight:600;font-family:var(--font-body);cursor:pointer}
+    .token-hint{font-size:11px;color:var(--gray-3);margin-top:7px;line-height:1.55}
+    .token-hint code{font-family:monospace;font-size:10.5px;background:var(--gray-1);padding:1px 5px;border-radius:4px}
+
+    /* Brand profile card */
+    #brand-profile-section{margin-bottom:24px}
+    .brand-card{background:var(--white);border:1px solid var(--gray-2);border-radius:var(--radius-lg);padding:18px 22px;box-shadow:var(--shadow-sm)}
+    .brand-card-empty{text-align:center;padding:28px 20px}
+    .brand-card-empty p{font-size:13px;color:var(--gray-3);margin-bottom:12px}
+    .brand-card-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .brand-card-icon{width:38px;height:38px;border-radius:50%;background:var(--gold-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:16px;font-weight:700;flex-shrink:0}
+    .brand-card-name{font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--black)}
+    .brand-card-desc{font-size:12px;color:var(--gray-3);margin-top:1px}
+    .brand-bus{display:flex;flex-wrap:wrap;gap:6px}
+    .brand-bu-chip{padding:4px 11px;background:var(--gray-1);border:1px solid var(--gray-2);border-radius:var(--radius-pill);font-size:12px;color:var(--gray-4)}
+    .brand-bu-chip.active{background:rgba(184,134,11,0.1);border-color:rgba(184,134,11,0.3);color:var(--brown-warm);font-weight:600}
+    .brand-change-btn{margin-left:auto;font-size:12px;color:var(--gray-3);background:none;border:none;cursor:pointer;font-family:var(--font-body);text-decoration:underline}
+
+    /* Sample profiles picker */
+    #sample-picker{display:flex;flex-direction:column;gap:8px}
+    .sample-btn{padding:10px 14px;background:var(--gray-1);border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:13px;font-family:var(--font-body);color:var(--text);cursor:pointer;text-align:left;transition:all .15s}
+    .sample-btn:hover{border-color:var(--gold);background:rgba(184,134,11,0.06)}
+    .sample-btn strong{display:block;font-weight:600;margin-bottom:2px}
+    .sample-btn span{font-size:11px;color:var(--gray-3)}
+    .paste-area{width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:11px;font-family:monospace;color:var(--text);background:var(--gray-1);outline:none;resize:vertical;min-height:80px;margin-top:8px}
+    .paste-area:focus{border-color:var(--gold);background:var(--white)}
+    .paste-hint{font-size:11px;color:var(--gray-3);margin-bottom:4px}
+
+    /* Agent header */
+    .agent-header{margin-bottom:20px}
+    .agent-header h2{font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--black);margin-bottom:4px}
+    .agent-header p{font-size:13px;color:var(--gray-3);line-height:1.5}
+    .agent-header-meta{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .agent-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--brown-warm);background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.22);padding:4px 10px;border-radius:var(--radius-pill)}
+    .agent-badge-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s ease infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .agent-step-pill{font-size:11px;color:var(--gray-3);background:var(--gray-1);border:1px solid var(--gray-2);padding:3px 10px;border-radius:var(--radius-pill)}
+
+    /* Chat — pixel-a-pixel do criar-oportunidade */
+    .ag-chat-card{background:var(--white);border:1px solid #E0D8CC;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(30,22,0,.06);display:none;position:relative}
+    .ag-chat-card.ag-chat-full{display:flex;flex-direction:column;height:480px}
+    .ag-chat-card.ag-chat-full .ag-chat-thread{flex:1;max-height:none}
+    .ag-chat-thread{padding:16px 18px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+    .ag-chat-thread::-webkit-scrollbar{width:4px}
+    .ag-chat-thread::-webkit-scrollbar-thumb{background:#E0D8CC;border-radius:2px}
+    .ag-msg{display:flex;gap:8px;align-items:flex-start}
+    .ag-msg.user{flex-direction:row-reverse}
+    .ag-msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+    .ag-msg.agent .ag-msg-avatar{background:var(--gold-gradient);color:#FFF;font-size:12px}
+    .ag-msg.user  .ag-msg-avatar{background:#E0D8CC;color:#5C4C38}
+    .ag-msg-bubble{max-width:calc(100% - 40px);padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.55}
+    .ag-msg.agent .ag-msg-bubble{background:#F5F0E8;border:1px solid #E0D8CC;border-top-left-radius:4px;color:var(--black)}
+    .ag-msg.user  .ag-msg-bubble{background:var(--black);color:#FFF;border-top-right-radius:4px}
+    .ag-msg-bubble strong{font-weight:600}
+    .ag-typing-dots{display:inline-flex;align-items:center;gap:3px;padding:4px 2px}
+    .ag-typing-dots span{width:5px;height:5px;background:#A89880;border-radius:50%;animation:agBounce 1.2s infinite}
+    .ag-typing-dots span:nth-child(2){animation-delay:.2s}
+    .ag-typing-dots span:nth-child(3){animation-delay:.4s}
+    @keyframes agBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+    @keyframes agMsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .ag-msg.agent{animation:agMsgIn .28s ease forwards}
+    .ag-loading-dots::after{content:'';animation:agLoadDots 1.4s steps(1,end) infinite}
+    @keyframes agLoadDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%,100%{content:'...'}}
+    .ag-loading-phase{display:inline-block;animation:agPhaseFade .4s ease;opacity:.7;font-size:13px}
+    @keyframes agPhaseFade{from{opacity:.2}to{opacity:.7}}
+    .ag-options{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+    .ag-option-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;font-size:13px;font-family:var(--font-body);color:#1A1200;cursor:pointer;text-align:left;transition:all .15s;width:100%}
+    .ag-option-btn:hover{border-color:#B8860B;background:#FBF8F1;transform:translateX(2px)}
+    .ag-option-num{flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:var(--gold-gradient);color:#FFF;border-radius:50%;font-size:11px;font-weight:600}
+    .ag-option-text{flex:1;line-height:1.35}
+    .ag-option-free{background:transparent;border-style:dashed;color:#5C4C38}
+    .ag-option-free .ag-option-num{background:transparent;color:#5C4C38;border:1.5px solid #A89880}
+    .ag-option-free:hover{background:#FAF8F5;border-style:solid}
+    .ag-error-msg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:10px;padding:10px 14px;margin:0 18px 8px;font-size:12px;color:#DC2626;display:none;line-height:1.5}
+    .ag-error-msg.visible{display:block}
+    .ag-chat-input-row{display:flex;gap:8px;padding:14px 18px;border-top:2px solid #F0EBE1;margin-top:4px;align-items:flex-end}
+    .ag-chat-input{flex:1;padding:9px 12px;border:1.5px solid #E0D8CC;border-radius:12px;font-size:13px;font-family:var(--font-body);color:var(--black);background:#F5F0E8;transition:all .18s;resize:none;line-height:1.5;min-height:38px;max-height:140px;overflow-y:auto;display:block}
+    .ag-chat-input:focus{outline:none;border-color:#B8860B;background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.08)}
+    .ag-chat-input::placeholder{color:#A89880}
+    .ag-btn-send{padding:9px 16px;background:var(--black);color:#FFF;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;flex-shrink:0}
+    .ag-btn-send:hover:not(:disabled){background:#2C1E00}
+    .ag-btn-send:disabled{opacity:.4;cursor:not-allowed}
+    .ag-btn-confirm{display:flex;align-items:center;justify-content:center;width:100%;padding:12px 18px;background:var(--gold-gradient);color:#FFF;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;font-family:var(--font-heading);cursor:pointer;transition:all .18s}
+    .ag-btn-confirm:hover{opacity:.9;transform:translateY(-1px)}
+    .ag-panel-actions{display:flex;gap:10px;margin-top:16px;align-items:center}
+    .ag-btn-iniciar{padding:11px 28px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s}
+    .ag-btn-iniciar:hover:not(:disabled){background:#2C1E00}
+    .ag-btn-iniciar:disabled{opacity:.4;cursor:not-allowed}
+    .ag-btn-reiniciar{padding:11px 20px;background:transparent;color:var(--gray-3);border:1.5px solid var(--gray-2);border-radius:var(--radius-pill);font-size:13px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:all .15s;display:none}
+    .ag-btn-reiniciar:hover{color:var(--black);border-color:var(--gray-3)}
+
+    /* Campanha result */
+    #section-campanha{display:none;margin-top:32px}
+    .campanha-card{background:#fff;border:1.5px solid rgba(184,134,11,.28);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}
+    .campanha-card-header{padding:18px 22px;background:linear-gradient(135deg,rgba(184,134,11,.07),rgba(200,168,75,.04));border-bottom:1px solid var(--gray-2);display:flex;align-items:flex-start;gap:12px}
+    .campanha-card-icon{width:40px;height:40px;border-radius:50%;background:var(--gold-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .campanha-card-header h3{font-family:var(--font-heading);font-size:20px;color:var(--black);margin-bottom:2px}
+    .campanha-card-header p{font-size:12px;color:var(--gray-3)}
+    .campanha-body{padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+    .campanha-row label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-3);font-weight:600;margin-bottom:4px}
+    .campanha-row .val{font-size:14px;color:var(--black);line-height:1.5}
+    .filtro-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;background:rgba(184,134,11,.06);border:1.5px solid rgba(184,134,11,.18);border-radius:10px}
+    .filtro-bar-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-3);flex-shrink:0}
+    .filtro-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--radius-pill);background:rgba(184,134,11,.12);border:1px solid rgba(184,134,11,.25);font-size:12px;font-weight:600;color:#6b4d00}
+    .btn-criar-campanha{width:100%;padding:14px;background:var(--gold-gradient);color:#fff;border:none;border-radius:var(--radius-pill);font-size:15px;font-weight:600;font-family:var(--font-heading);cursor:pointer;transition:all .15s;margin-top:12px;box-shadow:0 4px 16px rgba(184,134,11,.3)}
+    .btn-criar-campanha:hover{opacity:.9;transform:translateY(-1px)}
+    .btn-criar-campanha.saved{background:linear-gradient(135deg,#16a34a,#22c55e);box-shadow:none}
+    .debug-toggle{font-size:11px;color:var(--gray-3);cursor:pointer;background:none;border:none;font-family:var(--font-body);padding:10px 0;text-decoration:underline;display:block}
+    #debug-json{display:none;background:#1e1e1e;color:#a8ff78;font-family:monospace;font-size:11px;padding:14px;border-radius:8px;overflow-x:auto;white-space:pre;margin-top:8px;line-height:1.5}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-logo" href="#">✦ Radar Relevantia</a>
+  <span class="topbar-sep">/</span>
+  <span class="topbar-title">Criar campanha</span>
+  <div class="topbar-right"><span class="topbar-badge">Teste</span></div>
+</div>
+
+<div class="main"><div class="main-inner">
+
+  <!-- Token -->
+  <div id="token-section">
+    <div class="token-label">Token de acesso (teste local)<span class="token-ok" id="tokenOk">✓ Ativo</span></div>
+    <div class="token-row">
+      <input type="password" class="token-input" id="tokenInput" placeholder="Cole seu JWT…" />
+      <button class="token-btn" onclick="usarToken()">Usar</button>
+    </div>
+    <p class="token-hint">Console: <code>(await sb.auth.getSession()).data.session.access_token</code></p>
+  </div>
+
+  <!-- Perfil da marca -->
+  <div id="brand-profile-section">
+    <div class="brand-card" id="brandCard">
+      <div class="brand-card-empty" id="brandEmpty">
+        <p>Selecione o perfil de marca para iniciar</p>
+        <div id="sample-picker">
+          <button class="sample-btn" onclick="usarSample('itau')">
+            <strong>Itaú Unibanco</strong>
+            <span>Varejo · Private Bank · BBA · Rede · Kinea</span>
+          </button>
+          <button class="sample-btn" onclick="usarSample('nubank')">
+            <strong>Nubank</strong>
+            <span>Conta Digital · Cartão · Nu Invest · Seguros</span>
+          </button>
+          <button class="sample-btn" onclick="usarSample('ambev')">
+            <strong>Ambev</strong>
+            <span>Corona · Stella Artois · Brahma · Skol</span>
+          </button>
+          <div style="font-size:11px;color:var(--gray-3);margin:8px 0 4px">Ou cole o JSON do agente de marca:</div>
+          <textarea class="paste-area" id="brandJsonPaste" placeholder='{"empresa":{"valor":"Nubank"},"negocios":{"valor":[...]}}' rows="3"></textarea>
+          <button class="sample-btn" onclick="usarJsonColado()" style="margin-top:4px;text-align:center"><strong>Usar JSON colado</strong></button>
+        </div>
+      </div>
+      <div id="brandLoaded" style="display:none">
+        <div class="brand-card-header">
+          <div class="brand-card-icon" id="brandIcon">✦</div>
+          <div>
+            <div class="brand-card-name" id="brandName">—</div>
+            <div class="brand-card-desc" id="brandDesc">—</div>
+          </div>
+          <button class="brand-change-btn" onclick="trocarPerfil()">trocar perfil</button>
+        </div>
+        <div class="brand-bus" id="brandBus"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent header -->
+  <div class="agent-header" id="agentHeader" style="display:none">
+    <h2>✦ Criar campanha</h2>
+    <p>Descreva a campanha que quer criar — o agente vai entender o objetivo, o ativo ideal e configurar o filtro automaticamente.</p>
+    <div class="agent-header-meta">
+      <span class="agent-badge"><span class="agent-badge-dot"></span>Campanhas</span>
+      <span class="agent-step-pill">1 · Descrever objetivo</span>
+      <span class="agent-step-pill">2 · Confirmar filtro</span>
+    </div>
+  </div>
+
+  <!-- Prompt input (antes do chat) -->
+  <div id="prompt-section" style="display:none">
+    <div class="brand-card" style="margin-bottom:16px">
+      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-4);display:block;margin-bottom:8px">Descreva a campanha</label>
+      <textarea id="campaignInput" class="ag-chat-input" rows="3" style="width:100%;min-height:80px;display:block"
+        placeholder="Ex: Quero criar uma campanha de luxo para o Private do Itaú com influenciadores jovens de 18 a 25 anos, foco em lifestyle e finanças…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey&&event.ctrlKey){event.preventDefault();iniciarCampanha()}"></textarea>
+      <p style="font-size:11px;color:var(--gray-3);margin-top:6px">Ctrl+Enter para enviar</p>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="ag-chat-card ag-chat-full" id="agChatCard" style="display:none">
+    <div class="ag-chat-thread" id="agChatThread"></div>
+    <div class="ag-error-msg" id="agErrorMsg"></div>
+    <div class="ag-chat-input-row">
+      <textarea class="ag-chat-input" id="agChatInput" rows="1"
+        placeholder="Digite sua resposta…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agEnviar()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px'"></textarea>
+      <button class="ag-btn-send" id="agBtnSend" onclick="agEnviar()">Enviar</button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="ag-panel-actions" id="agActions" style="display:none">
+    <button class="ag-btn-iniciar" id="btnIniciar" onclick="iniciarCampanha()">Criar campanha →</button>
+    <button class="ag-btn-reiniciar" id="btnReiniciar" onclick="reiniciar()">← Recomeçar</button>
+  </div>
+
+  <!-- Campanha result -->
+  <div id="section-campanha">
+    <div class="campanha-card">
+      <div class="campanha-card-header">
+        <div class="campanha-card-icon">✦</div>
+        <div>
+          <h3 id="campanhaNome">Campanha</h3>
+          <p id="campanhaSubtitle">Gerado pelo Agente de Campanhas · Radar Relevantia</p>
+        </div>
+      </div>
+      <div class="campanha-body" id="campanhaBody"></div>
+    </div>
+    <button class="btn-criar-campanha" id="btnCriar" onclick="criarCampanha()">✦ Criar esta campanha →</button>
+    <button class="debug-toggle" onclick="toggleDebug()">{ } Ver JSON (debug)</button>
+    <pre id="debug-json"></pre>
+  </div>
+
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core.js"></script>
+<script>
+const _st = { history:[], lastResult:null, loading:false, token:null, brandProfile:null };
+const API_BASE = window.location.protocol==='file:' ? 'https://radar-relevantia.com.br' : '';
+
+// ── Auth ──────────────────────────────────────────────────────────
+async function getToken() {
+  if (_st.token) return _st.token;
+  try { const b=await getSessionAsync('brand'); if(b?.access_token) return b.access_token; } catch(e){}
+  try { const r=await getSessionAsync('rightsholder'); if(r?.access_token) return r.access_token; } catch(e){}
+  return null;
+}
+(async()=>{ const t=await getToken(); if(t){_st.token=t;document.getElementById('token-section').classList.add('hidden');} })();
+function usarToken(){
+  const v=document.getElementById('tokenInput').value.trim();
+  if(!v||v.split('.').length!==3){alert('Token inválido.');return;}
+  _st.token=v; document.getElementById('tokenOk').classList.add('on');
+  setTimeout(()=>document.getElementById('token-section').classList.add('hidden'),700);
+}
+
+// ── Perfis sample ─────────────────────────────────────────────────
+const SAMPLES = {
+  itau: {
+    empresa:{valor:'Itaú Unibanco S.A.'}, nome_curto:{valor:'Itaú'},
+    setor:{valor:'financas_investimentos'},
+    descricao_empresa:{valor:'Maior banco privado do Brasil, com ampla gama de serviços financeiros para pessoas físicas e jurídicas.'},
+    negocios:{valor:[
+      {nome:'Itaú Varejo',tipo:'servico',descricao:'Serviços bancários para pessoas físicas',publico_alvo:'Adultos de todas as rendas buscando conta, crédito e investimentos',desafio:'Manter relevância frente aos bancos digitais'},
+      {nome:'Itaú Private Bank',tipo:'servico',descricao:'Gestão de patrimônio para clientes de alta renda',publico_alvo:'Indivíduos com patrimônio acima de R$ 3M buscando sofisticação financeira',desafio:'Fortalecer posicionamento premium e atrair nova geração wealthy'},
+      {nome:'Itaú BBA',tipo:'servico',descricao:'Banco de investimento corporativo',publico_alvo:'Grandes empresas e corporações',desafio:'Consolidar liderança em M&A e mercado de capitais'},
+      {nome:'Rede (Maquininha)',tipo:'produto',descricao:'Solução de pagamentos para estabelecimentos',publico_alvo:'Comerciantes e PMEs',desafio:'Competir em preço e tecnologia com concorrentes digitais'}
+    ]},
+    geografias:{valor:['Brasil']}, abrangencia:{valor:'nacional'}, porte:{valor:'multinacional'},
+    objetivo_marca:{valor:'Reposicionamento como banco moderno e digital sem perder a confiança do legado'}
+  },
+  nubank: {
+    empresa:{valor:'Nu Holdings (Nubank)'}, nome_curto:{valor:'Nubank'},
+    setor:{valor:'financas_investimentos'},
+    descricao_empresa:{valor:'Maior fintech da América Latina, oferecendo serviços financeiros digitais sem burocracia.'},
+    negocios:{valor:[
+      {nome:'Conta Digital',tipo:'produto',descricao:'Conta sem taxas e cartão sem anuidade',publico_alvo:'Jovens adultos e desbancarizados buscando simplicidade',desafio:'Reter clientes além da conta corrente'},
+      {nome:'Nu Invest',tipo:'produto',descricao:'Plataforma de investimentos acessível',publico_alvo:'Primeiros investidores buscando educação financeira',desafio:'Converter conta-correntistas em investidores ativos'},
+      {nome:'Empréstimos',tipo:'servico',descricao:'Crédito pessoal com juros competitivos',publico_alvo:'Adultos precisando de crédito rápido e transparente',desafio:'Aumentar aprovação mantendo adimplência'}
+    ]},
+    geografias:{valor:['Brasil','México','Colômbia']}, abrangencia:{valor:'internacional'}, porte:{valor:'multinacional'},
+    objetivo_marca:{valor:'Expandir para novos públicos e mercados internacionais'}
+  },
+  ambev: {
+    empresa:{valor:'Ambev S.A.'}, nome_curto:{valor:'Ambev'},
+    setor:{valor:'alimentacao_bebidas'},
+    descricao_empresa:{valor:'Maior cervejaria da América Latina com portfólio de marcas premium e populares.'},
+    negocios:{valor:[
+      {nome:'Corona',tipo:'produto',descricao:'Cerveja premium mexicana',publico_alvo:'Adultos 25-40 anos, estilo de vida praia/festival/lifestyle',desafio:'Fortalecer posicionamento premium e crescer entre jovens adultos'},
+      {nome:'Stella Artois',tipo:'produto',descricao:'Cerveja premium belga',publico_alvo:'Adultos 28-45 anos, sofisticados e apreciadores de gastronomia',desafio:'Consolidar liderança no segmento premium'},
+      {nome:'Brahma',tipo:'produto',descricao:'Cerveja popular, a cerveja do futebol',publico_alvo:'Fãs de futebol e entretenimento popular',desafio:'Manter liderança no volume frente a concorrentes'}
+    ]},
+    geografias:{valor:['Brasil','Argentina','Chile']}, abrangencia:{valor:'internacional'}, porte:{valor:'multinacional'},
+    objetivo_marca:{valor:'Fortalecer cada marca no seu posicionamento e crescer em ocasiões de consumo premium'}
+  }
+};
+
+function usarSample(key) {
+  const profile = SAMPLES[key];
+  if (!profile) return;
+  _st.brandProfile = profile;
+  mostrarBrandCard(profile);
+}
+
+function usarJsonColado() {
+  const txt = document.getElementById('brandJsonPaste').value.trim();
+  try {
+    const p = JSON.parse(txt);
+    _st.brandProfile = p;
+    mostrarBrandCard(p);
+  } catch(e) { alert('JSON inválido. Copie o JSON completo do agente de marca.'); }
+}
+
+function mostrarBrandCard(profile) {
+  const pv = c => profile[c]?.valor ?? profile[c] ?? null;
+  const nome = pv('empresa') || pv('nome_curto') || '—';
+  const descr = pv('descricao_empresa') || '';
+  const negocios = pv('negocios') || [];
+
+  document.getElementById('brandEmpty').style.display = 'none';
+  document.getElementById('brandLoaded').style.display = 'block';
+  document.getElementById('brandIcon').textContent = nome.charAt(0).toUpperCase();
+  document.getElementById('brandName').textContent = nome;
+  document.getElementById('brandDesc').textContent = descr || 'Perfil carregado';
+
+  const busEl = document.getElementById('brandBus');
+  busEl.innerHTML = negocios.map(n => {
+    const nm = typeof n==='string' ? n : (n.nome||'');
+    return `<span class="brand-bu-chip">${esc(nm)}</span>`;
+  }).join('');
+
+  // Mostra agent header + prompt input
+  document.getElementById('agentHeader').style.display = 'block';
+  document.getElementById('prompt-section').style.display = 'block';
+  document.getElementById('agActions').style.display = 'flex';
+  document.getElementById('campaignInput').focus();
+}
+
+function trocarPerfil() {
+  _st.brandProfile = null; _st.history = []; _st.lastResult = null;
+  document.getElementById('brandEmpty').style.display = 'block';
+  document.getElementById('brandLoaded').style.display = 'none';
+  document.getElementById('agentHeader').style.display = 'none';
+  document.getElementById('prompt-section').style.display = 'none';
+  document.getElementById('agActions').style.display = 'none';
+  document.getElementById('agChatCard').style.display = 'none';
+  document.getElementById('section-campanha').style.display = 'none';
+  document.getElementById('agChatThread').innerHTML = '';
+  document.getElementById('btnReiniciar').style.display = 'none';
+  document.getElementById('btnIniciar').style.display = 'inline-block';
+}
+
+// ── Helpers ───────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function msgHtml(t){return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}
+function showError(m){const e=document.getElementById('agErrorMsg');e.textContent=m;e.classList.toggle('visible',!!m)}
+function setLoading(on){
+  _st.loading=on;
+  const b=document.getElementById('agBtnSend'),i=document.getElementById('agChatInput'),bi=document.getElementById('btnIniciar');
+  if(b)b.disabled=on;if(i)i.disabled=on;if(bi)bi.disabled=on;
+}
+function addMsg(role,html,isTyping=false){
+  const t=document.getElementById('agChatThread');
+  const d=document.createElement('div'); d.className=`ag-msg ${role}`;
+  d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
+  if(isTyping)d.id='agTypingMsg';
+  t.appendChild(d);t.scrollTop=t.scrollHeight;return d;
+}
+function removeTyping(){const e=document.getElementById('agTypingMsg');if(e)e.remove()}
+function phaseUpdate(phases,idx){
+  const el=document.getElementById('agTypingMsg');if(!el)return;
+  el.querySelector('.ag-msg-bubble').innerHTML=`<span class="ag-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="ag-loading-dots"></span></span>`;
+}
+
+// ── Iniciar campanha ──────────────────────────────────────────────
+async function iniciarCampanha() {
+  const desc = document.getElementById('campaignInput').value.trim();
+  if (!desc) { document.getElementById('campaignInput').focus(); return; }
+  if (!_st.brandProfile) { alert('Selecione o perfil da marca primeiro.'); return; }
+  const token = _st.token || await getToken();
+  if (!token) { document.getElementById('token-section').classList.remove('hidden'); alert('Insira o token.'); return; }
+  _st.token = token;
+
+  document.getElementById('prompt-section').style.display = 'none';
+  document.getElementById('agChatCard').style.display = 'flex';
+  document.getElementById('btnIniciar').style.display = 'none';
+  document.getElementById('btnReiniciar').style.display = 'inline-block';
+
+  addMsg('user', msgHtml(desc));
+  setLoading(true); addMsg('agent','',true);
+
+  const phases=['🧠 Analisando o perfil da marca','✦ Configurando filtros','✍️ Criando proposta de campanha'];
+  let pi=0; const pt=setInterval(()=>phaseUpdate(phases,++pi),3000);
+
+  try {
+    _st.history = [{role:'user', content:desc}];
+    const raw = await callAPI(_st.history, _st.brandProfile, token);
+    clearInterval(pt); removeTyping();
+    _st.history.push({role:'assistant',content:raw});
+    const parsed=parseResp(raw); _st.lastResult=parsed;
+    renderMsg(parsed);
+  } catch(err) {
+    clearInterval(pt); removeTyping();
+    showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message||'Erro.')}</span>`);
+  } finally { setLoading(false); }
+}
+
+// ── Enviar resposta ───────────────────────────────────────────────
+async function agEnviar() {
+  if(_st.loading)return;
+  const input=document.getElementById('agChatInput');
+  const text=(input.value||'').trim(); if(!text)return;
+  showError(''); input.value=''; input.style.height='auto';
+  addMsg('user',msgHtml(text)); _st.history.push({role:'user',content:text});
+  setLoading(true); addMsg('agent','',true);
+  const phases=['🧠 Analisando ajuste','✦ Atualizando filtro'];
+  let pi=0; const pt=setInterval(()=>phaseUpdate(phases,++pi),3000);
+  try {
+    const token=_st.token||await getToken();
+    if(!token)throw new Error('Sessão expirada.');
+    const raw=await callAPI(_st.history,_st.brandProfile,token);
+    clearInterval(pt); removeTyping();
+    _st.history.push({role:'assistant',content:raw});
+    const parsed=parseResp(raw); _st.lastResult=parsed; renderMsg(parsed);
+  } catch(err) {
+    clearInterval(pt); removeTyping();
+    showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span>`);
+  } finally { setLoading(false); const t=document.getElementById('agChatThread');if(t)t.scrollTop=999999; }
+}
+
+window.agSelecionarOpcao=t=>{if(_st.loading)return;document.getElementById('agChatInput').value=t||'';agEnviar();};
+window.agFocarInput=()=>{const i=document.getElementById('agChatInput');if(i){i.value='';i.focus();}};
+window.agToggleOpcao=function(btn){
+  if(_st.loading)return;
+  const sel=btn.getAttribute('data-selected')==='true';
+  btn.setAttribute('data-selected',sel?'false':'true');
+  btn.style.borderColor=sel?'#E0D8CC':'#B8860B';
+  btn.style.background=sel?'#fff':'rgba(184,134,11,0.08)';
+  btn.style.color=sel?'#1A1200':'#7A5C1E';
+  const num=btn.querySelector('.ag-option-num');
+  if(num){num.style.background=sel?'linear-gradient(135deg,#B8860B,#C8A84B)':'#E0D8CC';num.style.color=sel?'#fff':'#7A5C1E';}
+  const gid=btn.getAttribute('data-group');
+  const container=document.getElementById(gid);
+  if(!container)return;
+  const any=container.querySelectorAll('[data-selected="true"]').length>0;
+  const cb=document.getElementById('btn_confirm_'+gid);
+  if(cb)cb.style.display=any?'block':'none';
+};
+window.agEnviarMultiselect=function(gid){
+  if(_st.loading)return;
+  const container=document.getElementById(gid);if(!container)return;
+  const sel=[...container.querySelectorAll('[data-selected="true"]')].map(b=>b.dataset.opc).filter(Boolean);
+  if(!sel.length)return;
+  document.getElementById('agChatInput').value=sel.join(', ');agEnviar();
+};
+
+// ── API ───────────────────────────────────────────────────────────
+async function callAPI(messages, brandProfile, token) {
+  const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),150000);
+  try {
+    const r=await fetch(API_BASE+'/api/gemini-campaign-agent',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({messages,brandProfile}),
+      signal:ctrl.signal,
+    });
+    clearTimeout(timer);
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(data.error||`Erro HTTP ${r.status}`);
+    if(!data.text)throw new Error('Resposta vazia.');
+    return data.text;
+  } catch(err){clearTimeout(timer);if(err.name==='AbortError')throw new Error('IA demorou. Tente novamente.');throw err;}
+}
+
+// ── Parse ─────────────────────────────────────────────────────────
+function parseResp(raw){
+  try{return JSON.parse(raw.trim().replace(/^```json\s*/i,'').replace(/```\s*$/,''));}
+  catch(e){console.warn('parse error:',e.message);return null;}
+}
+
+// ── Render ────────────────────────────────────────────────────────
+function renderMsg(parsed) {
+  if(!parsed){addMsg('agent','<span style="color:#DC2626">❌ Erro. Tente novamente.</span>');return;}
+  let html='';
+  if(parsed.resumo) html+=`${msgHtml(parsed.resumo)}<br><br>`;
+
+  if(parsed.concluido){
+    html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br>
+      <span style="font-size:12px;color:#A89880">Revise os detalhes abaixo e confirme para criar.</span>`;
+    addMsg('agent',html);
+    setTimeout(()=>mostrarCampanha(),300);
+    return;
+  }
+
+  // Mostra preview do filtro se já tiver campanha
+  if(parsed.campanha?.filtro){
+    html+=buildFiltroPreview(parsed.campanha);
+  }
+
+  if(parsed.duvidas?.length){
+    const duv=parsed.duvidas[0];
+    const pergunta=typeof duv==='string'?duv:(duv?.pergunta||'');
+    const opcoes=(duv&&typeof duv==='object'&&Array.isArray(duv.opcoes))?duv.opcoes:[];
+    const multi=!!(duv&&typeof duv==='object'&&duv.multiselect);
+    const msgId='ms_'+Date.now();
+    html+=`<strong>Para continuar:</strong><br>${esc(pergunta)}`;
+    if(multi) html+=`<div style="font-size:11px;color:#A89880;margin:4px 0 8px">Selecione uma ou mais opções</div>`;
+    if(opcoes.length){
+      html+=`<div class="ag-options" id="${msgId}">`;
+      if(multi){
+        opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" data-group="${msgId}" onclick="agToggleOpcao(this)"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
+        html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+        html+=`<button type="button" id="btn_confirm_${msgId}" onclick="agEnviarMultiselect('${msgId}')" style="display:none;margin-top:4px;padding:10px 18px;background:#1A1200;color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%">Confirmar seleção →</button>`;
+      } else {
+        opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" onclick="agSelecionarOpcao(this.dataset.opc)"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
+        html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+      }
+      html+='</div>';
+    }
+  }
+  addMsg('agent',html);
+}
+
+function buildFiltroPreview(campanha) {
+  if(!campanha?.filtro)return'';
+  const chips=getFiltroChips(campanha.filtro);
+  if(!chips.length)return'';
+  let h=`<div style="padding:10px 12px;background:rgba(184,134,11,.06);border:1.5px solid rgba(184,134,11,.18);border-radius:10px;margin-bottom:12px">`;
+  h+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-3);margin-bottom:6px">✦ ${esc(campanha.nome||'Campanha')} · filtro proposto</div>`;
+  h+=`<div style="display:flex;flex-wrap:wrap;gap:5px">`;
+  chips.forEach(c=>{h+=`<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:rgba(184,134,11,.12);border:1px solid rgba(184,134,11,.25);font-size:12px;font-weight:600;color:#6b4d00">${esc(c)}</span>`;});
+  h+=`</div></div>`;
+  return h;
+}
+
+function getFiltroChips(filtro) {
+  const chips=[];
+  const TIPO={personalidade:'Personalidade',evento:'Evento',artista:'Artista Musical',midia:'Mídia'};
+  if(filtro.tipo&&filtro.tipo!=='todos')chips.push(TIPO[filtro.tipo]||filtro.tipo);
+  const s=filtro.sel||{};
+  if(s.segmento)s.segmento.forEach(x=>chips.push(x));
+  if(s.alcance)s.alcance.forEach(x=>chips.push(x));
+  if(s.p_tipo)s.p_tipo.forEach(x=>chips.push(x));
+  if(s.p_nicho)s.p_nicho.forEach(x=>chips.push(x));
+  if(s.e_tipo)s.e_tipo.forEach(x=>chips.push(x));
+  if(s.e_perfil)s.e_perfil.forEach(x=>chips.push(x));
+  if(s.a_estilo)s.a_estilo.forEach(x=>chips.push(x));
+  if(s.m_veiculo)s.m_veiculo.forEach(x=>chips.push(x));
+  if(s.m_nicho)s.m_nicho.forEach(x=>chips.push(x));
+  if(s.invest){const FF=[{l:'Até R$ 10k'},{l:'R$ 10k–50k'},{l:'R$ 50k–200k'},{l:'R$ 200k+'}];s.invest.forEach(i=>{if(FF[+i])chips.push(FF[+i].l);});}
+  if((filtro.toggles||{}).incentivo)chips.push('Lei de Incentivo');
+  if((filtro.toggles||{}).cotas)chips.push('Com cotas');
+  return chips;
+}
+
+// ── Mostrar campanha ──────────────────────────────────────────────
+function mostrarCampanha() {
+  if(!_st.lastResult?.campanha)return;
+  const c=_st.lastResult.campanha;
+  document.getElementById('campanhaNome').textContent=c.nome||'Campanha';
+  document.getElementById('campanhaSubtitle').textContent=(c.negocio_alvo||'')+(c.tipo_campanha?' · '+c.tipo_campanha:'');
+
+  let body='';
+  if(c.descricao_objetivo)body+=`<div class="campanha-row"><label>Objetivo</label><div class="val">${esc(c.descricao_objetivo)}</div></div>`;
+  if(c.negocio_alvo)body+=`<div class="campanha-row"><label>Negócio / BU</label><div class="val">${esc(c.negocio_alvo)}</div></div>`;
+
+  const chips=getFiltroChips(c.filtro||{});
+  if(chips.length){
+    body+=`<div class="campanha-row"><label>Filtro configurado</label>
+      <div class="filtro-bar">
+        <span class="filtro-bar-label">✦</span>
+        ${chips.map(ch=>`<span class="filtro-chip">${esc(ch)}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('campanhaBody').innerHTML=body;
+  document.getElementById('debug-json').textContent=JSON.stringify(_st.lastResult,null,2);
+  document.getElementById('section-campanha').style.display='block';
+  document.getElementById('section-campanha').scrollIntoView({behavior:'smooth'});
+}
+
+function criarCampanha(){
+  console.log('[campaign-agent] Campanha:', _st.lastResult?.campanha);
+  const btn=document.getElementById('btnCriar');
+  btn.textContent='✓ Campanha criada!';btn.classList.add('saved');btn.disabled=true;
+}
+
+function reiniciar(){
+  _st.history=[];_st.lastResult=null;
+  document.getElementById('agChatThread').innerHTML='';
+  document.getElementById('agChatCard').style.display='none';
+  document.getElementById('prompt-section').style.display='block';
+  document.getElementById('btnIniciar').style.display='inline-block';
+  document.getElementById('btnReiniciar').style.display='none';
+  document.getElementById('section-campanha').style.display='none';
+  document.getElementById('campaignInput').value='';
+  document.getElementById('campaignInput').focus();
+  showError('');
+}
+
+function toggleDebug(){const e=document.getElementById('debug-json');e.style.display=e.style.display==='none'?'block':'none';}
+</script>
+</body>
+</html>
