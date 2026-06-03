@@ -402,7 +402,7 @@
       </div>
       <div class="profile-body" id="profileBody"></div>
     </div>
-    <button class="btn-salvar" id="btnSalvar" onclick="salvarPerfil()">✦ Salvar perfil e criar primeira campanha</button>
+    <button class="btn-salvar" id="btnSalvar" onclick="salvarPerfil()">✦ Criar primeira campanha →</button>
     <button class="debug-toggle" onclick="toggleDebug()">{ } Ver JSON gerado (debug)</button>
     <pre id="debug-json"></pre>
   </div>
@@ -717,8 +717,11 @@ function renderMsg(parsed) {
   }
 
   if (parsed.concluido) {
-    html += buildPerfilSummary(parsed.perfil);
-    html += `<div style="margin-top:16px"><button class="ag-btn-confirm" onclick="mostrarPerfil()">✦ Ver perfil completo e salvar</button></div>`;
+    html += `<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Brief criado com sucesso.</span><br>
+      <span style="font-size:12px;color:#A89880">Revise o perfil abaixo e crie a primeira campanha quando estiver pronto.</span>`;
+    addMsg('agent', html);
+    setTimeout(() => mostrarPerfil(), 300);
+    return;
   } else if (parsed.duvidas?.length) {
     const duv=parsed.duvidas[0];
     const pergunta=typeof duv==='string'?duv:(duv?.pergunta||'');
