@@ -8174,29 +8174,9 @@ function renderBrandBrief(brief) {
   emptyEl.style.display = 'none';
   dataEl.style.display = '';
 
-  const setor    = _bbGet(brief, 'setor');
-  const porte    = _bbGet(brief, 'porte');
-  const abrang   = _bbGet(brief, 'abrangencia');
-  const geos     = _bbGet(brief, 'geografias') || [];
-  const objetivo = _bbGet(brief, 'objetivo_marca') || _bbGet(brief, 'objetivos');
-
-  let html = '';
-  if (setor || porte || abrang) {
-    html += `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">`;
-    if (setor)  html += `<span class="brief-chip">${escapeHtml(setor.replace(/_/g,' '))}</span>`;
-    if (porte)  html += `<span class="brief-chip">${escapeHtml(porte)}</span>`;
-    if (abrang) html += `<span class="brief-chip">${escapeHtml(abrang)}</span>`;
-    html += `</div>`;
-  }
-  if (geos.length) {
-    html += `<div class="brief-field-row"><div class="brief-field-label">Geografias</div><div class="brief-chips">`;
-    geos.forEach(g => { html += `<span class="brief-chip">${escapeHtml(g)}</span>`; });
-    html += `</div></div>`;
-  }
-  if (objetivo) {
-    html += `<div class="brief-field-row"><div class="brief-field-label">Objetivo</div><div class="brief-field-val">${escapeHtml(objetivo)}</div></div>`;
-  }
-  dataEl.innerHTML = html;
+  // Chips de setor/porte/abrangência, geografias e objetivo removidos —
+  // objetivo é por campanha (não por marca); geografias e tags são ruído visual.
+  dataEl.innerHTML = '';
 
   const negocios = _bbGet(brief, 'negocios') || [];
   if (negSecEl) {
