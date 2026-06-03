@@ -1,753 +1,647 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Criar Campanha — Radar Relevantia</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --gold: #B8860B; --gold-light: #C8A84B;
-      --gold-gradient: linear-gradient(135deg,#B8860B,#C8A84B);
-      --gold-muted: rgba(184,134,11,0.12); --gold-border: rgba(184,134,11,0.35);
-      --black: #1A1200; --white: #FFFFFF;
-      --gray-body: #FAF8F5; --gray-1: #F5F0E8; --gray-2: #E0D8CC;
-      --gray-3: #A89880; --gray-4: #5C4C38; --brown-warm: #7A5C1E;
-      --text: #1A1200;
-      --font-heading: 'Playfair Display', serif;
-      --font-body: 'DM Sans', sans-serif;
-      --shadow-sm: 0 1px 3px rgba(30,22,0,0.12);
-      --shadow-md: 0 4px 12px rgba(30,22,0,0.10);
-      --radius-pill: 100px; --radius-lg: 16px; --radius-base: 10px;
-    }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:var(--font-body);background:var(--gray-body);color:var(--text);font-size:15px;line-height:1.6}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar campanha — Radar Relevantia</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #B8860B; --gold-light: #C8A84B; --gold-gradient: linear-gradient(135deg,#B8860B,#C8A84B);
+  --gold-muted: rgba(184,134,11,0.08); --gold-border: rgba(184,134,11,0.22);
+  --brown-warm: #7A5C1E;
+  --black: #1A1200; --white: #FFFFFF; --white-warm: #FFFDF7;
+  --gray-1: #F5F0E8; --gray-2: #E0D8CC; --gray-3: #A89880; --gray-4: #5C4C38;
+  --text: #1A1200;
+  --radius-pill: 100px; --radius-base: 10px;
+  --font-heading: 'Poppins', sans-serif; --font-body: 'DM Sans', sans-serif;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--white-warm); color: var(--text); min-height: 100vh; }
 
-    /* Topbar */
-    .topbar{position:fixed;left:0;top:0;right:0;height:64px;z-index:90;background:rgba(250,248,245,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--gray-2);display:flex;align-items:center;padding:0 32px;gap:12px}
-    .topbar-logo{font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--gold);text-decoration:none;white-space:nowrap}
-    .topbar-sep{color:var(--gray-2)}
-    .topbar-title{font-family:var(--font-heading);font-size:17px;font-weight:600;color:var(--text)}
-    .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-    .topbar-badge{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--gold);background:var(--gold-muted);border:1px solid var(--gold-border);padding:4px 11px;border-radius:var(--radius-pill)}
+/* ── Topbar ── */
+.topbar {
+  position: fixed; left: 0; top: 0; right: 0; height: 60px; z-index: 90;
+  background: rgba(255,253,247,0.95); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--gray-2);
+  display: flex; align-items: center; padding: 0 28px; gap: 10px;
+}
+.topbar-logo { display: flex; align-items: center; text-decoration: none; }
+.topbar-logo img { height: 32px; width: auto; display: block; }
+.topbar-sep { color: var(--gray-2); user-select: none; font-size: 16px; }
+.topbar-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--text); }
+.topbar-right { margin-left: auto; }
+.btn-pular { font-size: 12px; color: var(--gray-3); background: none; border: none; cursor: pointer; font-family: var(--font-body); padding: 0; text-decoration: none; }
+.btn-pular:hover { color: var(--black); }
 
-    .main{padding-top:64px;min-height:100vh}
-    .main-inner{padding:40px 32px 80px;max-width:780px;margin:0 auto}
+/* ── Main ── */
+.main { padding-top: 60px; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; }
+.cam-page { width: 100%; max-width: 600px; margin: 0 auto; padding: 32px 20px 60px; }
 
-    /* Token */
-    #token-section{background:var(--white);border:1.5px dashed var(--gray-2);border-radius:var(--radius-base);padding:14px 18px;margin-bottom:20px}
-    #token-section.hidden{display:none}
-    .token-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-3);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-    .token-ok{color:#16a34a;font-size:11px;display:none}.token-ok.on{display:inline}
-    .token-row{display:flex;gap:8px}
-    .token-input{flex:1;padding:8px 11px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:11px;font-family:monospace;color:var(--text);background:var(--gray-1);outline:none}
-    .token-input:focus{border-color:var(--gold);background:var(--white)}
-    .token-btn{padding:8px 14px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-base);font-size:12px;font-weight:600;font-family:var(--font-body);cursor:pointer}
-    .token-hint{font-size:11px;color:var(--gray-3);margin-top:7px;line-height:1.55}
-    .token-hint code{font-family:monospace;font-size:10.5px;background:var(--gray-1);padding:1px 5px;border-radius:4px}
+/* ── Loading ── */
+#loading-section { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding-top: 140px; }
+.ld-spinner { width: 26px; height: 26px; border: 2.5px solid rgba(184,134,11,0.15); border-top-color: var(--gold); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ld-text { font-size: 13px; color: var(--gray-3); }
 
-    /* Brand profile card */
-    #brand-profile-section{margin-bottom:24px}
-    .brand-card{background:var(--white);border:1px solid var(--gray-2);border-radius:var(--radius-lg);padding:18px 22px;box-shadow:var(--shadow-sm)}
-    .brand-card-empty{text-align:center;padding:28px 20px}
-    .brand-card-empty p{font-size:13px;color:var(--gray-3);margin-bottom:12px}
-    .brand-card-header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-    .brand-card-icon{width:38px;height:38px;border-radius:50%;background:var(--gold-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-heading);font-size:16px;font-weight:700;flex-shrink:0}
-    .brand-card-name{font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--black)}
-    .brand-card-desc{font-size:12px;color:var(--gray-3);margin-top:1px}
-    .brand-bus{display:flex;flex-wrap:wrap;gap:6px}
-    .brand-bu-chip{padding:4px 11px;background:var(--gray-1);border:1px solid var(--gray-2);border-radius:var(--radius-pill);font-size:12px;color:var(--gray-4)}
-    .brand-bu-chip.active{background:rgba(184,134,11,0.1);border-color:rgba(184,134,11,0.3);color:var(--brown-warm);font-weight:600}
-    .brand-change-btn{margin-left:auto;font-size:12px;color:var(--gray-3);background:none;border:none;cursor:pointer;font-family:var(--font-body);text-decoration:underline}
+/* ── Cam Page Header ── */
+.cam-page-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.cam-page-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--gold-gradient); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.cam-page-title { font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--black); }
+.cam-page-badge { font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--brown-warm); background: var(--gold-muted); border: 1px solid var(--gold-border); padding: 3px 8px; border-radius: var(--radius-pill); }
 
-    /* Sample profiles picker */
-    #sample-picker{display:flex;flex-direction:column;gap:8px}
-    .sample-btn{padding:10px 14px;background:var(--gray-1);border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:13px;font-family:var(--font-body);color:var(--text);cursor:pointer;text-align:left;transition:all .15s}
-    .sample-btn:hover{border-color:var(--gold);background:rgba(184,134,11,0.06)}
-    .sample-btn strong{display:block;font-weight:600;margin-bottom:2px}
-    .sample-btn span{font-size:11px;color:var(--gray-3)}
-    .paste-area{width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:var(--radius-base);font-size:11px;font-family:monospace;color:var(--text);background:var(--gray-1);outline:none;resize:vertical;min-height:80px;margin-top:8px}
-    .paste-area:focus{border-color:var(--gold);background:var(--white)}
-    .paste-hint{font-size:11px;color:var(--gray-3);margin-bottom:4px}
+/* ── Steps indicator ── */
+.cam-steps { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; }
+.cam-step-dot { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--gray-3); }
+.cam-step-dot.active { color: var(--gold); }
+.cam-step-dot.done { color: var(--gray-3); text-decoration: line-through; }
+.cam-step-dot::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.cam-step-sep { font-size: 12px; color: var(--gray-2); }
 
-    /* Agent header */
-    .agent-header{margin-bottom:20px}
-    .agent-header h2{font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--black);margin-bottom:4px}
-    .agent-header p{font-size:13px;color:var(--gray-3);line-height:1.5}
-    .agent-header-meta{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
-    .agent-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--brown-warm);background:rgba(184,134,11,0.08);border:1px solid rgba(184,134,11,0.22);padding:4px 10px;border-radius:var(--radius-pill)}
-    .agent-badge-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s ease infinite}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    .agent-step-pill{font-size:11px;color:var(--gray-3);background:var(--gray-1);border:1px solid var(--gray-2);padding:3px 10px;border-radius:var(--radius-pill)}
+/* ── Prompt Step ── */
+.cam-prompt-body { display: flex; flex-direction: column; gap: 16px; }
+.cam-bus-section { margin-bottom: 4px; }
+.cam-bus-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--gray-3); margin-bottom: 8px; }
+.cam-bus { display: flex; flex-wrap: wrap; gap: 6px; }
+.cam-bu-chip { padding: 6px 14px; border: 1.5px solid var(--gray-2); border-radius: var(--radius-pill); font-size: 13px; font-family: var(--font-body); color: var(--gray-4); background: var(--white); cursor: pointer; transition: all .15s; font-weight: 500; }
+.cam-bu-chip:hover { border-color: var(--gold); color: var(--brown-warm); background: rgba(184,134,11,.04); }
+.cam-bu-chip.selected { border-color: var(--gold); background: rgba(184,134,11,.10); color: var(--brown-warm); font-weight: 600; }
+.cam-prompt-label { font-size: 15px; font-weight: 600; color: var(--black); }
+.cam-prompt-hint { font-size: 13px; color: var(--gray-3); margin-top: 3px; line-height: 1.5; }
+.cam-prompt-textarea { width: 100%; padding: 14px 16px; border: 1.5px solid var(--gray-2); border-radius: 12px; font-size: 14px; font-family: var(--font-body); color: var(--text); background: var(--gray-1); outline: none; resize: none; min-height: 100px; line-height: 1.6; transition: border .18s, background .18s; }
+.cam-prompt-textarea:focus { border-color: var(--gold); background: var(--white); }
+.cam-prompt-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.cam-manual-link { font-size: 12px; color: var(--gray-3); background: none; border: none; cursor: pointer; font-family: var(--font-body); text-decoration: underline; padding: 0; flex-shrink: 0; }
+.cam-manual-link:hover { color: var(--black); }
+.cam-prompt-btn { padding: 13px 26px; background: var(--black); color: var(--white); border: none; border-radius: var(--radius-pill); font-size: 14px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; }
+.cam-prompt-btn:hover:not(:disabled) { background: #2C1E00; }
+.cam-prompt-btn:disabled { opacity: .4; cursor: not-allowed; }
 
-    /* Chat — pixel-a-pixel do criar-oportunidade */
-    .ag-chat-card{background:var(--white);border:1px solid #E0D8CC;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(30,22,0,.06);display:none;position:relative}
-    .ag-chat-card.ag-chat-full{display:flex;flex-direction:column;height:480px}
-    .ag-chat-card.ag-chat-full .ag-chat-thread{flex:1;max-height:none}
-    .ag-chat-thread{padding:16px 18px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
-    .ag-chat-thread::-webkit-scrollbar{width:4px}
-    .ag-chat-thread::-webkit-scrollbar-thumb{background:#E0D8CC;border-radius:2px}
-    .ag-msg{display:flex;gap:8px;align-items:flex-start}
-    .ag-msg.user{flex-direction:row-reverse}
-    .ag-msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-    .ag-msg.agent .ag-msg-avatar{background:var(--gold-gradient);color:#FFF;font-size:12px}
-    .ag-msg.user  .ag-msg-avatar{background:#E0D8CC;color:#5C4C38}
-    .ag-msg-bubble{max-width:calc(100% - 40px);padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.55}
-    .ag-msg.agent .ag-msg-bubble{background:#F5F0E8;border:1px solid #E0D8CC;border-top-left-radius:4px;color:var(--black)}
-    .ag-msg.user  .ag-msg-bubble{background:var(--black);color:#FFF;border-top-right-radius:4px}
-    .ag-msg-bubble strong{font-weight:600}
-    .ag-typing-dots{display:inline-flex;align-items:center;gap:3px;padding:4px 2px}
-    .ag-typing-dots span{width:5px;height:5px;background:#A89880;border-radius:50%;animation:agBounce 1.2s infinite}
-    .ag-typing-dots span:nth-child(2){animation-delay:.2s}
-    .ag-typing-dots span:nth-child(3){animation-delay:.4s}
-    @keyframes agBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
-    @keyframes agMsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-    .ag-msg.agent{animation:agMsgIn .28s ease forwards}
-    .ag-loading-dots::after{content:'';animation:agLoadDots 1.4s steps(1,end) infinite}
-    @keyframes agLoadDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%,100%{content:'...'}}
-    .ag-loading-phase{display:inline-block;animation:agPhaseFade .4s ease;opacity:.7;font-size:13px}
-    @keyframes agPhaseFade{from{opacity:.2}to{opacity:.7}}
-    .ag-options{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-    .ag-option-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;font-size:13px;font-family:var(--font-body);color:#1A1200;cursor:pointer;text-align:left;transition:all .15s;width:100%}
-    .ag-option-btn:hover{border-color:#B8860B;background:#FBF8F1;transform:translateX(2px)}
-    .ag-option-num{flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:var(--gold-gradient);color:#FFF;border-radius:50%;font-size:11px;font-weight:600}
-    .ag-option-text{flex:1;line-height:1.35}
-    .ag-option-free{background:transparent;border-style:dashed;color:#5C4C38}
-    .ag-option-free .ag-option-num{background:transparent;color:#5C4C38;border:1.5px solid #A89880}
-    .ag-option-free:hover{background:#FAF8F5;border-style:solid}
-    .ag-error-msg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:10px;padding:10px 14px;margin:0 18px 8px;font-size:12px;color:#DC2626;display:none;line-height:1.5}
-    .ag-error-msg.visible{display:block}
-    .ag-chat-input-row{display:flex;gap:8px;padding:14px 18px;border-top:2px solid #F0EBE1;margin-top:4px;align-items:flex-end}
-    .ag-chat-input{flex:1;padding:9px 12px;border:1.5px solid #E0D8CC;border-radius:12px;font-size:13px;font-family:var(--font-body);color:var(--black);background:#F5F0E8;transition:all .18s;resize:none;line-height:1.5;min-height:38px;max-height:140px;overflow-y:auto;display:block}
-    .ag-chat-input:focus{outline:none;border-color:#B8860B;background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.08)}
-    .ag-chat-input::placeholder{color:#A89880}
-    .ag-btn-send{padding:9px 16px;background:var(--black);color:#FFF;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;flex-shrink:0}
-    .ag-btn-send:hover:not(:disabled){background:#2C1E00}
-    .ag-btn-send:disabled{opacity:.4;cursor:not-allowed}
-    .ag-btn-confirm{display:flex;align-items:center;justify-content:center;width:100%;padding:12px 18px;background:var(--gold-gradient);color:#FFF;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;font-family:var(--font-heading);cursor:pointer;transition:all .18s}
-    .ag-btn-confirm:hover{opacity:.9;transform:translateY(-1px)}
-    .ag-panel-actions{display:flex;gap:10px;margin-top:16px;align-items:center}
-    .ag-btn-iniciar{padding:11px 28px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s}
-    .ag-btn-iniciar:hover:not(:disabled){background:#2C1E00}
-    .ag-btn-iniciar:disabled{opacity:.4;cursor:not-allowed}
-    .ag-btn-reiniciar{padding:11px 20px;background:transparent;color:var(--gray-3);border:1.5px solid var(--gray-2);border-radius:var(--radius-pill);font-size:13px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:all .15s;display:none}
-    .ag-btn-reiniciar:hover{color:var(--black);border-color:var(--gray-3)}
-
-    /* Campanha result */
-    #section-campanha{display:none;margin-top:32px}
-    .campanha-card{background:#fff;border:1.5px solid rgba(184,134,11,.28);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}
-    .campanha-card-header{padding:18px 22px;background:linear-gradient(135deg,rgba(184,134,11,.07),rgba(200,168,75,.04));border-bottom:1px solid var(--gray-2);display:flex;align-items:flex-start;gap:12px}
-    .campanha-card-icon{width:40px;height:40px;border-radius:50%;background:var(--gold-gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-    .campanha-card-header h3{font-family:var(--font-heading);font-size:20px;color:var(--black);margin-bottom:2px}
-    .campanha-card-header p{font-size:12px;color:var(--gray-3)}
-    .campanha-body{padding:20px 22px;display:flex;flex-direction:column;gap:16px}
-    .campanha-row label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-3);font-weight:600;margin-bottom:4px}
-    .campanha-row .val{font-size:14px;color:var(--black);line-height:1.5}
-    .filtro-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;background:rgba(184,134,11,.06);border:1.5px solid rgba(184,134,11,.18);border-radius:10px}
-    .filtro-bar-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gray-3);flex-shrink:0}
-    .filtro-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--radius-pill);background:rgba(184,134,11,.12);border:1px solid rgba(184,134,11,.25);font-size:12px;font-weight:600;color:#6b4d00}
-    .btn-criar-campanha{width:100%;padding:14px;background:var(--gold-gradient);color:#fff;border:none;border-radius:var(--radius-pill);font-size:15px;font-weight:600;font-family:var(--font-heading);cursor:pointer;transition:all .15s;margin-top:12px;box-shadow:0 4px 16px rgba(184,134,11,.3)}
-    .btn-criar-campanha:hover{opacity:.9;transform:translateY(-1px)}
-    .btn-criar-campanha.saved{background:linear-gradient(135deg,#16a34a,#22c55e);box-shadow:none}
-    .debug-toggle{font-size:11px;color:var(--gray-3);cursor:pointer;background:none;border:none;font-family:var(--font-body);padding:10px 0;text-decoration:underline;display:block}
-    #debug-json{display:none;background:#1e1e1e;color:#a8ff78;font-family:monospace;font-size:11px;padding:14px;border-radius:8px;overflow-x:auto;white-space:pre;margin-top:8px;line-height:1.5}
-  </style>
+/* ── Chat Step ── */
+.cam-chat-body { display: flex; flex-direction: column; gap: 0; background: var(--white); border: 1.5px solid var(--gray-2); border-radius: 16px; overflow: hidden; }
+.cam-thread { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-height: 280px; max-height: 460px; }
+.cam-thread::-webkit-scrollbar { width: 4px; }
+.cam-thread::-webkit-scrollbar-thumb { background: var(--gray-2); border-radius: 2px; }
+.cam-msg { display: flex; gap: 8px; align-items: flex-start; }
+.cam-msg.user { flex-direction: row-reverse; }
+.cam-msg-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+.cam-msg.agent .cam-msg-avatar { background: var(--gold-gradient); color: #fff; }
+.cam-msg.user .cam-msg-avatar { background: var(--gray-2); color: var(--gray-4); }
+.cam-msg-bubble { max-width: 76%; padding: 9px 13px; border-radius: 12px; font-size: 13px; line-height: 1.55; }
+.cam-msg.agent .cam-msg-bubble { background: var(--gray-1); border: 1px solid var(--gray-2); border-radius: 12px 12px 12px 3px; }
+.cam-msg.user .cam-msg-bubble { background: var(--black); color: #fff; border-radius: 12px 12px 3px 12px; }
+.cam-typing-dots { display: flex; gap: 4px; padding: 4px 2px; }
+.cam-typing-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); animation: camDot 1.4s ease infinite; }
+.cam-typing-dots span:nth-child(2) { animation-delay: .2s; }
+.cam-typing-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes camDot { 0%,80%,100% { opacity: .25; transform: scale(.9); } 40% { opacity: 1; transform: scale(1.1); } }
+.cam-options { display: flex; flex-direction: column; gap: 5px; margin-top: 6px; }
+.cam-option-btn { padding: 8px 12px; background: var(--white); border: 1.5px solid var(--gray-2); border-radius: 8px; font-size: 12px; font-family: var(--font-body); color: var(--text); cursor: pointer; text-align: left; transition: all .15s; display: flex; align-items: center; gap: 8px; }
+.cam-option-btn:hover { border-color: var(--gold); background: rgba(184,134,11,.05); }
+.cam-option-btn[data-selected="true"] { border-color: var(--gold); background: rgba(184,134,11,.08); color: var(--brown-warm); }
+.cam-option-num { width: 20px; height: 20px; border-radius: 50%; background: var(--gold-gradient); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.cam-error { font-size: 12px; color: #DC2626; padding: 6px 18px; display: none; background: rgba(239,68,68,.06); border-top: 1px solid rgba(239,68,68,.15); }
+.cam-error.visible { display: block; }
+.cam-loading-phase { font-size: 12px; color: var(--gray-3); font-style: italic; }
+.cam-loading-dots::after { content: ''; animation: camLoadDots 1.2s steps(4,end) infinite; }
+@keyframes camLoadDots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
+.cam-input-row { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--gray-2); align-items: flex-end; background: var(--white); }
+.cam-input { flex: 1; padding: 9px 12px; border: 1.5px solid var(--gray-2); border-radius: 12px; font-size: 13px; font-family: var(--font-body); color: var(--text); background: var(--gray-1); outline: none; resize: none; min-height: 38px; max-height: 100px; overflow-y: auto; transition: all .18s; line-height: 1.5; }
+.cam-input:focus { border-color: var(--gold); background: var(--white); }
+.cam-btn-send { padding: 9px 16px; background: var(--black); color: #fff; border: none; border-radius: var(--radius-pill); font-size: 13px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: all .15s; flex-shrink: 0; }
+.cam-btn-send:hover:not(:disabled) { background: #2C1E00; }
+.cam-btn-send:disabled { opacity: .4; cursor: not-allowed; }
+.cam-result { padding: 14px 18px 18px; border-top: 1px solid var(--gray-2); background: var(--white); }
+.cam-result-card { background: rgba(184,134,11,.05); border: 1.5px solid rgba(184,134,11,.22); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+.cam-result-nome { font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--black); margin-bottom: 6px; }
+.cam-result-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.cam-result-chip { padding: 2px 10px; border-radius: 100px; background: rgba(184,134,11,.12); border: 1px solid rgba(184,134,11,.25); font-size: 11px; font-weight: 600; color: #6b4d00; }
+.cam-result-actions { display: flex; gap: 8px; }
+.cam-btn-confirmar { flex: 1; padding: 13px; background: var(--gold-gradient); color: #fff; border: none; border-radius: var(--radius-pill); font-size: 14px; font-weight: 700; font-family: var(--font-heading); cursor: pointer; transition: all .15s; }
+.cam-btn-confirmar:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); }
+.cam-btn-confirmar:disabled { opacity: .5; cursor: not-allowed; }
+.cam-btn-refazer { padding: 13px 18px; background: none; border: 1.5px solid var(--gray-2); border-radius: var(--radius-pill); font-size: 13px; color: var(--gray-3); font-family: var(--font-body); cursor: pointer; transition: all .15s; }
+.cam-btn-refazer:hover { border-color: var(--gray-3); color: var(--black); }
+</style>
 </head>
 <body>
 
+<!-- Topbar -->
 <div class="topbar">
-  <a class="topbar-logo" href="#">✦ Radar Relevantia</a>
+  <a class="topbar-logo" href="index.html">
+    <img src="logos/5.png" alt="Radar Relevantia">
+  </a>
   <span class="topbar-sep">/</span>
   <span class="topbar-title">Criar campanha</span>
-  <div class="topbar-right"><a href="#" id="linkPular" onclick="event.preventDefault(); pularCampanha()" style="font-size:12px;color:var(--gray-3);text-decoration:none">Pular por agora →</a></div>
+  <div class="topbar-right">
+    <button class="btn-pular" id="linkPular" onclick="pularCampanha()">Pular por agora →</button>
+  </div>
 </div>
 
-<div class="main"><div class="main-inner">
+<!-- Main -->
+<div class="main">
 
-  <!-- Token (fallback teste local — oculto em produção; só aparece sem sessão) -->
-  <div id="token-section" class="hidden">
-    <div class="token-label">Token de acesso (teste local)<span class="token-ok" id="tokenOk">✓ Ativo</span></div>
-    <div class="token-row">
-      <input type="password" class="token-input" id="tokenInput" placeholder="Cole seu JWT…" />
-      <button class="token-btn" onclick="usarToken()">Usar</button>
+  <!-- Loading -->
+  <div id="loading-section" style="width:100%;text-align:center">
+    <div style="display:inline-flex;flex-direction:column;align-items:center;gap:12px;padding-top:120px">
+      <div class="ld-spinner"></div>
+      <span class="ld-text">Carregando seu perfil…</span>
     </div>
-    <p class="token-hint">Console: <code>(await sb.auth.getSession()).data.session.access_token</code></p>
   </div>
 
-  <!-- Perfil da marca -->
-  <div id="brand-profile-section">
-    <div class="brand-card" id="brandCard">
-      <div class="brand-card-empty" id="brandEmpty">
-        <p>Selecione o perfil de marca para iniciar</p>
-        <div id="sample-picker">
-          <button class="sample-btn" onclick="usarSample('itau')">
-            <strong>Itaú Unibanco</strong>
-            <span>Varejo · Private Bank · BBA · Rede · Kinea</span>
-          </button>
-          <button class="sample-btn" onclick="usarSample('nubank')">
-            <strong>Nubank</strong>
-            <span>Conta Digital · Cartão · Nu Invest · Seguros</span>
-          </button>
-          <button class="sample-btn" onclick="usarSample('ambev')">
-            <strong>Ambev</strong>
-            <span>Corona · Stella Artois · Brahma · Skol</span>
-          </button>
-          <div style="font-size:11px;color:var(--gray-3);margin:8px 0 4px">Ou cole o JSON do agente de marca:</div>
-          <textarea class="paste-area" id="brandJsonPaste" placeholder='{"empresa":{"valor":"Nubank"},"negocios":{"valor":[...]}}' rows="3"></textarea>
-          <button class="sample-btn" onclick="usarJsonColado()" style="margin-top:4px;text-align:center"><strong>Usar JSON colado</strong></button>
+  <!-- Cam page -->
+  <div class="cam-page" id="cam-page" style="display:none">
+
+    <div class="cam-page-header">
+      <div class="cam-page-icon">✦</div>
+      <div class="cam-page-title">Criar campanha</div>
+      <span class="cam-page-badge">com IA</span>
+    </div>
+
+    <div class="cam-steps" id="cam-steps">
+      <span class="cam-step-dot active" id="step-dot-1">Descrever objetivo</span>
+      <span class="cam-step-sep">›</span>
+      <span class="cam-step-dot" id="step-dot-2">Configurar filtro</span>
+      <span class="cam-step-sep">›</span>
+      <span class="cam-step-dot" id="step-dot-3">Confirmar</span>
+    </div>
+
+    <!-- Step 1: prompt inicial -->
+    <div class="cam-prompt-body" id="cam-prompt-step">
+      <div id="cam-bus-section" class="cam-bus-section" style="display:none">
+        <div class="cam-bus-label">Para qual negócio?</div>
+        <div class="cam-bus" id="cam-bus-chips"></div>
+      </div>
+      <div>
+        <div class="cam-prompt-label" id="cam-prompt-label">Qual o objetivo desta campanha?</div>
+        <div class="cam-prompt-hint" id="cam-prompt-hint">Descreva o que você quer alcançar — o agente vai configurar os filtros e criar o nome para você.</div>
+      </div>
+      <textarea class="cam-prompt-textarea" id="cam-prompt-input"
+        placeholder="Ex: Quero patrocinar eventos de lifestyle em SP para lançar minha nova linha de produtos..."
+        oninput="camValidatePrompt()"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.metaKey){event.preventDefault();camIniciar()}"></textarea>
+      <div class="cam-prompt-footer">
+        <button class="cam-manual-link" id="cam-manual-btn" onclick="pularCampanha()">Criar manualmente no dashboard →</button>
+        <button class="cam-prompt-btn" id="cam-prompt-btn" disabled onclick="camIniciar()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span id="cam-prompt-btn-label">Criar com IA →</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2 + 3: chat + resultado -->
+    <div class="cam-chat-body" id="cam-chat-step" style="display:none">
+      <div class="cam-thread" id="cam-thread"></div>
+      <div class="cam-error" id="cam-error"></div>
+      <div class="cam-input-row" id="cam-input-row">
+        <textarea class="cam-input" id="cam-input" placeholder="Responda ao agente..." rows="1"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();camEnviar()}"></textarea>
+        <button class="cam-btn-send" id="cam-btn-send" onclick="camEnviar()">Enviar</button>
+      </div>
+      <!-- Step 3: resultado -->
+      <div class="cam-result" id="cam-result-step" style="display:none">
+        <div class="cam-result-card" id="cam-result-card"></div>
+        <div class="cam-result-actions">
+          <button class="cam-btn-refazer" onclick="camRefazer()">Ajustar</button>
+          <button class="cam-btn-confirmar" id="cam-btn-confirmar" onclick="camConfirmar()">✦ Criar campanha →</button>
         </div>
       </div>
-      <div id="brandLoaded" style="display:none">
-        <div class="brand-card-header">
-          <div class="brand-card-icon" id="brandIcon">✦</div>
-          <div>
-            <div class="brand-card-name" id="brandName">—</div>
-            <div class="brand-card-desc" id="brandDesc">—</div>
-          </div>
-          <button class="brand-change-btn" onclick="trocarPerfil()">trocar perfil</button>
-        </div>
-        <div class="brand-bus" id="brandBus"></div>
-      </div>
     </div>
-  </div>
 
-  <!-- Agent header -->
-  <div class="agent-header" id="agentHeader" style="display:none">
-    <h2>✦ Criar campanha</h2>
-    <p>Descreva a campanha que quer criar — o agente vai entender o objetivo, o ativo ideal e configurar o filtro automaticamente.</p>
-    <div class="agent-header-meta">
-      <span class="agent-badge"><span class="agent-badge-dot"></span>Campanhas</span>
-      <span class="agent-step-pill">1 · Descrever objetivo</span>
-      <span class="agent-step-pill">2 · Confirmar filtro</span>
-    </div>
-  </div>
-
-  <!-- Prompt input (antes do chat) -->
-  <div id="prompt-section" style="display:none">
-    <div class="brand-card" style="margin-bottom:16px">
-      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-4);display:block;margin-bottom:8px">Descreva a campanha</label>
-      <textarea id="campaignInput" class="ag-chat-input" rows="3" style="width:100%;min-height:80px;display:block"
-        placeholder="Ex: Quero criar uma campanha de luxo para o Private do Itaú com influenciadores jovens de 18 a 25 anos, foco em lifestyle e finanças…"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey&&event.ctrlKey){event.preventDefault();iniciarCampanha()}"></textarea>
-      <p style="font-size:11px;color:var(--gray-3);margin-top:6px">Ctrl+Enter para enviar</p>
-    </div>
-  </div>
-
-  <!-- Chat -->
-  <div class="ag-chat-card ag-chat-full" id="agChatCard" style="display:none">
-    <div class="ag-chat-thread" id="agChatThread"></div>
-    <div class="ag-error-msg" id="agErrorMsg"></div>
-    <div class="ag-chat-input-row">
-      <textarea class="ag-chat-input" id="agChatInput" rows="1"
-        placeholder="Digite sua resposta…"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agEnviar()}"
-        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px'"></textarea>
-      <button class="ag-btn-send" id="agBtnSend" onclick="agEnviar()">Enviar</button>
-    </div>
-  </div>
-
-  <!-- Actions -->
-  <div class="ag-panel-actions" id="agActions" style="display:none">
-    <button class="ag-btn-iniciar" id="btnIniciar" onclick="iniciarCampanha()">Criar campanha →</button>
-    <button class="ag-btn-reiniciar" id="btnReiniciar" onclick="reiniciar()">← Recomeçar</button>
-  </div>
-
-  <!-- Campanha result -->
-  <div id="section-campanha">
-    <div class="campanha-card">
-      <div class="campanha-card-header">
-        <div class="campanha-card-icon">✦</div>
-        <div>
-          <h3 id="campanhaNome">Campanha</h3>
-          <p id="campanhaSubtitle">Gerado pelo Agente de Campanhas · Radar Relevantia</p>
-        </div>
-      </div>
-      <div class="campanha-body" id="campanhaBody"></div>
-    </div>
-    <button class="btn-criar-campanha" id="btnCriar" onclick="criarCampanha()">✦ Criar esta campanha →</button>
-    <button class="debug-toggle" onclick="toggleDebug()">{ } Ver JSON (debug)</button>
-    <pre id="debug-json"></pre>
-  </div>
-
-</div></div>
+  </div><!-- /cam-page -->
+</div><!-- /main -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/core.js"></script>
 <script>
-const _st = { history:[], lastResult:null, loading:false, token:null, brandProfile:null, marcaId:null };
-const API_BASE = window.location.protocol==='file:' ? 'https://radar-relevantia.com.br' : '';
+// ── Constantes ──────────────────────────────────────────────────────────────
+const CAM_API_BASE = window.location.protocol === 'file:' ? 'https://radar-relevantia.com.br' : '';
+const CAM_STATE_KEY = 'rr_onboarding_campanha_state';
 
-// ── Auth ──────────────────────────────────────────────────────────
-async function getToken() {
-  if (_st.token) return _st.token;
-  try { const b=await getSessionAsync('brand'); if(b?.access_token){ _st.marcaId=b.user?.id; return b.access_token; } } catch(e){}
-  try { const r=await getSessionAsync('rightsholder'); if(r?.access_token) return r.access_token; } catch(e){}
-  return null;
+// ── Estado ──────────────────────────────────────────────────────────────────
+let _st = { loading: false, history: [], lastResult: null, token: null, marcaId: null };
+
+// ── Persistência de estado ───────────────────────────────────────────────────
+function _saveState(step) {
+  try {
+    const selectedBus = [...document.querySelectorAll('#cam-bus-chips .cam-bu-chip.selected')].map(b => b.dataset.negocio);
+    const state = {
+      step,
+      history: _st.history,
+      lastResult: _st.lastResult,
+      promptText: document.getElementById('cam-prompt-input')?.value || '',
+      selectedBus
+    };
+    localStorage.setItem(CAM_STATE_KEY, JSON.stringify(state));
+  } catch(e) {}
 }
 
-// ── Init: exige sessão e carrega o brand_brief real do agente de marca ──
-(async () => {
-  const t = await getToken();
-  // Sem sessão → volta para o acesso de marca
-  if (!t) { window.location.href = '/acesso-marca.html'; return; }
-  _st.token = t;
-  document.getElementById('token-section')?.classList.add('hidden');
+function _clearState() {
+  localStorage.removeItem(CAM_STATE_KEY);
+}
 
-  // Resolve marcaId (caso getToken não tenha capturado)
-  if (!_st.marcaId) {
-    try { const b = await getSessionAsync('brand'); _st.marcaId = b?.user?.id || null; } catch(e){}
-  }
-
-  // Busca o brand_brief gerado pelo agente de marca
+function _restoreState() {
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + _st.marcaId + '&select=empresa,brand_brief&limit=1', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _st.token }
-    });
-    const data = await res.json().catch(() => []);
-    const brief = data?.[0]?.brand_brief;
-    if (brief) {
-      // brand_brief tem o mesmo shape esperado por mostrarBrandCard ({campo:{valor}})
-      _st.brandProfile = brief;
-      mostrarBrandCard(brief);
-      // Garante onboarding_completo=false — cobre usuários mid-onboarding
-      // que chegaram aqui antes do fix (campo ainda undefined no metadata)
-      try {
-        const b = await getSessionAsync('brand');
-        if (b?.user?.user_metadata?.onboarding_completo !== false) {
-          fetch(SUPABASE_URL + '/auth/v1/user', {
-            method: 'PUT',
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _st.token, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: { onboarding_completo: false } })
-          }).catch(() => {});
-        }
-      } catch(e) {}
-    } else {
-      // Ainda não passou pelo agente de marca → faz o onboarding primeiro
-      window.location.href = '/onboarding-marca.html';
+    const raw = localStorage.getItem(CAM_STATE_KEY);
+    if (!raw) return false;
+    const state = JSON.parse(raw);
+    if (!state.step) return false;
+
+    if (state.step === 'prompt') {
+      // Restaura texto digitado e BUs selecionados
+      const input = document.getElementById('cam-prompt-input');
+      if (input && state.promptText) input.value = state.promptText;
+      camValidatePrompt();
+      if (state.selectedBus?.length) {
+        state.selectedBus.forEach(nome => {
+          const btn = document.querySelector(`#cam-bus-chips [data-negocio="${CSS.escape(nome)}"]`);
+          if (btn) btn.classList.add('selected');
+        });
+      }
+      return true;
     }
-  } catch(e) {
-    console.warn('Erro ao carregar brand_brief:', e);
+
+    if (state.step === 'chat' || state.step === 'result') {
+      // Restaura o chat
+      _st.history = state.history || [];
+      _st.lastResult = state.lastResult || null;
+
+      document.getElementById('cam-prompt-step').style.display = 'none';
+      document.getElementById('cam-chat-step').style.display = 'flex';
+      _setStepDots('chat');
+
+      // Rebuild thread from history
+      const thread = document.getElementById('cam-thread');
+      thread.innerHTML = '';
+      _st.history.forEach((msg, i) => {
+        if (i === 0) return; // skip first system msg
+        _addMsg(msg.role === 'user' ? 'user' : 'agent', _html(msg.content));
+      });
+
+      if (state.step === 'result' && state.lastResult) {
+        document.getElementById('cam-input-row').style.display = 'none';
+        _mostrarResult(state.lastResult, true);
+        _setStepDots('result');
+      }
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+// ── Helpers de UI ────────────────────────────────────────────────────────────
+function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _html(t) { return _esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
+function _showErr(m) { const e = document.getElementById('cam-error'); if(e){e.textContent=m; e.classList.toggle('visible',!!m);} }
+function _setLoading(on) {
+  _st.loading = on;
+  const s = document.getElementById('cam-btn-send'), i = document.getElementById('cam-input');
+  if(s) s.disabled = on; if(i) i.disabled = on;
+}
+function _addMsg(role, html, isTyping=false) {
+  const t = document.getElementById('cam-thread');
+  const d = document.createElement('div'); d.className = `cam-msg ${role}`;
+  d.innerHTML = `<div class="cam-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="cam-msg-bubble">${isTyping?'<div class="cam-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
+  if(isTyping) d.id = 'cam-typing-msg';
+  t.appendChild(d); t.scrollTop = t.scrollHeight; return d;
+}
+function _removeTyping() { const e = document.getElementById('cam-typing-msg'); if(e) e.remove(); }
+function _phaseUpdate(phases, idx) {
+  const el = document.getElementById('cam-typing-msg'); if(!el) return;
+  el.querySelector('.cam-msg-bubble').innerHTML = `<span class="cam-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="cam-loading-dots"></span></span>`;
+}
+function _setStepDots(step) {
+  const d1 = document.getElementById('step-dot-1');
+  const d2 = document.getElementById('step-dot-2');
+  const d3 = document.getElementById('step-dot-3');
+  if(step === 'prompt') {
+    d1.className = 'cam-step-dot active'; d2.className = 'cam-step-dot'; d3.className = 'cam-step-dot';
+  } else if(step === 'chat') {
+    d1.className = 'cam-step-dot done'; d2.className = 'cam-step-dot active'; d3.className = 'cam-step-dot';
+  } else if(step === 'result') {
+    d1.className = 'cam-step-dot done'; d2.className = 'cam-step-dot done'; d3.className = 'cam-step-dot active';
   }
-})();
-
-// Fallback de teste local (token manual) — usado só quando não há sessão
-function usarToken(){
-  const v=document.getElementById('tokenInput').value.trim();
-  if(!v||v.split('.').length!==3){alert('Token inválido.');return;}
-  _st.token=v; document.getElementById('tokenOk').classList.add('on');
-  setTimeout(()=>document.getElementById('token-section').classList.add('hidden'),700);
 }
 
-// ── Perfis sample ─────────────────────────────────────────────────
-const SAMPLES = {
-  itau: {
-    empresa:{valor:'Itaú Unibanco S.A.'}, nome_curto:{valor:'Itaú'},
-    setor:{valor:'financas_investimentos'},
-    descricao_empresa:{valor:'Maior banco privado do Brasil, com ampla gama de serviços financeiros para pessoas físicas e jurídicas.'},
-    negocios:{valor:[
-      {nome:'Itaú Varejo',tipo:'servico',descricao:'Serviços bancários para pessoas físicas',publico_alvo:'Adultos de todas as rendas buscando conta, crédito e investimentos',desafio:'Manter relevância frente aos bancos digitais'},
-      {nome:'Itaú Private Bank',tipo:'servico',descricao:'Gestão de patrimônio para clientes de alta renda',publico_alvo:'Indivíduos com patrimônio acima de R$ 3M buscando sofisticação financeira',desafio:'Fortalecer posicionamento premium e atrair nova geração wealthy'},
-      {nome:'Itaú BBA',tipo:'servico',descricao:'Banco de investimento corporativo',publico_alvo:'Grandes empresas e corporações',desafio:'Consolidar liderança em M&A e mercado de capitais'},
-      {nome:'Rede (Maquininha)',tipo:'produto',descricao:'Solução de pagamentos para estabelecimentos',publico_alvo:'Comerciantes e PMEs',desafio:'Competir em preço e tecnologia com concorrentes digitais'}
-    ]},
-    geografias:{valor:['Brasil']}, abrangencia:{valor:'nacional'}, porte:{valor:'multinacional'},
-    objetivo_marca:{valor:'Reposicionamento como banco moderno e digital sem perder a confiança do legado'}
-  },
-  nubank: {
-    empresa:{valor:'Nu Holdings (Nubank)'}, nome_curto:{valor:'Nubank'},
-    setor:{valor:'financas_investimentos'},
-    descricao_empresa:{valor:'Maior fintech da América Latina, oferecendo serviços financeiros digitais sem burocracia.'},
-    negocios:{valor:[
-      {nome:'Conta Digital',tipo:'produto',descricao:'Conta sem taxas e cartão sem anuidade',publico_alvo:'Jovens adultos e desbancarizados buscando simplicidade',desafio:'Reter clientes além da conta corrente'},
-      {nome:'Nu Invest',tipo:'produto',descricao:'Plataforma de investimentos acessível',publico_alvo:'Primeiros investidores buscando educação financeira',desafio:'Converter conta-correntistas em investidores ativos'},
-      {nome:'Empréstimos',tipo:'servico',descricao:'Crédito pessoal com juros competitivos',publico_alvo:'Adultos precisando de crédito rápido e transparente',desafio:'Aumentar aprovação mantendo adimplência'}
-    ]},
-    geografias:{valor:['Brasil','México','Colômbia']}, abrangencia:{valor:'internacional'}, porte:{valor:'multinacional'},
-    objetivo_marca:{valor:'Expandir para novos públicos e mercados internacionais'}
-  },
-  ambev: {
-    empresa:{valor:'Ambev S.A.'}, nome_curto:{valor:'Ambev'},
-    setor:{valor:'alimentacao_bebidas'},
-    descricao_empresa:{valor:'Maior cervejaria da América Latina com portfólio de marcas premium e populares.'},
-    negocios:{valor:[
-      {nome:'Corona',tipo:'produto',descricao:'Cerveja premium mexicana',publico_alvo:'Adultos 25-40 anos, estilo de vida praia/festival/lifestyle',desafio:'Fortalecer posicionamento premium e crescer entre jovens adultos'},
-      {nome:'Stella Artois',tipo:'produto',descricao:'Cerveja premium belga',publico_alvo:'Adultos 28-45 anos, sofisticados e apreciadores de gastronomia',desafio:'Consolidar liderança no segmento premium'},
-      {nome:'Brahma',tipo:'produto',descricao:'Cerveja popular, a cerveja do futebol',publico_alvo:'Fãs de futebol e entretenimento popular',desafio:'Manter liderança no volume frente a concorrentes'}
-    ]},
-    geografias:{valor:['Brasil','Argentina','Chile']}, abrangencia:{valor:'internacional'}, porte:{valor:'multinacional'},
-    objetivo_marca:{valor:'Fortalecer cada marca no seu posicionamento e crescer em ocasiões de consumo premium'}
-  }
-};
-
-function usarSample(key) {
-  const profile = SAMPLES[key];
-  if (!profile) return;
-  _st.brandProfile = profile;
-  mostrarBrandCard(profile);
-}
-
-function usarJsonColado() {
-  const txt = document.getElementById('brandJsonPaste').value.trim();
+// ── API ──────────────────────────────────────────────────────────────────────
+async function _callAPI(messages, brandProfile, token) {
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 150000);
   try {
-    const p = JSON.parse(txt);
-    _st.brandProfile = p;
-    mostrarBrandCard(p);
-  } catch(e) { alert('JSON inválido. Copie o JSON completo do agente de marca.'); }
-}
-
-function mostrarBrandCard(profile) {
-  const pv = c => profile[c]?.valor ?? profile[c] ?? null;
-  const nome = pv('empresa') || pv('nome_curto') || '—';
-  const descr = pv('descricao_empresa') || '';
-  const negocios = pv('negocios') || [];
-
-  document.getElementById('brandEmpty').style.display = 'none';
-  document.getElementById('brandLoaded').style.display = 'block';
-  document.getElementById('brandIcon').textContent = nome.charAt(0).toUpperCase();
-  document.getElementById('brandName').textContent = nome;
-  document.getElementById('brandDesc').textContent = descr || 'Perfil carregado';
-
-  const busEl = document.getElementById('brandBus');
-  busEl.innerHTML = negocios.map(n => {
-    const nm = typeof n==='string' ? n : (n.nome||'');
-    return `<span class="brand-bu-chip">${esc(nm)}</span>`;
-  }).join('');
-
-  // Mostra agent header + prompt input
-  document.getElementById('agentHeader').style.display = 'block';
-  document.getElementById('prompt-section').style.display = 'block';
-  document.getElementById('agActions').style.display = 'flex';
-  document.getElementById('campaignInput').focus();
-}
-
-function trocarPerfil() {
-  _st.brandProfile = null; _st.history = []; _st.lastResult = null;
-  document.getElementById('brandEmpty').style.display = 'block';
-  document.getElementById('brandLoaded').style.display = 'none';
-  document.getElementById('agentHeader').style.display = 'none';
-  document.getElementById('prompt-section').style.display = 'none';
-  document.getElementById('agActions').style.display = 'none';
-  document.getElementById('agChatCard').style.display = 'none';
-  document.getElementById('section-campanha').style.display = 'none';
-  document.getElementById('agChatThread').innerHTML = '';
-  document.getElementById('btnReiniciar').style.display = 'none';
-  document.getElementById('btnIniciar').style.display = 'inline-block';
-}
-
-// ── Helpers ───────────────────────────────────────────────────────
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function msgHtml(t){return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}
-function showError(m){const e=document.getElementById('agErrorMsg');e.textContent=m;e.classList.toggle('visible',!!m)}
-function setLoading(on){
-  _st.loading=on;
-  const b=document.getElementById('agBtnSend'),i=document.getElementById('agChatInput'),bi=document.getElementById('btnIniciar');
-  if(b)b.disabled=on;if(i)i.disabled=on;if(bi)bi.disabled=on;
-}
-function addMsg(role,html,isTyping=false){
-  const t=document.getElementById('agChatThread');
-  const d=document.createElement('div'); d.className=`ag-msg ${role}`;
-  d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
-  if(isTyping)d.id='agTypingMsg';
-  t.appendChild(d);t.scrollTop=t.scrollHeight;return d;
-}
-function removeTyping(){const e=document.getElementById('agTypingMsg');if(e)e.remove()}
-function phaseUpdate(phases,idx){
-  const el=document.getElementById('agTypingMsg');if(!el)return;
-  el.querySelector('.ag-msg-bubble').innerHTML=`<span class="ag-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="ag-loading-dots"></span></span>`;
-}
-
-// ── Iniciar campanha ──────────────────────────────────────────────
-async function iniciarCampanha() {
-  const desc = document.getElementById('campaignInput').value.trim();
-  if (!desc) { document.getElementById('campaignInput').focus(); return; }
-  if (!_st.brandProfile) { alert('Selecione o perfil da marca primeiro.'); return; }
-  const token = _st.token || await getToken();
-  if (!token) { document.getElementById('token-section').classList.remove('hidden'); alert('Insira o token.'); return; }
-  _st.token = token;
-
-  document.getElementById('prompt-section').style.display = 'none';
-  document.getElementById('agChatCard').style.display = 'flex';
-  document.getElementById('btnIniciar').style.display = 'none';
-  document.getElementById('btnReiniciar').style.display = 'inline-block';
-
-  addMsg('user', msgHtml(desc));
-  setLoading(true); addMsg('agent','',true);
-
-  const phases=['🧠 Analisando o perfil da marca','✦ Configurando filtros','✍️ Criando proposta de campanha'];
-  let pi=0; const pt=setInterval(()=>phaseUpdate(phases,++pi),3000);
-
-  try {
-    _st.history = [{role:'user', content:desc}];
-    const raw = await callAPI(_st.history, _st.brandProfile, token);
-    clearInterval(pt); removeTyping();
-    _st.history.push({role:'assistant',content:raw});
-    const parsed=parseResp(raw); _st.lastResult=parsed;
-    renderMsg(parsed);
-  } catch(err) {
-    clearInterval(pt); removeTyping();
-    showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message||'Erro.')}</span>`);
-  } finally { setLoading(false); }
-}
-
-// ── Enviar resposta ───────────────────────────────────────────────
-async function agEnviar() {
-  if(_st.loading)return;
-  const input=document.getElementById('agChatInput');
-  const text=(input.value||'').trim(); if(!text)return;
-  showError(''); input.value=''; input.style.height='auto';
-  addMsg('user',msgHtml(text)); _st.history.push({role:'user',content:text});
-  setLoading(true); addMsg('agent','',true);
-  const phases=['🧠 Analisando ajuste','✦ Atualizando filtro'];
-  let pi=0; const pt=setInterval(()=>phaseUpdate(phases,++pi),3000);
-  try {
-    const token=_st.token||await getToken();
-    if(!token)throw new Error('Sessão expirada.');
-    const raw=await callAPI(_st.history,_st.brandProfile,token);
-    clearInterval(pt); removeTyping();
-    _st.history.push({role:'assistant',content:raw});
-    const parsed=parseResp(raw); _st.lastResult=parsed; renderMsg(parsed);
-  } catch(err) {
-    clearInterval(pt); removeTyping();
-    showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span>`);
-  } finally { setLoading(false); const t=document.getElementById('agChatThread');if(t)t.scrollTop=999999; }
-}
-
-window.agSelecionarOpcao=t=>{if(_st.loading)return;document.getElementById('agChatInput').value=t||'';agEnviar();};
-window.agFocarInput=()=>{const i=document.getElementById('agChatInput');if(i){i.value='';i.focus();}};
-window.agToggleOpcao=function(btn){
-  if(_st.loading)return;
-  const sel=btn.getAttribute('data-selected')==='true';
-  btn.setAttribute('data-selected',sel?'false':'true');
-  btn.style.borderColor=sel?'#E0D8CC':'#B8860B';
-  btn.style.background=sel?'#fff':'rgba(184,134,11,0.08)';
-  btn.style.color=sel?'#1A1200':'#7A5C1E';
-  const num=btn.querySelector('.ag-option-num');
-  if(num){num.style.background=sel?'linear-gradient(135deg,#B8860B,#C8A84B)':'#E0D8CC';num.style.color=sel?'#fff':'#7A5C1E';}
-  const gid=btn.getAttribute('data-group');
-  const container=document.getElementById(gid);
-  if(!container)return;
-  const any=container.querySelectorAll('[data-selected="true"]').length>0;
-  const cb=document.getElementById('btn_confirm_'+gid);
-  if(cb)cb.style.display=any?'block':'none';
-};
-window.agEnviarMultiselect=function(gid){
-  if(_st.loading)return;
-  const container=document.getElementById(gid);if(!container)return;
-  const sel=[...container.querySelectorAll('[data-selected="true"]')].map(b=>b.dataset.opc).filter(Boolean);
-  if(!sel.length)return;
-  document.getElementById('agChatInput').value=sel.join(', ');agEnviar();
-};
-
-// ── API ───────────────────────────────────────────────────────────
-async function callAPI(messages, brandProfile, token) {
-  const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),150000);
-  try {
-    const r=await fetch(API_BASE+'/api/gemini-campaign-agent',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
-      body:JSON.stringify({messages,brandProfile}),
-      signal:ctrl.signal,
+    const r = await fetch(CAM_API_BASE + '/api/gemini-campaign-agent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ messages, brandProfile }),
+      signal: ctrl.signal
     });
     clearTimeout(timer);
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(data.error||`Erro HTTP ${r.status}`);
-    if(!data.text)throw new Error('Resposta vazia.');
+    const data = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(data.error || `Erro HTTP ${r.status}`);
+    if(!data.text) throw new Error('Resposta vazia.');
     return data.text;
-  } catch(err){clearTimeout(timer);if(err.name==='AbortError')throw new Error('IA demorou. Tente novamente.');throw err;}
+  } catch(err) { clearTimeout(timer); if(err.name==='AbortError') throw new Error('IA demorou. Tente novamente.'); throw err; }
 }
 
-// ── Parse ─────────────────────────────────────────────────────────
-function parseResp(raw){
-  try{return JSON.parse(raw.trim().replace(/^```json\s*/i,'').replace(/```\s*$/,''));}
-  catch(e){console.warn('parse error:',e.message);return null;}
+function _parse(raw) {
+  try { return JSON.parse(raw.trim().replace(/^```json\s*/i,'').replace(/```\s*$/,'')); }
+  catch(e) { return null; }
 }
 
-// ── Render ────────────────────────────────────────────────────────
-function renderMsg(parsed) {
-  if(!parsed){addMsg('agent','<span style="color:#DC2626">❌ Erro. Tente novamente.</span>');return;}
-  let html='';
-  if(parsed.resumo) html+=`${msgHtml(parsed.resumo)}<br><br>`;
-
-  if(parsed.concluido){
-    html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br>
-      <span style="font-size:12px;color:#A89880">Revise os detalhes abaixo e confirme para criar.</span>`;
-    addMsg('agent',html);
-    setTimeout(()=>mostrarCampanha(),300);
-    return;
-  }
-
-  // Mostra preview do filtro se já tiver campanha
-  if(parsed.campanha?.filtro){
-    html+=buildFiltroPreview(parsed.campanha);
-  }
-
-  if(parsed.duvidas?.length){
-    const duv=parsed.duvidas[0];
-    const pergunta=typeof duv==='string'?duv:(duv?.pergunta||'');
-    const opcoes=(duv&&typeof duv==='object'&&Array.isArray(duv.opcoes))?duv.opcoes:[];
-    const multi=!!(duv&&typeof duv==='object'&&duv.multiselect);
-    const msgId='ms_'+Date.now();
-    html+=`<strong>Para continuar:</strong><br>${esc(pergunta)}`;
-    if(multi) html+=`<div style="font-size:11px;color:#A89880;margin:4px 0 8px">Selecione uma ou mais opções</div>`;
-    if(opcoes.length){
-      html+=`<div class="ag-options" id="${msgId}">`;
-      if(multi){
-        opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" data-group="${msgId}" onclick="agToggleOpcao(this)"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
-        html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
-        html+=`<button type="button" id="btn_confirm_${msgId}" onclick="agEnviarMultiselect('${msgId}')" style="display:none;margin-top:4px;padding:10px 18px;background:#1A1200;color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;width:100%">Confirmar seleção →</button>`;
-      } else {
-        opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" onclick="agSelecionarOpcao(this.dataset.opc)"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
-        html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
-      }
-      html+='</div>';
-    }
-  }
-  addMsg('agent',html);
-}
-
-function buildFiltroPreview(campanha) {
-  if(!campanha?.filtro)return'';
-  const chips=getFiltroChips(campanha.filtro);
-  if(!chips.length)return'';
-  let h=`<div style="padding:10px 12px;background:rgba(184,134,11,.06);border:1.5px solid rgba(184,134,11,.18);border-radius:10px;margin-bottom:12px">`;
-  h+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-3);margin-bottom:6px">✦ ${esc(campanha.nome||'Campanha')} · filtro proposto</div>`;
-  h+=`<div style="display:flex;flex-wrap:wrap;gap:5px">`;
-  chips.forEach(c=>{h+=`<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;background:rgba(184,134,11,.12);border:1px solid rgba(184,134,11,.25);font-size:12px;font-weight:600;color:#6b4d00">${esc(c)}</span>`;});
-  h+=`</div></div>`;
-  return h;
-}
-
-function getFiltroChips(filtro) {
-  const chips=[];
-  const TIPO={personalidade:'Personalidade',evento:'Evento',artista:'Artista Musical',midia:'Mídia'};
-  if(filtro.tipo&&filtro.tipo!=='todos')chips.push(TIPO[filtro.tipo]||filtro.tipo);
-  const s=filtro.sel||{};
-  if(s.segmento)s.segmento.forEach(x=>chips.push(x));
-  if(s.alcance)s.alcance.forEach(x=>chips.push(x));
-  if(s.p_tipo)s.p_tipo.forEach(x=>chips.push(x));
-  if(s.p_nicho)s.p_nicho.forEach(x=>chips.push(x));
-  if(s.e_tipo)s.e_tipo.forEach(x=>chips.push(x));
-  if(s.e_perfil)s.e_perfil.forEach(x=>chips.push(x));
-  if(s.a_estilo)s.a_estilo.forEach(x=>chips.push(x));
-  if(s.m_veiculo)s.m_veiculo.forEach(x=>chips.push(x));
-  if(s.m_nicho)s.m_nicho.forEach(x=>chips.push(x));
-  if(s.invest){const FF=[{l:'Até R$ 10k'},{l:'R$ 10k–50k'},{l:'R$ 50k–200k'},{l:'R$ 200k+'}];s.invest.forEach(i=>{if(FF[+i])chips.push(FF[+i].l);});}
-  if((filtro.toggles||{}).incentivo)chips.push('Lei de Incentivo');
-  if((filtro.toggles||{}).cotas)chips.push('Com cotas');
+function _getChips(filtro) {
+  const chips = [];
+  if(!filtro) return chips;
+  const TIPO = { personalidade:'Personalidade', evento:'Evento', artista:'Artista Musical', midia:'Mídia' };
+  if(filtro.tipo && filtro.tipo !== 'todos') chips.push(TIPO[filtro.tipo] || filtro.tipo);
+  const s = filtro.sel || {};
+  if(s.segmento) s.segmento.forEach(x => chips.push(x));
+  if(s.alcance) s.alcance.forEach(x => chips.push(x));
+  const IL = ['Até R$ 10k','R$ 10k–50k','R$ 50k–200k','R$ 200k+'];
+  if(s.invest) s.invest.forEach(i => { if(IL[+i]) chips.push(IL[+i]); });
+  if((filtro.toggles||{}).incentivo) chips.push('Lei de Incentivo');
+  if((filtro.toggles||{}).cotas) chips.push('Com cotas');
   return chips;
 }
 
-// ── Mostrar campanha ──────────────────────────────────────────────
-function mostrarCampanha() {
-  if(!_st.lastResult?.campanha)return;
-  const c=_st.lastResult.campanha;
-  document.getElementById('campanhaNome').textContent=c.nome||'Campanha';
-  document.getElementById('campanhaSubtitle').textContent=(c.negocio_alvo||'')+(c.tipo_campanha?' · '+c.tipo_campanha:'');
-
-  let body='';
-  if(c.descricao_objetivo)body+=`<div class="campanha-row"><label>Objetivo</label><div class="val">${esc(c.descricao_objetivo)}</div></div>`;
-  if(c.negocio_alvo)body+=`<div class="campanha-row"><label>Negócio / BU</label><div class="val">${esc(c.negocio_alvo)}</div></div>`;
-
-  const chips=getFiltroChips(c.filtro||{});
-  if(chips.length){
-    body+=`<div class="campanha-row"><label>Filtro configurado</label>
-      <div class="filtro-bar">
-        <span class="filtro-bar-label">✦</span>
-        ${chips.map(ch=>`<span class="filtro-chip">${esc(ch)}</span>`).join('')}
-      </div>
-    </div>`;
+function _mostrarResult(campanha, silent=false) {
+  if(!campanha) return;
+  const chips = _getChips(campanha.filtro);
+  let html = `<div class="cam-result-nome">${_esc(campanha.nome||'Nova Campanha')}</div>`;
+  if(campanha.negocios?.length) {
+    html += `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">`;
+    campanha.negocios.forEach(n => { html += `<span class="cam-result-chip" style="background:rgba(30,22,0,.06);border-color:rgba(30,22,0,.15);color:var(--gray-4)">${_esc(n)}</span>`; });
+    html += `</div>`;
   }
-
-  document.getElementById('campanhaBody').innerHTML=body;
-  document.getElementById('debug-json').textContent=JSON.stringify(_st.lastResult,null,2);
-  document.getElementById('section-campanha').style.display='block';
-  document.getElementById('section-campanha').scrollIntoView({behavior:'smooth'});
+  if(campanha.contexto) html += `<div style="font-size:12px;color:var(--gray-4);margin-bottom:6px;line-height:1.5"><strong style="color:var(--black)">Contexto:</strong> ${_esc(campanha.contexto)}</div>`;
+  if(campanha.definicao_publico) html += `<div style="font-size:12px;color:var(--gray-4);margin-bottom:8px;line-height:1.5"><strong style="color:var(--black)">Público:</strong> ${_esc(campanha.definicao_publico)}</div>`;
+  if(chips.length) html += `<div class="cam-result-chips">${chips.map(c => `<span class="cam-result-chip">${_esc(c)}</span>`).join('')}</div>`;
+  document.getElementById('cam-result-card').innerHTML = html;
+  document.getElementById('cam-result-step').style.display = 'block';
+  document.getElementById('cam-input-row').style.display = 'none';
+  _st.lastResult = campanha;
+  if(!silent) _setStepDots('result');
+  if(!silent) _saveState('result');
 }
 
-// Marca onboarding_completo=true no user_metadata para liberar o dashboard
+function _renderMsg(parsed) {
+  if(!parsed) { _addMsg('agent','<span style="color:#DC2626">❌ Erro. Tente novamente.</span>'); return; }
+  let html = '';
+  if(parsed.resumo) html += `${_html(parsed.resumo)}<br><br>`;
+  if(parsed.concluido) {
+    html += `<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br><span style="font-size:12px;color:#A89880">Revise abaixo e confirme para criar.</span>`;
+    _addMsg('agent', html);
+    setTimeout(() => _mostrarResult(parsed.campanha), 300);
+    return;
+  }
+  if(parsed.pergunta) html += _html(parsed.pergunta);
+  if(parsed.opcoes?.length) {
+    const mid = 'cam_opts_' + Date.now();
+    const isMulti = !!parsed.multiselect;
+    let oHtml = `<div class="cam-options" id="${mid}">`;
+    parsed.opcoes.forEach((o,i) => {
+      if(isMulti) {
+        oHtml += `<button type="button" class="cam-option-btn" data-opc="${_esc(o)}" data-group="${mid}" onclick="window._camToggleOpc(this)"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
+      } else {
+        oHtml += `<button type="button" class="cam-option-btn" data-opc="${_esc(o)}" onclick="window._camSelOpc(this.dataset.opc)"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
+      }
+    });
+    if(isMulti) oHtml += `<button type="button" id="cam_confirm_${mid}" onclick="window._camEnviarMulti('${mid}')" style="display:none;margin-top:4px;padding:10px 18px;background:#1A1200;color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;width:100%">Confirmar seleção →</button>`;
+    oHtml += `<button type="button" class="cam-option-btn" style="color:var(--gray-3)" onclick="document.getElementById('cam-input').focus()"><span class="cam-option-num" style="background:var(--gray-2);color:var(--gray-4)">${parsed.opcoes.length+1}</span><span>Descreva melhor</span></button>`;
+    oHtml += '</div>';
+    html += oHtml;
+  }
+  _addMsg('agent', html);
+  _saveState('chat');
+}
+
+// ── Chips de BU ──────────────────────────────────────────────────────────────
+function _buildBusChips() {
+  const brief = window._dashBrandProfile?.brand_brief;
+  const negocios = brief?.negocios?.valor ?? brief?.negocios ?? [];
+  const section = document.getElementById('cam-bus-section');
+  const chips = document.getElementById('cam-bus-chips');
+  if(!section || !chips) return;
+  chips.innerHTML = '';
+  const makeChip = (nome) => {
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'cam-bu-chip';
+    btn.textContent = nome; btn.dataset.negocio = nome;
+    btn.onclick = () => btn.classList.toggle('selected');
+    chips.appendChild(btn);
+  };
+  (Array.isArray(negocios) ? negocios : []).forEach(n => {
+    const nome = typeof n === 'string' ? n : (n.nome || ''); if(nome) makeChip(nome);
+  });
+  ['Campanha institucional','Outro projeto'].forEach(makeChip);
+  section.style.display = 'block';
+}
+
+// ── Funções públicas do agente ───────────────────────────────────────────────
+window.camValidatePrompt = function() {
+  const v = (document.getElementById('cam-prompt-input')?.value || '').trim();
+  const btn = document.getElementById('cam-prompt-btn');
+  if(btn) btn.disabled = !v;
+  _saveState('prompt');
+};
+
+window.camRefazer = function() {
+  document.getElementById('cam-result-step').style.display = 'none';
+  document.getElementById('cam-input-row').style.display = 'flex';
+  _st.lastResult = null;
+  _setStepDots('chat');
+  _saveState('chat');
+  setTimeout(() => document.getElementById('cam-input')?.focus(), 80);
+};
+
+window.camIniciar = async function() {
+  const desc = (document.getElementById('cam-prompt-input')?.value || '').trim();
+  if(!desc) return;
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : null;
+  const token = session?.access_token || _st.token;
+  if(!token) { alert('Sessão expirada. Faça login novamente.'); return; }
+  const brandProfile = window._dashBrandProfile || null;
+  const selectedBus = [...document.querySelectorAll('#cam-bus-chips .cam-bu-chip.selected')].map(b => b.dataset.negocio).filter(Boolean);
+  let firstMsg = '';
+  if(selectedBus.length) firstMsg += `[NEGÓCIOS SELECIONADOS]\n${selectedBus.join(', ')}\n\n`;
+  firstMsg += `[PEDIDO DO USUÁRIO]\n${desc}`;
+  const userLabel = selectedBus.length ? `[${selectedBus.join(', ')}] ${desc}` : desc;
+
+  document.getElementById('cam-prompt-step').style.display = 'none';
+  document.getElementById('cam-chat-step').style.display = 'flex';
+  _setStepDots('chat');
+  _addMsg('user', _html(userLabel));
+  _setLoading(true); _addMsg('agent','',true);
+
+  const phases = ['🧠 Analisando o perfil da marca','✦ Configurando filtros','✍️ Criando proposta de campanha'];
+  let pi = 0; const pt = setInterval(() => _phaseUpdate(phases, ++pi), 3000);
+  try {
+    _st.history = [{role:'user', content:firstMsg}];
+    const raw = await _callAPI(_st.history, brandProfile, token);
+    clearInterval(pt); _removeTyping();
+    _st.history.push({role:'assistant', content:raw});
+    _renderMsg(_parse(raw));
+  } catch(err) {
+    clearInterval(pt); _removeTyping();
+    _showErr(err.message || 'Erro ao processar.');
+  } finally { _setLoading(false); }
+};
+
+window.camEnviar = async function() {
+  if(_st.loading) return;
+  const input = document.getElementById('cam-input');
+  const text = (input?.value || '').trim(); if(!text) return;
+  _showErr(''); input.value = ''; input.style.height = 'auto';
+  _addMsg('user', _html(text)); _st.history.push({role:'user', content:text});
+  _setLoading(true); _addMsg('agent','',true);
+  const phases = ['🧠 Processando','✦ Ajustando filtros'];
+  let pi = 0; const pt = setInterval(() => _phaseUpdate(phases, ++pi), 3000);
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : null;
+  const token = session?.access_token || _st.token;
+  try {
+    if(!token) throw new Error('Sessão expirada.');
+    const raw = await _callAPI(_st.history, window._dashBrandProfile || null, token);
+    clearInterval(pt); _removeTyping();
+    _st.history.push({role:'assistant', content:raw});
+    _renderMsg(_parse(raw));
+  } catch(err) {
+    clearInterval(pt); _removeTyping();
+    _showErr(err.message || 'Erro.');
+  } finally { _setLoading(false); const t = document.getElementById('cam-thread'); if(t) t.scrollTop = 999999; }
+};
+
+window._camSelOpc = function(text) { if(_st.loading) return; const i = document.getElementById('cam-input'); if(i){i.value=text; window.camEnviar();} };
+window._camToggleOpc = function(btn) {
+  if(_st.loading) return;
+  const sel = btn.getAttribute('data-selected') === 'true';
+  btn.setAttribute('data-selected', sel ? 'false' : 'true');
+  btn.style.borderColor = sel ? '' : '#B8860B';
+  btn.style.background = sel ? '' : 'rgba(184,134,11,0.08)';
+  btn.style.color = sel ? '' : '#7A5C1E';
+  const gid = btn.getAttribute('data-group');
+  const container = document.getElementById(gid); if(!container) return;
+  const any = container.querySelectorAll('[data-selected="true"]').length > 0;
+  const cb = document.getElementById('cam_confirm_' + gid);
+  if(cb) cb.style.display = any ? 'block' : 'none';
+};
+window._camEnviarMulti = function(gid) {
+  if(_st.loading) return;
+  const container = document.getElementById(gid); if(!container) return;
+  const sel = [...container.querySelectorAll('[data-selected="true"]')].map(b => b.dataset.opc).filter(Boolean);
+  if(!sel.length) return;
+  const i = document.getElementById('cam-input'); if(i){i.value = sel.join(', '); window.camEnviar();}
+};
+
+window.camConfirmar = async function() {
+  const campanha = _st.lastResult; if(!campanha) return;
+  const btn = document.getElementById('cam-btn-confirmar');
+  if(btn) { btn.disabled = true; btn.textContent = 'Criando…'; }
+
+  const session = typeof getSessionAsync === 'function' ? await getSessionAsync('brand') : null;
+  const marcaId = session?.user?.id || _st.marcaId;
+  const token = session?.access_token || _st.token;
+  if(!marcaId || !token) { if(btn){btn.disabled=false; btn.textContent='✦ Criar campanha →';} return; }
+
+  const payload = {
+    marca_id: marcaId,
+    nome: campanha.nome || 'Nova Campanha',
+    descricao: campanha.descricao_objetivo || null,
+    contexto: campanha.contexto || null,
+    definicao_publico: campanha.definicao_publico || null,
+    negocios: campanha.negocios?.length ? campanha.negocios : []
+  };
+  if(campanha.filtro) payload.filtros = campanha.filtro;
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    if(btn) { btn.textContent = '✓ Campanha criada!'; btn.classList.add('saved'); }
+    _clearState();
+    await concluirOnboarding();
+    setTimeout(() => { window.location.href = '/dashboard-marca.html'; }, 700);
+  } catch(e) {
+    console.error('[camConfirmar]', e);
+    _showErr('Erro ao salvar a campanha. Tente novamente.');
+    if(btn) { btn.disabled = false; btn.textContent = '✦ Criar campanha →'; }
+  }
+};
+
+// ── Onboarding helpers ───────────────────────────────────────────────────────
 async function concluirOnboarding() {
   try {
-    const token = _st.token || await getToken();
-    if (!token) return;
+    const token = _st.token || (await getSessionAsync('brand'))?.access_token;
+    if(!token) return;
     await fetch(SUPABASE_URL + '/auth/v1/user', {
       method: 'PUT',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: { onboarding_completo: true } })
     });
-  } catch(e) { console.warn('[concluirOnboarding] erro (não crítico):', e); }
+  } catch(e) { console.warn('[concluirOnboarding] não crítico:', e); }
 }
 
 async function pularCampanha() {
+  _clearState();
   await concluirOnboarding();
   window.location.href = '/dashboard-marca.html';
 }
 
-async function criarCampanha(){
-  const c = _st.lastResult?.campanha;
-  if (!c) { showError('Nenhuma campanha configurada.'); return; }
-  const btn = document.getElementById('btnCriar');
-  btn.disabled = true;
-  btn.textContent = 'Salvando…';
-
-  // marca_id é NOT NULL na tabela — garante que está resolvido antes do INSERT
-  if (!_st.marcaId) {
-    try { const b = await getSessionAsync('brand'); _st.marcaId = b?.user?.id || null; } catch(e){}
-  }
-  if (!_st.marcaId) {
-    showError('Sessão expirada. Recarregue a página e tente novamente.');
-    btn.disabled = false; btn.textContent = '✦ Criar esta campanha →';
-    return;
-  }
-
-  // Mapeia a saída do agente → colunas da tabela campanhas.
-  // c.filtro já tem o shape { tipo, sel, toggles } esperado por ffDeserializeState no dashboard.
-  const payload = {
-    nome: (c.nome || 'Minha primeira campanha').trim(),
-    descricao: c.descricao_objetivo || c.negocio_alvo || null,
-    marca_id: _st.marcaId,
-    filtros: c.filtro || null
-  };
-
+// ── Init ─────────────────────────────────────────────────────────────────────
+(async () => {
   try {
-    const res = await fetch(SUPABASE_URL + '/rest/v1/campanhas', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + _st.token,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(payload)
+    // Auth guard
+    const session = await getSessionAsync('brand');
+    if(!session?.access_token) { window.location.href = '/acesso-marca.html'; return; }
+    _st.token = session.access_token;
+    _st.marcaId = session.user?.id;
+
+    // Garante onboarding_completo=false enquanto está nesta etapa
+    const meta = session.user?.user_metadata || {};
+    if(meta.onboarding_completo !== false) {
+      fetch(SUPABASE_URL + '/auth/v1/user', {
+        method: 'PUT',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _st.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { onboarding_completo: false } })
+      }).catch(() => {});
+    }
+
+    // Carrega brand_brief do perfil → popula window._dashBrandProfile
+    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + _st.marcaId + '&select=empresa,brand_brief&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _st.token }
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    btn.textContent = '✓ Campanha criada!';
-    btn.classList.add('saved');
-    // Marca onboarding como concluído e segue para o dashboard
-    await concluirOnboarding();
-    setTimeout(() => { window.location.href = '/dashboard-marca.html'; }, 700);
+    const data = await res.json().catch(() => []);
+    const perfil = data?.[0];
+
+    // Se não tem brand_brief → volta para o agente de marca
+    if(!perfil?.brand_brief) { window.location.href = '/onboarding-marca.html'; return; }
+
+    // Seta o profile global (mesmo padrão que o dashboard usa)
+    window._dashBrandProfile = perfil;
+
+    // Esconde loading, mostra cam
+    document.getElementById('loading-section').style.display = 'none';
+    document.getElementById('cam-page').style.display = 'block';
+
+    // Monta chips de BU
+    _buildBusChips();
+
+    // Tenta restaurar estado salvo (usuário voltou do meio do fluxo)
+    const restored = _restoreState();
+    if(!restored) {
+      // Primeira vez: mostra step 1
+      document.getElementById('cam-prompt-step').style.display = 'flex';
+      document.getElementById('cam-chat-step').style.display = 'none';
+      _setStepDots('prompt');
+      setTimeout(() => document.getElementById('cam-prompt-input')?.focus(), 150);
+    }
+
   } catch(e) {
-    console.error('[campaign-agent] Erro ao criar campanha:', e);
-    showError('Erro ao salvar a campanha. Tente novamente.');
-    btn.disabled = false;
-    btn.textContent = '✦ Criar esta campanha →';
+    console.error('[criar-campanha init]', e);
+    window.location.href = '/acesso-marca.html';
   }
-}
-
-function reiniciar(){
-  _st.history=[];_st.lastResult=null;
-  document.getElementById('agChatThread').innerHTML='';
-  document.getElementById('agChatCard').style.display='none';
-  document.getElementById('prompt-section').style.display='block';
-  document.getElementById('btnIniciar').style.display='inline-block';
-  document.getElementById('btnReiniciar').style.display='none';
-  document.getElementById('section-campanha').style.display='none';
-  document.getElementById('campaignInput').value='';
-  document.getElementById('campaignInput').focus();
-  showError('');
-}
-
-function toggleDebug(){const e=document.getElementById('debug-json');e.style.display=e.style.display==='none'?'block':'none';}
+})();
 </script>
 </body>
 </html>
