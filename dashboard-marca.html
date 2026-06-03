@@ -1167,7 +1167,7 @@ tbody tr:last-child td { border-bottom: none; }
 .cam-close:hover{background:var(--gray-1);color:var(--black)}
 .cam-prompt-body{padding:24px 22px;flex:1;display:flex;flex-direction:column;gap:14px}
 .cam-prompt-label{font-size:14px;font-weight:600;color:var(--black)}
-.cam-prompt-hint{font-size:13px;color:var(--gray-3);margin-top:-8px;line-height:1.5}
+.cam-prompt-hint{font-size:13px;color:var(--gray-3);margin-top:3px;line-height:1.5}
 .cam-prompt-textarea{width:100%;padding:12px 14px;border:1.5px solid var(--gray-2);border-radius:12px;font-size:14px;font-family:var(--font-body);color:var(--text);background:var(--gray-1);outline:none;resize:none;min-height:90px;line-height:1.6;transition:border .18s,background .18s}
 .cam-prompt-textarea:focus{border-color:var(--gold);background:var(--white)}
 .cam-prompt-btn{padding:12px 24px;background:var(--black);color:var(--white);border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;align-self:flex-end;display:flex;align-items:center;gap:6px}
@@ -7768,9 +7768,9 @@ async function loadFinanceiroMarca() {
     const section=document.getElementById('cam-bus-section');
     const chips=document.getElementById('cam-bus-chips');
     if(!section||!chips)return;
-    if(!negocios.length){section.style.display='none';return;}
     chips.innerHTML='';
-    negocios.forEach(n=>{
+    // Adiciona chips dos negócios da marca (se existirem)
+    (Array.isArray(negocios)?negocios:[]).forEach(n=>{
       const nome=typeof n==='string'?n:(n.nome||''); if(!nome)return;
       const btn=document.createElement('button');
       btn.type='button'; btn.className='cam-bu-chip';
@@ -7778,6 +7778,7 @@ async function loadFinanceiroMarca() {
       btn.onclick=()=>_camToggleBu(btn);
       chips.appendChild(btn);
     });
+    // Sempre adiciona opções institucionais
     ['Campanha institucional','Outro projeto'].forEach(label=>{
       const btn=document.createElement('button');
       btn.type='button'; btn.className='cam-bu-chip';
