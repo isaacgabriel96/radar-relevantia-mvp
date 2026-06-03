@@ -54,7 +54,7 @@ export default async function handler(req, res) {
   if (!bearerToken) return res.status(401).json({ error: 'Não autenticado.' });
   if (bearerToken.split('.').length !== 3) return res.status(401).json({ error: 'Token inválido.' });
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY_BRAND || process.env.GEMINI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'Configuração do servidor incompleta.' });
 
   const { messages, brandName } = req.body || {};
