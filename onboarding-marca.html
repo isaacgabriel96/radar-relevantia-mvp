@@ -529,7 +529,7 @@ async function iniciarConversa(autoName) {
 
   try {
     _st.history = [{role:'user', content:brandName}];
-    const raw = await callAPI(_st.history, brandName, token);
+    const raw = await callAPI(_st.history, brandName, _st.token);
     clearInterval(pt); removeTyping();
     _st.history.push({role:'assistant', content:raw});
     const parsed = parseResp(raw); _st.lastResult=parsed;
