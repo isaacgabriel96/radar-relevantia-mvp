@@ -6102,6 +6102,7 @@ function renderCampanhasPanel() {
   const detSection = document.getElementById('campanha-propostas-section');
   if (detSection) detSection.style.display = 'none';
   if (!grid) return;
+  grid.style.display = ''; // garante visibilidade após abrirCampanhaDetalhe ocultar o grid
 
   if (!_CAMPANHAS.length) {
     grid.innerHTML = '';
