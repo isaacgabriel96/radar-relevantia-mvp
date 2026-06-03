@@ -2643,20 +2643,24 @@ tbody tr:last-child td { border-bottom: none; }
 
     <!-- Step 1: prompt inicial -->
     <div class="cam-prompt-body" id="cam-prompt-step">
+      <!-- Resumo da campanha atual (só no modo atualização) -->
+      <div id="cam-update-summary" style="display:none;background:var(--gray-1);border:1px solid var(--gray-2);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--gray-4);line-height:1.6">
+        <div id="cam-update-summary-content"></div>
+      </div>
       <div id="cam-bus-section" class="cam-bus-section" style="display:none">
         <div class="cam-bus-label">Para qual negócio?</div>
         <div class="cam-bus" id="cam-bus-chips"></div>
       </div>
       <div>
-        <div class="cam-prompt-label">Qual o objetivo desta campanha?</div>
-        <div class="cam-prompt-hint">Descreva o que você quer alcançar — o agente vai configurar os filtros e criar o nome para você.</div>
+        <div class="cam-prompt-label" id="cam-prompt-label">Qual o objetivo desta campanha?</div>
+        <div class="cam-prompt-hint" id="cam-prompt-hint">Descreva o que você quer alcançar — o agente vai configurar os filtros e criar o nome para você.</div>
       </div>
       <textarea class="cam-prompt-textarea" id="cam-prompt-input" placeholder="Ex: Quero patrocinar eventos de lifestyle em SP para lançar minha nova linha de produtos..." oninput="camValidatePrompt()" onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!event.metaKey){event.preventDefault();camIniciar()}"></textarea>
       <div class="cam-prompt-footer">
-        <button class="cam-manual-link" onclick="camAbrirManual()">Criar manualmente</button>
+        <button class="cam-manual-link" id="cam-manual-btn" onclick="camAbrirManual()">Criar manualmente</button>
         <button class="cam-prompt-btn" id="cam-prompt-btn" disabled onclick="camIniciar()">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Criar com IA →
+          <span id="cam-prompt-btn-label">Criar com IA →</span>
         </button>
       </div>
     </div>
@@ -7905,16 +7909,38 @@ async function loadFinanceiroMarca() {
     _showErr('');
     const preSelected=existingCampanha?.negocios||[];
     _buildBusChips(preSelected);
-    // Atualiza label e badge do header
+    // Atualiza textos do header
     const title=document.querySelector('.cam-header-title');
-    const badge=document.querySelector('.cam-header-badge');
     if(title)title.textContent=existingCampanha?'Atualizar campanha':'Nova campanha';
-    if(badge)badge.textContent='com IA';
-    // Preenche o prompt com contexto existente se for edição
+    // Modo atualização: mostra resumo da campanha atual e troca labels
+    const summary=document.getElementById('cam-update-summary');
+    const summaryContent=document.getElementById('cam-update-summary-content');
+    const label=document.getElementById('cam-prompt-label');
+    const hint=document.getElementById('cam-prompt-hint');
+    const btnLabel=document.getElementById('cam-prompt-btn-label');
+    const manualBtn=document.getElementById('cam-manual-btn');
+    const input=document.getElementById('cam-prompt-input');
     if(existingCampanha){
-      const hint=document.getElementById('cam-prompt-hint');
-      if(hint)hint.textContent='Descreva o que quer ajustar — contexto, público, negócios ou filtros.';
-      document.getElementById('cam-prompt-input').placeholder='Ex: Quero ampliar o público para incluir jovens adultos e adicionar eventos de música...';
+      // Monta resumo compacto
+      let s='';
+      if(existingCampanha.contexto)s+=`<div><strong style="color:var(--black)">Contexto:</strong> ${_esc(existingCampanha.contexto)}</div>`;
+      if(existingCampanha.definicao_publico)s+=`<div style="margin-top:4px"><strong style="color:var(--black)">Público:</strong> ${_esc(existingCampanha.definicao_publico)}</div>`;
+      if(existingCampanha.negocios?.length)s+=`<div style="margin-top:4px"><strong style="color:var(--black)">Negócios:</strong> ${existingCampanha.negocios.map(_esc).join(', ')}</div>`;
+      if(!s)s=`<div style="color:var(--gray-3)">Campanha sem contexto definido ainda.</div>`;
+      if(summaryContent)summaryContent.innerHTML=s;
+      if(summary)summary.style.display='block';
+      if(label)label.textContent='O que você quer ajustar?';
+      if(hint)hint.textContent='Descreva o que quer mudar — contexto, público, negócios ou filtros. O que não mencionar permanece igual.';
+      if(btnLabel)btnLabel.textContent='Atualizar →';
+      if(manualBtn)manualBtn.style.display='none';
+      if(input)input.placeholder='Ex: Quero incluir eventos de música e ampliar para público jovem...';
+    } else {
+      if(summary)summary.style.display='none';
+      if(label)label.textContent='Qual o objetivo desta campanha?';
+      if(hint)hint.textContent='Descreva o que você quer alcançar — o agente vai configurar os filtros e criar o nome para você.';
+      if(btnLabel)btnLabel.textContent='Criar com IA →';
+      if(manualBtn)manualBtn.style.display='';
+      if(input)input.placeholder='Ex: Quero patrocinar eventos de lifestyle em SP para lançar minha nova linha de produtos...';
     }
     document.getElementById('cam-overlay').classList.add('open');
     setTimeout(()=>document.getElementById('cam-prompt-input')?.focus(),120);
