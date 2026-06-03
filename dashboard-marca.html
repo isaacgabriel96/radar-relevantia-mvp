@@ -6098,7 +6098,8 @@ function renderCampanhasPanel() {
   grid.innerHTML = _CAMPANHAS.map(c => {
     const oppSet = _CAMPANHA_OPPS[c.id] || new Set();
     const n = oppSet.size;
-    const nomeEsc = c.nome.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    const nomeRaw = c.nome || 'Campanha sem nome';
+    const nomeEsc = nomeRaw.replace(/'/g,"\\'").replace(/"/g,'&quot;');
     // Mosaico: pega até 4 oportunidades com imagem
     const oppIds = [...oppSet].slice(0, 4);
     const previewOpps = oppIds.map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
@@ -6125,7 +6126,7 @@ function renderCampanhasPanel() {
         </button>
       </div>
       <div class="campanha-pasta-mosaic ${mosaicClass}">${mosaicCells}</div>
-      <div class="campanha-pasta-nome">${c.nome}</div>
+      <div class="campanha-pasta-nome">${nomeRaw}</div>
       <div class="campanha-pasta-count">${n} oportunidade${n !== 1 ? 's' : ''} salva${n !== 1 ? 's' : ''}</div>
       <div class="campanha-pasta-meta">
         <span></span>
