@@ -2812,26 +2812,36 @@ function showSectionTab(sectionId, subTab) {
 async function init() {
   // Em modo admin view: pula verificação de sessão (usa token do admin)
   if (!window._adminViewCtx) {
-    // Verificação server-side: rejeita imediatamente usuários deletados
-    if (typeof sb !== 'undefined' && sb) {
-      try {
-        const { data: { user }, error } = await sb.auth.getUser();
-        if (error || !user) {
-          localStorage.removeItem('sb_marca_session');
-          localStorage.removeItem('sb_detentor_session');
-          window.location.href = '/index.html';
-          return;
-        }
-        // Guard: bloqueia acesso ao dashboard se ainda não passou pelo acesso-detentor
-        if (user.user_metadata?.senha_provisoria === true) {
-          window.location.href = 'acesso-detentor.html';
-          return;
-        }
-      } catch (_) {
+    // Verificação server-side: rejeita imediatamente usuários deletados ou sem permissão
+    // Guard fail-closed: se o SDK não carregou, nega acesso
+    if (typeof sb === 'undefined' || !sb) {
+      window.location.href = '/index.html';
+      return;
+    }
+    try {
+      const { data: { user }, error } = await sb.auth.getUser();
+      if (error || !user) {
+        localStorage.removeItem('sb_marca_session');
         localStorage.removeItem('sb_detentor_session');
         window.location.href = '/index.html';
         return;
       }
+      // Guard: apenas usuários com tipo 'detentor' podem acessar este portal
+      if (user.user_metadata?.tipo !== 'detentor') {
+        localStorage.removeItem('sb_marca_session');
+        localStorage.removeItem('sb_detentor_session');
+        window.location.href = '/index.html';
+        return;
+      }
+      // Guard: bloqueia acesso ao dashboard se ainda não passou pelo acesso-detentor
+      if (user.user_metadata?.senha_provisoria === true) {
+        window.location.href = 'acesso-detentor.html';
+        return;
+      }
+    } catch (_) {
+      localStorage.removeItem('sb_detentor_session');
+      window.location.href = '/index.html';
+      return;
     }
   }
 

@@ -2783,31 +2783,40 @@ async function init() {
   try {
     // Verificação server-side: rejeita imediatamente usuários deletados
     // getUser() faz chamada real ao Supabase — não lê só o cache local
-    if (typeof sb !== 'undefined' && sb) {
-      try {
-        const { data: { user }, error } = await sb.auth.getUser();
-        if (error || !user) {
-          localStorage.removeItem('sb_marca_session');
-          localStorage.removeItem('sb_detentor_session');
-          window.location.href = '/index.html';
-          return;
-        }
-        // Guard: bloqueia acesso ao dashboard antes de completar o acesso-marca (senha provisória)
-        if (user.user_metadata?.senha_provisoria === true) {
-          window.location.href = 'acesso-marca.html';
-          return;
-        }
-        // Guard: bloqueia acesso ao dashboard antes de completar o onboarding completo
-        // (onboarding_completo === false indica marca nova que ainda não finalizou o fluxo)
-        if (user.user_metadata?.tipo === 'marca' && user.user_metadata?.onboarding_completo === false) {
-          window.location.href = 'onboarding-marca.html';
-          return;
-        }
-      } catch (_) {
+    // Guard fail-closed: se o SDK não carregou, nega acesso
+    if (typeof sb === 'undefined' || !sb) {
+      window.location.href = '/index.html';
+      return;
+    }
+    try {
+      const { data: { user }, error } = await sb.auth.getUser();
+      if (error || !user) {
         localStorage.removeItem('sb_marca_session');
+        localStorage.removeItem('sb_detentor_session');
         window.location.href = '/index.html';
         return;
       }
+      // Guard: apenas usuários com tipo 'marca' podem acessar este portal
+      if (user.user_metadata?.tipo !== 'marca') {
+        localStorage.removeItem('sb_marca_session');
+        localStorage.removeItem('sb_detentor_session');
+        window.location.href = '/index.html';
+        return;
+      }
+      // Guard: bloqueia acesso ao dashboard antes de completar o acesso-marca (senha provisória)
+      if (user.user_metadata?.senha_provisoria === true) {
+        window.location.href = 'acesso-marca.html';
+        return;
+      }
+      // Guard: bloqueia acesso ao dashboard antes de completar o onboarding completo
+      if (user.user_metadata?.onboarding_completo === false) {
+        window.location.href = 'onboarding-marca.html';
+        return;
+      }
+    } catch (_) {
+      localStorage.removeItem('sb_marca_session');
+      window.location.href = '/index.html';
+      return;
     }
 
     // Demo mode banner
