@@ -7724,7 +7724,13 @@ async function loadFinanceiroMarca() {
     if(!campanha)return;
     const chips=_getChips(campanha.filtro);
     let html=`<div class="cam-result-nome">${_esc(campanha.nome||'Nova Campanha')}</div>`;
-    if(campanha.descricao_objetivo)html+=`<div class="cam-result-desc">${_esc(campanha.descricao_objetivo)}</div>`;
+    if(campanha.negocios?.length){
+      html+=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">`;
+      campanha.negocios.forEach(n=>{ html+=`<span class="cam-result-chip" style="background:rgba(30,22,0,.06);border-color:rgba(30,22,0,.15);color:var(--gray-4)">${_esc(n)}</span>`; });
+      html+=`</div>`;
+    }
+    if(campanha.contexto)html+=`<div style="font-size:12px;color:var(--gray-4);margin-bottom:6px;line-height:1.5"><strong style="color:var(--black)">Contexto:</strong> ${_esc(campanha.contexto)}</div>`;
+    if(campanha.definicao_publico)html+=`<div style="font-size:12px;color:var(--gray-4);margin-bottom:8px;line-height:1.5"><strong style="color:var(--black)">Público:</strong> ${_esc(campanha.definicao_publico)}</div>`;
     if(chips.length)html+=`<div class="cam-result-chips">${chips.map(c=>`<span class="cam-result-chip">${_esc(c)}</span>`).join('')}</div>`;
     document.getElementById('cam-result-card').innerHTML=html;
     document.getElementById('cam-result-step').style.display='block';
@@ -7790,9 +7796,7 @@ async function loadFinanceiroMarca() {
   }
 
   function _camToggleBu(btn){
-    const wasSelected=btn.classList.contains('selected');
-    document.querySelectorAll('#cam-bus-chips .cam-bu-chip').forEach(b=>b.classList.remove('selected'));
-    if(!wasSelected)btn.classList.add('selected');
+    btn.classList.toggle('selected');
   }
 
   // ── API pública ──────────────────────────────────────────────────
@@ -7838,14 +7842,14 @@ async function loadFinanceiroMarca() {
     if(!token){ alert('Sessão expirada. Faça login novamente.'); return; }
     const brandProfile=window._dashBrandProfile||null;
 
-    const selectedBuBtn=document.querySelector('#cam-bus-chips .cam-bu-chip.selected');
-    const selectedBu=selectedBuBtn?selectedBuBtn.dataset.negocio:null;
-    const firstMsg=selectedBu?`Negócio foco: ${selectedBu}\n\nObjectivo: ${desc}`:desc;
+    const selectedBus=[...document.querySelectorAll('#cam-bus-chips .cam-bu-chip.selected')].map(b=>b.dataset.negocio).filter(Boolean);
+    const firstMsg=selectedBus.length?`Negócios foco: ${selectedBus.join(', ')}\n\nObjectivo: ${desc}`:desc;
+    const userLabel=selectedBus.length?`[${selectedBus.join(', ')}] ${desc}`:desc;
 
     document.getElementById('cam-prompt-step').style.display='none';
     document.getElementById('cam-chat-step').style.display='flex';
 
-    _addMsg('user',_html(selectedBu?`[${selectedBu}] ${desc}`:desc));
+    _addMsg('user',_html(userLabel));
     _setLoading(true); _addMsg('agent','',true);
 
     const phases=['🧠 Analisando o perfil da marca','✦ Configurando filtros','✍️ Criando proposta de campanha'];
@@ -7933,7 +7937,10 @@ async function loadFinanceiroMarca() {
     const payload={
       marca_id:marcaId,
       nome:campanha.nome||'Nova Campanha',
-      descricao:campanha.descricao_objetivo||null
+      descricao:campanha.descricao_objetivo||null,
+      contexto:campanha.contexto||null,
+      definicao_publico:campanha.definicao_publico||null,
+      negocios:campanha.negocios?.length?campanha.negocios:[]
     };
     if(campanha.filtro)payload.filtros=campanha.filtro;
 
