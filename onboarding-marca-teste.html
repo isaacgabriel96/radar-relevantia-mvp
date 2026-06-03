@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conhecendo sua marca — Radar Relevantia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design tokens — idênticos ao criar-oportunidade ───── */
+    :root {
+      --gold: #B8860B; --gold-light: #C8A84B;
+      --gold-gradient: linear-gradient(135deg, #B8860B, #C8A84B);
+      --gold-muted: rgba(184,134,11,0.12);
+      --gold-border: rgba(184,134,11,0.35);
+      --black: #1A1200; --white: #FFFFFF; --white-warm: #FFFDF7;
+      --gray-body: #FAF8F5; --gray-1: #F5F0E8; --gray-2: #E0D8CC;
+      --gray-3: #A89880; --gray-4: #5C4C38; --brown-warm: #7A5C1E;
+      --text: #1A1200;
+      --font-heading: 'Playfair Display', serif;
+      --font-body: 'DM Sans', sans-serif;
+      --shadow-sm: 0 1px 3px rgba(30,22,0,0.12);
+      --shadow-md: 0 4px 12px rgba(30,22,0,0.10);
+      --radius-pill: 100px; --radius-lg: 16px; --radius-md: 12px; --radius-base: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-body); background: var(--gray-body); color: var(--text); font-size: 15px; line-height: 1.6; }
+
+    /* ── Topbar — igual ao criar-oportunidade (sem sidebar) ── */
+    .topbar {
+      position: fixed; left: 0; top: 0; right: 0; height: 64px; z-index: 90;
+      background: rgba(250,248,245,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--gray-2);
+      display: flex; align-items: center; padding: 0 32px; gap: 12px;
+    }
+    .topbar-logo {
+      font-family: var(--font-heading); font-size: 16px; font-weight: 700;
+      color: var(--gold); letter-spacing: -0.3px; text-decoration: none; white-space: nowrap;
+    }
+    .topbar-sep { color: var(--gray-2); user-select: none; }
+    .topbar-title { font-family: var(--font-heading); font-size: 17px; font-weight: 600; color: var(--text); }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .topbar-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase;
+      color: var(--gold); background: var(--gold-muted);
+      border: 1px solid var(--gold-border); padding: 4px 11px; border-radius: var(--radius-pill);
+    }
+
+    /* ── Layout ───────────────────────────────────────────── */
+    .main { padding-top: 64px; min-height: 100vh; }
+    .main-inner { padding: 40px 32px 80px; max-width: 780px; margin: 0 auto; }
+
+    /* ── Agent header — idêntico ao criar-oportunidade ──── */
+    .agent-header { margin-bottom: 20px; }
+    .agent-header h2 {
+      font-family: var(--font-heading); font-size: 18px; font-weight: 700;
+      color: var(--black); margin-bottom: 4px;
+    }
+    .agent-header p { font-size: 13px; color: var(--gray-3); line-height: 1.5; }
+    .agent-header-meta {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+    }
+    .agent-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+      color: var(--brown-warm); background: rgba(184,134,11,0.08);
+      border: 1px solid rgba(184,134,11,0.22); padding: 4px 10px; border-radius: var(--radius-pill);
+    }
+    .agent-badge-dot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--gold);
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+    .agent-steps { display: flex; gap: 6px; flex-wrap: wrap; }
+    .agent-step-pill {
+      font-size: 11px; color: var(--gray-3);
+      background: var(--gray-1); border: 1px solid var(--gray-2);
+      padding: 3px 10px; border-radius: var(--radius-pill);
+    }
+
+    /* ── Brand input card (pré-chat) ─────────────────────── */
+    #brand-input-section { margin-bottom: 16px; }
+    .brand-input-card {
+      background: var(--white); border: 1px solid var(--gray-2); border-radius: var(--radius-lg);
+      padding: 22px 24px; box-shadow: var(--shadow-sm);
+    }
+    .brand-input-card label {
+      display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--gray-4); margin-bottom: 8px;
+    }
+    #brandInput {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--gray-2); border-radius: var(--radius-base);
+      font-size: 14px; font-family: var(--font-body); color: var(--black);
+      background: var(--gray-1); outline: none; transition: all .18s;
+    }
+    #brandInput:focus {
+      border-color: var(--gold); background: var(--white);
+      box-shadow: 0 0 0 3px rgba(184,134,11,0.1);
+    }
+    #brandInput::placeholder { color: var(--gray-3); }
+    .brand-input-hint { font-size: 12px; color: var(--gray-3); margin-top: 7px; }
+
+    /* ── Token section (auth para teste local) ───────────── */
+    #token-section {
+      background: var(--white); border: 1.5px dashed var(--gray-2);
+      border-radius: var(--radius-base); padding: 14px 18px; margin-bottom: 20px;
+    }
+    #token-section.hidden { display: none; }
+    .token-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--gray-3); margin-bottom: 8px; display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .token-ok { color: #16a34a; font-size: 11px; display: none; }
+    .token-ok.on { display: inline; }
+    .token-row { display: flex; gap: 8px; }
+    .token-input {
+      flex: 1; padding: 8px 11px; border: 1.5px solid var(--gray-2);
+      border-radius: var(--radius-base); font-size: 11px; font-family: monospace;
+      color: var(--text); background: var(--gray-1); outline: none;
+    }
+    .token-input:focus { border-color: var(--gold); background: var(--white); }
+    .token-input::placeholder { font-family: var(--font-body); color: var(--gray-3); }
+    .token-btn {
+      padding: 8px 14px; background: var(--black); color: #fff;
+      border: none; border-radius: var(--radius-base);
+      font-size: 12px; font-weight: 600; font-family: var(--font-body); cursor: pointer;
+    }
+    .token-btn:hover { opacity: .85; }
+    .token-hint { font-size: 11px; color: var(--gray-3); margin-top: 7px; line-height: 1.55; }
+    .token-hint code { font-family: monospace; font-size: 10.5px; background: var(--gray-1); padding: 1px 5px; border-radius: 4px; }
+
+    /* ── Chat card — CSS pixel-a-pixel do criar-oportunidade */
+    .ag-chat-card {
+      background: var(--white); border: 1px solid #E0D8CC;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 1px 4px rgba(30,22,0,0.06);
+      display: none; position: relative;
+    }
+    .ag-chat-card.ag-chat-full {
+      display: flex; flex-direction: column; height: 480px;
+    }
+    .ag-chat-card.ag-chat-full .ag-chat-thread { flex: 1; max-height: none; }
+
+    .ag-chat-thread {
+      padding: 16px 18px 12px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .ag-chat-thread::-webkit-scrollbar { width: 4px; }
+    .ag-chat-thread::-webkit-scrollbar-thumb { background: #E0D8CC; border-radius: 2px; }
+
+    .ag-msg { display: flex; gap: 8px; align-items: flex-start; }
+    .ag-msg.user { flex-direction: row-reverse; }
+    .ag-msg-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+    }
+    .ag-msg.agent .ag-msg-avatar { background: var(--gold-gradient); color: #FFF; font-size: 12px; }
+    .ag-msg.user  .ag-msg-avatar { background: #E0D8CC; color: #5C4C38; }
+    .ag-msg-bubble {
+      max-width: calc(100% - 40px); padding: 9px 13px;
+      border-radius: 12px; font-size: 13px; line-height: 1.55;
+    }
+    .ag-msg.agent .ag-msg-bubble {
+      background: #F5F0E8; border: 1px solid #E0D8CC;
+      border-top-left-radius: 4px; color: var(--black);
+    }
+    .ag-msg.user .ag-msg-bubble {
+      background: var(--black); color: #FFF; border-top-right-radius: 4px;
+    }
+    .ag-msg-bubble ul { padding-left: 16px; margin-top: 4px; }
+    .ag-msg-bubble li { margin-bottom: 3px; }
+    .ag-msg-bubble strong { font-weight: 600; }
+
+    .ag-typing-dots { display: inline-flex; align-items: center; gap: 3px; padding: 4px 2px; }
+    .ag-typing-dots span { width: 5px; height: 5px; background: #A89880; border-radius: 50%; animation: agBounce 1.2s infinite; }
+    .ag-typing-dots span:nth-child(2) { animation-delay: .2s; }
+    .ag-typing-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes agBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+    @keyframes agMsgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .ag-msg.agent { animation: agMsgIn .28s ease forwards; }
+
+    .ag-loading-dots::after { content:''; animation: agLoadDots 1.4s steps(1,end) infinite; }
+    @keyframes agLoadDots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%,100%{content:'...'} }
+    .ag-loading-phase { display:inline-block; animation: agPhaseFade .4s ease; opacity:.7; font-size:13px; }
+    @keyframes agPhaseFade { from{opacity:.2;} to{opacity:.7;} }
+
+    .ag-options { display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+    .ag-option-btn {
+      display:flex; align-items:center; gap:10px; padding:9px 12px;
+      background:#fff; border:1.5px solid #E0D8CC; border-radius:10px;
+      font-size:13px; font-family:var(--font-body); color:#1A1200;
+      cursor:pointer; text-align:left; transition:all .15s; width:100%;
+    }
+    .ag-option-btn:hover { border-color:#B8860B; background:#FBF8F1; transform:translateX(2px); }
+    .ag-option-btn:active { transform:translateX(2px) scale(.99); }
+    .ag-option-num {
+      flex-shrink:0; width:22px; height:22px;
+      display:inline-flex; align-items:center; justify-content:center;
+      background: var(--gold-gradient); color:#FFF;
+      border-radius:50%; font-size:11px; font-weight:600;
+    }
+    .ag-option-text { flex:1; line-height:1.35; }
+    .ag-option-free { background:transparent; border-style:dashed; color:#5C4C38; }
+    .ag-option-free .ag-option-num { background:transparent; color:#5C4C38; border:1.5px solid #A89880; }
+    .ag-option-free:hover { background:#FAF8F5; border-style:solid; }
+
+    .ag-error-msg {
+      background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.22);
+      border-radius:10px; padding:10px 14px; margin:0 18px 8px;
+      font-size:12px; color:#DC2626; display:none; line-height:1.5;
+    }
+    .ag-error-msg.visible { display:block; }
+
+    .ag-chat-input-row {
+      display:flex; gap:8px; padding:14px 18px;
+      border-top:2px solid #F0EBE1; margin-top:4px; align-items:flex-end;
+    }
+    .ag-chat-input {
+      flex:1; padding:9px 12px; border:1.5px solid #E0D8CC; border-radius:12px;
+      font-size:13px; font-family:var(--font-body); color:var(--black);
+      background:#F5F0E8; transition:all .18s;
+      resize:none; line-height:1.5; min-height:38px; max-height:140px; overflow-y:auto; display:block;
+    }
+    .ag-chat-input:focus { outline:none; border-color:#B8860B; background:#fff; box-shadow:0 0 0 3px rgba(184,134,11,.08); }
+    .ag-chat-input::placeholder { color:#A89880; }
+    .ag-btn-send {
+      padding:9px 16px; background:var(--black); color:#FFF;
+      border:none; border-radius:var(--radius-pill);
+      font-size:13px; font-weight:600; font-family:var(--font-body);
+      cursor:pointer; transition:all .15s; flex-shrink:0;
+    }
+    .ag-btn-send:hover:not(:disabled) { background:#2C1E00; }
+    .ag-btn-send:disabled { opacity:.4; cursor:not-allowed; }
+
+    .ag-btn-confirm {
+      display:flex; align-items:center; justify-content:center;
+      width:100%; padding:12px 18px;
+      background: var(--gold-gradient); color:#FFF;
+      border:none; border-radius:var(--radius-pill);
+      font-size:13px; font-weight:600; font-family:var(--font-heading);
+      cursor:pointer; transition:all .18s;
+    }
+    .ag-btn-confirm:hover { opacity:.9; transform:translateY(-1px); }
+
+    /* ── Panel actions ─────────────────────────────────────── */
+    .ag-panel-actions {
+      display:flex; gap:10px; margin-top:16px; align-items:center;
+    }
+    .ag-btn-iniciar {
+      padding:11px 28px; background:var(--black); color:#fff;
+      border:none; border-radius:var(--radius-pill);
+      font-size:14px; font-weight:600; font-family:var(--font-body);
+      cursor:pointer; transition:all .15s;
+    }
+    .ag-btn-iniciar:hover:not(:disabled) { background:#2C1E00; }
+    .ag-btn-iniciar:disabled { opacity:.4; cursor:not-allowed; }
+    .ag-btn-reiniciar {
+      padding:11px 20px; background:transparent; color:var(--gray-3);
+      border:1.5px solid var(--gray-2); border-radius:var(--radius-pill);
+      font-size:13px; font-weight:500; font-family:var(--font-body);
+      cursor:pointer; transition:all .15s; display:none;
+    }
+    .ag-btn-reiniciar:hover { color:var(--black); border-color:var(--gray-3); }
+
+    /* ── Perfil result ─────────────────────────────────────── */
+    #section-profile { display:none; margin-top:32px; }
+    .profile-card {
+      background:#fff; border:1.5px solid rgba(184,134,11,.28);
+      border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-md);
+    }
+    .profile-card-header {
+      padding:18px 22px;
+      background:linear-gradient(135deg,rgba(184,134,11,.07),rgba(200,168,75,.04));
+      border-bottom:1px solid var(--gray-2);
+      display:flex; align-items:center; gap:12px;
+    }
+    .profile-card-icon {
+      width:40px; height:40px; border-radius:50%;
+      background:var(--gold-gradient); color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; flex-shrink:0;
+    }
+    .profile-card-header h3 { font-family:var(--font-heading); font-size:20px; color:var(--black); }
+    .profile-card-header p { font-size:12px; color:var(--gray-3); margin-top:2px; }
+    .profile-body { padding:20px 22px; display:flex; flex-direction:column; gap:16px; }
+    .profile-row label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--gray-3); font-weight:600; margin-bottom:4px; }
+    .profile-row .val { font-size:14px; color:var(--black); line-height:1.5; }
+    .profile-chips { display:flex; flex-wrap:wrap; gap:6px; }
+    .profile-chip { padding:3px 10px; background:var(--gray-1); border:1px solid var(--gray-2); border-radius:var(--radius-pill); font-size:12px; color:var(--gray-4); }
+    .profile-negocio { padding:10px 12px; background:var(--gray-1); border-radius:8px; border:1px solid var(--gray-2); margin-bottom:6px; }
+    .profile-negocio:last-child { margin-bottom:0; }
+    .profile-negocio-name { font-size:13px; font-weight:600; color:var(--black); }
+    .profile-negocio-desc { font-size:12px; color:var(--gray-4); margin-top:2px; }
+
+    .btn-salvar {
+      width:100%; padding:13px; background:var(--gold-gradient); color:#fff;
+      border:none; border-radius:var(--radius-pill);
+      font-size:14px; font-weight:600; font-family:var(--font-heading);
+      cursor:pointer; transition:all .15s; margin-top:12px;
+      box-shadow:0 4px 16px rgba(184,134,11,.3);
+    }
+    .btn-salvar:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-salvar.saved { background:linear-gradient(135deg,#16a34a,#22c55e); box-shadow:none; }
+
+    .debug-toggle { font-size:11px; color:var(--gray-3); cursor:pointer; background:none; border:none; font-family:var(--font-body); padding:10px 0; text-decoration:underline; text-underline-offset:2px; display:block; }
+    #debug-json { display:none; background:#1e1e1e; color:#a8ff78; font-family:monospace; font-size:11px; padding:14px; border-radius:8px; overflow-x:auto; white-space:pre; margin-top:8px; line-height:1.5; }
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <a class="topbar-logo" href="#">✦ Radar Relevantia</a>
+  <span class="topbar-sep">/</span>
+  <span class="topbar-title">Conhecendo sua marca</span>
+  <div class="topbar-right">
+    <span class="topbar-badge">Teste</span>
+  </div>
+</div>
+
+<div class="main">
+<div class="main-inner">
+
+  <!-- Token auth (apenas para teste local sem login) -->
+  <div id="token-section">
+    <div class="token-label">
+      Token de acesso (teste local)
+      <span class="token-ok" id="tokenOk">✓ Ativo</span>
+    </div>
+    <div class="token-row">
+      <input type="password" class="token-input" id="tokenInput" placeholder="Cole aqui seu JWT — eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" />
+      <button class="token-btn" onclick="usarToken()">Usar</button>
+    </div>
+    <p class="token-hint">
+      Para obter: abra o painel da marca em outra aba → DevTools (Cmd+Opt+J) → cole no console:
+      <code>(await sb.auth.getSession()).data.session.access_token</code>
+    </p>
+  </div>
+
+  <!-- Agent header -->
+  <div class="agent-header">
+    <h2>✦ Conhecendo sua marca</h2>
+    <p>
+      O agente vai pesquisar o que já sabe sobre sua empresa e conduzir uma conversa rápida —
+      produtos, geografias e objetivos — para criar seu perfil de marca no Radar.
+    </p>
+    <div class="agent-header-meta">
+      <span class="agent-badge"><span class="agent-badge-dot"></span>Onboarding</span>
+      <div class="agent-steps">
+        <span class="agent-step-pill">1 · Confirmação da marca</span>
+        <span class="agent-step-pill">2 · Negócios e produtos</span>
+        <span class="agent-step-pill">3 · Geografia e objetivo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand input (antes da conversa) -->
+  <div id="brand-input-section">
+    <div class="brand-input-card">
+      <label>Qual marca você representa?</label>
+      <input type="text" id="brandInput"
+        placeholder="Ex: Ambev, Itaú, iFood, Nubank, Vivo…"
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter') iniciarConversa()" />
+      <p class="brand-input-hint">
+        Na plataforma real, este campo já vem preenchido com a marca do seu cadastro.
+      </p>
+    </div>
+  </div>
+
+  <!-- Chat card -->
+  <div class="ag-chat-card ag-chat-full" id="agChatCard" style="display:none">
+    <div class="ag-chat-thread" id="agChatThread"></div>
+    <div class="ag-error-msg" id="agErrorMsg"></div>
+    <div class="ag-chat-input-row">
+      <textarea class="ag-chat-input" id="agChatInput" rows="1"
+        placeholder="Digite sua resposta…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agEnviar()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px'"></textarea>
+      <button class="ag-btn-send" id="agBtnSend" onclick="agEnviar()">Enviar</button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="ag-panel-actions" id="agActions">
+    <button class="ag-btn-iniciar" id="btnIniciar" onclick="iniciarConversa()">Iniciar conversa →</button>
+    <button class="ag-btn-reiniciar" id="btnReiniciar" onclick="reiniciar()">← Reiniciar</button>
+  </div>
+
+  <!-- Perfil final -->
+  <div id="section-profile">
+    <div class="profile-card">
+      <div class="profile-card-header">
+        <div class="profile-card-icon">✦</div>
+        <div>
+          <h3 id="profileTitle">Perfil da marca</h3>
+          <p>Gerado pelo Agente de Onboarding · Radar Relevantia</p>
+        </div>
+      </div>
+      <div class="profile-body" id="profileBody"></div>
+    </div>
+    <button class="btn-salvar" id="btnSalvar" onclick="salvarPerfil()">✦ Salvar perfil e criar primeira campanha</button>
+    <button class="debug-toggle" onclick="toggleDebug()">{ } Ver JSON gerado (debug)</button>
+    <pre id="debug-json"></pre>
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core.js"></script>
+<script>
+const _st = { brandName:'', history:[], lastResult:null, loading:false, token:null };
+
+/* ── Auth ──────────────────────────────────────────────────── */
+async function getToken() {
+  if (_st.token) return _st.token;
+  try {
+    const b = await getSessionAsync('brand');
+    if (b?.access_token) return b.access_token;
+    const r = await getSessionAsync('rightsholder');
+    if (r?.access_token) return r.access_token;
+  } catch(e) {}
+  return null;
+}
+
+(async () => {
+  const tok = await getToken();
+  if (tok) { _st.token = tok; document.getElementById('token-section').classList.add('hidden'); }
+  document.getElementById('brandInput').focus();
+})();
+
+function usarToken() {
+  const v = document.getElementById('tokenInput').value.trim();
+  if (!v || v.split('.').length !== 3) { alert('Token inválido. Copie o JWT completo.'); return; }
+  _st.token = v;
+  document.getElementById('tokenOk').classList.add('on');
+  setTimeout(() => document.getElementById('token-section').classList.add('hidden'), 700);
+  document.getElementById('brandInput').focus();
+}
+
+/* ── Helpers ────────────────────────────────────────────────── */
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function msgHtml(t) { return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
+function showError(m) { const e=document.getElementById('agErrorMsg'); e.textContent=m; e.classList.toggle('visible',!!m); }
+function setLoading(on) {
+  _st.loading=on;
+  const b=document.getElementById('agBtnSend'), i=document.getElementById('agChatInput');
+  const bi=document.getElementById('btnIniciar');
+  if(b) b.disabled=on; if(i) i.disabled=on; if(bi) bi.disabled=on;
+}
+function addMsg(role, html, isTyping=false) {
+  const t=document.getElementById('agChatThread');
+  const d=document.createElement('div');
+  d.className=`ag-msg ${role}`;
+  d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
+  if(isTyping) d.id='agTypingMsg';
+  t.appendChild(d); t.scrollTop=t.scrollHeight; return d;
+}
+function removeTyping() { const e=document.getElementById('agTypingMsg'); if(e) e.remove(); }
+function phase(phases, idx) {
+  const el=document.getElementById('agTypingMsg'); if(!el) return;
+  el.querySelector('.ag-msg-bubble').innerHTML=`<span class="ag-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="ag-loading-dots"></span></span>`;
+}
+
+/* ── Iniciar ────────────────────────────────────────────────── */
+async function iniciarConversa() {
+  const brandName = document.getElementById('brandInput').value.trim();
+  if (!brandName) { document.getElementById('brandInput').focus(); return; }
+
+  const token = _st.token || await getToken();
+  if (!token) {
+    document.getElementById('token-section').classList.remove('hidden');
+    document.getElementById('tokenInput').focus();
+    alert('Insira seu token de acesso antes de iniciar.');
+    return;
+  }
+  _st.token = token;
+  _st.brandName = brandName;
+
+  // Troca UI
+  document.getElementById('brand-input-section').style.display = 'none';
+  document.getElementById('agChatCard').style.display = 'flex';
+  document.getElementById('btnIniciar').style.display = 'none';
+  document.getElementById('btnReiniciar').style.display = 'inline-block';
+
+  setLoading(true);
+  addMsg('agent','',true);
+
+  const phases = ['🔍 Pesquisando ' + brandName, '🧠 Analisando os negócios', '✍️ Preparando apresentação'];
+  let pi=0;
+  const pt=setInterval(()=>{ phase(phases,++pi); },4000);
+
+  try {
+    _st.history = [{role:'user', content:brandName}];
+    const raw = await callAPI(_st.history, brandName, token);
+    clearInterval(pt); removeTyping();
+    _st.history.push({role:'assistant', content:raw});
+    const parsed = parseResp(raw); _st.lastResult=parsed;
+    renderMsg(parsed);
+  } catch(err) {
+    clearInterval(pt); removeTyping();
+    showError(err.message||'Erro ao iniciar.');
+    addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message||'Erro.')}</span>`);
+  } finally { setLoading(false); }
+}
+
+/* ── Enviar resposta ────────────────────────────────────────── */
+async function agEnviar() {
+  if (_st.loading) return;
+  const input=document.getElementById('agChatInput');
+  const text=(input.value||'').trim(); if(!text) return;
+  showError(''); input.value=''; input.style.height='auto';
+  addMsg('user',msgHtml(text));
+  _st.history.push({role:'user', content:text});
+  setLoading(true); addMsg('agent','',true);
+
+  const phases=['🧠 Analisando resposta','✍️ Atualizando perfil'];
+  let pi=0;
+  const pt=setInterval(()=>{ phase(phases,++pi); },3500);
+
+  try {
+    const token=_st.token||await getToken();
+    if(!token) throw new Error('Sessão expirada. Insira o token novamente.');
+    const raw=await callAPI(_st.history,_st.brandName,token);
+    clearInterval(pt); removeTyping();
+    _st.history.push({role:'assistant',content:raw});
+    const parsed=parseResp(raw); _st.lastResult=parsed;
+    renderMsg(parsed);
+  } catch(err) {
+    clearInterval(pt); removeTyping();
+    showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span>`);
+  } finally {
+    setLoading(false);
+    const t=document.getElementById('agChatThread'); if(t) t.scrollTop=999999;
+  }
+}
+
+window.agSelecionarOpcao = t => { if(_st.loading)return; document.getElementById('agChatInput').value=t||''; agEnviar(); };
+window.agFocarInput = () => { const i=document.getElementById('agChatInput'); if(i){i.value='';i.focus();} };
+
+/* ── API ────────────────────────────────────────────────────── */
+// Quando aberto como file://, aponta para produção
+const API_BASE = window.location.protocol === 'file:' ? 'https://radar-relevantia.com.br' : '';
+
+async function callAPI(messages, brandName, token) {
+  const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),150000);
+  try {
+    const r=await fetch(API_BASE+'/api/gemini-brand-agent',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({messages,brandName}),
+      signal:ctrl.signal,
+    });
+    clearTimeout(timer);
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error||`Erro HTTP ${r.status}`);
+    if(!data.text) throw new Error('Resposta vazia do agente.');
+    return data.text;
+  } catch(err) { clearTimeout(timer); if(err.name==='AbortError') throw new Error('A IA demorou demais. Tente novamente.'); throw err; }
+}
+
+/* ── Parse ──────────────────────────────────────────────────── */
+function parseResp(raw) {
+  try { return JSON.parse(raw.trim().replace(/^```json\s*/i,'').replace(/```\s*$/,'')); }
+  catch(e) { console.warn('[brand-agent] parse:', e.message); return null; }
+}
+
+/* ── Render mensagem ────────────────────────────────────────── */
+function renderMsg(parsed) {
+  if (!parsed) { addMsg('agent','<span style="color:#DC2626">❌ Erro ao processar. Tente novamente.</span>'); return; }
+  let html = '';
+  if (parsed.resumo) html += `${msgHtml(parsed.resumo)}<br><br>`;
+
+  if (parsed.concluido) {
+    html += buildPerfilSummary(parsed.perfil);
+    html += `<div style="margin-top:16px"><button class="ag-btn-confirm" onclick="mostrarPerfil()">✦ Ver perfil completo e salvar</button></div>`;
+  } else if (parsed.duvidas?.length) {
+    const duv=parsed.duvidas[0];
+    const pergunta=typeof duv==='string'?duv:(duv?.pergunta||'');
+    const opcoes=(duv&&typeof duv==='object'&&Array.isArray(duv.opcoes))?duv.opcoes:[];
+    html+=`<strong>Para continuar:</strong><br>${esc(pergunta)}`;
+    if (opcoes.length) {
+      html+='<div class="ag-options">';
+      opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" onclick="agSelecionarOpcao(this.dataset.opc)"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
+      html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+      html+='</div>';
+    }
+  }
+  addMsg('agent',html);
+}
+
+function buildPerfilSummary(perfil) {
+  if (!perfil) return '';
+  const p=c=>perfil[c]?.valor??perfil[c]??null;
+  const empresa=p('empresa')||p('nome_curto')||'—';
+  const negocios=p('negocios')||[]; const geos=p('geografias')||[];
+  const objetivo=p('objetivos')||''; const porte=p('porte')||'';
+
+  let h=`<div style="padding:12px 14px;background:rgba(184,134,11,0.07);border:1px solid rgba(184,134,11,0.2);border-radius:10px">`;
+  h+=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;font-weight:600;margin-bottom:4px">✦ Perfil capturado</div>`;
+  h+=`<div style="font-size:16px;font-weight:700;color:#1A1200;margin-bottom:8px">${esc(empresa)}</div>`;
+  if(negocios.length){
+    h+=`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">`;
+    negocios.forEach(n=>{const nm=typeof n==='string'?n:(n.nome||'');h+=`<span style="padding:3px 10px;background:#F5F0E8;border:1px solid #E0D8CC;border-radius:100px;font-size:12px;color:#5C4C38">${esc(nm)}</span>`;});
+    h+=`</div>`;
+  }
+  if(geos.length) h+=`<div style="font-size:13px;color:#5C4C38;margin-bottom:3px"><strong>Geografias:</strong> ${esc(geos.join(', '))}</div>`;
+  if(porte)      h+=`<div style="font-size:13px;color:#5C4C38;margin-bottom:3px"><strong>Porte:</strong> ${esc(porte)}</div>`;
+  if(objetivo)   h+=`<div style="font-size:13px;color:#5C4C38"><strong>Objetivo:</strong> ${esc(objetivo)}</div>`;
+  h+=`</div>`;
+  return h;
+}
+
+/* ── Perfil completo ────────────────────────────────────────── */
+function mostrarPerfil() {
+  if(!_st.lastResult?.perfil) return;
+  const perfil=_st.lastResult.perfil;
+  const p=c=>perfil[c]?.valor??perfil[c]??null;
+  const empresa=p('empresa')||p('nome_curto')||'—';
+  const descr=p('descricao_empresa')||''; const setor=p('setor')||'';
+  const negocios=p('negocios')||[]; const geos=p('geografias')||[];
+  const abrang=p('abrangencia')||''; const porte=p('porte')||''; const objetivo=p('objetivos')||'';
+
+  document.getElementById('profileTitle').textContent=empresa;
+  let body='';
+  if(descr)  body+=`<div class="profile-row"><label>Sobre</label><div class="val">${esc(descr)}</div></div>`;
+  if(setor)  body+=`<div class="profile-row"><label>Setor</label><div class="val">${esc(setor.replace(/_/g,' '))}</div></div>`;
+  if(negocios.length){
+    body+=`<div class="profile-row"><label>Negócios / Produtos</label><div>`;
+    negocios.forEach(n=>{const nm=typeof n==='string'?n:(n.nome||'');const dc=typeof n==='object'?(n.descricao||''):'';body+=`<div class="profile-negocio"><div class="profile-negocio-name">${esc(nm)}</div>${dc?`<div class="profile-negocio-desc">${esc(dc)}</div>`:''}</div>`;});
+    body+=`</div></div>`;
+  }
+  if(geos.length){
+    body+=`<div class="profile-row"><label>Geografias</label><div class="profile-chips">`;
+    geos.forEach(g=>{body+=`<span class="profile-chip">${esc(g)}</span>`;});
+    body+=`</div></div>`;
+  }
+  if(abrang) body+=`<div class="profile-row"><label>Abrangência</label><div class="val">${esc(abrang)}</div></div>`;
+  if(porte)  body+=`<div class="profile-row"><label>Porte</label><div class="val">${esc(porte)}</div></div>`;
+  if(objetivo) body+=`<div class="profile-row"><label>Objetivo atual</label><div class="val">${esc(objetivo)}</div></div>`;
+
+  document.getElementById('profileBody').innerHTML=body;
+  document.getElementById('debug-json').textContent=JSON.stringify(_st.lastResult,null,2);
+  document.getElementById('section-profile').style.display='block';
+  document.getElementById('section-profile').scrollIntoView({behavior:'smooth'});
+}
+
+function salvarPerfil() {
+  console.log('[brand-agent] Perfil:', _st.lastResult?.perfil);
+  const b=document.getElementById('btnSalvar');
+  b.textContent='✓ Perfil salvo!'; b.classList.add('saved'); b.disabled=true;
+}
+
+function reiniciar() {
+  _st.history=[]; _st.lastResult=null; _st.brandName='';
+  document.getElementById('agChatThread').innerHTML='';
+  document.getElementById('agChatCard').style.display='none';
+  document.getElementById('brand-input-section').style.display='block';
+  document.getElementById('btnIniciar').style.display='inline-block';
+  document.getElementById('btnReiniciar').style.display='none';
+  document.getElementById('section-profile').style.display='none';
+  document.getElementById('brandInput').value='';
+  document.getElementById('brandInput').focus();
+  showError('');
+}
+
+function toggleDebug() { const e=document.getElementById('debug-json'); e.style.display=e.style.display==='none'?'block':'none'; }
+
+document.addEventListener('DOMContentLoaded',()=>{ document.getElementById('brandInput').focus(); });
+</script>
+</body>
+</html>
