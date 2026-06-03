@@ -310,6 +310,18 @@ async function getToken() {
       // brand_brief tem o mesmo shape esperado por mostrarBrandCard ({campo:{valor}})
       _st.brandProfile = brief;
       mostrarBrandCard(brief);
+      // Garante onboarding_completo=false — cobre usuários mid-onboarding
+      // que chegaram aqui antes do fix (campo ainda undefined no metadata)
+      try {
+        const b = await getSessionAsync('brand');
+        if (b?.user?.user_metadata?.onboarding_completo !== false) {
+          fetch(SUPABASE_URL + '/auth/v1/user', {
+            method: 'PUT',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _st.token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: { onboarding_completo: false } })
+          }).catch(() => {});
+        }
+      } catch(e) {}
     } else {
       // Ainda não passou pelo agente de marca → faz o onboarding primeiro
       window.location.href = '/onboarding-marca.html';

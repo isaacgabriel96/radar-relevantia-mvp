@@ -429,6 +429,18 @@ const _st = { brandName:'', history:[], lastResult:null, loading:false, token:nu
     // Já tem brief do agente de marca → segue para o agente de campanha (próximo passo do onboarding)
     if (perfil?.brand_brief) { window.location.href='/criar-campanha.html'; return; }
 
+    // Garante que onboarding_completo=false está gravado — cobre usuários que
+    // chegaram aqui antes do fix (onboarding_completo=undefined) e usuários
+    // mid-onboarding. Sem isso, o guard do dashboard (=== false) não os bloqueia.
+    const meta = session.user?.user_metadata || {};
+    if (meta.onboarding_completo !== false) {
+      fetch(SUPABASE_URL + '/auth/v1/user', {
+        method: 'PUT',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + _st.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: { onboarding_completo: false } })
+      }).catch(() => {});
+    }
+
     const empresa = perfil?.empresa || '';
     _st.brandName = empresa;
 
