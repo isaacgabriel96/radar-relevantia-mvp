@@ -57,7 +57,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY_BRAND || process.env.GEMINI_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'Configuração do servidor incompleta.' });
 
-  const { messages, brandName } = req.body || {};
+  const { messages, brandName, existingBrief } = req.body || {};
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages é obrigatório.' });
   }
@@ -144,14 +144,24 @@ export default async function handler(req, res) {
   async function passC_synthesize(webResult) {
     const isFirstMessage = messages.length === 1;
 
-    // Injeta contexto da web na última mensagem do usuário (apenas 1ª vez)
+    // Injeta contexto (web + perfil existente) na 1ª mensagem do usuário
     const contents = messages.map((m, idx) => {
       const role = m.role === 'assistant' ? 'model' : 'user';
       const text = typeof m.content === 'string' ? m.content : (m.content?.text || '');
       let fullText = text;
 
-      if (isFirstMessage && idx === 0 && webResult?.text) {
-        fullText = `[Marca do usuário: ${brandName}]\n\n[CONTEXTO DA WEB — pesquisa automática sobre a marca]\n${webResult.text}`;
+      if (isFirstMessage && idx === 0) {
+        const blocks = [];
+        if (webResult?.text) {
+          blocks.push(`[CONTEXTO DA WEB — pesquisa automática sobre a marca]\n${webResult.text}`);
+        }
+        if (existingBrief) {
+          const briefStr = typeof existingBrief === 'string' ? existingBrief : JSON.stringify(existingBrief);
+          blocks.push(`[PERFIL EXISTENTE — já criado anteriormente; use como base e ajude a revisar/atualizar, NÃO recomece do zero]\n${briefStr}`);
+        }
+        if (blocks.length) {
+          fullText = `[Marca do usuário: ${brandName}]\n\n${blocks.join('\n\n')}`;
+        }
       }
 
       return { role, parts: [{ text: fullText || '' }] };
@@ -180,8 +190,8 @@ export default async function handler(req, res) {
     const t0 = Date.now();
     const isFirstMessage = messages.length === 1;
 
-    // Só pesquisa na web na primeira mensagem
-    const webResult = isFirstMessage ? await passB_brandResearch() : null;
+    // Só pesquisa na web na 1ª mensagem de um perfil novo (modo atualização já tem os dados)
+    const webResult = (isFirstMessage && !existingBrief) ? await passB_brandResearch() : null;
     console.log(`[brand-agent] passB OK em ${Date.now() - t0}ms`);
 
     const result = await passC_synthesize(webResult);

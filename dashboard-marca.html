@@ -7856,7 +7856,7 @@ async function loadFinanceiroMarca() {
         if(isMulti){
           oHtml+=`<button type="button" class="cam-option-btn" data-opc="${_esc(o)}" data-group="${mid}" onclick="window._camToggleOpc(this)"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
         } else {
-          oHtml+=`<button type="button" class="cam-option-btn" onclick="window._camSelOpc(${JSON.stringify(o)})"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
+          oHtml+=`<button type="button" class="cam-option-btn" data-opc="${_esc(o)}" onclick="window._camSelOpc(this.dataset.opc)"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
         }
       });
       if(isMulti)oHtml+=`<button type="button" id="cam_confirm_${mid}" onclick="window._camEnviarMulti('${mid}')" style="display:none;margin-top:4px;padding:10px 18px;background:#1A1200;color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;width:100%">Confirmar seleção →</button>`;
@@ -8165,7 +8165,7 @@ function renderBrandBrief(brief) {
   const porte    = _bbGet(brief, 'porte');
   const abrang   = _bbGet(brief, 'abrangencia');
   const geos     = _bbGet(brief, 'geografias') || [];
-  const objetivo = _bbGet(brief, 'objetivos');
+  const objetivo = _bbGet(brief, 'objetivo_marca') || _bbGet(brief, 'objetivos');
 
   let html = '';
   if (setor || porte || abrang) {
@@ -8334,13 +8334,20 @@ async function briefAgentInit() {
   _bstSetLoading(true);
   _bstAddMsg('agent', '', true);
 
-  const phases = ['🔍 Pesquisando ' + empresa, '🧠 Analisando os negócios', '✍️ Preparando apresentação'];
+  const existing = window._dashBrandProfile?.brand_brief || null;
+  const isUpdate = !!existing;
+  const phases = isUpdate
+    ? ['🔄 Revisando o perfil atual', '🧠 Analisando os negócios', '✍️ Preparando atualização']
+    : ['🔍 Pesquisando ' + empresa, '🧠 Analisando os negócios', '✍️ Preparando apresentação'];
   let pi = 0;
   const pt = setInterval(() => _bstPhase(phases, ++pi), 4000);
   try {
-    _bst.history = [{ role: 'user', content: empresa }];
+    const firstMsg = isUpdate
+      ? `Quero revisar e atualizar o perfil estratégico da ${empresa}.`
+      : empresa;
+    _bst.history = [{ role: 'user', content: firstMsg }];
     const token = await _getWriteToken();
-    const raw   = await _briefCallAPI(_bst.history, empresa, token);
+    const raw   = await _briefCallAPI(_bst.history, empresa, token, existing);
     clearInterval(pt); _bstRemoveTyping();
     _bst.history.push({ role: 'assistant', content: raw });
     const parsed = _briefParse(raw);
@@ -8409,6 +8416,101 @@ window.bstEnviarMulti = function(groupId) {
   briefAgentEnviar();
 };
 
+// ─── Negócios in-chat (CRUD inline durante a conversa do agente) ─────────────
+function bstGetNegociosArr() {
+  const p = _bst.lastResult?.perfil;
+  if (!p) return [];
+  return p.negocios?.valor ?? p.negocios ?? [];
+}
+
+window.bstUpdateNegocio = function(idx, field, value) {
+  const arr = bstGetNegociosArr();
+  if (arr[idx]) arr[idx][field] = value;
+};
+
+window.bstRemoveNegocio = function(idx) {
+  const arr = bstGetNegociosArr();
+  arr.splice(idx, 1);
+  bstRerenderNegocios();
+};
+
+window.bstAddNegocio = function() {
+  const arr = bstGetNegociosArr();
+  arr.push({ nome: '', tipo: 'produto', descricao: '', publico_alvo: '', desafio: '' });
+  bstRerenderNegocios();
+  setTimeout(() => {
+    const items = document.querySelectorAll('#bstNegociosList details');
+    if (items.length) { const last = items[items.length - 1]; last.open = true; last.querySelector('input')?.focus(); }
+  }, 50);
+};
+
+function bstRerenderNegocios() {
+  const el = document.getElementById('bstNegociosList');
+  if (el) el.outerHTML = bstBuildNegociosList(bstGetNegociosArr());
+}
+
+function bstBuildNegociosList(negocios) {
+  if (!negocios) negocios = [];
+  let h = `<div id="bstNegociosList" style="display:flex;flex-direction:column;gap:6px;margin:10px 0 6px">`;
+  if (!negocios.length) {
+    h += `<div style="font-size:12px;color:var(--gray-400);padding:8px 0">Nenhum negócio cadastrado ainda.</div>`;
+  }
+  negocios.forEach((n, idx) => {
+    const nome    = typeof n === 'string' ? n : (n.nome || '');
+    const tipo    = typeof n === 'object' ? (n.tipo || '') : '';
+    const descr   = typeof n === 'object' ? (n.descricao || '') : '';
+    const pub     = typeof n === 'object' ? (n.publico_alvo || '') : '';
+    const desafio = typeof n === 'object' ? (n.desafio || '') : '';
+
+    h += `<details class="brief-negocio" style="background:#fff">
+      <summary>
+        <span style="flex:1;min-width:0">
+          ${nome ? escapeHtml(nome) : '<span style="color:var(--gray-400);font-weight:400">Novo negócio</span>'}
+          ${tipo ? `<span style="margin-left:6px;font-size:10px;font-weight:500;color:var(--gray-400);text-transform:uppercase">${escapeHtml(tipo)}</span>` : ''}
+        </span>
+        <span style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+          <button type="button" onclick="event.preventDefault();event.stopPropagation();bstRemoveNegocio(${idx})"
+            style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--gray-400);padding:2px 4px;line-height:1"
+            title="Remover">✕</button>
+          <span style="font-size:11px;color:var(--gray-400)">✎ editar</span>
+        </span>
+      </summary>
+      <div class="brief-negocio-body">
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin-bottom:3px">Nome</div>
+          <input class="brief-negocio-inp" type="text" value="${escapeHtml(nome)}"
+            oninput="bstUpdateNegocio(${idx},'nome',this.value)" placeholder="Nome do negócio">
+        </div>
+        ${descr ? `<div style="font-size:12px;color:var(--gray-400);line-height:1.5">${escapeHtml(descr)}</div>` : ''}
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin-bottom:3px">Público-alvo</div>
+          <textarea class="brief-negocio-ta" rows="2"
+            oninput="bstUpdateNegocio(${idx},'publico_alvo',this.value)"
+            placeholder="Quem usa / para quem se destina">${escapeHtml(pub)}</textarea>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin-bottom:3px">Desafio / objetivo</div>
+          <textarea class="brief-negocio-ta" rows="2"
+            oninput="bstUpdateNegocio(${idx},'desafio',this.value)"
+            placeholder="Principal objetivo ou dor desta área">${escapeHtml(desafio)}</textarea>
+        </div>
+      </div>
+    </details>`;
+  });
+
+  h += `<button type="button" onclick="bstAddNegocio()"
+    style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:transparent;
+    border:1.5px dashed var(--gray-200);border-radius:10px;font-size:13px;color:var(--gray-400);
+    cursor:pointer;font-family:var(--font-body);transition:all .15s;width:100%"
+    onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'"
+    onmouseout="this.style.borderColor='var(--gray-200)';this.style.color='var(--gray-400)'">
+    <span style="font-size:16px;line-height:1">＋</span> Adicionar negócio
+  </button>`;
+  h += `<div style="font-size:11px;color:var(--gray-400);margin-top:2px">✎ Clique para editar · ✕ remover · ＋ adicionar</div>`;
+  h += `</div>`;
+  return h;
+}
+
 function _bstRenderMsg(parsed) {
   if (!parsed) { _bstAddMsg('agent', '<span style="color:#DC2626">❌ Erro ao processar. Tente novamente.</span>'); return; }
   let html = '';
@@ -8416,9 +8518,7 @@ function _bstRenderMsg(parsed) {
 
   const negs = parsed.perfil?.negocios?.valor ?? parsed.perfil?.negocios ?? [];
   if (negs.length && !parsed.concluido) {
-    html += `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">` +
-      negs.map(n => `<span class="brief-chip">${escapeHtml(typeof n === 'string' ? n : (n.nome || ''))}</span>`).join('') +
-      `</div>`;
+    html += bstBuildNegociosList(negs);
   }
 
   if (parsed.concluido) {
@@ -8505,14 +8605,14 @@ function _briefParse(raw) {
   catch(e) { return null; }
 }
 
-async function _briefCallAPI(messages, brandName, token) {
+async function _briefCallAPI(messages, brandName, token, existingBrief) {
   const ctrl  = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 150000);
   try {
     const r = await fetch('/api/gemini-brand-agent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ messages, brandName }),
+      body: JSON.stringify({ messages, brandName, existingBrief: existingBrief || undefined }),
       signal: ctrl.signal,
     });
     clearTimeout(timer);

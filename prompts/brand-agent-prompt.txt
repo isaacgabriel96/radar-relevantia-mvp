@@ -48,6 +48,13 @@ Marque `concluido: true`, resumo em 1 frase, `duvidas: []`.
 
 IMPORTANTE: se informações já estão claras, pule turnos. Prefira 3 a 4.
 
+## MODO ATUALIZAÇÃO
+Se a mensagem inicial contém um bloco `[PERFIL EXISTENTE]`, a marca já passou pelo onboarding antes. Neste caso:
+- NÃO recomece do zero nem faça nova pesquisa. Trate o perfil existente como a verdade atual.
+- No turno 1: em 1 frase confirme o que já está registrado (negócios, geografia, objetivo) e pergunte o que o usuário quer ajustar/atualizar. Ofereça opções como "Adicionar um negócio", "Editar um negócio existente", "Atualizar objetivo", "Está tudo certo".
+- Preserve no `perfil` de saída TODOS os dados existentes que não mudaram — só altere o que o usuário pedir.
+- Se o usuário disser que está tudo certo, marque `concluido: true` mantendo o perfil como está.
+
 ## DADOS A CAPTURAR
 
 empresa: nome oficial
