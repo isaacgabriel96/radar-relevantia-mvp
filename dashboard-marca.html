@@ -1227,6 +1227,29 @@ tbody tr:last-child td { border-bottom: none; }
 .cam-prompt-footer{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .cam-manual-link{font-size:12px;color:var(--gray-3);background:none;border:none;cursor:pointer;font-family:var(--font-body);text-decoration:underline;padding:0;flex-shrink:0}
 .cam-manual-link:hover{color:var(--black)}
+/* ── Brand Brief Section ──────────────────────────── */
+.brief-field-row { display:flex; flex-direction:column; gap:3px; margin-bottom:14px; }
+.brief-field-row:last-child { margin-bottom:0; }
+.brief-field-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--gray-400); }
+.brief-field-val { font-size:14px; color:var(--text); line-height:1.5; }
+.brief-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.brief-chip { padding:3px 10px; background:var(--gray-100); border:1px solid var(--gray-200); border-radius:100px; font-size:12px; color:var(--gray-500,#6B7280); }
+.brief-negocio { border:1.5px solid var(--gray-200); border-radius:10px; overflow:hidden; }
+.brief-negocio summary { padding:10px 14px; cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:600; color:var(--text); user-select:none; }
+.brief-negocio summary::-webkit-details-marker { display:none; }
+.brief-negocio-body { padding:10px 14px 14px; border-top:1px solid var(--gray-100); display:flex; flex-direction:column; gap:10px; }
+.brief-negocio-inp { width:100%; border:none; border-bottom:1.5px solid var(--gray-200); background:transparent; font-size:13px; font-weight:600; color:var(--text); font-family:var(--font-body); padding:3px 0; outline:none; }
+.brief-negocio-inp:focus { border-bottom-color:var(--gold); }
+.brief-negocio-ta { width:100%; border:none; border-bottom:1.5px solid var(--gray-200); background:transparent; font-size:11.5px; color:var(--gray-500,#6B7280); font-family:var(--font-body); padding:3px 0; outline:none; resize:none; line-height:1.5; }
+.brief-negocio-ta:focus { border-bottom-color:var(--gold); }
+.brief-agent-thread { padding:12px 18px; display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto; }
+.brief-agent-thread::-webkit-scrollbar { width:3px; }
+.brief-agent-thread::-webkit-scrollbar-thumb { background:var(--gray-200); border-radius:2px; }
+.brief-agent-input { flex:1; padding:9px 12px; border:1.5px solid var(--gray-200); border-radius:10px; font-size:13px; font-family:var(--font-body); color:var(--text); background:var(--gray-100); transition:all .18s; resize:none; line-height:1.5; min-height:38px; max-height:120px; overflow-y:auto; }
+.brief-agent-input:focus { outline:none; border-color:var(--gold); background:#fff; box-shadow:0 0 0 3px rgba(184,134,11,.08); }
+.brief-agent-error { display:none; background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.22); border-radius:8px; padding:8px 12px; margin:0 18px 6px; font-size:12px; color:#DC2626; line-height:1.5; }
+.brief-agent-error.on { display:block; }
+@keyframes agBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
 </style>
 </head>
 <body>
@@ -1684,10 +1707,6 @@ tbody tr:last-child td { border-bottom: none; }
           </button>
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--gray-2)"><polyline points="9 18 15 12 9 6"/></svg>
           <span class="campanha-detalhe-titulo" id="campanha-detalhe-nome"></span>
-          <button id="btn-atualizar-campanha" class="camp-filtros-edit" style="margin-left:auto;display:flex;align-items:center;gap:5px" onclick="camAtualizarCampanha()">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Atualizar com IA
-          </button>
         </div>
         <div id="campanha-filtros-bar" class="camp-filtros-bar" style="display:none"></div>
         <div id="campanha-detalhe-grid"></div>
@@ -1836,6 +1855,55 @@ tbody tr:last-child td { border-bottom: none; }
           <div class="form-actions" id="marcaActions" style="display:none">
             <button class="btn btn-gold" onclick="saveMarca()">Salvar alterações</button>
             <button class="btn btn-ghost" onclick="toggleEditMarca()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card: Perfil estratégico da marca -->
+      <div class="card" id="cardBrandBrief" style="margin-top:16px">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Perfil estratégico</div>
+            <div style="font-size:12px;color:var(--gray-400);margin-top:2px">Mapeamento de negócios, públicos e objetivos</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btnBriefAgente" onclick="toggleBriefAgent()">✦ Atualizar com agente</button>
+        </div>
+
+        <!-- Dados do brief -->
+        <div id="briefContent" style="padding:20px 24px 8px">
+          <div id="briefEmptyState">
+            <div style="text-align:center;padding:28px 0 20px">
+              <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">Perfil estratégico não gerado ainda</div>
+              <div style="font-size:12px;color:var(--gray-400);margin-bottom:16px;line-height:1.5">O agente vai mapear seus negócios, públicos e objetivos para personalizar as recomendações do Radar.</div>
+              <button class="btn btn-gold btn-sm" onclick="toggleBriefAgent(true)">✦ Gerar agora →</button>
+            </div>
+          </div>
+          <div id="briefData" style="display:none"><!-- renderBrandBrief() --></div>
+        </div>
+
+        <!-- Negócios (edição inline) -->
+        <div id="briefNegociosSection" style="display:none;border-top:1px solid var(--gray-200);padding:16px 24px 20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-400)">Negócios / Unidades de negócio</div>
+            <button class="btn btn-gold btn-sm" id="btnSalvarNegocios" style="display:none" onclick="briefSaveNegocios()">Salvar alterações</button>
+          </div>
+          <div id="briefNegociosList" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
+        <!-- Painel agente inline -->
+        <div id="briefAgentPanel" style="display:none;border-top:1px solid var(--gray-200)">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px 10px">
+            <div style="font-size:13px;font-weight:600;color:var(--text)">✦ Agente de marca</div>
+            <button class="btn btn-ghost btn-sm" onclick="toggleBriefAgent(false)">Fechar ×</button>
+          </div>
+          <div class="brief-agent-thread" id="briefAgentThread"></div>
+          <div class="brief-agent-error" id="briefAgentError"></div>
+          <div style="display:flex;gap:8px;padding:10px 18px 16px;border-top:1px solid var(--gray-200);align-items:flex-end">
+            <textarea class="brief-agent-input" id="briefAgentInput" rows="1"
+              placeholder="Digite sua resposta…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();briefAgentEnviar()}"
+              oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+            <button style="padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;flex-shrink:0" id="briefAgentBtnSend" onclick="briefAgentEnviar()">Enviar</button>
           </div>
         </div>
       </div>
@@ -3103,7 +3171,9 @@ function populateConfigFields(p) {
     if (opt) marcaFields[1].value = opt.value;
   }
   if (marcaFields[2]) marcaFields[2].value = p.website || '';
-  if (marcaFields[3]) marcaFields[3].value = p.descricao || '';
+  const _bbDescr = (bb) => { const v = bb?.descricao_empresa; return (v && typeof v === 'object') ? (v.valor || null) : (v || null); };
+  if (marcaFields[3]) marcaFields[3].value = _bbDescr(p.brand_brief) || p.descricao || '';
+  renderBrandBrief(p.brand_brief);
 
   // Restore pending badge if there's a change awaiting approval
   const existingBadge = document.getElementById('marcaPendenteBadge');
@@ -4132,6 +4202,20 @@ async function saveMarca() {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
           'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal' }
       });
+      // Sync descricao → brand_brief.descricao_empresa
+      const brief = window._dashBrandProfile?.brand_brief;
+      if (brief) {
+        if (brief.descricao_empresa && typeof brief.descricao_empresa === 'object') {
+          brief.descricao_empresa.valor = descricao;
+        } else {
+          brief.descricao_empresa = descricao;
+        }
+        await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId, {
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ brand_brief: brief })
+        });
+      }
     }
   }
   OB_MARCA.perfil = true;
@@ -6066,45 +6150,49 @@ function abrirCampanhaDetalhe(campanhaId, campanhaNome) {
   const filtrosBar = document.getElementById('campanha-filtros-bar');
   if (filtrosBar) {
     if (c && c.filtros) {
-      const chips = ffSumaryChips(c.filtros);
       filtrosBar.style.display = '';
       filtrosBar.innerHTML = `
         <span class="camp-filtros-label">Filtro salvo</span>
-        ${chips.map(ch => `<span class="camp-filtro-chip">${ch}</span>`).join('')}
         <div class="camp-filtros-actions">
-          <button class="camp-filtros-edit" onclick="ffEditFiltrosCampanha('${campanhaId}')">Editar</button>
-          <button class="camp-filtros-ver" onclick="aplicarFiltrosDaCampanha('${campanhaId}')">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            Ver oportunidades compatíveis
+          <button class="camp-filtros-edit" onclick="ffEditFiltrosCampanha('${campanhaId}')">Editar filtro</button>
+          <button class="camp-filtros-ver" onclick="camAtualizarCampanha()" style="background:none;border:1.5px solid var(--gray-2);color:var(--gray-4)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Atualizar com IA
           </button>
         </div>`;
     } else {
-      filtrosBar.style.display = 'none';
+      filtrosBar.style.display = '';
+      filtrosBar.innerHTML = `
+        <span class="camp-filtros-label" style="color:var(--gray-3)">Sem filtro</span>
+        <div class="camp-filtros-actions">
+          <button class="camp-filtros-ver" onclick="camAtualizarCampanha()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Configurar com IA
+          </button>
+        </div>`;
     }
   }
 
-  const oppSet = _CAMPANHA_OPPS[campanhaId] || new Set();
-  const opps = [...oppSet].map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
+  // Oportunidades: salvas manualmente + compatíveis com filtro (sem duplicar)
+  const savedSet = _CAMPANHA_OPPS[campanhaId] || new Set();
+  let opps = [];
+  if (c && c.filtros) {
+    const prevState = _ffState;
+    _ffState = ffDeserializeState(c.filtros) || prevState;
+    opps = (MOCK_OPPORTUNITIES || []).filter(opp => ffMatch(opp));
+    _ffState = prevState;
+    // Garante que salvas manualmente sempre apareçam
+    const savedOpps = [...savedSet].map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
+    savedOpps.forEach(o => { if (!opps.find(x => x.id === o.id)) opps.unshift(o); });
+  } else {
+    opps = [...savedSet].map(id => (MOCK_OPPORTUNITIES || []).find(o => o.id === id)).filter(Boolean);
+  }
 
   if (!opps.length) {
-    const temFiltros = c && c.filtros;
     detalheGrid.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:16px;align-items:center;padding:40px 20px">
-        ${!temFiltros ? `
-        <div style="width:100%;max-width:480px;border:2px dashed rgba(184,134,11,0.35);border-radius:16px;padding:28px 24px;text-align:center;background:rgba(184,134,11,0.04)">
-          <div style="font-size:28px;margin-bottom:10px">🎯</div>
-          <div style="font-family:var(--font-heading);font-size:16px;font-weight:700;color:var(--black);margin-bottom:6px">Defina o perfil desta campanha</div>
-          <div style="font-size:13px;color:var(--gray-3);margin-bottom:18px;line-height:1.5">Salve filtros para que o Radar entenda o que você está buscando e mostre as oportunidades certas.</div>
-          <button class="btn btn-campanha-criar" style="border-radius:100px;margin:0 auto" onclick="ffEditFiltrosCampanha('${campanhaId}')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;margin-right:6px"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-            Definir filtros da campanha
-          </button>
-        </div>
-        <div style="font-size:12px;color:var(--gray-2)">ou</div>` : ''}
-        <div style="text-align:center">
-          <div style="font-size:13px;color:var(--gray-3);margin-bottom:12px">Adicione oportunidades manualmente clicando no coração ao explorar</div>
-          <button class="btn btn-ghost btn-sm" onclick="showSection('oportunidades')">Explorar oportunidades →</button>
-        </div>
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:center;padding:48px 20px;text-align:center">
+        <div style="font-size:13px;color:var(--gray-3);line-height:1.6">Nenhuma oportunidade compatível encontrada.<br>Ajuste os filtros ou explore manualmente.</div>
+        <button class="btn btn-ghost btn-sm" onclick="showSection('oportunidades')">Explorar oportunidades →</button>
       </div>`;
     return;
   }
