@@ -542,6 +542,35 @@ async function agEnviar() {
 window.agSelecionarOpcao = t => { if(_st.loading)return; document.getElementById('agChatInput').value=t||''; agEnviar(); };
 window.agFocarInput = () => { const i=document.getElementById('agChatInput'); if(i){i.value='';i.focus();} };
 
+window.agToggleOpcao = function(btn) {
+  if(_st.loading) return;
+  const selected = btn.getAttribute('data-selected')==='true';
+  btn.setAttribute('data-selected', selected ? 'false' : 'true');
+  btn.style.borderColor   = selected ? '#E0D8CC' : '#B8860B';
+  btn.style.background    = selected ? '#fff'    : 'rgba(184,134,11,0.08)';
+  btn.style.color         = selected ? '#1A1200' : '#7A5C1E';
+  const num = btn.querySelector('.ag-option-num');
+  if(num) { num.style.background = selected ? 'linear-gradient(135deg,#B8860B,#C8A84B)' : '#E0D8CC'; num.style.color = selected ? '#fff' : '#7A5C1E'; }
+
+  // Mostra/esconde botão confirmar
+  const groupId = btn.getAttribute('data-group');
+  const container = document.getElementById(groupId);
+  if (!container) return;
+  const anySelected = container.querySelectorAll('[data-selected="true"]').length > 0;
+  const confirmBtn = document.getElementById('btn_confirm_'+groupId);
+  if (confirmBtn) confirmBtn.style.display = anySelected ? 'block' : 'none';
+};
+
+window.agEnviarMultiselect = function(groupId) {
+  if(_st.loading) return;
+  const container = document.getElementById(groupId);
+  if (!container) return;
+  const selected = [...container.querySelectorAll('[data-selected="true"]')].map(b=>b.dataset.opc).filter(Boolean);
+  if (!selected.length) return;
+  document.getElementById('agChatInput').value = selected.join(', ');
+  agEnviar();
+};
+
 /* ── API ────────────────────────────────────────────────────── */
 // Quando aberto como file://, aponta para produção
 const API_BASE = window.location.protocol === 'file:' ? 'https://radar-relevantia.com.br' : '';
@@ -694,11 +723,40 @@ function renderMsg(parsed) {
     const duv=parsed.duvidas[0];
     const pergunta=typeof duv==='string'?duv:(duv?.pergunta||'');
     const opcoes=(duv&&typeof duv==='object'&&Array.isArray(duv.opcoes))?duv.opcoes:[];
+    const multi=(duv&&typeof duv==='object')?!!duv.multiselect:false;
+    const msgId='ms_'+Date.now();
+
     html+=`<strong>Para continuar:</strong><br>${esc(pergunta)}`;
+    if(multi) html+=`<div style="font-size:11px;color:#A89880;margin:4px 0 8px">Selecione uma ou mais opções</div>`;
+
     if (opcoes.length) {
-      html+='<div class="ag-options">';
-      opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" onclick="agSelecionarOpcao(this.dataset.opc)"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
-      html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+      html+=`<div class="ag-options" id="${msgId}">`;
+      if (multi) {
+        // Multi-select: toggle + botão confirmar
+        opcoes.forEach((o,i)=>{
+          html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" data-group="${msgId}"
+            onclick="agToggleOpcao(this)"
+            style="transition:all .15s">
+            <span class="ag-option-num">${i+1}</span>
+            <span class="ag-option-text">${esc(o)}</span>
+          </button>`;
+        });
+        html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()">
+          <span class="ag-option-num">${opcoes.length+1}</span>
+          <span class="ag-option-text">Descreva melhor</span>
+        </button>`;
+        html+=`<button type="button" id="btn_confirm_${msgId}"
+          onclick="agEnviarMultiselect('${msgId}')"
+          style="display:none;margin-top:4px;padding:10px 18px;background:#1A1200;color:#fff;
+          border:none;border-radius:100px;font-size:13px;font-weight:600;
+          font-family:'DM Sans',sans-serif;cursor:pointer;width:100%">
+          Confirmar seleção →
+        </button>`;
+      } else {
+        // Single-select: comportamento atual
+        opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" onclick="agSelecionarOpcao(this.dataset.opc)"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
+        html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+      }
       html+='</div>';
     }
   }
