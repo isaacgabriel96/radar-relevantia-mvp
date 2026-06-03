@@ -2792,9 +2792,15 @@ async function init() {
           window.location.href = '/index.html';
           return;
         }
-        // Guard: bloqueia acesso ao dashboard se ainda não passou pelo acesso-marca
+        // Guard: bloqueia acesso ao dashboard antes de completar o acesso-marca (senha provisória)
         if (user.user_metadata?.senha_provisoria === true) {
           window.location.href = 'acesso-marca.html';
+          return;
+        }
+        // Guard: bloqueia acesso ao dashboard antes de completar o onboarding completo
+        // (onboarding_completo === false indica marca nova que ainda não finalizou o fluxo)
+        if (user.user_metadata?.tipo === 'marca' && user.user_metadata?.onboarding_completo === false) {
+          window.location.href = 'onboarding-marca.html';
           return;
         }
       } catch (_) {

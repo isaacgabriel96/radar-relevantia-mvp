@@ -160,7 +160,7 @@
   <a class="topbar-logo" href="#">✦ Radar Relevantia</a>
   <span class="topbar-sep">/</span>
   <span class="topbar-title">Criar campanha</span>
-  <div class="topbar-right"><a href="/dashboard-marca.html" id="linkPular" style="font-size:12px;color:var(--gray-3);text-decoration:none">Pular por agora →</a></div>
+  <div class="topbar-right"><a href="#" id="linkPular" onclick="event.preventDefault(); pularCampanha()" style="font-size:12px;color:var(--gray-3);text-decoration:none">Pular por agora →</a></div>
 </div>
 
 <div class="main"><div class="main-inner">
@@ -653,6 +653,24 @@ function mostrarCampanha() {
   document.getElementById('section-campanha').scrollIntoView({behavior:'smooth'});
 }
 
+// Marca onboarding_completo=true no user_metadata para liberar o dashboard
+async function concluirOnboarding() {
+  try {
+    const token = _st.token || await getToken();
+    if (!token) return;
+    await fetch(SUPABASE_URL + '/auth/v1/user', {
+      method: 'PUT',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: { onboarding_completo: true } })
+    });
+  } catch(e) { console.warn('[concluirOnboarding] erro (não crítico):', e); }
+}
+
+async function pularCampanha() {
+  await concluirOnboarding();
+  window.location.href = '/dashboard-marca.html';
+}
+
 async function criarCampanha(){
   const c = _st.lastResult?.campanha;
   if (!c) { showError('Nenhuma campanha configurada.'); return; }
@@ -693,7 +711,8 @@ async function criarCampanha(){
     if (!res.ok) throw new Error('HTTP ' + res.status);
     btn.textContent = '✓ Campanha criada!';
     btn.classList.add('saved');
-    // Segue para o dashboard
+    // Marca onboarding como concluído e segue para o dashboard
+    await concluirOnboarding();
     setTimeout(() => { window.location.href = '/dashboard-marca.html'; }, 700);
   } catch(e) {
     console.error('[campaign-agent] Erro ao criar campanha:', e);

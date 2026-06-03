@@ -1259,7 +1259,7 @@ async function setPassword() {
         'Authorization': `Bearer ${currentSession.access_token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ password: pw, data: { senha_provisoria: false } })
+      body: JSON.stringify({ password: pw, data: { senha_provisoria: false, onboarding_completo: false } })
     });
 
     if (!res.ok) {
@@ -1269,6 +1269,7 @@ async function setPassword() {
 
     if (currentSession.user?.user_metadata) {
       currentSession.user.user_metadata.senha_provisoria = false;
+      currentSession.user.user_metadata.onboarding_completo = false;
       localStorage.setItem('sb_marca_session', JSON.stringify(currentSession));
     }
 
