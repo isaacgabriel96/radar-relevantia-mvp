@@ -1035,10 +1035,10 @@ body::after {
         Bem-vindo ao Radar, <em id="firstName">bem-vindo</em> !
       </h1>
       <p class="panel-sub" style="margin:0 auto 36px;max-width:380px;">
-        Sua conta está configurada. Vamos criar sua primeira campanha para começar a encontrar as parcerias ideais para sua marca.
+        Sua conta está configurada. Agora vamos conhecer sua marca para que o Radar entenda seu negócio e encontre as melhores parcerias.
       </p>
-      <button class="btn-primary" onclick="goToDashboard()" style="max-width:360px;margin:0 auto;">
-        Criar minha primeira campanha →
+      <button class="btn-primary" onclick="goToOnboarding()" style="max-width:360px;margin:0 auto;">
+        Conhecer minha marca →
       </button>
     </div>
   </div>
@@ -1285,9 +1285,14 @@ async function setPassword() {
 }
 
 /* ── DASHBOARD & LOGOUT ── */
+function goToOnboarding() {
+  if (previewMode) { showToast('Preview: redirecionaria para onboarding de marca →', ''); return; }
+  window.location.href = '/onboarding-marca.html';
+}
+
 function goToDashboard() {
-  if (previewMode) { showToast('Preview: redirecionaria para criação de campanha →', ''); return; }
-  window.location.href = '/dashboard-marca.html?nova_campanha=1';
+  if (previewMode) { showToast('Preview: redirecionaria para o dashboard →', ''); return; }
+  window.location.href = '/dashboard-marca.html';
 }
 
 function doLogout() {
