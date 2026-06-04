@@ -490,11 +490,11 @@
   }
   window.Tut = {
     open: function(){ idx=0; renderShell(); renderSlide(); document.getElementById('tut-overlay').classList.add('open'); document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; },
-    close: function(){ document.getElementById('tut-overlay').classList.remove('open'); document.documentElement.style.overflow=''; document.body.style.overflow=''; try{localStorage.setItem(CFG.key,'1');}catch(e){} },
+    close: function(){ document.getElementById('tut-overlay').classList.remove('open'); document.documentElement.style.overflow=''; document.body.style.overflow=''; try{sessionStorage.setItem(CFG.key,'1');}catch(e){} },
     next: function(){ if(idx<CFG.slides.length-1){ idx++; renderSlide(); } },
     prev: function(){ if(idx>0){ idx--; renderSlide(); } },
     goto: function(i){ idx=i; renderSlide(); },
-    maybeAutoOpen: function(){ try{ if(localStorage.getItem(CFG.key)) return; }catch(e){} setTimeout(function(){ window.Tut.open(); }, 500); }
+    maybeAutoOpen: function(){ try{ if(sessionStorage.getItem(CFG.key)) return; }catch(e){} setTimeout(function(){ window.Tut.open(); }, 500); }
   };
 })();
 </script>
