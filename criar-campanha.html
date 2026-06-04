@@ -170,6 +170,15 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 .tut-trigger:hover { background:rgba(184,134,11,.12); }
 .tut-trigger svg { width:13px; height:13px; }
 
+.tut-icon { color:var(--gold); }
+.tut-icon svg { width:24px; height:24px; }
+.tut-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+.tut-grid-item { border:1px solid var(--gray-2); border-radius:12px; padding:12px; background:var(--gray-1); }
+.tut-grid-icon { width:30px; height:30px; border-radius:8px; background:rgba(184,134,11,.1); color:var(--gold); display:flex; align-items:center; justify-content:center; margin-bottom:8px; }
+.tut-grid-icon svg { width:16px; height:16px; }
+.tut-grid-title { font-size:13px; font-weight:700; color:var(--black); margin-bottom:2px; }
+.tut-grid-desc { font-size:11px; color:var(--gray-3); line-height:1.4; }
+
 </style>
 </head>
 <body>
@@ -269,9 +278,10 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 /* ── Tutorial engine (data-driven) ─────────────────────── */
 (function(){
   const CFG = { key: 'rr_tut_campanha_v1', badge: 'Como funciona', slides: [
-  { icon:'🎯', title:'O que é uma campanha?', html:'Uma campanha reúne, num só lugar, um objetivo de patrocínio. Em vez de garimpar oportunidades soltas, você descreve o que quer alcançar e o Radar reúne os ativos que fazem sentido — já com filtros e acompanhamento.' },
-  { icon:'🧩', title:'O que você pode patrocinar', html:'No Radar, todo patrocínio acontece em torno de 4 formatos de ativo:<ul class=\"tut-list\"><li><span class=\"em\">👤</span><span><strong>Personalidades</strong> — creators, atletas, apresentadores, especialistas</span></li><li><span class=\"em\">🎪</span><span><strong>Eventos</strong> — festivais, shows, conferências, torneios esportivos</span></li><li><span class=\"em\">🎵</span><span><strong>Artistas musicais</strong> — por estilo, alcance e frequência de shows</span></li><li><span class=\"em\">📺</span><span><strong>Mídia</strong> — portais, podcasts, canais, revistas e newsletters</span></li></ul>' },
-  { icon:'🧭', title:'Você no controle', html:'Cada campanha agrupa as oportunidades certas para um objetivo — isso mantém seu trabalho organizado e direto ao ponto.<br><br>É <strong>opcional</strong>: você pode explorar o catálogo livremente quando quiser. A campanha é só a forma mais objetiva de chegar no que importa para a sua marca.' }
+  { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>', title:'O que é uma campanha?', html:'Uma campanha reúne, num só lugar, um objetivo de patrocínio. Em vez de garimpar oportunidades soltas, você descreve o que quer alcançar e o Radar reúne os ativos que fazem sentido — já com filtros e acompanhamento.' },
+  { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>', title:'O que você pode patrocinar', html:'No Radar, todo patrocínio acontece em torno de 4 formatos de ativo:<div class=\"tut-grid\"><div class=\"tut-grid-item\"><div class=\"tut-grid-icon\"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class=\"tut-grid-title\">Personalidades</div><div class=\"tut-grid-desc\">Creators, atletas, apresentadores, especialistas</div></div><div class=\"tut-grid-item\"><div class=\"tut-grid-icon\"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div class=\"tut-grid-title\">Eventos</div><div class=\"tut-grid-desc\">Festivais, shows, conferências, torneios</div></div><div class=\"tut-grid-item\"><div class=\"tut-grid-icon\"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div><div class=\"tut-grid-title\">Artistas musicais</div><div class=\"tut-grid-desc\">Por estilo, alcance e frequência de shows</div></div><div class=\"tut-grid-item\"><div class=\"tut-grid-icon\"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg></div><div class=\"tut-grid-title\">Mídia</div><div class=\"tut-grid-desc\">Portais, podcasts, canais, revistas</div></div></div>' },
+  { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>', title:'Monte sua estratégia', html:'Escolha um ou mais <strong>negócios</strong> que você mapeou antes e construa a campanha em cima deles.<br><br>É só descrever o objetivo — o agente cuida do resto: monta os <strong>filtros de público, idade, região</strong> e mais, selecionando as melhores oportunidades de forma rápida e prática.' },
+  { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>', title:'Você no controle', html:'Cada campanha agrupa as oportunidades certas para um objetivo — isso mantém seu trabalho organizado e direto ao ponto.<br><br>É <strong>opcional</strong>: você pode explorar o catálogo livremente quando quiser. A campanha é só a forma mais objetiva de chegar no que importa para a sua marca.' }
 ] };
   let idx = 0;
   function renderShell(){
@@ -279,7 +289,7 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
     if(!ov) return;
     ov.innerHTML = '<div class="tut-card" onclick="event.stopPropagation()">'
       + '<div class="tut-top"></div>'
-      + '<div class="tut-head"><span class="tut-badge">\u2728 '+CFG.badge+'</span>'
+      + '<div class="tut-head"><span class="tut-badge">\u2726 '+CFG.badge+'</span>'
       + '<button class="tut-close" onclick="window.Tut.close()" aria-label="Fechar">\u2715</button></div>'
       + '<div class="tut-body" id="tut-body"></div>'
       + '<div class="tut-foot"><div class="tut-dots" id="tut-dots"></div><div class="tut-nav" id="tut-nav"></div></div>'
