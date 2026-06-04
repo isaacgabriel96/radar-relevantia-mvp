@@ -6,6 +6,7 @@
 <title>Criar campanha — Radar Relevantia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/ff-filter.css">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -14,6 +15,8 @@
   --brown-warm: #7A5C1E;
   --black: #1A1200; --white: #FFFFFF; --white-warm: #FFFDF7;
   --gray-1: #F5F0E8; --gray-2: #E0D8CC; --gray-3: #A89880; --gray-4: #5C4C38;
+  /* aliases para o módulo de filtro compartilhado (css/ff-filter.css) */
+  --gold-pale: #FBF5E6; --gray-100: #F5F0E8; --gray-200: #E0D8CC; --gray-300: #C8BCA8; --gray-500: #7A6A58;
   --text: #1A1200;
   --radius-pill: 100px; --radius-base: 10px;
   --gray-body: #FAF8F5;
@@ -319,13 +322,41 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/core.js"></script>
+<script src="js/ff-filter.js"></script>
 <script>
 // ── Constantes ──────────────────────────────────────────────────────────────
 const CAM_API_BASE = window.location.protocol === 'file:' ? 'https://radar-relevantia.com.br' : '';
 const CAM_STATE_KEY = 'rr_onboarding_campanha_state';
 
 // ── Estado ──────────────────────────────────────────────────────────────────
-let _st = { loading: false, history: [], lastResult: null, token: null, marcaId: null };
+let _st = { loading: false, history: [], lastResult: null, token: null, marcaId: null, filtroManual: false };
+let _ultimoFiltroDoAgente = null; // último filtro recebido do agente OU editado manualmente
+
+// ── Filtro de oportunidades (módulo compartilhado FF — js/ff-filter.js) ───────
+function _filtroBtnHtml() {
+  return `<button type="button" onclick="window._camEditarFiltro()"
+    style="display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:9px 14px;background:var(--gold-pale);border:1.5px solid var(--gold-border);border-radius:100px;font-size:12.5px;font-weight:600;color:var(--brown-warm);cursor:pointer;font-family:var(--font-body);transition:all .15s"
+    onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--gold-border)'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    Ver / editar filtro configurado
+  </button>`;
+}
+
+window._camEditarFiltro = function() {
+  const f = _st.lastResult?.filtro || _ultimoFiltroDoAgente || { tipo:'todos', sel:{}, toggles:{ incentivo:false, cotas:false } };
+  FF.open(f);
+};
+
+function _onFiltroApply(stateJson) {
+  _ultimoFiltroDoAgente = stateJson;
+  _st.filtroManual = true;
+  if (_st.lastResult) { _st.lastResult.filtro = stateJson; }
+  // Atualiza os chips do card de resultado, se estiver visível
+  const card = document.getElementById('cam-result-step');
+  if (_st.lastResult && card && card.style.display !== 'none') _mostrarResult(_st.lastResult, true);
+  _saveState(_st.lastResult ? 'result' : 'chat');
+  FF.close();
+}
 
 // ── Persistência de estado ───────────────────────────────────────────────────
 function _saveState(step) {
@@ -336,7 +367,9 @@ function _saveState(step) {
       history: _st.history,
       lastResult: _st.lastResult,
       promptText: document.getElementById('cam-prompt-input')?.value || '',
-      selectedBus
+      selectedBus,
+      filtro: _ultimoFiltroDoAgente,
+      filtroManual: _st.filtroManual
     };
     localStorage.setItem(CAM_STATE_KEY, JSON.stringify(state));
   } catch(e) {}
@@ -371,6 +404,8 @@ function _restoreState() {
       // Restaura o chat
       _st.history = state.history || [];
       _st.lastResult = state.lastResult || null;
+      _ultimoFiltroDoAgente = state.filtro || _st.lastResult?.filtro || null;
+      _st.filtroManual = !!state.filtroManual;
 
       document.getElementById('cam-prompt-step').style.display = 'none';
       document.getElementById('cam-chat-step').style.display = 'flex';
@@ -485,6 +520,7 @@ function _mostrarResult(campanha, silent=false) {
   if(campanha.contexto) html += `<div style="font-size:12px;color:var(--gray-4);margin-bottom:6px;line-height:1.5"><strong style="color:var(--black)">Contexto:</strong> ${_esc(campanha.contexto)}</div>`;
   if(campanha.definicao_publico) html += `<div style="font-size:12px;color:var(--gray-4);margin-bottom:8px;line-height:1.5"><strong style="color:var(--black)">Público:</strong> ${_esc(campanha.definicao_publico)}</div>`;
   if(chips.length) html += `<div class="cam-result-chips">${chips.map(c => `<span class="cam-result-chip">${_esc(c)}</span>`).join('')}</div>`;
+  if(campanha.filtro || _ultimoFiltroDoAgente) html += _filtroBtnHtml();
   document.getElementById('cam-result-card').innerHTML = html;
   document.getElementById('cam-result-step').style.display = 'block';
   document.getElementById('cam-input-row').style.display = 'none';
@@ -497,13 +533,18 @@ function _renderMsg(parsed) {
   if(!parsed) { _addMsg('agent','<span style="color:#DC2626">❌ Erro. Tente novamente.</span>'); return; }
   let html = '';
   if(parsed.resumo) html += `${_html(parsed.resumo)}<br><br>`;
+  // Captura o filtro montado pelo agente (a menos que o usuário já tenha editado manualmente)
+  if(parsed.campanha?.filtro && !_st.filtroManual) _ultimoFiltroDoAgente = parsed.campanha.filtro;
+  const temFiltro = !!(parsed.campanha?.filtro || _ultimoFiltroDoAgente);
   if(parsed.concluido) {
     html += `<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br><span style="font-size:12px;color:#A89880">Revise abaixo e confirme para criar.</span>`;
+    if(temFiltro) html += '<br>' + _filtroBtnHtml();
     _addMsg('agent', html);
     setTimeout(() => _mostrarResult(parsed.campanha), 300);
     return;
   }
   if(parsed.pergunta) html += _html(parsed.pergunta);
+  if(temFiltro) html += _filtroBtnHtml();
   if(parsed.opcoes?.length) {
     const mid = 'cam_opts_' + Date.now();
     const isMulti = !!parsed.multiselect;
@@ -602,7 +643,16 @@ window.camEnviar = async function() {
   const input = document.getElementById('cam-input');
   const text = (input?.value || '').trim(); if(!text) return;
   _showErr(''); input.value = ''; input.style.height = 'auto';
-  _addMsg('user', _html(text)); _st.history.push({role:'user', content:text});
+  _addMsg('user', _html(text));
+  // Se o usuário editou o filtro manualmente, reenvia esse filtro como contexto
+  // para o agente não sobrescrever a edição (casa com o "modo atualização" do prompt).
+  let outgoing = text;
+  if (_st.filtroManual && _ultimoFiltroDoAgente) {
+    outgoing = `[CAMPANHA EXISTENTE]\nfiltro=${JSON.stringify(_ultimoFiltroDoAgente)}\n\n`
+      + `[INSTRUÇÃO] O usuário ajustou o filtro manualmente na interface. Preserve esse filtro, a menos que o pedido abaixo mude explicitamente os critérios.\n\n`
+      + `[PEDIDO DO USUÁRIO]\n${text}`;
+  }
+  _st.history.push({role:'user', content: outgoing});
   _setLoading(true); _addMsg('agent','',true);
   const phases = ['🧠 Processando','✦ Ajustando filtros'];
   let pi = 0; const pt = setInterval(() => _phaseUpdate(phases, ++pi), 3000);
@@ -738,6 +788,14 @@ async function pularCampanha() {
 
     // Monta chips de BU
     _buildBusChips();
+
+    // Inicializa o filtro de oportunidades compartilhado (sem contagem — não há MOCK_OPPORTUNITIES aqui)
+    FF.init({
+      liveCount: null,
+      footer: `<div class="ff-foot-left"><button class="ff-clear" onclick="ffClear()">Limpar tudo</button></div>
+               <button class="ff-apply" onclick="FF.apply()">Aplicar filtro</button>`,
+      onApply: _onFiltroApply
+    });
 
     // Tenta restaurar estado salvo (usuário voltou do meio do fluxo)
     const restored = _restoreState();

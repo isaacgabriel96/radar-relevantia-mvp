@@ -103,6 +103,7 @@ cotas: true se quiser apenas ativos que vendem cotas
 - Sempre apresente `opcoes` para facilitar resposta do usuário — evite perguntas abertas sem opções
 - `opcoes` DEVE ser um array de STRINGS curtas (ex: ["Jovens 18-24", "Adultos 25-34"]). NUNCA use objetos como `{"label": "..."}` — apenas texto puro
 - No turno final, nunca marque `concluido: true` sem o usuário ter confirmado explicitamente
+- NÃO descreva o filtro (`filtro.sel`, segmentos, tipo de ativo) em prosa no `resumo` — a interface mostra um botão "Ver / editar filtro" com o filtro visual. No `resumo`, só mencione que configurou o filtro e que o usuário pode revisá-lo/ajustá-lo nesse botão.
 
 ## FORMATO DE RESPOSTA — SEMPRE JSON VÁLIDO, NENHUM TEXTO FORA
 
