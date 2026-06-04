@@ -690,6 +690,26 @@ function buildNegociosList(negocios) {
 
   let h = `<div id="negociosList" style="display:flex;flex-direction:column;gap:6px;margin:10px 0 14px">`;
 
+  // ── Tip card: duas formas de editar ────────────────────────────────────────
+  h += `<div style="display:flex;gap:10px;padding:10px 14px;background:rgba(184,134,11,0.05);border:1px solid rgba(184,134,11,0.18);border-radius:10px;margin-bottom:4px">
+    <div style="display:flex;flex-direction:column;gap:6px;flex:1">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span style="font-size:15px;line-height:1.3;flex-shrink:0">✏️</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1A1200;margin-bottom:1px">Edite diretamente</div>
+          <div style="font-size:11px;color:#A89880;line-height:1.4">Clique em qualquer negócio abaixo para expandir e editar os campos.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span style="font-size:15px;line-height:1.3;flex-shrink:0">💬</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#1A1200;margin-bottom:1px">Ou peça ao agente</div>
+          <div style="font-size:11px;color:#A89880;line-height:1.4">Descreva as mudanças no chat — <em>"remova o Itaú BBA"</em>, <em>"adicione o Rede como produto"</em>…</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
   if (!negocios.length) {
     h += `<div style="font-size:12px;color:#A89880;padding:10px 0">Nenhum negócio cadastrado ainda.</div>`;
   }
@@ -749,10 +769,7 @@ function buildNegociosList(negocios) {
     <span style="font-size:16px;line-height:1">＋</span> Adicionar negócio
   </button>`;
 
-  h += `<div style="font-size:11px;color:#A89880;margin-top:6px;display:flex;align-items:center;gap:5px">
-    <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;flex-shrink:0"><path d="M8 8.667A2.667 2.667 0 1 0 8 3.333a2.667 2.667 0 0 0 0 5.334z" stroke="currentColor" stroke-width="1.3"/><path d="M2 12.667C2 11 4.686 9.333 8 9.333s6 1.667 6 3.334" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-    Toque em cada negócio para ver e editar os detalhes
-  </div>`;
+
   h += `</div>`;
   return h;
 }
