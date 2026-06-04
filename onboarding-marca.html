@@ -587,7 +587,17 @@ function addMsg(role, html, isTyping=false) {
   d.className=`ag-msg ${role}`;
   d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
   if(isTyping) d.id='agTypingMsg';
-  t.appendChild(d); t.scrollTop=t.scrollHeight; return d;
+  t.appendChild(d);
+  // Mensagem do agente: rola para o TOPO dela (usuário lê do começo).
+  // User / typing: rola para o fim (chat normal).
+  if(role==='agent' && !isTyping){ _st.lastAgentMsg=d; _scrollAgentTop(d); }
+  else { t.scrollTop=t.scrollHeight; }
+  return d;
+}
+function _scrollAgentTop(d){
+  const t=document.getElementById('agChatThread'); if(!t||!d) return;
+  const top=d.getBoundingClientRect().top - t.getBoundingClientRect().top + t.scrollTop;
+  t.scrollTop=Math.max(0, top-12);
 }
 function removeTyping() { const e=document.getElementById('agTypingMsg'); if(e) e.remove(); }
 function phase(phases, idx) {
@@ -668,7 +678,7 @@ async function agEnviar() {
     showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span>`);
   } finally {
     setLoading(false);
-    const t=document.getElementById('agChatThread'); if(t) t.scrollTop=999999;
+    if(_st.lastAgentMsg) _scrollAgentTop(_st.lastAgentMsg);
   }
 }
 
