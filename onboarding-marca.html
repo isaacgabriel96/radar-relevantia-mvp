@@ -588,16 +588,11 @@ function addMsg(role, html, isTyping=false) {
   d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
   if(isTyping) d.id='agTypingMsg';
   t.appendChild(d);
-  // Mensagem do agente: rola para o TOPO dela (usuário lê do começo).
-  // User / typing: rola para o fim (chat normal).
-  if(role==='agent' && !isTyping){ _st.lastAgentMsg=d; _scrollAgentTop(d); }
+  // Carga inicial (agente fala primeiro): rola para o topo p/ ler do começo.
+  // Depois que o usuário responde: fluxo normal (rola para o fim).
+  if(role==='agent' && !isTyping && !_st.userHasReplied){ t.scrollTop=0; }
   else { t.scrollTop=t.scrollHeight; }
   return d;
-}
-function _scrollAgentTop(d){
-  const t=document.getElementById('agChatThread'); if(!t||!d) return;
-  const top=d.getBoundingClientRect().top - t.getBoundingClientRect().top + t.scrollTop;
-  t.scrollTop=Math.max(0, top-12);
 }
 function removeTyping() { const e=document.getElementById('agTypingMsg'); if(e) e.remove(); }
 function phase(phases, idx) {
@@ -613,6 +608,7 @@ async function iniciarConversa(autoName) {
   _st.token = _st.token || '';
   if (!_st.token) { window.location.href='/acesso-marca.html'; return; }
   _st.brandName = brandName;
+  _st.userHasReplied = false;
 
   // Troca UI
   document.getElementById('brand-input-section').style.display = 'none';
@@ -656,6 +652,7 @@ async function agEnviar() {
   if (_st.loading) return;
   const input=document.getElementById('agChatInput');
   const text=(input.value||'').trim(); if(!text) return;
+  _st.userHasReplied = true;
   showError(''); input.value=''; input.style.height='auto';
   addMsg('user',msgHtml(text));
   _st.history.push({role:'user', content:text});
@@ -678,7 +675,7 @@ async function agEnviar() {
     showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span>`);
   } finally {
     setLoading(false);
-    if(_st.lastAgentMsg) _scrollAgentTop(_st.lastAgentMsg);
+    const t=document.getElementById('agChatThread'); if(t) t.scrollTop=t.scrollHeight;
   }
 }
 
