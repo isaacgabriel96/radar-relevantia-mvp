@@ -1929,6 +1929,10 @@ tbody tr:last-child td { border-bottom: none; }
               <input class="form-input resp-field" type="text" value="" disabled>
             </div>
             <div class="form-group">
+              <label class="form-label">Sobrenome</label>
+              <input class="form-input resp-field" id="respSobrenomeInput" type="text" value="" disabled>
+            </div>
+            <div class="form-group">
               <label class="form-label">E-mail</label>
               <input class="form-input resp-field" type="email" value="" disabled style="background:var(--gray-100);color:var(--gray-400);cursor:not-allowed" title="O e-mail não pode ser alterado">
             </div>
@@ -2890,7 +2894,7 @@ async function loadUserInfo() {
         try {
           const token = await getValidToken();
           if (token) {
-            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,empresa,email,segmento,website,descricao,telefone,cargo,empresa_domain,logo_url,cadastro_juridico_completo,empresa_change_pending,brand_brief&id=eq.' + user.id, {
+            const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=nome,sobrenome,empresa,email,segmento,website,descricao,telefone,cargo,empresa_domain,logo_url,cadastro_juridico_completo,empresa_change_pending,brand_brief&id=eq.' + user.id, {
               headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
             });
             if (res.ok) {
@@ -3217,10 +3221,12 @@ function populateConfigFields(p) {
   // Dados jurídicos são criptografados — precisam do RPC get_perfil_juridico para decriptar
   if (!editingJuridicoMarca) loadJuridicoMarca();
 
-  // Resp fields: [0]=nome, [1]=email, [2]=phone input (tel), [3]=cargo (select)
+  // Resp fields: [0]=nome, [1]=sobrenome, [2]=email, [3]=phone input (tel), [4]=cargo (select)
   const respFields = document.querySelectorAll('.resp-field');
   if (respFields[0]) respFields[0].value = p.nome || '';
-  if (respFields[1]) respFields[1].value = p.email || '';
+  const sobrenomeEl = document.getElementById('respSobrenomeInput');
+  if (sobrenomeEl) sobrenomeEl.value = p.sobrenome || '';
+  if (respFields[2]) respFields[2].value = p.email || '';
   // Phone: parse DDI + number
   const dialMap = {'+55':'br','+351':'pt','+1':'us','+44':'gb','+54':'ar','+57':'co','+52':'mx','+56':'cl','+34':'es','+49':'de','+33':'fr','+39':'it','+81':'jp','+86':'cn'};
   let telRaw = p.telefone || '';
@@ -4275,12 +4281,14 @@ function toggleEditResp() {
 }
 
 async function saveResp() {
-  // resp-field order: [0]=nome (text), [1]=email, [2]=phone input (tel), [3]=cargo (select)
-  const nomeInput  = document.querySelector('.resp-field[type="text"]');
-  const emailInput = document.querySelector('.resp-field[type="email"]');
+  // resp-field order: [0]=nome (text), [1]=sobrenome (text, by id), [2]=email, [3]=phone, [4]=cargo
+  const nomeInput      = document.querySelector('.resp-field[type="text"]');
+  const sobrenomeInput = document.getElementById('respSobrenomeInput');
+  const emailInput     = document.querySelector('.resp-field[type="email"]');
   if (nomeInput) {
-    const newName  = nomeInput.value.trim();
-    const email    = emailInput?.value || '';
+    const newName      = nomeInput.value.trim();
+    const newSobrenome = sobrenomeInput?.value?.trim() || '';
+    const email        = emailInput?.value || '';
     setUserInfo(newName, email);
     if (!isDemoMode()) {
       const dialCode = document.getElementById('marcaPhoneDial')?.textContent || '+55';
@@ -4291,7 +4299,7 @@ async function saveResp() {
       const token    = await _getWriteToken();
       if (userId && token) {
         await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId, {
-          method: 'PATCH', body: JSON.stringify({ nome: newName, telefone, cargo }),
+          method: 'PATCH', body: JSON.stringify({ nome: newName, sobrenome: newSobrenome, telefone, cargo }),
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json', 'Prefer': 'return=minimal' }
         });
