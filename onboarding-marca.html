@@ -480,8 +480,8 @@
       + '<button class="tut-btn-next" onclick="'+(isLast?'window.Tut.close()':'window.Tut.next()')+'">'+(isLast?'Entendi \u2713':'Pr\u00f3ximo \u2192')+'</button>';
   }
   window.Tut = {
-    open: function(){ idx=0; renderShell(); renderSlide(); document.getElementById('tut-overlay').classList.add('open'); },
-    close: function(){ document.getElementById('tut-overlay').classList.remove('open'); try{localStorage.setItem(CFG.key,'1');}catch(e){} },
+    open: function(){ idx=0; renderShell(); renderSlide(); document.getElementById('tut-overlay').classList.add('open'); document.body.style.overflow='hidden'; },
+    close: function(){ document.getElementById('tut-overlay').classList.remove('open'); document.body.style.overflow=''; try{localStorage.setItem(CFG.key,'1');}catch(e){} },
     next: function(){ if(idx<CFG.slides.length-1){ idx++; renderSlide(); } },
     prev: function(){ if(idx>0){ idx--; renderSlide(); } },
     goto: function(i){ idx=i; renderSlide(); },
