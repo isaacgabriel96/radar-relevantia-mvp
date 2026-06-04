@@ -703,6 +703,61 @@
       </div>
       <span class="field-error" id="companySearchError" style="display:none;margin-top:6px;">Selecione uma empresa para continuar.</span>
 
+      <!-- Segmento -->
+      <div class="form-group" style="margin-top:16px;">
+        <label>Segmento da marca <span style="color:#c0392b">*</span></label>
+        <select id="segmentoSelect">
+          <option value="">Selecione</option>
+          <optgroup label="Tecnologia &amp; Inovação">
+            <option>Tecnologia</option>
+            <option>Software / SaaS</option>
+            <option>Inteligência Artificial</option>
+            <option>Telecomunicações</option>
+            <option>Games &amp; E-Sports</option>
+            <option>Blockchain / Web3</option>
+          </optgroup>
+          <optgroup label="Consumo &amp; Varejo">
+            <option>Alimentação &amp; Bebidas</option>
+            <option>Moda &amp; Vestuário</option>
+            <option>Beleza &amp; Cosméticos</option>
+            <option>Casa &amp; Decoração</option>
+            <option>Varejo</option>
+            <option>E-commerce</option>
+            <option>Luxo &amp; Alto Padrão</option>
+          </optgroup>
+          <optgroup label="Serviços &amp; Finanças">
+            <option>Financeiro &amp; Banking</option>
+            <option>Fintechs &amp; Pagamentos</option>
+            <option>Seguros</option>
+            <option>Imobiliário</option>
+            <option>Consultoria &amp; Serviços</option>
+          </optgroup>
+          <optgroup label="Saúde &amp; Bem-estar">
+            <option>Saúde &amp; Medicina</option>
+            <option>Bem-estar &amp; Fitness</option>
+            <option>Farmacêutico</option>
+            <option>Suplementos &amp; Nutrição</option>
+          </optgroup>
+          <optgroup label="Mídia &amp; Entretenimento">
+            <option>Entretenimento</option>
+            <option>Mídia &amp; Comunicação</option>
+            <option>Streaming &amp; Conteúdo</option>
+            <option>Publicidade &amp; Marketing</option>
+          </optgroup>
+          <optgroup label="Outros Setores">
+            <option>Educação</option>
+            <option>Automotivo</option>
+            <option>Turismo &amp; Hospitalidade</option>
+            <option>Esportes</option>
+            <option>Sustentabilidade &amp; ESG</option>
+            <option>Energia</option>
+            <option>Agronegócio</option>
+            <option>Outro</option>
+          </optgroup>
+        </select>
+        <span class="field-error" id="segmentoError" style="display:none;">Selecione o segmento da marca.</span>
+      </div>
+
       <!-- Link entrada manual -->
       <div id="manualToggleWrap" style="margin-top:12px;text-align:center;">
         <button type="button" onclick="toggleManualCompany()" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--gray-light);text-decoration:underline;padding:0;">
@@ -974,7 +1029,7 @@
     const empresa  = (_selectedBrand?.name || document.getElementById('companySearch').value.trim());
     const website  = _selectedBrand?.domain ? 'https://' + _selectedBrand.domain : '';
     const cnpj     = ''; // não coletado neste fluxo
-    const segmento = ''; // não coletado neste fluxo
+    const segmento = document.getElementById('segmentoSelect').value;
 
     // Objetivos/orçamento/categorias — coletados no fluxo de campanha (ver _draft/step3-objetivos-campanha.html)
     const objetivos  = [];
@@ -1228,6 +1283,22 @@
       }
       ok = false;
     }
+
+    // Segmento obrigatório
+    const segSelect = document.getElementById('segmentoSelect');
+    const segErr = document.getElementById('segmentoError');
+    if (segSelect && !segSelect.value) {
+      if (segErr) segErr.style.display = 'block';
+      if (segSelect) {
+        segSelect.classList.add('error');
+        setTimeout(() => segSelect.classList.remove('error'), 3000);
+        if (ok) segSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      ok = false;
+    } else if (segErr) {
+      segErr.style.display = 'none';
+    }
+
     return ok;
   }
 
