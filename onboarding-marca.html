@@ -77,6 +77,12 @@
       background: var(--gray-1); border: 1px solid var(--gray-2);
       padding: 3px 10px; border-radius: var(--radius-pill);
     }
+    .agent-step-pill.active {
+      color: var(--brown-warm, #7A5C1E);
+      background: rgba(184,134,11,0.08);
+      border-color: rgba(184,134,11,0.3);
+      font-weight: 600;
+    }
 
     /* ── Brand input card (pré-chat) ─────────────────────── */
     #brand-input-section { margin-bottom: 16px; }
@@ -337,17 +343,16 @@
   <div id="panel-agent" style="display:none">
   <!-- Agent header -->
   <div class="agent-header">
-    <h2>✦ Conhecendo sua marca</h2>
+    <h2>Mapeie os negócios da sua marca</h2>
     <p>
-      O agente vai pesquisar o que já sabe sobre sua empresa e conduzir uma conversa rápida —
-      produtos, geografias e objetivos — para criar seu perfil de marca no Radar.
+      Revise o que o agente identificou sobre sua empresa — produtos, serviços e áreas de atuação.
+      Esses negócios vão aparecer como opção ao criar campanhas de patrocínio.
     </p>
     <div class="agent-header-meta">
-      <span class="agent-badge"><span class="agent-badge-dot"></span>Onboarding</span>
+      <span class="agent-badge"><span class="agent-badge-dot"></span>Passo 1 de 2</span>
       <div class="agent-steps">
-        <span class="agent-step-pill">1 · Confirmação da marca</span>
-        <span class="agent-step-pill">2 · Negócios e produtos</span>
-        <span class="agent-step-pill">3 · Geografia e objetivo</span>
+        <span class="agent-step-pill active">1 · Confirmar negócios</span>
+        <span class="agent-step-pill">2 · Criar campanha</span>
       </div>
     </div>
   </div>
@@ -687,17 +692,20 @@ function buildNegociosList(negocios) {
     const pub    = typeof n==='object' ? (n.publico_alvo||'') : '';
     const desafio= typeof n==='object' ? (n.desafio||'') : '';
 
-    h += `<details style="background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;overflow:hidden">
-      <summary style="padding:10px 13px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:#1A1200;user-select:none">
-        <span style="flex:1;min-width:0">
+    h += `<details style="background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;overflow:hidden" ontoggle="this.querySelector('.neg-chevron').style.transform=this.open?'rotate(180deg)':'rotate(0deg)'">
+      <summary style="padding:11px 14px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:#1A1200;user-select:none;transition:background .15s" onmouseover="this.style.background='rgba(184,134,11,0.04)'" onmouseout="this.style.background=''">
+        <span style="flex:1;min-width:0;display:flex;align-items:center;gap:6px">
           ${nome ? esc(nome) : '<span style="color:#A89880;font-weight:400">Novo negócio</span>'}
-          ${tipo?`<span style="margin-left:6px;font-size:10px;font-weight:500;color:#A89880;text-transform:uppercase;letter-spacing:.4px">${esc(tipo)}</span>`:''}
+          ${tipo?`<span style="font-size:10px;font-weight:500;color:#A89880;text-transform:uppercase;letter-spacing:.4px;background:#F5F0E8;padding:2px 6px;border-radius:4px">${esc(tipo)}</span>`:''}
         </span>
-        <span style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <span style="display:flex;align-items:center;gap:8px;flex-shrink:0">
           <button type="button" onclick="event.preventDefault();event.stopPropagation();removeNegocio(${idx})"
-            style="background:none;border:none;cursor:pointer;font-size:13px;color:#A89880;padding:2px 4px;line-height:1"
+            style="background:none;border:none;cursor:pointer;font-size:13px;color:#C8BCA8;padding:2px 4px;line-height:1;transition:color .15s"
+            onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#C8BCA8'"
             title="Remover">✕</button>
-          <span style="font-size:11px;color:#A89880;font-weight:400">✎ editar</span>
+          <svg class="neg-chevron" viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;color:#A89880;transition:transform .2s;flex-shrink:0">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </span>
       </summary>
       <div style="padding:9px 13px 12px;display:flex;flex-direction:column;gap:10px;border-top:1px solid #F0EBE1">
@@ -732,7 +740,10 @@ function buildNegociosList(negocios) {
     <span style="font-size:16px;line-height:1">＋</span> Adicionar negócio
   </button>`;
 
-  h += `<div style="font-size:11px;color:#A89880;margin-top:2px">✎ Clique para editar · ✕ para remover · ＋ para adicionar</div>`;
+  h += `<div style="font-size:11px;color:#A89880;margin-top:6px;display:flex;align-items:center;gap:5px">
+    <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;flex-shrink:0"><path d="M8 8.667A2.667 2.667 0 1 0 8 3.333a2.667 2.667 0 0 0 0 5.334z" stroke="currentColor" stroke-width="1.3"/><path d="M2 12.667C2 11 4.686 9.333 8 9.333s6 1.667 6 3.334" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+    Toque em cada negócio para ver e editar os detalhes
+  </div>`;
   h += `</div>`;
   return h;
 }
