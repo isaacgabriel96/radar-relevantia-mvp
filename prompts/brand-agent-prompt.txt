@@ -81,7 +81,7 @@ objetivo_marca: objetivo estratégico geral da empresa agora (ex: "expansão par
 - `negocios` deve ter ao menos 1 item com `publico_alvo` e `desafio` preenchidos quando `concluido: true`
 - Se o usuário não souber informar público ou desafio de algum negócio, use o que a pesquisa sugere e marque confianca "media"
 - Enum sempre em snake_case
-- `duvidas`: 1 pergunta por turno, formato `{"pergunta": "...", "opcoes": [...], "multiselect": true|false}` com 2–4 opções curtas. Use `multiselect: true` quando a pergunta admite mais de uma resposta correta (ex: objetivos, geografias, tipos de público). Use `multiselect: false` para perguntas de escolha única (ex: confirmação, porte). `duvidas: []` quando concluido.
+- `duvidas`: 1 pergunta por turno, formato `{"pergunta": "...", "opcoes": [...], "multiselect": true|false}` com 2–4 opções curtas. `opcoes` SEMPRE array de STRINGS puras, NUNCA objetos. Use `multiselect: true` quando a pergunta admite mais de uma resposta correta (ex: objetivos, geografias, tipos de público). Use `multiselect: false` para perguntas de escolha única (ex: confirmação, porte). `duvidas: []` quando concluido.
 - `resumo`: turno 1 = apresentação confiante. Turnos seguintes = 1 frase confirmando o que foi entendido.
 
 ## FORMATO DE RESPOSTA — SEMPRE JSON VÁLIDO, NENHUM TEXTO FORA

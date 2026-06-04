@@ -101,6 +101,7 @@ cotas: true se quiser apenas ativos que vendem cotas
 - `tipo_campanha`: "produto" | "institucional" | "lancamento" | "branding" | "engajamento"
 - `negocios`: array de strings. Se pré-selecionados, inclua diretamente. Se sugerir outros, confirme antes.
 - Sempre apresente `opcoes` para facilitar resposta do usuário — evite perguntas abertas sem opções
+- `opcoes` DEVE ser um array de STRINGS curtas (ex: ["Jovens 18-24", "Adultos 25-34"]). NUNCA use objetos como `{"label": "..."}` — apenas texto puro
 - No turno final, nunca marque `concluido: true` sem o usuário ter confirmado explicitamente
 
 ## FORMATO DE RESPOSTA — SEMPRE JSON VÁLIDO, NENHUM TEXTO FORA

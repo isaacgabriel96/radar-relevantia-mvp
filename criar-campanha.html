@@ -397,6 +397,12 @@ function _restoreState() {
 
 // ── Helpers de UI ────────────────────────────────────────────────────────────
 function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _optText(o) {
+  if (o == null) return '';
+  if (typeof o === 'string') return o;
+  if (typeof o === 'object') return o.label || o.texto || o.opcao || o.valor || o.value || o.nome || o.l || o.text || o.pergunta || String(o);
+  return String(o);
+}
 function _html(t) { return _esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
 function _showErr(m) { const e = document.getElementById('cam-error'); if(e){e.textContent=m; e.classList.toggle('visible',!!m);} }
 function _setLoading(on) {
@@ -503,10 +509,11 @@ function _renderMsg(parsed) {
     const isMulti = !!parsed.multiselect;
     let oHtml = `<div class="cam-options" id="${mid}">`;
     parsed.opcoes.forEach((o,i) => {
+      const t = _optText(o);
       if(isMulti) {
-        oHtml += `<button type="button" class="cam-option-btn" data-opc="${_esc(o)}" data-group="${mid}" onclick="window._camToggleOpc(this)"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
+        oHtml += `<button type="button" class="cam-option-btn" data-opc="${_esc(t)}" data-group="${mid}" onclick="window._camToggleOpc(this)"><span class="cam-option-num">${i+1}</span><span>${_esc(t)}</span></button>`;
       } else {
-        oHtml += `<button type="button" class="cam-option-btn" data-opc="${_esc(o)}" onclick="window._camSelOpc(this.dataset.opc)"><span class="cam-option-num">${i+1}</span><span>${_esc(o)}</span></button>`;
+        oHtml += `<button type="button" class="cam-option-btn" data-opc="${_esc(t)}" onclick="window._camSelOpc(this.dataset.opc)"><span class="cam-option-num">${i+1}</span><span>${_esc(t)}</span></button>`;
       }
     });
     if(isMulti) oHtml += `<button type="button" id="cam_confirm_${mid}" onclick="window._camEnviarMulti('${mid}')" style="display:none;margin-top:4px;padding:10px 18px;background:#1A1200;color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;width:100%">Confirmar seleção →</button>`;
