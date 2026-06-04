@@ -342,16 +342,16 @@
   <div id="panel-agent" style="display:none">
   <!-- Agent header -->
   <div class="agent-header">
-    <h2>Mapeie os negócios da sua marca</h2>
+    <h2>Antes de explorar, nosso agente vai conhecer sua marca</h2>
     <p>
-      Revise o que o agente identificou sobre sua empresa — produtos, serviços e áreas de atuação.
-      Esses negócios vão aparecer como opção ao criar campanhas de patrocínio.
+      Pesquisamos informações públicas sobre sua empresa e preparamos um mapeamento dos seus negócios e produtos.
+      Revise, ajuste se necessário e confirme — leva menos de 2 minutos.
+      Isso garante que as oportunidades no Radar sejam relevantes para a sua marca.
     </p>
     <div class="agent-header-meta">
-      <span class="agent-badge"><span class="agent-badge-dot"></span>Passo 1 de 2</span>
       <div class="agent-steps">
-        <span class="agent-step-pill active">1 · Confirmar negócios</span>
-        <span class="agent-step-pill">2 · Criar campanha</span>
+        <span class="agent-step-pill active">① Perfil da marca</span>
+        <span class="agent-step-pill">② Primeira campanha</span>
       </div>
     </div>
   </div>
@@ -422,6 +422,7 @@ const _st = { brandName:'', history:[], lastResult:null, loading:false, token:nu
     if (!session?.access_token) { window.location.href='/acesso-marca.html'; return; }
     _st.token = session.access_token;
     _st.userId = session.user?.id;
+    _st.nomeUsuario = session.user?.user_metadata?.nome?.split(' ')[0] || '';
 
     const res = await fetch(SUPABASE_URL+'/rest/v1/perfis?id=eq.'+_st.userId+'&select=empresa,brand_brief,logo_url,empresa_domain&limit=1', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+_st.token }
@@ -525,10 +526,18 @@ async function iniciarConversa(autoName) {
   const linkPular = document.getElementById('linkPular');
   if (linkPular) linkPular.style.display = 'none';
 
+  // Mensagem de abertura instantânea — contextualiza o que vai acontecer
+  const saudacao = _st.nomeUsuario ? `Oi, ${_st.nomeUsuario}! ` : 'Oi! ';
+  addMsg('agent', `${saudacao}Pesquisei o que sei sobre <strong>${esc(brandName)}</strong> e vou apresentar um mapeamento dos seus negócios e produtos. Você revisa e ajusta o que precisar 👇`);
+
   setLoading(true);
   addMsg('agent','',true);
 
-  const phases = ['🔍 Pesquisando ' + brandName, '🧠 Analisando os negócios', '✍️ Preparando apresentação'];
+  const phases = [
+    '🔍 Buscando informações sobre ' + brandName + '…',
+    '🧠 Mapeando negócios e produtos…',
+    '✍️ Organizando seu perfil…'
+  ];
   let pi=0;
   const pt=setInterval(()=>{ phase(phases,++pi); },4000);
 
@@ -556,7 +565,7 @@ async function agEnviar() {
   _st.history.push({role:'user', content:text});
   setLoading(true); addMsg('agent','',true);
 
-  const phases=['🧠 Analisando resposta','✍️ Atualizando perfil'];
+  const phases=['🧠 Analisando sua resposta…','✍️ Atualizando o perfil…'];
   let pi=0;
   const pt=setInterval(()=>{ phase(phases,++pi); },3500);
 
