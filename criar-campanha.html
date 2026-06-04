@@ -136,6 +136,40 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 .cam-btn-confirmar:disabled { opacity: .5; cursor: not-allowed; }
 .cam-btn-refazer { padding: 13px 18px; background: none; border: 1.5px solid var(--gray-2); border-radius: var(--radius-pill); font-size: 13px; color: var(--gray-3); font-family: var(--font-body); cursor: pointer; transition: all .15s; }
 .cam-btn-refazer:hover { border-color: var(--gray-3); color: var(--black); }
+
+/* ── Tutorial modal ─────────────────────────────────────── */
+.tut-overlay { position:fixed; inset:0; background:rgba(30,22,0,0.55); backdrop-filter:blur(4px); z-index:700; display:none; align-items:center; justify-content:center; padding:20px; }
+.tut-overlay.open { display:flex; animation:tutFade .2s ease; }
+@keyframes tutFade { from{opacity:0} to{opacity:1} }
+.tut-card { background:var(--white); border-radius:18px; width:100%; max-width:460px; box-shadow:0 24px 64px rgba(30,22,0,0.28); overflow:hidden; display:flex; flex-direction:column; animation:tutRise .25s ease; }
+@keyframes tutRise { from{transform:translateY(12px);opacity:.5} to{transform:translateY(0);opacity:1} }
+.tut-top { height:4px; background:var(--gold-gradient); }
+.tut-head { display:flex; align-items:center; padding:16px 20px 0; }
+.tut-badge { font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--brown-warm); background:var(--gold-muted); border:1px solid var(--gold-border); padding:3px 9px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; }
+.tut-close { margin-left:auto; background:none; border:none; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:14px; color:var(--gray-3); display:flex; align-items:center; justify-content:center; transition:background .15s; }
+.tut-close:hover { background:var(--gray-1); color:var(--black); }
+.tut-body { padding:18px 24px 6px; min-height:248px; }
+.tut-icon { width:48px; height:48px; border-radius:14px; background:rgba(184,134,11,.1); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:14px; }
+.tut-title { font-family:var(--font-heading); font-size:21px; font-weight:600; color:var(--black); margin-bottom:9px; line-height:1.25; }
+.tut-text { font-size:14px; color:var(--gray-4); line-height:1.6; }
+.tut-text strong { color:var(--black); font-weight:600; }
+.tut-list { list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:9px; }
+.tut-list li { display:flex; gap:10px; align-items:flex-start; font-size:13px; color:var(--gray-4); line-height:1.45; }
+.tut-list li .em { font-size:18px; flex-shrink:0; line-height:1.3; }
+.tut-list li strong { color:var(--black); font-weight:600; }
+.tut-foot { display:flex; align-items:center; justify-content:space-between; padding:12px 24px 20px; gap:12px; }
+.tut-dots { display:flex; gap:6px; }
+.tut-dot { width:7px; height:7px; border-radius:50%; background:var(--gray-2); transition:all .2s; cursor:pointer; border:none; padding:0; }
+.tut-dot.active { background:var(--gold); width:20px; border-radius:4px; }
+.tut-nav { display:flex; gap:8px; }
+.tut-btn-back { padding:9px 16px; background:none; border:1.5px solid var(--gray-2); border-radius:100px; font-size:13px; color:var(--gray-3); font-family:var(--font-body); cursor:pointer; transition:all .15s; }
+.tut-btn-back:hover { border-color:var(--gray-3); color:var(--black); }
+.tut-btn-next { padding:9px 22px; background:var(--black); color:#fff; border:none; border-radius:100px; font-size:13px; font-weight:600; font-family:var(--font-body); cursor:pointer; transition:all .15s; }
+.tut-btn-next:hover { background:#2C1E00; }
+.tut-trigger { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--brown-warm); background:rgba(184,134,11,.06); border:1px solid rgba(184,134,11,.22); padding:4px 11px; border-radius:100px; cursor:pointer; font-family:var(--font-body); transition:all .15s; }
+.tut-trigger:hover { background:rgba(184,134,11,.12); }
+.tut-trigger svg { width:13px; height:13px; }
+
 </style>
 </head>
 <body>
@@ -170,6 +204,7 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
       <div class="cam-page-icon">✦</div>
       <div class="cam-page-title">Criar campanha</div>
       <span class="cam-page-badge">com IA</span>
+      <button class="tut-trigger" onclick="window.Tut.open()" style="margin-left:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Como funciona</button>
     </div>
 
     <div class="cam-steps" id="cam-steps">
@@ -225,6 +260,52 @@ body { font-family: var(--font-body); background: var(--gray-body); color: var(-
 
   </div><!-- /cam-page -->
 </div><!-- /main -->
+
+
+<!-- Tutorial modal -->
+<div class="tut-overlay" id="tut-overlay" onclick="if(event.target===this)window.Tut.close()"></div>
+
+<script>
+/* ── Tutorial engine (data-driven) ─────────────────────── */
+(function(){
+  const CFG = { key: 'rr_tut_campanha_v1', badge: 'Como funciona', slides: [
+  { icon:'🎯', title:'O que é uma campanha?', html:'Uma campanha reúne, num só lugar, um objetivo de patrocínio. Em vez de garimpar oportunidades soltas, você descreve o que quer alcançar e o Radar reúne os ativos que fazem sentido — já com filtros e acompanhamento.' },
+  { icon:'🧩', title:'O que você pode patrocinar', html:'No Radar, todo patrocínio acontece em torno de 4 formatos de ativo:<ul class=\"tut-list\"><li><span class=\"em\">👤</span><span><strong>Personalidades</strong> — creators, atletas, apresentadores, especialistas</span></li><li><span class=\"em\">🎪</span><span><strong>Eventos</strong> — festivais, shows, conferências, torneios esportivos</span></li><li><span class=\"em\">🎵</span><span><strong>Artistas musicais</strong> — por estilo, alcance e frequência de shows</span></li><li><span class=\"em\">📺</span><span><strong>Mídia</strong> — portais, podcasts, canais, revistas e newsletters</span></li></ul>' },
+  { icon:'🧭', title:'Você no controle', html:'Cada campanha agrupa as oportunidades certas para um objetivo — isso mantém seu trabalho organizado e direto ao ponto.<br><br>É <strong>opcional</strong>: você pode explorar o catálogo livremente quando quiser. A campanha é só a forma mais objetiva de chegar no que importa para a sua marca.' }
+] };
+  let idx = 0;
+  function renderShell(){
+    const ov = document.getElementById('tut-overlay');
+    if(!ov) return;
+    ov.innerHTML = '<div class="tut-card" onclick="event.stopPropagation()">'
+      + '<div class="tut-top"></div>'
+      + '<div class="tut-head"><span class="tut-badge">\u2728 '+CFG.badge+'</span>'
+      + '<button class="tut-close" onclick="window.Tut.close()" aria-label="Fechar">\u2715</button></div>'
+      + '<div class="tut-body" id="tut-body"></div>'
+      + '<div class="tut-foot"><div class="tut-dots" id="tut-dots"></div><div class="tut-nav" id="tut-nav"></div></div>'
+      + '</div>';
+  }
+  function renderSlide(){
+    const s = CFG.slides[idx];
+    document.getElementById('tut-body').innerHTML =
+      '<div class="tut-icon">'+s.icon+'</div><div class="tut-title">'+s.title+'</div><div class="tut-text">'+s.html+'</div>';
+    document.getElementById('tut-dots').innerHTML =
+      CFG.slides.map(function(_,i){ return '<button class="tut-dot'+(i===idx?' active':'')+'" onclick="window.Tut.goto('+i+')"></button>'; }).join('');
+    const isLast = idx === CFG.slides.length-1, isFirst = idx === 0;
+    document.getElementById('tut-nav').innerHTML =
+      (isFirst ? '' : '<button class="tut-btn-back" onclick="window.Tut.prev()">Voltar</button>')
+      + '<button class="tut-btn-next" onclick="'+(isLast?'window.Tut.close()':'window.Tut.next()')+'">'+(isLast?'Entendi \u2713':'Pr\u00f3ximo \u2192')+'</button>';
+  }
+  window.Tut = {
+    open: function(){ idx=0; renderShell(); renderSlide(); document.getElementById('tut-overlay').classList.add('open'); },
+    close: function(){ document.getElementById('tut-overlay').classList.remove('open'); try{localStorage.setItem(CFG.key,'1');}catch(e){} },
+    next: function(){ if(idx<CFG.slides.length-1){ idx++; renderSlide(); } },
+    prev: function(){ if(idx>0){ idx--; renderSlide(); } },
+    goto: function(i){ idx=i; renderSlide(); },
+    maybeAutoOpen: function(){ try{ if(localStorage.getItem(CFG.key)) return; }catch(e){} setTimeout(function(){ window.Tut.open(); }, 500); }
+  };
+})();
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/core.js"></script>
@@ -636,6 +717,7 @@ async function pularCampanha() {
     // Esconde loading, mostra cam
     document.getElementById('loading-section').style.display = 'none';
     document.getElementById('cam-page').style.display = 'block';
+    if (window.Tut) window.Tut.maybeAutoOpen();
 
     // Monta chips de BU
     _buildBusChips();
