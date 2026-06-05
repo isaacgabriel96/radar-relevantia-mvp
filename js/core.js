@@ -715,3 +715,76 @@ async function createNegociacao(neg, preferRole) {
     return rows[0] || null;
   } catch (err) { console.error('[createNegociacao] Failed:', err); return null; }
 }
+
+/**
+ * Gera um comprovante de acordo imprimível (modelo "recibo Airbnb").
+ * Abre uma nova janela com o resumo do acordo formatado, pronto para
+ * imprimir ou salvar como PDF. Sem contrato formal — apenas o registro
+ * dos termos firmados na plataforma.
+ * @param {Object} d - { marca, organizador, oportunidade, cota, entregas:[str], valor:number|null, dataFech:string, negId }
+ */
+function gerarComprovanteAcordo(d) {
+  d = d || {};
+  var fmtV = (d.valor || d.valor === 0)
+    ? 'R$ ' + Number(d.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : 'A combinar';
+  var entregasHtml = (d.entregas && d.entregas.length)
+    ? d.entregas.map(function(e){ return '<li>' + _cpEsc(e) + '</li>'; }).join('')
+    : '<li style="color:#9b9892">Nenhuma entrega registrada</li>';
+  var hoje = new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  var ref = d.negId ? ('RLV-' + String(d.negId).padStart(6, '0')) : 'RLV';
+
+  var html =
+    '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<title>Comprovante de Acordo — Relevantia</title>' +
+    '<style>' +
+    '*{box-sizing:border-box;margin:0;padding:0}' +
+    'html,body{background:#fff}' +
+    'body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1A1200;padding:48px 56px;max-width:720px;margin:0 auto;line-height:1.5}' +
+    '.brand{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1A1200;padding-bottom:16px;margin-bottom:28px}' +
+    '.brand-name{font-size:20px;font-weight:800;letter-spacing:-.3px}' +
+    '.brand-name .g{color:#B8860B;font-style:italic;font-weight:500}' +
+    '.ref{font-size:11px;color:#7A6A58;text-align:right}' +
+    'h1{font-size:17px;font-weight:800;margin-bottom:4px}' +
+    '.sub{font-size:12px;color:#7A6A58;margin-bottom:28px}' +
+    '.grid{display:flex;gap:16px;margin-bottom:26px}' +
+    '.party{flex:1;background:#F9F7F2;border:1px solid #E0D8CC;border-radius:10px;padding:14px 16px}' +
+    '.party .role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#A89880;margin-bottom:4px}' +
+    '.party .nm{font-size:15px;font-weight:700}' +
+    '.sec{margin-bottom:24px}' +
+    '.sec-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#A89880;margin-bottom:10px}' +
+    'ul{list-style:none}ul li{font-size:14px;padding:8px 0;border-bottom:1px solid #F2F1EF}ul li:last-child{border:none}' +
+    '.valor-box{display:flex;align-items:baseline;justify-content:space-between;background:#FBF5E6;border:1.5px solid #E8D9A8;border-radius:10px;padding:16px 18px}' +
+    '.valor-box .l{font-size:13px;font-weight:600}.valor-box .v{font-size:26px;font-weight:800;letter-spacing:-.5px}' +
+    '.foot{margin-top:36px;padding-top:18px;border-top:1px solid #E0D8CC;font-size:11px;color:#7A6A58;line-height:1.6}' +
+    '.btns{margin:32px 0 8px;text-align:center}@media print{.btns{display:none}}' +
+    '.btns button{font:inherit;font-size:13px;font-weight:700;padding:10px 22px;border-radius:8px;border:none;cursor:pointer;margin:0 4px}' +
+    '.btns .p{background:#1A1200;color:#fff}.btns .s{background:#fff;color:#1A1200;border:1.5px solid #E0D8CC}' +
+    '</style></head><body>' +
+    '<div class="brand"><div class="brand-name">Radar <span class="g">Relevantia</span></div>' +
+    '<div class="ref">Comprovante nº ' + ref + '<br>Emitido em ' + hoje + '</div></div>' +
+    '<h1>Comprovante de Acordo de Patrocínio</h1>' +
+    '<div class="sub">Este documento registra os termos do acordo firmado entre as partes na plataforma Relevantia.</div>' +
+    '<div class="grid">' +
+      '<div class="party"><div class="role">Marca</div><div class="nm">' + _cpEsc(d.marca || '—') + '</div></div>' +
+      '<div class="party"><div class="role">Organizador</div><div class="nm">' + _cpEsc(d.organizador || d.oportunidade || '—') + '</div></div>' +
+    '</div>' +
+    '<div class="sec"><div class="sec-t">Oportunidade</div><div style="font-size:14px;font-weight:600">' + _cpEsc(d.oportunidade || '—') + (d.cota ? ' · ' + _cpEsc(d.cota) : '') + '</div></div>' +
+    '<div class="sec"><div class="sec-t">Entregas acordadas</div><ul>' + entregasHtml + '</ul></div>' +
+    '<div class="sec"><div class="sec-t">Valor</div><div class="valor-box"><span class="l">Valor total do patrocínio</span><span class="v">' + fmtV + '</span></div></div>' +
+    '<div class="foot">Acordo firmado digitalmente na plataforma Relevantia' + (d.dataFech ? ' em ' + _cpEsc(d.dataFech) : '') + '. ' +
+      'O pagamento é intermediado pela Relevantia, que repassa o valor ao organizador após a confirmação das entregas. ' +
+      'Este comprovante reflete os termos aceitos por ambas as partes e pode ser usado para fins de comprovação e prestação de contas.</div>' +
+    '<div class="btns"><button class="p" onclick="window.print()">Baixar / Imprimir</button>' +
+      '<button class="s" onclick="window.close()">Fechar</button></div>' +
+    '</body></html>';
+
+  var w = window.open('', '_blank');
+  if (!w) { if (typeof showToast === 'function') showToast('Permita pop-ups para baixar o comprovante.', 'error'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
+function _cpEsc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}

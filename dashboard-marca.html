@@ -5451,51 +5451,59 @@ function openDealDetModalMarca(propId) {
     ? `<div class="modal-deal-det-financeiro-row total"><span class="lbl">Valor acordado</span><span>${fmt(totalBruto)}</span></div>`
     : `<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Valor a definir com a Relevantia.</div>`;
 
+  // ══ ACORDO + COMPROVANTE ══
   const contratoEl = document.getElementById('mdm-contrato-area');
-  if (p.contrato_url) {
-    const enviadoEm = p.contrato_enviado_em ? new Date(p.contrato_enviado_em).toLocaleDateString('pt-BR') : '';
-    contratoEl.innerHTML = `
-      <div class="ddet-contrato-box">
-        <div class="ddet-contrato-status"><span class="dot enviado"></span> Contrato disponível</div>
-        <div class="ddet-contrato-file">
-          <div class="ddet-contrato-file-icon">📄</div>
-          <div class="ddet-contrato-file-info">
-            <div class="ddet-contrato-file-name">Contrato assinado</div>
-            <div class="ddet-contrato-file-meta">Enviado pela Relevantia${enviadoEm ? ' em ' + enviadoEm : ''}</div>
-          </div>
-          <div class="ddet-contrato-file-check">✓</div>
-        </div>
-        <div style="margin-top:10px;text-align:center">
-          <a href="${p.contrato_url}" target="_blank" style="font-size:12px;color:var(--gold);text-decoration:underline;cursor:pointer">Baixar contrato</a>
-        </div>
-      </div>`;
-  } else {
-    contratoEl.innerHTML = `
-      <div class="ddet-contrato-box">
-        <div class="ddet-contrato-status"><span class="dot pendente"></span> Aguardando Relevantia</div>
-        <div style="font-size:12px;color:var(--gray-400);padding:8px 0 4px">
-          A Relevantia enviará o contrato para assinatura em breve.
-        </div>
-      </div>`;
-  }
+  contratoEl.innerHTML = `
+    <div class="ddet-contrato-box">
+      <div class="ddet-contrato-status"><span class="dot enviado"></span> Acordo confirmado</div>
+      <div style="font-size:12px;color:var(--gray-400);padding:2px 0 12px">
+        Os termos foram aceitos pelos dois lados na plataforma. Baixe o comprovante se precisar para nota fiscal ou prestação de contas.
+      </div>
+      <button onclick="_baixarComprovanteMarca('${p.id}')" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:10px;background:var(--white);border:1.5px solid var(--gray-200);font-size:13px;font-weight:700;color:var(--text);cursor:pointer;font-family:var(--font-body);transition:border-color .15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--gray-200)'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Baixar comprovante do acordo
+      </button>
+    </div>`;
 
+  // ══ PAGAMENTO (marca paga à Relevantia) ══
   const pagEl = document.getElementById('mdm-pagamento-area');
-  if (!p.contrato_url) {
-    pagEl.innerHTML = `<div class="ddet-pagamento-box"><div class="ddet-pagamento-locked">🔒 Aguardando contrato para confirmar pagamento</div></div>`;
-  } else if (!p.contrato_validado) {
-    pagEl.innerHTML = `<div class="ddet-pagamento-box"><div class="ddet-pagamento-locked" style="color:#D97706">
-      <div style="font-size:20px;margin-bottom:6px">⏳</div>
-      <div style="font-weight:600;margin-bottom:4px">Contrato em análise</div>
-      <div style="font-size:12px;color:var(--gray-3)">Aguardando validação da Relevantia.</div>
-    </div></div>`;
-  } else {
+  if (p.contrato_validado) {
     pagEl.innerHTML = `<div class="ddet-pagamento-box"><div class="ddet-pagamento-ready">
       <div style="color:#059669;font-weight:600;margin-bottom:4px">✓ Pagamento confirmado</div>
       <div class="valor">${fmt(totalBruto)}</div>
+      <div style="font-size:12px;color:var(--gray-400)">Recebido pela Relevantia</div>
     </div></div>`;
+  } else {
+    pagEl.innerHTML = `
+      <div class="ddet-pagamento-box" style="text-align:left">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#D97706;margin-bottom:8px">
+          <span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;flex-shrink:0"></span> Pagamento pendente
+        </div>
+        <div style="font-size:12px;color:var(--gray-400);line-height:1.5;margin-bottom:12px">
+          Realize o pagamento de <strong>${fmt(totalBruto)}</strong> à Relevantia. O valor fica em custódia e é repassado ao organizador após a confirmação das entregas.
+        </div>
+        <button onclick="showToast('Em breve: pagamento via PIX/cartão direto na plataforma. Por ora, a Relevantia entrará em contato com os dados.', 'info')" style="width:100%;padding:11px;border-radius:10px;background:var(--black);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body)">
+          Pagar à Relevantia
+        </button>
+      </div>`;
   }
 
   document.getElementById('modal-deal-marca').classList.add('open');
+}
+
+function _baixarComprovanteMarca(propId) {
+  const p = PROPOSTAS.find(x => x.id === propId);
+  if (!p) return;
+  const entregas = (p.contrapartidas || []).filter(c => c.status === 'aceita').map(c => {
+    let d = c.descricao || '';
+    if (d.startsWith('{')) { try { const o = JSON.parse(d); d = (o.titulo||'') + (o.descricao && o.descricao!==o.titulo ? ': '+o.descricao : ''); } catch(e){} }
+    return d;
+  });
+  gerarComprovanteAcordo({
+    marca: (document.getElementById('sidebarName')?.textContent||'').trim() || 'Marca',
+    organizador: p.opp, oportunidade: p.opp, cota: p.cota, entregas: entregas,
+    valor: Number(p.valorDeal?.proposto || p.valor_deal) || null, dataFech: p.enviadaEm, negId: p.id
+  });
 }
 
 function contraproporValorDealMarca() {
@@ -6869,7 +6877,7 @@ async function removerMembro(userId) {
       <!-- Timeline do fluxo -->
       <div class="neg-timeline" id="mp-timeline">
         <div class="tl-step active" data-step="1"><div class="tl-dot">1</div><div class="tl-label">Negociação</div></div>
-        <div class="tl-step todo" data-step="2"><div class="tl-dot">2</div><div class="tl-label">Formalização</div></div>
+        <div class="tl-step todo" data-step="2"><div class="tl-dot">2</div><div class="tl-label">Acordo</div></div>
         <div class="tl-step todo" data-step="3"><div class="tl-dot">3</div><div class="tl-label">Pagamento</div></div>
         <div class="tl-step todo" data-step="4"><div class="tl-dot">4</div><div class="tl-label">Ativação</div></div>
       </div>
@@ -7031,25 +7039,25 @@ async function removerMembro(userId) {
       <div class="how-step">
         <div class="how-num n2">2</div>
         <div>
-          <div class="how-step-title">Formalização</div>
-          <div class="how-step-desc">Após o acordo, a <strong>Relevantia prepara o contrato</strong> com os termos acordados e envia para assinatura digital de ambas as partes.</div>
-          <div class="how-step-tag">📄 Relevantia envia o contrato</div>
+          <div class="how-step-title">Acordo</div>
+          <div class="how-step-desc">Quando os dois lados aceitam, o acordo é <strong>confirmado na plataforma</strong> — sem burocracia. Um <strong>comprovante</strong> fica disponível para baixar caso você precise para nota fiscal ou prestação de contas.</div>
+          <div class="how-step-tag">📄 Comprovante disponível</div>
         </div>
       </div>
       <div class="how-step">
         <div class="how-num n3">3</div>
         <div>
           <div class="how-step-title">Pagamento</div>
-          <div class="how-step-desc">Com o contrato assinado, você realiza o pagamento pela plataforma de forma <strong>segura e rastreável</strong>. O valor fica protegido até a confirmação.</div>
-          <div class="how-step-tag">💳 Pagamento protegido</div>
+          <div class="how-step-desc">Você paga à <strong>Relevantia</strong>, que custodia o valor com segurança. O dinheiro fica protegido e só é repassado ao organizador após a confirmação das entregas.</div>
+          <div class="how-step-tag">💳 Pagamento protegido (escrow)</div>
         </div>
       </div>
       <div class="how-step">
         <div class="how-num n4">4</div>
         <div>
           <div class="how-step-title">Ativação</div>
-          <div class="how-step-desc">Com pagamento confirmado, o organizador executa as entregas acordadas. A Relevantia <strong>acompanha e registra</strong> cada entrega, garantindo que tudo seja cumprido.</div>
-          <div class="how-step-tag">✅ Entregas monitoradas</div>
+          <div class="how-step-desc">O organizador executa as entregas acordadas e registra a comprovação. Com tudo confirmado, a Relevantia <strong>libera o pagamento</strong> ao organizador.</div>
+          <div class="how-step-tag">✅ Entregas confirmadas</div>
         </div>
       </div>
     </div>
@@ -7084,9 +7092,9 @@ async function removerMembro(userId) {
         <div class="modal-deal-det-financeiro" id="mdm-financeiro"></div>
       </div>
 
-      <!-- Contrato -->
+      <!-- Acordo -->
       <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Contrato</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Acordo</div>
         <div id="mdm-contrato-area"></div>
       </div>
 
