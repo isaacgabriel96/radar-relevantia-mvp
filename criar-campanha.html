@@ -333,6 +333,13 @@ let _st = { loading: false, history: [], lastResult: null, token: null, marcaId:
 let _ultimoFiltroDoAgente = null; // último filtro recebido do agente OU editado manualmente
 
 // ── Filtro de oportunidades (módulo compartilhado FF — js/ff-filter.js) ───────
+function _filtroExplicacaoHtml() {
+  return `<div style="font-size:12px;color:var(--gray-4);margin-top:12px;line-height:1.55">
+    Com base na conversa, montei o <strong>filtro de oportunidades</strong> desta campanha — é por ele que o Radar vai buscar os ativos certos.
+    Você pode <strong>editá-lo direto</strong> no botão abaixo ou me <strong>pedir ajustes</strong> aqui na conversa.
+  </div>`;
+}
+
 function _filtroBtnHtml() {
   return `<button type="button" onclick="window._camEditarFiltro()"
     style="display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:9px 14px;background:var(--gold-pale);border:1.5px solid var(--gold-border);border-radius:100px;font-size:12.5px;font-weight:600;color:var(--brown-warm);cursor:pointer;font-family:var(--font-body);transition:all .15s"
@@ -536,15 +543,18 @@ function _renderMsg(parsed) {
   // Captura o filtro montado pelo agente (a menos que o usuário já tenha editado manualmente)
   if(parsed.campanha?.filtro && !_st.filtroManual) _ultimoFiltroDoAgente = parsed.campanha.filtro;
   const temFiltro = !!(parsed.campanha?.filtro || _ultimoFiltroDoAgente);
+  // Só mostra o filtro quando o agente sinaliza que a proposta está pronta (pronto_filtro) ou concluiu.
+  // Nos turnos iniciais (entendendo contexto/público) o botão NÃO aparece.
+  const mostrarFiltro = temFiltro && (parsed.pronto_filtro || parsed.concluido);
   if(parsed.concluido) {
     html += `<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br><span style="font-size:12px;color:#A89880">Revise abaixo e confirme para criar.</span>`;
-    if(temFiltro) html += '<br>' + _filtroBtnHtml();
+    if(mostrarFiltro) html += _filtroExplicacaoHtml() + _filtroBtnHtml();
     _addMsg('agent', html);
     setTimeout(() => _mostrarResult(parsed.campanha), 300);
     return;
   }
   if(parsed.pergunta) html += _html(parsed.pergunta);
-  if(temFiltro) html += _filtroBtnHtml();
+  if(mostrarFiltro) html += _filtroExplicacaoHtml() + _filtroBtnHtml();
   if(parsed.opcoes?.length) {
     const mid = 'cam_opts_' + Date.now();
     const isMulti = !!parsed.multiselect;
