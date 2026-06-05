@@ -2669,6 +2669,11 @@ br.mobile-only { display: none; }
     transition-duration: 0.01s !important;
   }
   .reveal { opacity: 1; transform: none; }
+  /* O radar é a identidade da marca: mantém girando suavemente mesmo com
+     "Reduzir movimento" ligado. Sem isso, o duration 0.01s em loop infinito
+     faz o radar tentar girar ~100x/s e ele parece TRAVADO. */
+  .radar-sweep { animation-duration: 5s !important; }
+  .radar-dot1, .radar-dot2, .radar-dot3 { animation-duration: 5s !important; }
 }
 
 /* ═══════════════════════════════════════════════
@@ -3209,7 +3214,7 @@ br.mobile-only { display: none; }
 <!-- ═══════════════════════════════════════════════ NAV ═══════════════════════════════════════════════ -->
 <nav class="nav" id="nav">
   <a href="#" class="nav-logo">
-    <img src="logos/5.png" alt="Radar Relevantia" class="nav-wordmark">
+    <img src="logos/5.png?v=2" alt="Radar Relevantia" class="nav-wordmark">
   </a>
   <div class="nav-right">
     <div class="nav-links">
@@ -3994,7 +3999,7 @@ br.mobile-only { display: none; }
       <div class="diff-row head">
         <div class="diff-cell" data-i18n="dif.h1">Aspecto</div>
         <div class="diff-cell" data-i18n-html="dif.h2">Mercado<br>tradicional</div>
-        <div class="diff-cell us"><img src="logos/5.png" alt="Radar Relevantia" class="diff-wordmark"></div>
+        <div class="diff-cell us"><img src="logos/5.png?v=2" alt="Radar Relevantia" class="diff-wordmark"></div>
       </div>
       <div class="diff-row">
         <div class="diff-cell label" data-i18n="dif.r1.l">Curadoria</div>
@@ -4095,7 +4100,7 @@ br.mobile-only { display: none; }
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <a href="#" class="nav-logo"><img src="logos/5.png" alt="Radar Relevantia" class="nav-wordmark"></a>
+      <a href="#" class="nav-logo"><img src="logos/5.png?v=2" alt="Radar Relevantia" class="nav-wordmark"></a>
       <p data-i18n="footer.tagline">O radar do patrocínio inteligente. Acesso por convite.</p>
     </div>
     <div class="footer-col">
