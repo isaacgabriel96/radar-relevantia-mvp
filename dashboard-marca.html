@@ -7444,6 +7444,27 @@ async function loadFinanceiroMarca() {
     if (_st.lastResult && card && card.style.display !== 'none') _mostrarResult(_st.lastResult);
     FF.close(); // dispara onClose → restaura contexto do dashboard
   }
+  function _propostaAcoesHtml() {
+    return `<div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+      <button type="button" onclick="window._camConfirmarProposta()"
+        style="display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 16px;background:var(--black);color:#fff;border:none;border-radius:100px;font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer">
+        ✓ Confirmar e criar campanha
+      </button>
+      <button type="button" onclick="window._camAjustarProposta()"
+        style="display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;background:transparent;color:var(--gray-4);border:1.5px solid var(--gray-2);border-radius:100px;font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer">
+        Quero ajustar
+      </button>
+    </div>`;
+  }
+  window._camConfirmarProposta = function() {
+    if(_st.loading) return;
+    const i = document.getElementById('cam-input');
+    if(i){ i.value = 'Sim, pode criar a campanha'; window.camEnviar(); }
+  };
+  window._camAjustarProposta = function() {
+    const i = document.getElementById('cam-input');
+    if(i){ i.value = ''; i.focus(); }
+  };
 
   function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function _optText(o){ if(o==null)return''; if(typeof o==='string')return o; if(typeof o==='object')return o.label||o.texto||o.opcao||o.valor||o.value||o.nome||o.l||o.text||o.pergunta||String(o); return String(o); }
@@ -7532,17 +7553,24 @@ async function loadFinanceiroMarca() {
     // Captura o filtro do agente (a menos que o usuário já tenha editado manualmente)
     if(parsed.campanha?.filtro && !_st.filtroManual) _camUltimoFiltro = parsed.campanha.filtro;
     const temFiltro = !!(parsed.campanha?.filtro || _camUltimoFiltro);
-    // Filtro só aparece quando o agente sinaliza proposta pronta (pronto_filtro) ou concluiu.
-    const mostrarFiltro = temFiltro && (parsed.pronto_filtro || parsed.concluido);
+    // Proposta completa = nome+contexto+público+filtro (fallback caso o modelo esqueça pronto_filtro)
+    const _c = parsed.campanha || {};
+    const propostaCompleta = !!(_c.nome && _c.contexto && _c.definicao_publico && _c.filtro);
+    const ehProposta = temFiltro && !parsed.concluido && (parsed.pronto_filtro || propostaCompleta);
     if(parsed.concluido){
       html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br><span style="font-size:12px;color:#A89880">Revise abaixo e confirme para criar.</span>`;
-      if(mostrarFiltro) html+=_filtroExplicacaoHtml()+_filtroBtnHtml();
+      if(temFiltro) html+=_filtroExplicacaoHtml()+_filtroBtnHtml();
       _addMsg('agent',html);
       setTimeout(()=>_mostrarResult(parsed.campanha),300);
       return;
     }
     if(parsed.pergunta)html+=_html(parsed.pergunta);
-    if(mostrarFiltro) html+=_filtroExplicacaoHtml()+_filtroBtnHtml();
+    if(ehProposta){
+      // Turno de proposta: a interface controla as ações (confirmar/ajustar) — ignora opcoes do agente
+      html+=_filtroExplicacaoHtml()+_filtroBtnHtml()+_propostaAcoesHtml();
+      _addMsg('agent',html);
+      return;
+    }
     if(parsed.opcoes?.length){
       const mid='cam_opts_'+Date.now();
       const isMulti=!!parsed.multiselect;
