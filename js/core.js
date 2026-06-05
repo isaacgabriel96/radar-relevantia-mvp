@@ -579,6 +579,18 @@ async function createContrapartida(cp) {
   } catch (err) { console.error('[createContrapartida] Failed:', err); return null; }
 }
 
+async function deleteContrapartida(cpId) {
+  try {
+    const token = await _getWriteToken();
+    if (!token) return false;
+    const res = await fetch(SUPABASE_URL + '/rest/v1/contrapartidas?id=eq.' + cpId, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Prefer': 'return=minimal' }
+    });
+    return res.ok;
+  } catch (err) { console.error('[deleteContrapartida] Failed:', err); return false; }
+}
+
 async function updateContrapartida(cpId, fields) {
   try {
     const token = await _getWriteToken();

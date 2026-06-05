@@ -5281,8 +5281,10 @@ let _prefilledCpIds = [];         // IDs das entregas pré-aceitas pelo prefill 
 function renderNegThread(thread) {
   const el = document.getElementById('mn-thread');
   if (!el) return;
+  const lbl = document.getElementById('mn-msg-label');
+  if (lbl) lbl.textContent = thread && thread.length > 0 ? 'Mensagens (' + thread.length + ')' : 'Mensagens';
   if (!thread || thread.length === 0) {
-    el.innerHTML = '<div class="msg-empty">Nenhuma mensagem ainda.</div>';
+    el.innerHTML = '<div class="msg-empty" style="font-size:12px;color:var(--gray-400);padding:8px 0">Nenhuma mensagem ainda. Inicie a conversa com a marca.</div>';
     return;
   }
   el.innerHTML = thread.map(m => `
@@ -5338,6 +5340,27 @@ async function openNegModal(id) {
   // status select
   const sel = document.getElementById('mn-status-select');
   if (sel) sel.value = n.status;
+
+  // Limpar entradas corrompidas (descricao salva como JSON string pelo bug antigo)
+  if (n._supaId && !isDemoMode() && n.contrapartidas && n.contrapartidas.length > 0) {
+    const corrompidas = n.contrapartidas.filter(cp => cp.descricao && cp.descricao.startsWith('{'));
+    if (corrompidas.length > 0) {
+      // Normaliza a descrição das corrompidas para deduplicar
+      const boas = n.contrapartidas.filter(cp => !cp.descricao || !cp.descricao.startsWith('{'));
+      const boasNorm = new Set(boas.map(cp => (cp.descricao || '').toLowerCase().trim()));
+      for (const cp of corrompidas) {
+        try {
+          const o = JSON.parse(cp.descricao);
+          const norm = ((o.titulo || '') + (o.descricao && o.descricao !== o.titulo ? ': ' + o.descricao : '')).toLowerCase().trim();
+          // Só deleta se já existe uma entrada boa equivalente (duplicata confirmada)
+          if (boasNorm.has(norm)) { await deleteContrapartida(cp.id); }
+        } catch(e) {}
+      }
+      // Atualiza array em memória removendo apenas as deletadas (que tinham duplicata boa)
+      const boasIds = new Set(boas.map(cp => cp.id));
+      n.contrapartidas = n.contrapartidas.filter(cp => boasIds.has(cp.id) || !cp.descricao || !cp.descricao.startsWith('{'));
+    }
+  }
 
   // Auto-carregar benefícios da cota como contrapartidas (se ainda não existem)
   if (n.cota && (!n.contrapartidas || n.contrapartidas.length === 0) && n.opp_id && !isDemoMode()) {
@@ -5440,7 +5463,14 @@ function renderContrapartidasDet(list) {
   const ativas    = list.filter(cp => cp.status !== 'recusada');
   const recusadas = list.filter(cp => cp.status === 'recusada');
 
+  function _parseDesc(raw) {
+    if (!raw) return '';
+    if (raw.startsWith('{')) { try { const o = JSON.parse(raw); return (o.titulo || '') + (o.descricao && o.descricao !== o.titulo ? ': ' + o.descricao : ''); } catch(e) {} }
+    return raw;
+  }
+
   function cpRowHtml(cp) {
+    const desc = _parseDesc(cp.descricao);
     const statusLabel = cp.status === 'proposta' ? 'Proposta' : cp.status === 'aceita' ? 'Aceita' : 'Recusada';
     // Só mostra ações quando detentor está em modo contraproposta
     let actions = '';
@@ -5458,7 +5488,7 @@ function renderContrapartidasDet(list) {
       }
     }
     return `<tr>
-      <td>${cp.descricao}</td>
+      <td>${escapeHtml(desc)}</td>
       <td><span class="cp-status ${cp.status}">${statusLabel}</span></td>
       <td>${actions}</td>
     </tr>`;
@@ -7210,12 +7240,6 @@ async function removerMembro(userId) {
       <button class="modal-close-det" onclick="closeNegModal()">✕</button>
     </div>
 
-    <!-- Abas -->
-    <div class="modal-tabs-det">
-      <button class="modal-tab-det active" data-tab="proposta" onclick="switchNegTab('proposta')">Proposta</button>
-      <button class="modal-tab-det" data-tab="mensagens" onclick="switchNegTab('mensagens')">Mensagens</button>
-    </div>
-
     <div class="modal-neg-body">
 
       <!-- Status badge + detalhes (sempre visíveis) -->
@@ -7241,38 +7265,16 @@ async function removerMembro(userId) {
 
       <hr class="modal-neg-divider">
 
-      <!-- PAINEL: Mensagens -->
-      <div class="modal-tab-panel-det" data-panel="mensagens">
-        <div class="msg-thread-label">Mensagens</div>
-        <div class="msg-thread" id="mn-thread"></div>
+      <!-- select oculto mantido para compatibilidade interna do JS -->
+      <select id="mn-status-select" style="display:none">
+        <option value="pendente">Pendente</option>
+        <option value="analise">Em análise</option>
+        <option value="aceita">Aceita</option>
+        <option value="recusada">Recusada</option>
+      </select>
 
-        <div class="msg-compose-det">
-          <textarea
-            class="msg-compose-textarea-det"
-            id="mn-compose-input"
-            placeholder="Responda à marca…"
-            rows="3"
-            oninput="document.getElementById('mn-send-btn').disabled = !this.value.trim()"
-          ></textarea>
-          <div class="msg-compose-footer-det">
-            <button class="btn-send-msg-det" id="mn-send-btn" onclick="sendNegMsg()" disabled>
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12zm0 0h7.5"/></svg>
-              Responder
-            </button>
-          </div>
-        </div>
-
-        <!-- select oculto mantido apenas para compatibilidade interna do JS -->
-        <select id="mn-status-select" style="display:none">
-          <option value="pendente">Pendente</option>
-          <option value="analise">Em análise</option>
-          <option value="aceita">Aceita</option>
-          <option value="recusada">Recusada</option>
-        </select>
-      </div>
-
-      <!-- PAINEL: Proposta (contrapartidas) -->
-      <div class="modal-tab-panel-det active" data-panel="proposta">
+      <!-- PAINEL ÚNICO: Proposta + Mensagens -->
+      <div data-panel="proposta">
 
         <!-- Toggle: aceitar novas propostas -->
         <div class="propostas-toggle-row">
@@ -7372,6 +7374,27 @@ async function removerMembro(userId) {
               <svg id="mn-rodadas-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;transition:transform .2s"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
             </button>
             <div id="mn-rodadas-list" style="display:none;margin-top:8px"></div>
+          </div>
+        </div>
+
+        <!-- ── Mensagens inline ── -->
+        <div style="border-top:1px solid var(--gray-200);margin:16px -20px 0;padding:16px 20px 0">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px" id="mn-msg-label">Mensagens</div>
+          <div class="msg-thread" id="mn-thread" style="max-height:200px"></div>
+          <div class="msg-compose-det" style="margin-top:10px">
+            <textarea
+              class="msg-compose-textarea-det"
+              id="mn-compose-input"
+              placeholder="Escreva uma mensagem para a marca…"
+              rows="2"
+              oninput="document.getElementById('mn-send-btn').disabled = !this.value.trim()"
+            ></textarea>
+            <div class="msg-compose-footer-det">
+              <button class="btn-send-msg-det" id="mn-send-btn" onclick="sendNegMsg()" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12zm0 0h7.5"/></svg>
+                Enviar
+              </button>
+            </div>
           </div>
         </div>
 
