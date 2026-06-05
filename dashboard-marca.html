@@ -501,13 +501,13 @@ tbody tr:last-child td { border-bottom: none; }
 /* ─── MODAL PROPOSTA ─── */
 .modal-overlay { position: fixed; inset: 0; background: rgba(30,22,0,0.45); backdrop-filter: blur(4px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay.open { display: flex; }
-.modal-prop { background: var(--white); border-radius: 16px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(30,22,0,0.18); }
-.modal-prop-header { padding: 22px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+.modal-prop { background: var(--white); border-radius: 16px; width: 100%; max-width: 680px; max-height: 90vh; overflow: hidden; box-shadow: 0 20px 60px rgba(30,22,0,0.18); display: flex; flex-direction: column; }
+.modal-prop-header { padding: 22px 24px 0; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0; }
 .modal-prop-title { font-family: var(--font-heading); font-size: 18px; font-weight: 600; color: var(--black); }
 .modal-prop-opp { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
 .modal-prop-close { background: var(--gray-100); border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); flex-shrink: 0; transition: background 0.15s; }
 .modal-prop-close:hover { background: var(--gray-200); color: var(--black); }
-.modal-prop-body { padding: 20px 24px 24px; }
+.modal-prop-body { padding: 20px 24px 24px; flex: 1; overflow-y: auto; overflow-x: hidden; }
 .modal-prop-status { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; margin-bottom: 18px; }
 .modal-prop-status.pendente { background: var(--orange-bg); border: 1px solid var(--orange-border); }
 .modal-prop-status.aceita { background: var(--green-bg); border: 1px solid var(--green-border); }
@@ -668,7 +668,26 @@ tbody tr:last-child td { border-bottom: none; }
 .btn-send-msg:disabled { background: var(--gray-200); color: var(--gray-400); cursor: not-allowed; }
 
 /* ─── DEAL FOOTER (MODAL PROPOSTA) ─── */
-.modal-deal-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding-top: 18px; margin-top: 4px; border-top: 1px solid var(--gray-200); }
+.modal-deal-footer { display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap; padding: 14px 24px; border-top: 1px solid var(--gray-200); background: var(--white); flex-shrink: 0; }
+.modal-deal-footer .footer-spacer { flex: 1; }
+.modal-deal-footer .btn-encerrar-neg { background: transparent; border: 1.5px solid var(--gray-200); color: var(--gray-400); padding: 9px 16px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.modal-deal-footer .btn-encerrar-neg:hover { color: #DC2626; border-color: #FECACA; background: #FEF2F2; }
+.modal-deal-footer .btn-contrapropor-neg { background: var(--white); border: 1.5px solid var(--gray-200); color: var(--text); padding: 9px 18px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.modal-deal-footer .btn-contrapropor-neg:hover { border-color: var(--gold); color: var(--gold); }
+.modal-deal-footer .btn-enviar-neg { background: var(--black); color: var(--white); border: none; padding: 9px 20px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 700; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
+.modal-deal-footer .btn-enviar-neg:hover { opacity: 0.85; }
+.modal-deal-footer .btn-aceitar-neg { background: #059669; color: var(--white); border: none; padding: 9px 20px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s; white-space: nowrap; }
+.modal-deal-footer .btn-aceitar-neg:hover { background: #047857; }
+.modal-deal-footer .footer-wait { font-size: 12px; color: var(--gray-400); }
+@media (max-width: 560px) {
+  .modal-deal-footer { padding: 12px 16px; }
+  .modal-deal-footer .footer-spacer { display: none; }
+  .modal-deal-footer .btn-encerrar-neg { order: 3; flex: 1 1 100%; text-align: center; }
+  .modal-deal-footer .btn-contrapropor-neg { order: 1; flex: 1 1 0; }
+  .modal-deal-footer .btn-aceitar-neg { order: 2; flex: 1 1 0; }
+  .modal-deal-footer .btn-enviar-neg { order: 1; flex: 1 1 100%; }
+  .modal-deal-footer .footer-wait { order: 2; flex: 1 1 auto; text-align: right; }
+}
 .btn-deal-cancelar { background: transparent; border: 1.5px solid #FECACA; color: #DC2626; padding: 9px 20px; border-radius: 100px; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
 .btn-deal-cancelar:hover { background: #FEF2F2; border-color: #DC2626; }
 .btn-deal-cancelar:disabled { opacity: 0.4; cursor: default; }
@@ -4887,19 +4906,36 @@ function _updatePropostaDealFooter() {
   const footer = document.getElementById('mp-deal-footer');
   const btnAddCp = document.getElementById('mp-btn-add-cp');
   if (!footer || !_propostaAtiva) return;
-  const st = _propostaAtiva.status;
-  // Cancelar interesse sempre visível
-  const btnCancelarInteresse = `<button class="btn-deal-cancelar" style="border-color:#E0D8CC;color:var(--gray-4)" onclick="cancelarInteresseMarca()">Cancelar interesse</button>`;
-  if (st === 'aceita') {
-    footer.innerHTML = `<button class="btn-deal-aceito" onclick="openDealDetModalMarca('${_propostaAtiva.id}')">Ver deal ✓</button>` + btnCancelarInteresse;
+  const p = _propostaAtiva;
+  const st = p.status;
+  const vd = p.valorDeal || {};
+  const cancelInteresse = '<button class="btn-encerrar-neg" onclick="cancelarInteresseMarca()">Cancelar interesse</button>';
+  const spacer = '<div class="footer-spacer"></div>';
+  let html = '';
+
+  if (st === 'aceita' || vd.status === 'aceito') {
+    html = cancelInteresse + spacer + '<button class="btn-aceitar-neg" onclick="openDealDetModalMarca(_propostaAtiva && _propostaAtiva.id)">Ver deal</button>';
     if (btnAddCp) btnAddCp.style.display = 'none';
   } else if (st === 'recusada') {
-    footer.innerHTML = `<button class="btn-deal-cancelar" style="border-color:#B8860B;color:#B8860B" onclick="reenviarPropostaMarca()">Reenviar proposta</button>` + btnCancelarInteresse;
+    html = cancelInteresse + spacer + '<button class="btn-enviar-neg" onclick="reenviarPropostaMarca()">Reenviar proposta</button>';
     if (btnAddCp) btnAddCp.style.display = 'none';
+  } else if (_modoContrapropostaMarca) {
+    html = '<button class="btn-encerrar-neg" onclick="cancelarContraofertaMarca()">Cancelar</button>' + spacer + '<button class="btn-enviar-neg" onclick="confirmarContraofertaMarca()">Enviar contraoferta</button>';
+    if (btnAddCp) btnAddCp.style.display = '';
+  } else if (vd.status === 'aguardando_marca') {
+    // Organizador enviou proposta → marca responde
+    html = cancelInteresse + spacer + '<button class="btn-contrapropor-neg" onclick="contraproporValorDealMarca()">Contrapropor</button><button class="btn-aceitar-neg" onclick="aceitarValorDealMarca()">✓ Aceitar proposta</button>';
+    if (btnAddCp) btnAddCp.style.display = '';
+  } else if (vd.status === 'aguardando_detentor') {
+    // Marca enviou → aguarda organizador
+    html = '<button class="btn-encerrar-neg" onclick="cancelarPropostaMarca()">Cancelar proposta</button>' + spacer + '<span class="footer-wait">Aguardando organizador…</span>';
+    if (btnAddCp) btnAddCp.style.display = '';
   } else {
-    footer.innerHTML = `<button class="btn-deal-cancelar" onclick="cancelarPropostaMarca()">Cancelar proposta</button>` + btnCancelarInteresse;
+    // Sem proposta: marca compõe
+    html = cancelInteresse + spacer + '<button class="btn-enviar-neg" onclick="enviarPropostaMarca()">Enviar proposta</button>';
     if (btnAddCp) btnAddCp.style.display = '';
   }
+  footer.innerHTML = html;
 }
 
 function cancelarPropostaMarca() {
@@ -5226,13 +5262,13 @@ function _renderValorDealM(p) {
     if (inputRow)     inputRow.style.display = 'flex';
     if (input)        input.value = '';
     if (btnEnviar) {
-      btnEnviar.style.display = '';
+      btnEnviar.style.display = 'none';
       btnEnviar.disabled = false;
-      btnEnviar.style.opacity = '1';
-      btnEnviar.style.cursor = 'pointer';
-      btnEnviar.textContent = 'Enviar proposta';
     }
   }
+
+  // Footer fixo com as ações contextuais
+  _updatePropostaDealFooter();
 }
 
 function _renderPropostaEnviada(p) {
@@ -5271,18 +5307,7 @@ function _renderPropostaEnviada(p) {
     html += `<div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.5px">${fmtVal}</div>`;
   }
   html += '</div>';
-
-  if (recebida && !isBlocked) {
-    html += `<div style="display:flex;gap:8px;margin-bottom:8px">
-      <button onclick="aceitarValorDealMarca()" style="flex:1;padding:10px;border-radius:10px;background:#22C55E;color:#fff;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body)">Aceitar proposta</button>
-      <button onclick="contraproporValorDealMarca()" style="flex:1;padding:10px;border-radius:10px;background:var(--gray-100);color:var(--gray-600);font-size:13px;font-weight:600;border:1px solid var(--gray-200);cursor:pointer;font-family:var(--font-body)">Contrapropor</button>
-    </div>`;
-  } else if (!recebida && !isBlocked) {
-    html += '<div style="font-size:12px;color:var(--gray-400);text-align:center;padding:4px 0 8px">Aguardando resposta do organizador…</div>';
-  } else if (vd.status === 'aceito') {
-    html += '<div style="font-size:12px;color:#065F46;font-weight:600;text-align:center;padding:4px 0 8px">✓ Proposta aceita</div>';
-  }
-
+  // Ações (Aceitar / Contrapropor / Aguardando) agora ficam no footer fixo.
   el.innerHTML = html;
 }
 
@@ -6904,10 +6929,8 @@ async function removerMembro(userId) {
               Adicione pelo menos uma entrega antes de enviar a proposta.
             </div>
 
-            <!-- Botão enviar proposta -->
-            <button id="mp-btn-enviar-proposta" onclick="enviarPropostaMarca()" style="width:100%;margin-top:14px;padding:12px;border-radius:10px;background:var(--black);color:var(--white);font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--font-body);transition:opacity .15s">
-              Enviar proposta
-            </button>
+            <!-- Botão enviar proposta (oculto — ação migrou para o footer fixo) -->
+            <button id="mp-btn-enviar-proposta" onclick="enviarPropostaMarca()" style="display:none">Enviar proposta</button>
 
           </div><!-- /mp-proposta-edit -->
 
@@ -6952,10 +6975,13 @@ async function removerMembro(userId) {
           </div><!-- /neg-msg-body -->
         </div>
 
-        <div class="modal-deal-footer" id="mp-deal-footer"></div>
       </div>
 
-    </div>
+    </div><!-- /modal-prop-body -->
+
+    <!-- Footer fixo -->
+    <div class="modal-deal-footer" id="mp-deal-footer"></div>
+
   </div>
 </div>
 
