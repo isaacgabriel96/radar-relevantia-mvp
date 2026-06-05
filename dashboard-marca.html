@@ -3171,7 +3171,9 @@ function _notifTimeAgo(iso) {
 }
 
 let _notifs = [];
-let _notifChannel = null;
+let _notifChannel   = null;
+let _negMarcaChannel = null;
+let _msgMarcaChannel = null;
 
 async function loadNotifs() {
   try {
@@ -3192,6 +3194,7 @@ async function loadNotifs() {
       section: (r.data && r.data.section) || 'negociacoes'
     }));
     _initNotifRealtime(session);
+    _initNegMarcaRealtime(session);
   } catch(e) { _notifs = []; }
   renderNotifs();
 }
@@ -3214,6 +3217,46 @@ function _initNotifRealtime(session) {
         section: (r.data && r.data.section) || 'negociacoes'
       });
       renderNotifs();
+    })
+    .subscribe();
+}
+
+// Realtime: atualiza negociações da marca sem reload
+function _initNegMarcaRealtime(session) {
+  if (_negMarcaChannel || !sb) return;
+  _negMarcaChannel = sb
+    .channel('neg-marca-' + session.user.id)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'negociacoes',
+      filter: 'marca_id=eq.' + session.user.id
+    }, () => {
+      // Nova negociação criada — recarrega lista completa
+      loadPropostas().then(() => renderDealsPropostas());
+    })
+    .on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'negociacoes',
+      filter: 'marca_id=eq.' + session.user.id
+    }, (payload) => {
+      const r = payload.new;
+      const p = PROPOSTAS.find(x => x._supaId === r.id);
+      if (p) {
+        p.status      = r.status       || p.status;
+        p.statusLabel = r.status_label || p.statusLabel;
+        p.statusHint  = r.status_hint  || p.statusHint;
+        // Se o modal desta proposta estiver aberto, atualiza o cabeçalho
+        if (_propostaAtiva && _propostaAtiva._supaId === r.id) {
+          const wrap = document.getElementById('mp-status-wrap');
+          const lbl  = document.getElementById('mp-status-label');
+          const hint = document.getElementById('mp-status-hint');
+          if (wrap) wrap.className = 'modal-prop-status ' + p.status;
+          if (lbl)  lbl.textContent  = p.statusLabel;
+          if (hint) hint.textContent = p.statusHint;
+        }
+        renderDealsPropostas();
+      } else {
+        // Negociação ainda não estava na lista — recarrega
+        loadPropostas().then(() => renderDealsPropostas());
+      }
     })
     .subscribe();
 }
@@ -4588,6 +4631,29 @@ async function openPropostaModal(id) {
   renderContrapartidas(p.contrapartidas || []);
   renderHistoricoRodadasM();
 
+  // Realtime: mensagens do detentor chegam sem precisar recarregar
+  if (p._supaId && sb && !isDemoMode()) {
+    if (_msgMarcaChannel) { sb.removeChannel(_msgMarcaChannel); _msgMarcaChannel = null; }
+    _msgMarcaChannel = sb
+      .channel('msg-marca-' + p._supaId)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'mensagens',
+        filter: 'negociacao_id=eq.' + p._supaId
+      }, (payload) => {
+        const r = payload.new;
+        if (!_propostaAtiva || _propostaAtiva._supaId !== r.negociacao_id) return;
+        if (r.autor_role === 'marca') return; // já exibida otimisticamente
+        const now = new Date(r.created_at);
+        const data = now.getDate().toString().padStart(2,'0') + '/' +
+                     (now.getMonth()+1).toString().padStart(2,'0') + ' · ' +
+                     now.getHours().toString().padStart(2,'0') + ':' +
+                     now.getMinutes().toString().padStart(2,'0');
+        _propostaAtiva.thread.push({ autor: r.autor_role, nome: r.autor_nome, texto: r.texto, data });
+        renderMsgThread(_propostaAtiva.thread);
+      })
+      .subscribe();
+  }
+
   // reset compose — desabilitar se recusada
   const ta = document.getElementById('mp-compose-input');
   const btn = document.getElementById('mp-send-btn');
@@ -4847,6 +4913,7 @@ async function rejectCpMarca(cpId) {
 function closePropostaModal() {
   document.getElementById('modal-proposta').classList.remove('open');
   document.body.style.overflow = '';
+  if (_msgMarcaChannel && sb) { sb.removeChannel(_msgMarcaChannel); _msgMarcaChannel = null; }
   _propostaAtiva = null;
 }
 
@@ -5025,6 +5092,25 @@ function _renderValorDealM(p) {
   badge.className   = 'valor-deal-badge-m ' + (vd.status || 'sem_proposta');
   badge.textContent = BADGE_LABEL[vd.status] || 'Sem proposta';
 
+  // Indicador de rodada
+  const rodadaIndicator = document.getElementById('mp-rodada-indicator');
+  const rodadaNum = document.getElementById('mp-rodada-num');
+  const rodadaTxt = document.getElementById('mp-rodada-txt');
+  if (rodadaIndicator && p._rodadas && p._rodadas.length > 0) {
+    const ultimaRodada = p._rodadas[0];
+    const quem = ultimaRodada.proposto_por === 'marca' ? 'Você propôs' : 'Organizador propôs';
+    const val = ultimaRodada.valor ? ' · ' + ('R$ ' + Number(ultimaRodada.valor).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })) : '';
+    if (rodadaNum) rodadaNum.textContent = ultimaRodada.numero;
+    if (rodadaTxt) rodadaTxt.textContent = 'Rodada ' + ultimaRodada.numero + ' · ' + quem + val;
+    rodadaIndicator.style.display = 'flex';
+  } else if (rodadaIndicator) {
+    rodadaIndicator.style.display = 'none';
+  }
+
+  // Banner modo contraoferta
+  const contraBanner = document.getElementById('mp-contra-banner');
+  if (contraBanner) contraBanner.style.display = _modoContrapropostaMarca ? '' : 'none';
+
   // Esconde botão cancelar de contraoferta se existir
   const btnCancel = document.getElementById('mp-btn-cancelar-contra');
   if (btnCancel) btnCancel.style.display = 'none';
@@ -5201,9 +5287,11 @@ function fecharDealMarca() {
   document.getElementById('mp-status-hint').textContent = 'Deal fechado. Aguardando formalização.';
   _updatePropostaDealFooter();
   renderPropostasTable();
-  showToast('Deal fechado! A Relevantia entrará em contato. 🎉', 'success');
-  // Abre modal de detalhes do deal
-  openDealDetModalMarca(p.id);
+  showToast('Deal fechado! A Relevantia enviará o contrato em breve.', 'success');
+  // Fecha o modal de proposta e abre os detalhes do deal
+  const propId = p.id;
+  closePropostaModal();
+  setTimeout(function() { openDealDetModalMarca(propId); }, 300);
 }
 
 function openDealDetModalMarca(propId) {
@@ -6504,6 +6592,12 @@ async function removerMembro(userId) {
       <!-- Banner: aceita novas propostas -->
       <div id="mp-aceita-banner" class="aceita-propostas-banner sim" style="display:none"></div>
 
+      <!-- Indicador de rodada de negociação -->
+      <div id="mp-rodada-indicator" style="display:none;font-size:11px;color:var(--gray-400);margin:4px 0 0;align-items:center;gap:6px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--gray-200);font-size:9px;font-weight:700;color:var(--gray-500)" id="mp-rodada-num">1</span>
+        <span id="mp-rodada-txt"></span>
+      </div>
+
       <hr class="modal-prop-divider">
 
       <!-- PAINEL: Mensagens -->
@@ -6542,6 +6636,11 @@ async function removerMembro(userId) {
 
           <!-- BLOCO B: Edição / Nova proposta -->
           <div id="mp-proposta-edit">
+
+            <!-- Banner modo contraoferta -->
+            <div id="mp-contra-banner" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#1D4ED8;line-height:1.5">
+              <strong style="font-weight:700">Modo contraoferta</strong> — ajuste as entregas abaixo e defina um novo valor. Depois clique em <strong style="font-weight:700">Enviar contraoferta</strong>.
+            </div>
 
             <!-- 1. Entregas -->
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>

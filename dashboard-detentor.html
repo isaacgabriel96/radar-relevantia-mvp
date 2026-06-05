@@ -5274,6 +5274,7 @@ function _buildNegMarcaOptions() { /* legado */ }
 function filterNegociacoes() { renderNegOppCards(); }
 
 let _negAtiva = null;
+let _msgDetChannel = null;
 let _modoContraproposta = false;  // flag: detentor está editando entregas na contraproposta
 let _prefilledCpIds = [];         // IDs das entregas pré-aceitas pelo prefill (para reverter se cancelar)
 
@@ -5343,16 +5344,19 @@ async function openNegModal(id) {
     try {
       const beneficios = await fetchCotaBeneficios(n.opp_id, n.cota);
       if (beneficios.length > 0) {
-        for (const desc of beneficios) {
+        for (const b of beneficios) {
+          const titulo = typeof b === 'string' ? b : (b.titulo || '');
+          const detalhe = typeof b === 'string' ? '' : (b.descricao || '');
+          const descricao = titulo + (detalhe && detalhe !== titulo ? ': ' + detalhe : '');
           const created = await createContrapartida({
             negociacao_id: n._supaId,
-            descricao: desc,
+            descricao: descricao,
             status: 'proposta',
             proposto_por: 'detentor'
           });
           if (created) {
             n.contrapartidas.push({
-              id: created.id, descricao: desc, categoria: '',
+              id: created.id, descricao: descricao, categoria: '',
               prazo: '', status: 'proposta', propostoPor: 'detentor'
             });
           }
@@ -5372,6 +5376,29 @@ async function openNegModal(id) {
   renderContrapartidasDet(n.contrapartidas || []);
   renderValorDeal();
   renderHistoricoRodadas();
+
+  // Realtime: mensagens da marca chegam sem precisar recarregar
+  if (n._supaId && sb && !isDemoMode()) {
+    if (_msgDetChannel) { sb.removeChannel(_msgDetChannel); _msgDetChannel = null; }
+    _msgDetChannel = sb
+      .channel('msg-det-' + n._supaId)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'mensagens',
+        filter: 'negociacao_id=eq.' + n._supaId
+      }, (payload) => {
+        const r = payload.new;
+        if (!_negAtiva || _negAtiva._supaId !== r.negociacao_id) return;
+        if (r.autor_role === 'detentor') return; // já exibida otimisticamente
+        const now = new Date(r.created_at);
+        const data = now.getDate().toString().padStart(2,'0') + '/' +
+                     (now.getMonth()+1).toString().padStart(2,'0') + ' · ' +
+                     now.getHours().toString().padStart(2,'0') + ':' +
+                     now.getMinutes().toString().padStart(2,'0');
+        _negAtiva.thread.push({ autor: r.autor_role, nome: r.autor_nome, texto: r.texto, data });
+        renderNegThread(_negAtiva.thread);
+      })
+      .subscribe();
+  }
 
   // reset compose
   const ta = document.getElementById('mn-compose-input');
@@ -5590,6 +5617,25 @@ function renderValorDeal() {
     aceito:              'Valor acordado ✓'
   };
   if (badge) { badge.textContent = badgeLabels[vd.status] || ''; badge.className = 'valor-deal-badge ' + vd.status; }
+
+  // Indicador de rodada
+  const rodadaIndicator = document.getElementById('mn-rodada-indicator');
+  const rodadaNum = document.getElementById('mn-rodada-num');
+  const rodadaTxt = document.getElementById('mn-rodada-txt');
+  if (rodadaIndicator && n._rodadas && n._rodadas.length > 0) {
+    const ultimaRodada = n._rodadas[0];
+    const quem = ultimaRodada.proposto_por === 'detentor' ? 'Você propôs' : 'Marca propôs';
+    const val = ultimaRodada.valor ? ' · ' + _fmtValor(ultimaRodada.valor) : '';
+    if (rodadaNum) rodadaNum.textContent = ultimaRodada.numero;
+    if (rodadaTxt) rodadaTxt.textContent = 'Rodada ' + ultimaRodada.numero + ' · ' + quem + val;
+    rodadaIndicator.style.display = 'flex';
+  } else if (rodadaIndicator) {
+    rodadaIndicator.style.display = 'none';
+  }
+
+  // Banner contraproposta
+  const contraBanner = document.getElementById('mn-contra-banner');
+  if (contraBanner) contraBanner.style.display = _modoContraproposta ? '' : 'none';
 
   const blocoEdit    = document.getElementById('mn-proposta-edit');
   const blocoEnviado = document.getElementById('mn-proposta-enviada');
@@ -5915,6 +5961,7 @@ function toggleHistoricoRodadas() {
 function closeNegModal() {
   document.getElementById('modal-neg').classList.remove('open');
   document.body.style.overflow = '';
+  if (_msgDetChannel && sb) { sb.removeChannel(_msgDetChannel); _msgDetChannel = null; }
   _negAtiva = null;
   // Atualiza a view que estiver ativa
   if (_negOppAtiva !== null) {
@@ -6036,7 +6083,11 @@ function fecharDeal() {
   // atualiza badge da aba Deals Fechados
   const badge = document.getElementById('deals-badge-count');
   if (badge) badge.textContent = NEGOCIACOES.filter(n => n.status === 'aceita').length;
-  showToast('Deal fechado com sucesso! 🎉', 'success');
+  showToast('Deal fechado com sucesso! A Relevantia enviará o contrato em breve.', 'success');
+  // Fecha o modal de negociação e abre os detalhes do deal direto
+  const negId = _negAtiva.id;
+  closeNegModal();
+  setTimeout(function() { openDealDetModal(negId); }, 300);
 }
 
 async function sendNegMsg() {
@@ -7174,6 +7225,12 @@ async function removerMembro(userId) {
         <span class="modal-neg-status-hint" id="mn-status-hint"></span>
       </div>
 
+      <!-- Indicador de rodada de negociação -->
+      <div id="mn-rodada-indicator" style="display:none;font-size:11px;color:var(--gray-400);margin:4px 0 0;align-items:center;gap:6px">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--gray-200);font-size:9px;font-weight:700;color:var(--gray-500)" id="mn-rodada-num">1</span>
+        <span id="mn-rodada-txt"></span>
+      </div>
+
       <div class="mn-brand-header" id="mn-brand-header">
         <div class="mn-brand-avatar" id="mn-brand-avatar"></div>
         <div class="mn-brand-info">
@@ -7242,6 +7299,11 @@ async function removerMembro(userId) {
 
           <!-- BLOCO B: Edição / Nova proposta -->
           <div id="mn-proposta-edit">
+
+            <!-- Banner modo contraproposta -->
+            <div id="mn-contra-banner" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#1D4ED8;line-height:1.5">
+              <strong style="font-weight:700">Modo contraoferta</strong> — ajuste as entregas abaixo (aceite ou recuse individualmente) e defina um novo valor. Depois clique em <strong style="font-weight:700">Enviar contraoferta</strong>.
+            </div>
 
             <!-- 1. Entregas -->
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>
