@@ -549,7 +549,7 @@ function _mostrarResult(campanha, silent=false) {
   if(campanha.contexto) html += `<div style="font-size:12px;color:var(--gray-4);margin-bottom:6px;line-height:1.5"><strong style="color:var(--black)">Contexto:</strong> ${_esc(campanha.contexto)}</div>`;
   if(campanha.definicao_publico) html += `<div style="font-size:12px;color:var(--gray-4);margin-bottom:8px;line-height:1.5"><strong style="color:var(--black)">Público:</strong> ${_esc(campanha.definicao_publico)}</div>`;
   if(chips.length) html += `<div class="cam-result-chips">${chips.map(c => `<span class="cam-result-chip">${_esc(c)}</span>`).join('')}</div>`;
-  if(campanha.filtro || _ultimoFiltroDoAgente) html += _filtroBtnHtml();
+  if(campanha.filtro || _ultimoFiltroDoAgente) html += _filtroExplicacaoHtml() + _filtroBtnHtml();
   document.getElementById('cam-result-card').innerHTML = html;
   document.getElementById('cam-result-step').style.display = 'block';
   document.getElementById('cam-input-row').style.display = 'none';
