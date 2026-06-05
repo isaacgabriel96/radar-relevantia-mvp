@@ -617,12 +617,22 @@ body {
 <body>
 
 <!-- STATE SWITCHER -->
-<div class="switcher" id="switcher">
-  <button class="sw-btn active" onclick="setState('aguardando-voce')">Aguardando você</button>
-  <button class="sw-btn" onclick="setState('aguardando-marca')">Aguardando marca</button>
-  <button class="sw-btn" onclick="setState('sem-proposta')">Sem proposta</button>
-  <button class="sw-btn" onclick="setState('aceita')">Deal fechado</button>
-  <button class="sw-btn" onclick="openHow()">❓ Como funciona</button>
+<div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+  <!-- Perspectiva -->
+  <div class="switcher" style="gap:4px">
+    <span style="font-size:11px;font-weight:600;color:rgba(0,0,0,.4);padding:0 4px">Vista:</span>
+    <button class="sw-btn active" id="persp-marca" onclick="setPerspectiva('marca')">🏷 Marca</button>
+    <button class="sw-btn" id="persp-detentor" onclick="setPerspectiva('detentor')">🏟 Detentor</button>
+    <button class="sw-btn" onclick="openHow()" style="margin-left:4px">❓ Como funciona</button>
+  </div>
+  <!-- Estado -->
+  <div class="switcher" id="switcher">
+    <span style="font-size:11px;font-weight:600;color:rgba(0,0,0,.4);padding:0 4px">Estado:</span>
+    <button class="sw-btn active" id="sw-aguardando-voce" onclick="setState('aguardando-voce')">Aguardando você</button>
+    <button class="sw-btn" id="sw-aguardando-outro" onclick="setState('aguardando-outro')">Aguardando outro lado</button>
+    <button class="sw-btn" id="sw-sem-proposta" onclick="setState('sem-proposta')">Sem proposta</button>
+    <button class="sw-btn" id="sw-aceita" onclick="setState('aceita')">Deal fechado</button>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -637,8 +647,7 @@ body {
         <div class="header-party">
           <div class="party-avatar gold">R</div>
           <div class="party-info">
-            <div class="party-name">Relevantia</div>
-            <div class="party-opp" id="opp-name">Casemiro Sports — R$ 200.000</div>
+            <div class="party-name" id="party-name">Relevantia</div>
           </div>
         </div>
         <div class="header-actions">
@@ -680,6 +689,21 @@ body {
     <!-- BODY -->
     <div class="modal-body">
 
+      <!-- ── TOGGLE ACEITAR PROPOSTAS (só detentor) ── -->
+      <div id="sec-toggle-aceita" style="display:none;padding:12px 0;border-bottom:1px solid var(--gray-100)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Aceitar contrapropostas</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:1px">A marca pode sugerir novos valores e entregas</div>
+          </div>
+          <label style="position:relative;width:40px;height:22px;cursor:pointer;flex-shrink:0">
+            <input type="checkbox" id="toggle-aceita" checked onchange="onToggleAceita(this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+            <span id="toggle-track" style="position:absolute;inset:0;border-radius:20px;background:#16A34A;transition:background .2s"></span>
+            <span id="toggle-knob" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;transform:translateX(18px)"></span>
+          </label>
+        </div>
+      </div>
+
       <!-- ── PROPOSTA (muda conforme estado) ── -->
       <div class="section" id="sec-proposta">
         <div class="sec-header">
@@ -690,28 +714,36 @@ body {
         <!-- Aguardando você → mostra card + aceitar/contrapropor -->
         <div id="bloco-aguardando-voce">
           <div class="prop-card">
-            <div class="prop-card-label">Valor proposto pela marca</div>
-            <div class="prop-card-valor">R$ 50.000</div>
-            <div class="prop-card-meta">enviado por Relevantia · hoje às 10h22 · Rodada 2</div>
+            <div class="prop-card-label" id="prop-card-label">Valor proposto pela marca</div>
+            <div class="prop-card-valor" id="prop-card-valor">R$ 50.000</div>
+            <div class="prop-card-meta" id="prop-card-meta">enviado por Relevantia · hoje às 10h22 · Rodada 2</div>
+          </div>
+          <!-- Badge aceita contrapropostas -->
+          <div id="aceita-contra-badge" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:7px 10px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:var(--rs)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            <span style="font-size:11px;font-weight:600;color:#15803D" id="aceita-contra-label">O organizador aceita contrapropostas</span>
           </div>
           <div class="prop-actions">
-            <button class="btn-accept" onclick="toast('Deal aceito! Avançando para Formalização...')">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
-              Aceitar proposta
-            </button>
             <button class="btn-counter" onclick="setState('sem-proposta')">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m7 16 4-4-4-4M17 8l-4 4 4 4"/></svg>
               Contrapropor
             </button>
+            <button class="btn-accept" onclick="toast('Deal aceito! Avançando para Formalização...')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+              Aceitar proposta
+            </button>
           </div>
         </div>
 
-        <!-- Aguardando marca → card aguardando -->
+        <!-- Aguardando outro lado → card aguardando -->
         <div id="bloco-aguardando-marca" style="display:none">
           <div class="prop-card" style="margin-bottom:0">
             <div class="prop-card-label">Sua contraproposta enviada</div>
             <div class="prop-card-valor">R$ 45.000</div>
             <div class="prop-card-meta">enviado por você · hoje às 11h05 · Rodada 3</div>
+          </div>
+          <div style="margin-top:10px;padding:10px 12px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--rs);font-size:12px;color:var(--gray-500);text-align:center">
+            ⏳ Aguardando resposta…
           </div>
         </div>
 
@@ -767,37 +799,6 @@ body {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           Sugerir entrega
         </button>
-      </div>
-
-      <!-- ── OUTRAS OPORTUNIDADES DO DETENTOR ── -->
-      <div class="section" style="padding-bottom:0;border-bottom:none" id="sec-outras-opps">
-        <div class="collapsible-header" onclick="toggleColl('opps-body','chevron-opps')">
-          <div class="coll-left">
-            <span class="coll-title">Outras oportunidades deste organizador</span>
-            <span class="sec-badge">2 disponíveis</span>
-          </div>
-          <svg class="coll-chevron" id="chevron-opps" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
-        </div>
-        <div class="coll-body" id="opps-body">
-          <div class="opp-cards" style="margin-bottom:14px">
-            <div class="opp-card">
-              <div class="opp-card-name">Festival Verão Nordeste 2026</div>
-              <div class="opp-card-meta">Salvador, BA · Patrocínio até R$ 80.000 · 2 cotas abertas</div>
-              <div class="opp-card-actions">
-                <button class="opp-card-btn" onclick="toast('Abrindo detalhes do festival...')">Ver detalhes</button>
-                <button class="opp-card-btn primary" onclick="toast('Entregas do festival adicionadas à negociação!')">+ Incluir na proposta</button>
-              </div>
-            </div>
-            <div class="opp-card">
-              <div class="opp-card-name">Copa Interestadual de Futsal</div>
-              <div class="opp-card-meta">Recife, PE · Patrocínio até R$ 30.000 · 5 cotas abertas</div>
-              <div class="opp-card-actions">
-                <button class="opp-card-btn" onclick="toast('Abrindo detalhes da copa...')">Ver detalhes</button>
-                <button class="opp-card-btn primary" onclick="toast('Entregas da copa adicionadas à negociação!')">+ Incluir na proposta</button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- ── MENSAGENS (collapsible) ── -->
@@ -913,94 +914,160 @@ body {
 <div id="toast"></div>
 
 <script>
-/* ─── ESTADO ─── */
-const STATES = {
-  'aguardando-voce': {
-    statusClass: 'pendente',
-    statusLabel: 'Aguardando você',
-    statusHint: 'A marca propôs um acordo — responda abaixo',
-    propTitle: 'Proposta recebida',
-    showRodada: true,
-    footer: `
-      <button class="btn-secondary" onclick="setState('sem-proposta')">Contrapropor</button>
-      <button class="btn-primary" onclick="toast('Deal aceito! Avançando para Formalização...')">✓ Aceitar acordo</button>
-    `
-  },
-  'aguardando-marca': {
-    statusClass: 'analise',
-    statusLabel: 'Aguardando marca',
-    statusHint: 'Sua contraproposta foi enviada — aguardando resposta',
-    propTitle: 'Proposta enviada',
-    showRodada: true,
-    footer: `
-      <button class="btn-secondary" onclick="setState('aguardando-voce')">← Voltar</button>
-    `
-  },
-  'sem-proposta': {
-    statusClass: 'pendente',
-    statusLabel: 'Sem proposta',
-    statusHint: 'Defina as entregas e o valor e envie sua proposta',
-    propTitle: 'Sua proposta',
-    showRodada: false,
-    footer: `
-      <button class="btn-secondary" onclick="setState('aguardando-voce')">Cancelar</button>
-      <button class="btn-primary" onclick="setState('aguardando-marca');toast('Proposta enviada! Aguardando a marca.')">Enviar proposta</button>
-    `
-  },
-  'aceita': {
-    statusClass: 'aceita',
-    statusLabel: 'Deal fechado',
-    statusHint: 'Acordo confirmado — próxima etapa: Formalização',
-    propTitle: 'Acordo fechado',
-    showRodada: false,
-    footer: ``
-  }
-};
-
+/* ─── PERSPECTIVA + ESTADO ─── */
+let perspectiva = 'marca';   // 'marca' | 'detentor'
 let currentState = 'aguardando-voce';
+let aceitaContra = true;     // toggle do detentor
+
+function setPerspectiva(p) {
+  perspectiva = p;
+  // Switcher visual
+  document.getElementById('persp-marca').classList.toggle('active', p === 'marca');
+  document.getElementById('persp-detentor').classList.toggle('active', p === 'detentor');
+  // Adapta dados de display
+  const avatar = document.querySelector('.party-avatar');
+  const nameEl = document.getElementById('party-name');
+  if (p === 'marca') {
+    avatar.textContent = 'R'; avatar.className = 'party-avatar gold';
+    nameEl.textContent = 'Relevantia';
+  } else {
+    avatar.textContent = 'C'; avatar.className = 'party-avatar';
+    nameEl.textContent = 'Casemiro Sports';
+  }
+  // Toggle aceita propostas visível só no detentor
+  document.getElementById('sec-toggle-aceita').style.display = p === 'detentor' ? '' : 'none';
+  // Re-renderiza o estado atual com a nova perspectiva
+  setState(currentState);
+}
+
+function onToggleAceita(checked) {
+  aceitaContra = checked;
+  const track = document.getElementById('toggle-track');
+  const knob = document.getElementById('toggle-knob');
+  track.style.background = checked ? '#16A34A' : 'var(--gray-300)';
+  knob.style.transform = checked ? 'translateX(18px)' : 'translateX(0)';
+  // Badge na vista da marca reflete o toggle do detentor
+  renderAceitaBadge();
+}
+
+function renderAceitaBadge() {
+  const badge = document.getElementById('aceita-contra-badge');
+  const label = document.getElementById('aceita-contra-label');
+  if (!badge) return;
+  // Badge aparece quando o outro lado está aguardando SUA resposta
+  const showBadge = currentState === 'aguardando-voce';
+  badge.style.display = showBadge ? 'flex' : 'none';
+  if (perspectiva === 'marca') {
+    // Marca vê: "O organizador aceita / não aceita contrapropostas"
+    badge.style.background = aceitaContra ? '#F0FDF4' : '#FEF9C3';
+    badge.style.borderColor = aceitaContra ? '#BBF7D0' : '#FDE68A';
+    badge.querySelector('svg').setAttribute('stroke', aceitaContra ? '#16A34A' : '#92400E');
+    label.style.color = aceitaContra ? '#15803D' : '#92400E';
+    label.textContent = aceitaContra
+      ? 'O organizador aceita contrapropostas'
+      : 'O organizador não aceita novas propostas';
+  } else {
+    // Detentor vê: "A marca aceita contrapropostas"
+    badge.style.background = '#F0FDF4'; badge.style.borderColor = '#BBF7D0';
+    badge.querySelector('svg').setAttribute('stroke', '#16A34A');
+    label.style.color = '#15803D';
+    label.textContent = 'A marca está aberta a contrapropostas';
+  }
+}
+
+/* ─── ESTADOS ─── */
+function getStateCfg(s) {
+  const isMarca = perspectiva === 'marca';
+  const configs = {
+    'aguardando-voce': {
+      statusClass: 'pendente',
+      statusLabel: 'Aguardando você',
+      statusHint: isMarca
+        ? 'O organizador fez uma proposta — responda abaixo'
+        : 'A marca fez uma proposta — responda abaixo',
+      propTitle: 'Proposta recebida',
+      showRodada: true,
+      footer: `
+        <button class="btn-secondary" onclick="setState('sem-proposta')">Contrapropor</button>
+        <button class="btn-primary" onclick="toast('Deal aceito! Avançando para Formalização...')">✓ Aceitar acordo</button>
+      `
+    },
+    'aguardando-outro': {
+      statusClass: 'analise',
+      statusLabel: isMarca ? 'Aguardando organizador' : 'Aguardando marca',
+      statusHint: 'Sua proposta foi enviada — aguardando resposta',
+      propTitle: 'Proposta enviada',
+      showRodada: true,
+      footer: `<button class="btn-secondary" onclick="setState('aguardando-voce')">← Simular resposta</button>`
+    },
+    'sem-proposta': {
+      statusClass: 'pendente',
+      statusLabel: 'Editando contraoferta',
+      statusHint: 'Ajuste o valor e as entregas abaixo',
+      propTitle: 'Sua contraoferta',
+      showRodada: false,
+      footer: `
+        <button class="btn-secondary" onclick="setState('aguardando-voce')">Cancelar</button>
+        <button class="btn-primary" onclick="setState('aguardando-outro');toast('Contraoferta enviada!')">Enviar contraoferta</button>
+      `
+    },
+    'aceita': {
+      statusClass: 'aceita',
+      statusLabel: 'Deal fechado',
+      statusHint: 'Acordo confirmado — próxima etapa: Formalização',
+      propTitle: 'Acordo fechado',
+      showRodada: false,
+      footer: ``
+    }
+  };
+  return configs[s];
+}
 
 function setState(s) {
   currentState = s;
-  const cfg = STATES[s];
+  const cfg = getStateCfg(s);
   if (!cfg) return;
 
-  // Update switcher
-  document.querySelectorAll('.sw-btn').forEach(b => {
-    b.classList.toggle('active', b.getAttribute('onclick')?.includes(s));
+  // Switcher
+  ['aguardando-voce','aguardando-outro','sem-proposta','aceita'].forEach(k => {
+    const el = document.getElementById('sw-' + k);
+    if (el) el.classList.toggle('active', k === s);
   });
 
-  // Status pill
-  const pill = document.getElementById('status-pill');
-  pill.className = 'status-pill ' + cfg.statusClass;
+  // Status
+  document.getElementById('status-pill').className = 'status-pill ' + cfg.statusClass;
   document.getElementById('status-label').textContent = cfg.statusLabel;
   document.getElementById('status-hint').textContent = cfg.statusHint;
 
   // Timeline
   const tl1 = document.getElementById('tl-1');
-  const tl2 = document.getElementById('tl-2');
-  const tl3 = document.getElementById('tl-3');
-  const tl4 = document.getElementById('tl-4');
   if (s === 'aceita') {
     tl1.className = 'tl-step done';
     tl1.querySelector('.tl-dot').textContent = '✓';
-    tl2.className = 'tl-step active';
-    tl3.className = 'tl-step todo';
-    tl4.className = 'tl-step todo';
+    document.getElementById('tl-2').className = 'tl-step active';
+    document.getElementById('tl-3').className = 'tl-step todo';
+    document.getElementById('tl-4').className = 'tl-step todo';
   } else {
     tl1.className = 'tl-step active';
     tl1.querySelector('.tl-dot').textContent = '1';
-    tl2.className = 'tl-step todo';
-    tl3.className = 'tl-step todo';
-    tl4.className = 'tl-step todo';
+    ['tl-2','tl-3','tl-4'].forEach(id => document.getElementById(id).className = 'tl-step todo');
   }
 
-  // Proposta section
+  // Labels da proposta
   document.getElementById('prop-section-title').textContent = cfg.propTitle;
   document.getElementById('prop-rodada-badge').style.display = cfg.showRodada ? '' : 'none';
 
+  // Adapta labels do card conforme perspectiva
+  const lbl = document.getElementById('prop-card-label');
+  const meta = document.getElementById('prop-card-meta');
+  if (lbl) lbl.textContent = perspectiva === 'marca' ? 'Valor proposto pelo organizador' : 'Valor proposto pela marca';
+  if (meta) meta.textContent = perspectiva === 'marca'
+    ? 'enviado por Casemiro Sports · hoje às 10h22 · Rodada 2'
+    : 'enviado por Relevantia · hoje às 10h22 · Rodada 2';
+
   // Blocos
   document.getElementById('bloco-aguardando-voce').style.display = s === 'aguardando-voce' ? '' : 'none';
-  document.getElementById('bloco-aguardando-marca').style.display = s === 'aguardando-marca' ? '' : 'none';
+  document.getElementById('bloco-aguardando-marca').style.display = s === 'aguardando-outro' ? '' : 'none';
   document.getElementById('bloco-sem-proposta').style.display = s === 'sem-proposta' ? '' : 'none';
   document.getElementById('bloco-aceita').style.display = s === 'aceita' ? '' : 'none';
 
@@ -1009,11 +1076,11 @@ function setState(s) {
   const encerrar = document.getElementById('btn-encerrar');
   if (encerrar) encerrar.style.display = s === 'aceita' ? 'none' : '';
 
-  // Entregas: no estado aceita, sem botão de adicionar
+  // Sugerir entrega: esconde no estado aceita
   document.getElementById('btn-add-dl').style.display = s === 'aceita' ? 'none' : '';
 
-  // Outras opps: apenas quando não aceita
-  document.getElementById('sec-outras-opps').style.display = s === 'aceita' ? 'none' : '';
+  // Badge aceita contrapropostas
+  renderAceitaBadge();
 }
 
 /* ─── COLLAPSIBLE ─── */
@@ -1084,6 +1151,7 @@ function toast(msg) {
 }
 
 /* ─── INIT ─── */
+setPerspectiva('marca');
 setState('aguardando-voce');
 </script>
 </body>
