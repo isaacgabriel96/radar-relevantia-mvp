@@ -3406,34 +3406,49 @@ br.mobile-only { display: none; }
         const shapes = document.querySelectorAll('#contShapes path');
         if (!map || !shapes.length) return;
         const NS = 'http://www.w3.org/2000/svg';
-        const cx = 200, cy = 200, R = 178;
-        const step = 7; // grid spacing — bigger = fewer dots = much faster
-        const landDots = [];
-        const seaDots = [];
-        for (let y = step; y < 400; y += step) {
-          for (let x = step; x < 400; x += step) {
-            const dx = x - cx, dy = y - cy;
-            if (dx*dx + dy*dy > R*R) continue;
-            let onLand = false;
-            for (const p of shapes) {
-              if (p.isPointInFill && p.isPointInFill({ x, y })) { onLand = true; break; }
+        const stencil = document.getElementById('continentStencil');
+
+        function build() {
+          const cx = 200, cy = 200, R = 178;
+          const step = 7;
+          const landDots = [];
+          const seaDots = [];
+          const canSVGPoint = stencil && typeof stencil.createSVGPoint === 'function';
+          for (let y = step; y < 400; y += step) {
+            for (let x = step; x < 400; x += step) {
+              const dx = x - cx, dy = y - cy;
+              if (dx*dx + dy*dy > R*R) continue;
+              let onLand = false;
+              for (const p of shapes) {
+                if (!p.isPointInFill) continue;
+                let pt;
+                if (canSVGPoint) { pt = stencil.createSVGPoint(); pt.x = x; pt.y = y; }
+                else { pt = { x, y }; }
+                if (p.isPointInFill(pt)) { onLand = true; break; }
+              }
+              (onLand ? landDots : seaDots).push([x, y]);
             }
-            (onLand ? landDots : seaDots).push([x, y]);
           }
+          const r = 1.2;
+          const buildPath = (pts) => pts.map(([px,py]) => `M${px} ${py}m-${r} 0a${r} ${r} 0 1 0 ${r*2} 0a${r} ${r} 0 1 0 -${r*2} 0`).join('');
+          const seaP = document.createElementNS(NS, 'path');
+          seaP.setAttribute('d', buildPath(seaDots));
+          seaP.setAttribute('fill', '#7a5c1e');
+          seaP.setAttribute('opacity', '0.18');
+          map.appendChild(seaP);
+          const landP = document.createElementNS(NS, 'path');
+          landP.setAttribute('d', buildPath(landDots));
+          landP.setAttribute('fill', '#c8a428');
+          landP.setAttribute('opacity', '0.85');
+          map.appendChild(landP);
         }
-        // Two paths only: land (bright) + sea (dim) — much cheaper than thousands of <circle>s
-        const r = 1.2;
-        const buildPath = (pts) => pts.map(([x,y]) => `M${x} ${y}m-${r} 0a${r} ${r} 0 1 0 ${r*2} 0a${r} ${r} 0 1 0 -${r*2} 0`).join('');
-        const seaP = document.createElementNS(NS, 'path');
-        seaP.setAttribute('d', buildPath(seaDots));
-        seaP.setAttribute('fill', '#7a5c1e');
-        seaP.setAttribute('opacity', '0.18');
-        map.appendChild(seaP);
-        const landP = document.createElementNS(NS, 'path');
-        landP.setAttribute('d', buildPath(landDots));
-        landP.setAttribute('fill', '#c8a428');
-        landP.setAttribute('opacity', '0.85');
-        map.appendChild(landP);
+
+        // Defer heavy geometry computation so it doesn't block initial page render
+        if (typeof requestIdleCallback !== 'undefined') {
+          requestIdleCallback(build, { timeout: 2000 });
+        } else {
+          setTimeout(build, 50);
+        }
       })();
       </script>
     </div>
@@ -4443,22 +4458,35 @@ function applyI18n(lang) {
 })();
 
 /* ═══════════════════════════════════════════════
-   Lenis smooth scroll
+   Lenis smooth scroll + GSAP ScrollTrigger (integração correta)
    ═══════════════════════════════════════════════ */
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let lenis;
+
+// Registra ScrollTrigger antes de criar Lenis para poder conectá-los
+if (window.gsap && window.ScrollTrigger) {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
 if (!reduceMotion && window.Lenis) {
   lenis = new Lenis({ duration: 1.1, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
-  function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
-  requestAnimationFrame(raf);
+
+  if (window.gsap && window.ScrollTrigger) {
+    // Integração oficial Lenis + GSAP: usa o ticker do GSAP para conduzir o Lenis
+    // e avisa o ScrollTrigger a cada evento de scroll do Lenis.
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+  } else {
+    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+  }
 }
 
 /* ═══════════════════════════════════════════════
    GSAP reveal & counters
    ═══════════════════════════════════════════════ */
 if (window.gsap && window.ScrollTrigger) {
-  gsap.registerPlugin(ScrollTrigger);
-
   if (!reduceMotion) {
     gsap.utils.toArray('.reveal').forEach(el => {
       gsap.fromTo(el,
