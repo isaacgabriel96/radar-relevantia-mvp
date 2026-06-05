@@ -3654,7 +3654,7 @@ FF.init({
   onClose:  () => {
     _ffEditingCampanhaId = null;
     const saveBtn = document.getElementById('ffSaveCampBtn');
-    if (saveBtn) saveBtn.textContent = 'Salvar em campanha';
+    if (saveBtn) { saveBtn.textContent = 'Salvar em campanha'; saveBtn.classList.remove('is-update'); }
   },
   footer: `
     <div class="ff-foot-left">
@@ -3681,6 +3681,10 @@ function ffLiveCount() {
 }
 
 function ffApply() {
+  // Se estiver editando filtros de uma campanha, salva automaticamente ao aplicar
+  if (_ffEditingCampanhaId) {
+    ffSaveFiltrosToCampanha(_ffEditingCampanhaId);
+  }
   filterOpportunities();
   ffUpdateBadge();
   ffClose();
@@ -5917,7 +5921,7 @@ function ffEditFiltrosCampanha(campanhaId) {
   FF.open(c.filtros || null);
   // Altera o botão "Salvar em campanha" para salvar de volta na mesma campanha
   const saveBtn = document.getElementById('ffSaveCampBtn');
-  if (saveBtn) { saveBtn.textContent = 'Atualizar filtros'; saveBtn.disabled = false; }
+  if (saveBtn) { saveBtn.textContent = 'Atualizar filtros'; saveBtn.disabled = false; saveBtn.classList.add('is-update'); }
 }
 
 // Ao fechar o modal de filtros, reseta o estado de edição
