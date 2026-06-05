@@ -389,18 +389,9 @@ h3 { font-size: clamp(22px, 2.5vw, 28px); }
   aspect-ratio: 1 / 1;
 }
 .hero-radar > svg { width: 100% !important; height: 100% !important; display: block; }
-.radar-sweep { transform-origin: 140px 140px; animation: sweep 5s linear infinite; }
-@keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.radar-dot1 { animation: dotReveal 5s ease-out infinite; animation-delay: 0.4s; opacity: 0; }
-.radar-dot2 { animation: dotReveal 5s ease-out infinite; animation-delay: 1.8s; opacity: 0; }
-.radar-dot3 { animation: dotReveal 5s ease-out infinite; animation-delay: 3.2s; opacity: 0; }
-@keyframes dotReveal {
-  0% { opacity: 0; transform: scale(0.5); }
-  10% { opacity: 1; transform: scale(1.4); }
-  20% { opacity: 1; transform: scale(1); }
-  60% { opacity: 1; }
-  100% { opacity: 0.3; transform: scale(0.8); }
-}
+/* Radar animado via SMIL (<animateTransform>/<animate>) direto no SVG — robusto
+   no Safari iOS, imune a quirks de transform-origin em CSS e à media query de
+   "Reduzir movimento". A animação fica no HTML do SVG (busque por radar-sweep). */
 
 /* Floating chips around radar */
 .radar-chip {
@@ -2669,11 +2660,6 @@ br.mobile-only { display: none; }
     transition-duration: 0.01s !important;
   }
   .reveal { opacity: 1; transform: none; }
-  /* O radar é a identidade da marca: mantém girando suavemente mesmo com
-     "Reduzir movimento" ligado. Sem isso, o duration 0.01s em loop infinito
-     faz o radar tentar girar ~100x/s e ele parece TRAVADO. */
-  .radar-sweep { animation-duration: 5s !important; }
-  .radar-dot1, .radar-dot2, .radar-dot3 { animation-duration: 5s !important; }
 }
 
 /* ═══════════════════════════════════════════════
@@ -3277,14 +3263,22 @@ br.mobile-only { display: none; }
         <line x1="22" y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.5"/>
         <g clip-path="url(#dc)">
           <g class="radar-sweep">
+            <animateTransform attributeName="transform" attributeType="XML" type="rotate"
+              from="0 140 140" to="360 140 140" dur="5s" repeatCount="indefinite"/>
             <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#swG)"/>
             <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
           </g>
         </g>
         <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6"/>
-        <circle cx="190" cy="72" r="5" fill="#d8c890" class="radar-dot1"/>
-        <circle cx="82" cy="170" r="5" fill="#d8c890" class="radar-dot2"/>
-        <circle cx="222" cy="195" r="5" fill="#d8c890" class="radar-dot3"/>
+        <circle cx="190" cy="72" r="5" fill="#d8c890" class="radar-dot1" opacity="0">
+          <animate attributeName="opacity" values="0;1;1;0.3" keyTimes="0;0.1;0.6;1" dur="5s" begin="0.4s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="82" cy="170" r="5" fill="#d8c890" class="radar-dot2" opacity="0">
+          <animate attributeName="opacity" values="0;1;1;0.3" keyTimes="0;0.1;0.6;1" dur="5s" begin="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="222" cy="195" r="5" fill="#d8c890" class="radar-dot3" opacity="0">
+          <animate attributeName="opacity" values="0;1;1;0.3" keyTimes="0;0.1;0.6;1" dur="5s" begin="3.2s" repeatCount="indefinite"/>
+        </circle>
       </svg>
 
       <div class="radar-chips-wrap">
