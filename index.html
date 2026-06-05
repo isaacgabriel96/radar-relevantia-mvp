@@ -4461,6 +4461,8 @@ function applyI18n(lang) {
    Lenis smooth scroll + GSAP ScrollTrigger (integração correta)
    ═══════════════════════════════════════════════ */
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Lenis conflita com o scroll touch nativo do iOS/Android — desabilita em touch devices
+const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 let lenis;
 
 // Registra ScrollTrigger antes de criar Lenis para poder conectá-los
@@ -4468,7 +4470,7 @@ if (window.gsap && window.ScrollTrigger) {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-if (!reduceMotion && window.Lenis) {
+if (!reduceMotion && !isTouchDevice && window.Lenis) {
   lenis = new Lenis({ duration: 1.1, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
 
   if (window.gsap && window.ScrollTrigger) {
