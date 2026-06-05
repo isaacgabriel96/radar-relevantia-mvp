@@ -6471,11 +6471,7 @@ function openDealDetModal(negId) {
   document.getElementById('ddet-title').textContent = n.marca;
   document.getElementById('ddet-sub').textContent   = n.opp + ' · ' + n.cota;
 
-  document.getElementById('ddet-entregas').innerHTML = entregas.length
-    ? entregas.map(cp => `<div class="modal-deal-det-row">
-        <span class="modal-deal-det-row-label">${cp.descricao}</span>
-      </div>`).join('')
-    : '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>';
+  renderAtivacaoDet(n, entregas);
 
   document.getElementById('ddet-financeiro').innerHTML = `
     <div class="modal-deal-det-financeiro-row"><span class="lbl">Valor do deal</span><span>${fmt(totalBruto)}</span></div>
@@ -6524,6 +6520,55 @@ function openDealDetModal(negId) {
   // Store current negociacao id for upload
   window._ddetCurrentNeg = negId;
   document.getElementById('modal-deal-det').classList.add('open');
+}
+
+/* ── Ativação: checklist de entregas (detentor marca como entregue) ── */
+function _cpDesc(raw) {
+  let d = raw || '';
+  if (d.startsWith('{')) { try { const o = JSON.parse(d); d = (o.titulo||'') + (o.descricao && o.descricao!==o.titulo ? ': '+o.descricao : ''); } catch(e){} }
+  return d;
+}
+function renderAtivacaoDet(n, entregas) {
+  const host = document.getElementById('ddet-entregas');
+  if (!host) return;
+  if (!entregas.length) { host.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>'; return; }
+  const validadas = entregas.filter(c => c.validado).length;
+  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length === 1 ? 'entrega validada' : 'entregas validadas'} pela marca</div>`;
+  html += entregas.map(cp => {
+    const desc = _cpDesc(cp.descricao);
+    let estado, acao = '';
+    if (cp.validado) {
+      estado = '<span style="color:var(--green);font-weight:600">✓ Validada pela marca</span>';
+    } else if (cp.entregue) {
+      estado = '<span style="color:#D97706;font-weight:600">Aguardando validação da marca</span>';
+    } else {
+      estado = '<span style="color:var(--gray-400)">Pendente</span>';
+      acao = `<button class="ativ-btn" onclick="marcarEntregueDet('${cp.id}')">Marcar como entregue</button>`;
+    }
+    const checked = cp.validado || cp.entregue;
+    return `<div class="ativ-row">
+      <span class="ativ-check ${cp.validado ? 'done' : cp.entregue ? 'mid' : ''}">${checked ? '✓' : ''}</span>
+      <div class="ativ-main"><div class="ativ-desc">${escapeHtml(desc)}</div><div class="ativ-state">${estado}</div></div>
+      ${acao}
+    </div>`;
+  }).join('');
+  if (validadas === entregas.length) {
+    html += `<div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-weight:600;text-align:center">🎉 Todas as entregas validadas — repasse será liberado pela Relevantia</div>`;
+  }
+  host.innerHTML = html;
+}
+async function marcarEntregueDet(cpId) {
+  const n = NEGOCIACOES.find(x => x.id === window._ddetCurrentNeg);
+  if (!n) return;
+  const cp = (n.contrapartidas || []).find(c => String(c.id) === String(cpId));
+  if (!cp) return;
+  cp.entregue = true; cp.entregueEm = new Date().toISOString();
+  renderAtivacaoDet(n, (n.contrapartidas || []).filter(c => c.status === 'aceita'));
+  if (!isDemoMode()) {
+    const ok = await updateContrapartida(cpId, { entregue: true, entregue_em: cp.entregueEm });
+    if (!ok) showToast('Não foi possível salvar. A coluna de ativação já foi criada no banco?', 'error');
+    else showToast('Entrega marcada como concluída. Aguardando validação da marca.', 'success');
+  }
 }
 
 function _baixarComprovanteDet(negId) {
@@ -7353,9 +7398,9 @@ async function removerMembro(userId) {
       <button class="modal-deal-det-close" onclick="closeDealDetModal()">✕</button>
     </div>
     <div class="modal-deal-det-body">
-      <!-- Entregas -->
+      <!-- Ativação: entregas acordadas + validação -->
       <div class="modal-deal-det-section">
-        <div class="modal-deal-det-section-title">Entregas acordadas</div>
+        <div class="modal-deal-det-section-title">Ativação — entregas</div>
         <div id="ddet-entregas">—</div>
       </div>
       <!-- Financeiro -->
@@ -7498,6 +7543,20 @@ async function removerMembro(userId) {
 .neg-msg-chevron.open { transform:rotate(180deg); }
 .neg-msg-body { display:none; }
 .neg-msg-body.open { display:block; padding-bottom:20px; }
+
+/* Ativação — checklist de entregas */
+.ativ-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--gray-100); }
+.ativ-row:last-child { border-bottom:none; }
+.ativ-check { width:20px; height:20px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; border:1.5px solid var(--gray-200); color:transparent; background:#fff; }
+.ativ-check.mid { border-color:#F59E0B; color:#F59E0B; }
+.ativ-check.done { border-color:var(--green); background:var(--green); color:#fff; }
+.ativ-main { flex:1; min-width:0; }
+.ativ-desc { font-size:13px; color:var(--text); line-height:1.35; }
+.ativ-state { font-size:11px; margin-top:2px; }
+.ativ-btn { flex-shrink:0; font-size:11px; font-weight:700; padding:6px 12px; border-radius:8px; border:1.5px solid var(--gray-200); background:#fff; color:var(--text); cursor:pointer; font-family:var(--font-body); transition:all .15s; white-space:nowrap; }
+.ativ-btn:hover { border-color:var(--gold); color:var(--gold); }
+.ativ-btn.primary { background:var(--green); border-color:var(--green); color:#fff; }
+.ativ-btn.primary:hover { background:#047857; border-color:#047857; color:#fff; }
 
 /* Modal Como Funciona */
 .how-overlay {

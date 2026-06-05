@@ -5439,13 +5439,7 @@ function openDealDetModalMarca(propId) {
   document.getElementById('mdm-title').textContent = p.opp || 'Deal fechado';
   document.getElementById('mdm-sub').textContent = p.opp + (totalBruto ? ' · ' + fmt(totalBruto) : '');
 
-  document.getElementById('mdm-entregas').innerHTML = entregas.length
-    ? entregas.map(cp => {
-        let desc = (typeof cp === 'string') ? cp : (cp.descricao || '');
-        if (desc.startsWith('{')) { try { const o = JSON.parse(desc); desc = o.titulo || o.descricao || desc; } catch(e) {} }
-        return `<div class="modal-deal-det-row"><span class="modal-deal-det-row-label">${escapeHtml(desc)}</span></div>`;
-      }).join('')
-    : '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>';
+  renderAtivacaoMarca(p, entregas);
 
   document.getElementById('mdm-financeiro').innerHTML = totalBruto
     ? `<div class="modal-deal-det-financeiro-row total"><span class="lbl">Valor acordado</span><span>${fmt(totalBruto)}</span></div>`
@@ -5488,7 +5482,57 @@ function openDealDetModalMarca(propId) {
       </div>`;
   }
 
+  window._ddmCurrentProp = propId;
   document.getElementById('modal-deal-marca').classList.add('open');
+}
+
+/* ── Ativação: checklist de entregas (marca valida) ── */
+function _cpDescM(raw) {
+  let d = raw || '';
+  if (d.startsWith('{')) { try { const o = JSON.parse(d); d = (o.titulo||'') + (o.descricao && o.descricao!==o.titulo ? ': '+o.descricao : ''); } catch(e){} }
+  return d;
+}
+function renderAtivacaoMarca(p, entregas) {
+  const host = document.getElementById('mdm-entregas');
+  if (!host) return;
+  if (!entregas.length) { host.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>'; return; }
+  const validadas = entregas.filter(c => c.validado).length;
+  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length === 1 ? 'entrega validada' : 'entregas validadas'}</div>`;
+  html += entregas.map(cp => {
+    const desc = _cpDescM(cp.descricao);
+    let estado, acao = '';
+    if (cp.validado) {
+      estado = '<span style="color:var(--green);font-weight:600">✓ Você validou</span>';
+    } else if (cp.entregue) {
+      estado = '<span style="color:#D97706;font-weight:600">Organizador marcou como entregue</span>';
+      acao = `<button class="ativ-btn primary" onclick="validarEntregaMarca('${cp.id}')">Validar</button>`;
+    } else {
+      estado = '<span style="color:var(--gray-400)">Aguardando o organizador entregar</span>';
+    }
+    const checked = cp.validado || cp.entregue;
+    return `<div class="ativ-row">
+      <span class="ativ-check ${cp.validado ? 'done' : cp.entregue ? 'mid' : ''}">${checked ? '✓' : ''}</span>
+      <div class="ativ-main"><div class="ativ-desc">${escapeHtml(desc)}</div><div class="ativ-state">${estado}</div></div>
+      ${acao}
+    </div>`;
+  }).join('');
+  if (validadas === entregas.length) {
+    html += `<div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-weight:600;text-align:center">🎉 Todas as entregas validadas — parceria concluída</div>`;
+  }
+  host.innerHTML = html;
+}
+async function validarEntregaMarca(cpId) {
+  const p = PROPOSTAS.find(x => x.id === _ddmCurrentProp);
+  if (!p) return;
+  const cp = (p.contrapartidas || []).find(c => String(c.id) === String(cpId));
+  if (!cp) return;
+  cp.validado = true; cp.validadoEm = new Date().toISOString();
+  renderAtivacaoMarca(p, (p.contrapartidas || []).filter(c => c.status === 'aceita'));
+  if (!isDemoMode()) {
+    const ok = await updateContrapartida(cpId, { validado: true, validado_em: cp.validadoEm });
+    if (!ok) showToast('Não foi possível salvar. A coluna de ativação já foi criada no banco?', 'error');
+    else showToast('Entrega validada!', 'success');
+  }
 }
 
 function _baixarComprovanteMarca(propId) {
@@ -6817,6 +6861,20 @@ async function removerMembro(userId) {
 .neg-msg-body { display:none; }
 .neg-msg-body.open { display:block; padding-bottom:20px; }
 
+/* Ativação — checklist de entregas */
+.ativ-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--gray-100); }
+.ativ-row:last-child { border-bottom:none; }
+.ativ-check { width:20px; height:20px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; border:1.5px solid var(--gray-200); color:transparent; background:#fff; }
+.ativ-check.mid { border-color:#F59E0B; color:#F59E0B; }
+.ativ-check.done { border-color:var(--green); background:var(--green); color:#fff; }
+.ativ-main { flex:1; min-width:0; }
+.ativ-desc { font-size:13px; color:var(--text); line-height:1.35; }
+.ativ-state { font-size:11px; margin-top:2px; }
+.ativ-btn { flex-shrink:0; font-size:11px; font-weight:700; padding:6px 12px; border-radius:8px; border:1.5px solid var(--gray-200); background:#fff; color:var(--text); cursor:pointer; font-family:var(--font-body); transition:all .15s; white-space:nowrap; }
+.ativ-btn:hover { border-color:var(--gold); color:var(--gold); }
+.ativ-btn.primary { background:var(--green); border-color:var(--green); color:#fff; }
+.ativ-btn.primary:hover { background:#047857; border-color:#047857; color:#fff; }
+
 .how-overlay {
   position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:700;
   display:none; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity .2s;
@@ -7082,7 +7140,7 @@ async function removerMembro(userId) {
 
       <!-- Entregas -->
       <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Entregas acordadas</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Ativação — entregas</div>
         <div id="mdm-entregas"></div>
       </div>
 

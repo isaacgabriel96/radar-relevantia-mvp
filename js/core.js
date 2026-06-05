@@ -387,7 +387,9 @@ function rowToNegociacao(row) {
     id: cp.id, descricao: cp.descricao || '', categoria: cp.categoria || '',
     valor: cp.valor ? parseFloat(cp.valor) : null,
     prazo: cp.prazo || '',
-    status: cp.status || 'proposta', propostoPor: cp.proposto_por || 'marca'
+    status: cp.status || 'proposta', propostoPor: cp.proposto_por || 'marca',
+    entregue: cp.entregue === true, entregueEm: cp.entregue_em || null,
+    validado: cp.validado === true, validadoEm: cp.validado_em || null
   }));
   const thread = (row.mensagens || []).map(m => ({
     autor: m.autor_role || 'marca', nome: m.autor_nome || '',
@@ -430,7 +432,7 @@ var _negSelectQuery = 'id,oportunidade_id,marca_id,detentor_id,cota,assunto,valo
   'status,status_label,status_hint,aceita_novas_propostas,created_at,campanha_id,' +
   'marca:marca_id(nome,empresa),' +
   'oportunidade:oportunidade_id(titulo,categoria),' +
-  'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por),' +
+  'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por),' + // + entregue,entregue_em,validado,validado_em após migração de ativação
   'contratos(id,documento_url,status,completo_em),' +
   'mensagens(id,autor_role,autor_nome,texto,created_at)';
 
