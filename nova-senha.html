@@ -572,7 +572,7 @@ async function salvarNovaSenha() {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${accessToken}`
       },
-      body: JSON.stringify({ password: novaSenha })
+      body: JSON.stringify({ password: novaSenha, data: { senha_provisoria: false } })
     });
 
     if (res.ok) {
