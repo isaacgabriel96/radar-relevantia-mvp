@@ -26,10 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- GSAP + ScrollTrigger + Lenis -->
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<!-- Animações de scroll/reveal são feitas com IntersectionObserver nativo (sem libs externas) -->
 
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -90,12 +87,6 @@ body {
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
 }
-
-/* Lenis */
-html.lenis, html.lenis body { height: auto; }
-.lenis.lenis-smooth { scroll-behavior: auto !important; }
-.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-.lenis.lenis-stopped { overflow: hidden; }
 
 a { color: inherit; text-decoration: none; }
 button { border: none; background: none; cursor: pointer; font-family: inherit; }
@@ -3410,7 +3401,8 @@ br.mobile-only { display: none; }
 
         function build() {
           const cx = 200, cy = 200, R = 178;
-          const step = 7;
+          // Passo maior no mobile = menos pontos = bem menos isPointInFill (mais leve)
+          const step = window.innerWidth <= 700 ? 10 : 7;
           const landDots = [];
           const seaDots = [];
           const canSVGPoint = stencil && typeof stencil.createSVGPoint === 'function';
@@ -4458,75 +4450,63 @@ function applyI18n(lang) {
 })();
 
 /* ═══════════════════════════════════════════════
-   Lenis smooth scroll + GSAP ScrollTrigger (integração correta)
+   Reveal & counters — IntersectionObserver nativo
+   Leve, sem libs, funciona com scroll nativo em qualquer device.
    ═══════════════════════════════════════════════ */
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-// Lenis conflita com o scroll touch nativo do iOS/Android — desabilita em touch devices
-const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-let lenis;
 
-// Registra ScrollTrigger antes de criar Lenis para poder conectá-los
-if (window.gsap && window.ScrollTrigger) {
-  gsap.registerPlugin(ScrollTrigger);
+// Anima um contador de 0 até o alvo usando requestAnimationFrame
+function animateCount(el) {
+  const target = parseFloat(el.dataset.count);
+  const suffix = el.dataset.suffix || '';
+  const isFloat = !Number.isInteger(target);
+  const duration = 1800;
+  let startTime = null;
+  function step(ts) {
+    if (startTime === null) startTime = ts;
+    const p = Math.min(1, (ts - startTime) / duration);
+    // ease-out (power2)
+    const eased = 1 - Math.pow(1 - p, 2);
+    const val = target * eased;
+    el.textContent = (isFloat ? val.toFixed(1) : Math.round(val)) + suffix;
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = (isFloat ? target.toFixed(1) : Math.round(target)) + suffix;
+  }
+  requestAnimationFrame(step);
 }
 
-if (!reduceMotion && !isTouchDevice && window.Lenis) {
-  lenis = new Lenis({ duration: 1.1, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)), smoothWheel: true });
-
-  if (window.gsap && window.ScrollTrigger) {
-    // Integração oficial Lenis + GSAP: usa o ticker do GSAP para conduzir o Lenis
-    // e avisa o ScrollTrigger a cada evento de scroll do Lenis.
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => { lenis.raf(time * 1000); });
-    gsap.ticker.lagSmoothing(0);
-  } else {
-    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
-    requestAnimationFrame(raf);
-  }
-}
-
-/* ═══════════════════════════════════════════════
-   GSAP reveal & counters
-   ═══════════════════════════════════════════════ */
-if (window.gsap && window.ScrollTrigger) {
-  if (!reduceMotion) {
-    gsap.utils.toArray('.reveal').forEach(el => {
-      gsap.fromTo(el,
-        { opacity: 0, y: 30 },
-        {
-          opacity: 1, y: 0, duration: 0.9, ease: 'power3.out',
-          scrollTrigger: { trigger: el, start: 'top 88%', toggleActions: 'play none none none' }
-        }
-      );
-    });
-
-    gsap.utils.toArray('[data-count]').forEach(el => {
-      const target = parseFloat(el.dataset.count);
-      const suffix = el.dataset.suffix || '';
-      const isFloat = !Number.isInteger(target);
-      const obj = { val: 0 };
-      gsap.to(obj, {
-        val: target,
-        duration: 1.8,
-        ease: 'power2.out',
-        scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none none' },
-        onUpdate: () => {
-          el.textContent = (isFloat ? obj.val.toFixed(1) : Math.round(obj.val)) + suffix;
-        }
-      });
-    });
-  } else {
-    document.querySelectorAll('.reveal').forEach(el => el.classList.add('is-visible'));
-    document.querySelectorAll('[data-count]').forEach(el => {
-      el.textContent = el.dataset.count + (el.dataset.suffix || '');
-    });
-  }
+if (reduceMotion) {
+  // Sem animação: mostra tudo imediatamente
+  document.querySelectorAll('.reveal').forEach(el => el.classList.add('is-visible'));
+  document.querySelectorAll('[data-count]').forEach(el => {
+    el.textContent = el.dataset.count + (el.dataset.suffix || '');
+  });
 } else {
-  // Fallback: IntersectionObserver
-  const io = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); } });
-  }, { threshold: 0.15 });
-  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  // Reveals: fade + slide quando entram na viewport.
+  // Se o elemento já está ACIMA da viewport (página recarregada no meio, ou
+  // âncora), aparece instantaneamente — nunca fica preso invisível.
+  const revealIO = new IntersectionObserver((entries, obs) => {
+    entries.forEach(e => {
+      if (e.isIntersecting || e.boundingClientRect.top < 0) {
+        e.target.classList.add('is-visible'); obs.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+
+  // Counters: anima ao entrar na viewport; se já passou (acima), mostra o valor final.
+  const countIO = new IntersectionObserver((entries, obs) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { animateCount(e.target); obs.unobserve(e.target); }
+      else if (e.boundingClientRect.top < 0) {
+        const t = parseFloat(e.target.dataset.count);
+        const sfx = e.target.dataset.suffix || '';
+        e.target.textContent = (Number.isInteger(t) ? t : t.toFixed(1)) + sfx;
+        obs.unobserve(e.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -15% 0px', threshold: 0.1 });
+  document.querySelectorAll('[data-count]').forEach(el => countIO.observe(el));
 }
 
 /* Features sticky scroll: vertical page scroll moves the rail horizontally */
@@ -4681,14 +4661,22 @@ if (window.gsap && window.ScrollTrigger) {
     window.visualViewport.addEventListener('resize', () => { applyMode(); }, { passive: true });
   }
 
-  // rAF-driven update: roda a cada frame quando a section está visível.
-  // Mais confiável que scroll events (Lenis pode atrasar/coalescer; iOS pode pular).
+  // rAF-driven update — mas SÓ roda enquanto a seção está perto da viewport.
+  // Fora de vista o loop é desligado: zero trabalho de layout (getBoundingClientRect)
+  // no resto da página → muito mais leve e econômico de bateria no mobile.
   let rafId = null;
+  let running = false;
   function tick() {
     if (!isMobile()) update();
     rafId = requestAnimationFrame(tick);
   }
-  rafId = requestAnimationFrame(tick);
+  function startLoop() { if (!running) { running = true; rafId = requestAnimationFrame(tick); } }
+  function stopLoop() { if (running) { running = false; cancelAnimationFrame(rafId); } }
+
+  const loopIO = new IntersectionObserver(entries => {
+    entries.forEach(e => { e.isIntersecting ? startLoop() : stopLoop(); });
+  }, { rootMargin: '200px 0px 200px 0px' });
+  loopIO.observe(section);
 
   // remeasure once images / fonts settle
   window.addEventListener('load', applyMode);
@@ -4733,9 +4721,16 @@ function toggleFaq(btn) {
 /* ═══════════════════════════════════════════════
    MODALS (preserved from index.html)
    ═══════════════════════════════════════════════ */
+// Bloqueia/libera o scroll de fundo quando um modal está aberto
+function lockScroll() { document.body.style.overflow = 'hidden'; }
+function unlockScroll() {
+  // Só libera se nenhum modal continuar aberto
+  if (!document.querySelector('.modal-overlay.open')) document.body.style.overflow = '';
+}
+
 function closeModal(id) {
   document.getElementById(id).classList.remove('open');
-  if (lenis) lenis.start();
+  unlockScroll();
 }
 function openModal(type) {
   if (type === 'profile-select') {
@@ -4745,10 +4740,10 @@ function openModal(type) {
     document.getElementById('ps-success').style.display = 'none';
   }
   document.getElementById('modal-' + type).classList.add('open');
-  if (lenis) lenis.stop();
+  lockScroll();
 }
 document.querySelectorAll('.modal-overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) { el.classList.remove('open'); if (lenis) lenis.start(); } });
+  el.addEventListener('click', e => { if (e.target === el) { el.classList.remove('open'); unlockScroll(); } });
 });
 
 function selectProfile(type) {
@@ -4809,7 +4804,7 @@ async function submitDetentor() {
   window.location.href = `cadastro-detentor.html?${params.toString()}`;
 }
 
-/* Smooth scroll para anchors via Lenis */
+/* Smooth scroll nativo para anchors (com offset do nav fixo) */
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const href = a.getAttribute('href');
@@ -4817,8 +4812,8 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     const target = document.querySelector(href);
     if (target) {
       e.preventDefault();
-      if (lenis) lenis.scrollTo(target, { offset: -60 });
-      else target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const top = target.getBoundingClientRect().top + window.scrollY - 60;
+      window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
     }
   });
 });
