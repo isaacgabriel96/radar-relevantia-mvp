@@ -3584,6 +3584,7 @@ function _initNotifRealtime(session) {
   if (_notifChannel || !sb) return;
   _notifChannel = sb
     .channel('notif-' + session.user.id)
+    // Nova notificação
     .on('postgres_changes', {
       event: 'INSERT', schema: 'public', table: 'notifications',
       filter: 'user_id=eq.' + session.user.id
@@ -3610,6 +3611,37 @@ function _initNotifRealtime(session) {
         });
       }
     })
+    // Notificação existente atualizada (ex: nova mensagem agrupa na mesma)
+    .on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'notifications',
+      filter: 'user_id=eq.' + session.user.id
+    }, (payload) => {
+      const r = payload.new;
+      const idx = _notifs.findIndex(n => n.id === r.id);
+      if (idx >= 0) {
+        // Atualiza in-place e move pro topo (mais recente)
+        const updated = {
+          ..._notifs[idx],
+          desc:  r.description || '',
+          time:  _notifTimeAgo(r.created_at),
+          unread: !r.read_at,
+        };
+        _notifs.splice(idx, 1);
+        _notifs.unshift(updated);
+      } else {
+        // Notificação nova que não tínhamos (raro) — adiciona
+        _notifs.unshift({
+          id: r.id, type: r.type,
+          icon: _notifMeta(r.type).icon, iconColor: _notifMeta(r.type).color,
+          title: r.title, desc: r.description || '',
+          time: _notifTimeAgo(r.created_at),
+          unread: !r.read_at,
+          section: (r.data && r.data.section) || 'negociacoes',
+          sub:     (r.data && r.data.sub)     || null
+        });
+      }
+      renderNotifs();
+    })
     .subscribe();
 }
 
@@ -3617,6 +3649,15 @@ function _initNotifRealtime(session) {
 function _initNegRealtime(session) {
   if (!sb) return;
   sb.channel('neg-det-' + session.user.id)
+    // Nova manifestação de interesse (INSERT)
+    .on('postgres_changes', {
+      event: 'INSERT', schema: 'public', table: 'negociacoes',
+      filter: 'detentor_id=eq.' + session.user.id
+    }, () => {
+      // Recarrega lista completa e re-renderiza
+      loadNegociacoes().then(() => renderNegociacoes(NEGOCIACOES));
+    })
+    // Atualização de status de negociação existente (UPDATE)
     .on('postgres_changes', {
       event: 'UPDATE', schema: 'public', table: 'negociacoes',
       filter: 'detentor_id=eq.' + session.user.id
@@ -3628,8 +3669,7 @@ function _initNegRealtime(session) {
         n.status      = r.status      || n.status;
         n.statusLabel = r.status_label || n.statusLabel;
         n.statusHint  = r.status_hint  || n.statusHint;
-      } else if (r.detentor_id === session.user.id) {
-        // Negociação nova chegou via realtime — recarrega tudo
+      } else {
         loadNegociacoes().then(() => renderNegociacoes(NEGOCIACOES));
         return;
       }
@@ -7388,6 +7428,7 @@ async function removerMembro(userId) {
               placeholder="Escreva uma mensagem para a marca…"
               rows="2"
               oninput="document.getElementById('mn-send-btn').disabled = !this.value.trim()"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();if(this.value.trim())sendNegMsg();}"
             ></textarea>
             <div class="msg-compose-footer-det">
               <button class="btn-send-msg-det" id="mn-send-btn" onclick="sendNegMsg()" disabled>

@@ -3203,6 +3203,7 @@ function _initNotifRealtime(session) {
   if (_notifChannel || !sb) return;
   _notifChannel = sb
     .channel('notif-' + session.user.id)
+    // Nova notificação
     .on('postgres_changes', {
       event: 'INSERT', schema: 'public', table: 'notifications',
       filter: 'user_id=eq.' + session.user.id
@@ -3216,6 +3217,34 @@ function _initNotifRealtime(session) {
         unread: true,
         section: (r.data && r.data.section) || 'negociacoes'
       });
+      renderNotifs();
+    })
+    // Notificação existente atualizada (ex: nova mensagem agrupa na mesma)
+    .on('postgres_changes', {
+      event: 'UPDATE', schema: 'public', table: 'notifications',
+      filter: 'user_id=eq.' + session.user.id
+    }, (payload) => {
+      const r = payload.new;
+      const idx = _notifs.findIndex(n => n.id === r.id);
+      if (idx >= 0) {
+        const updated = {
+          ..._notifs[idx],
+          desc:  r.description || '',
+          time:  _notifTimeAgo(r.created_at),
+          unread: !r.read_at,
+        };
+        _notifs.splice(idx, 1);
+        _notifs.unshift(updated);
+      } else {
+        _notifs.unshift({
+          id: r.id, type: r.type,
+          icon: _notifMeta(r.type).icon, iconColor: _notifMeta(r.type).color,
+          title: r.title, desc: r.description || '',
+          time: _notifTimeAgo(r.created_at),
+          unread: !r.read_at,
+          section: (r.data && r.data.section) || 'negociacoes'
+        });
+      }
       renderNotifs();
     })
     .subscribe();
@@ -6698,6 +6727,7 @@ async function removerMembro(userId) {
               placeholder="Escreva uma mensagem para o organizador…"
               rows="2"
               oninput="document.getElementById('mp-send-btn').disabled = !this.value.trim()"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();if(this.value.trim())sendPropostaMsg();}"
             ></textarea>
             <div class="msg-compose-footer">
               <button class="btn-send-msg" id="mp-send-btn" onclick="sendPropostaMsg()" disabled>
