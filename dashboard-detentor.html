@@ -996,6 +996,23 @@ tbody tr:last-child td { border-bottom: none; }
 .opts-vis-sub-item { display: flex; align-items: center; gap: 8px; padding: 7px 12px 7px 34px; font-size: 12px; font-weight: 500; color: var(--gray-500); cursor: pointer; transition: background 0.1s; border: none; background: none; width: 100%; text-align: left; font-family: var(--font-body); }
 .opts-vis-sub-item:hover { background: var(--gray-1); color: var(--black); }
 
+/* ─── SKELETONS ─── */
+@keyframes skel-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skel {
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+  background-size: 200% 100%;
+  animation: skel-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px; display: block;
+}
+.skel-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+.skel-row:last-child { border-bottom: none; }
+.skel-circle { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
+.skel-line  { height: 11px; border-radius: 5px; }
+.skel-btn   { height: 34px; border-radius: 10px; }
+
 /* ─── MODAL NEGOCIAÇÃO (detentor) ─── */
 .modal-overlay-det { position: fixed; inset: 0; background: rgba(30,22,0,0.45); backdrop-filter: blur(4px); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay-det.open { display: flex; }
@@ -3610,6 +3627,10 @@ function _initNotifRealtime(session) {
           }
         });
       }
+      // Nova proposta de uma marca → recarrega negociações sem precisar de F5
+      if (r.type === 'nova_proposta') {
+        loadNegociacoes().then(() => renderNegociacoes(NEGOCIACOES));
+      }
     })
     // Notificação existente atualizada (ex: nova mensagem agrupa na mesma)
     .on('postgres_changes', {
@@ -5431,17 +5452,37 @@ async function openNegModal(id) {
   if (!isDemoMode() && n._supaId) {
     const _sid = n._supaId;
 
-    // 1. Rodadas do histórico (busca no banco em background)
+    // Skeleton: histórico de rodadas
+    const rodadasWrap = document.getElementById('mn-rodadas-wrap');
+    if (rodadasWrap) {
+      rodadasWrap.style.display = '';
+      rodadasWrap.innerHTML = `<div style="padding:8px 0;display:flex;flex-direction:column;gap:6px">
+        <div class="skel skel-btn" style="width:100%"></div>
+      </div>`;
+    }
+
+    // Skeleton: contrapartidas (só se ainda não existem)
+    const cpTbody = document.getElementById('mn-cp-tbody');
+    const loadingCota = n.cota && (!n.contrapartidas || n.contrapartidas.length === 0) && n.opp_id;
+    if (cpTbody && loadingCota) {
+      cpTbody.innerHTML = [1,2,3].map(() => `<tr>
+        <td><div class="skel skel-line" style="width:${60+Math.random()*30|0}%"></div></td>
+        <td><div class="skel skel-line" style="width:50px"></div></td>
+        <td></td>
+      </tr>`).join('');
+    }
+
+    // 1. Rodadas do histórico
     fetchRodadas(_sid)
       .then(rodadas => {
         if (!_negAtiva || _negAtiva._supaId !== _sid) return;
         n._rodadas = rodadas;
         renderHistoricoRodadas();
       })
-      .catch(e => console.error('[openNegModal] fetchRodadas failed:', e));
+      .catch(e => { console.error('[openNegModal] fetchRodadas failed:', e); renderHistoricoRodadas(); });
 
     // 2. Benefícios da cota → cria contrapartidas se ainda não existem
-    if (n.cota && (!n.contrapartidas || n.contrapartidas.length === 0) && n.opp_id) {
+    if (loadingCota) {
       (async () => {
         try {
           const beneficios = await fetchCotaBeneficios(n.opp_id, n.cota);
@@ -5453,8 +5494,8 @@ async function openNegModal(id) {
             const created = await createContrapartida({ negociacao_id: _sid, descricao, status: 'proposta', proposto_por: 'detentor' });
             if (created) n.contrapartidas.push({ id: created.id, descricao, categoria: '', prazo: '', status: 'proposta', propostoPor: 'detentor' });
           }
-          if (_negAtiva && _negAtiva._supaId === _sid) renderContrapartidasDet(n.contrapartidas);
         } catch(e) { console.error('[openNegModal] fetchCotaBeneficios failed:', e); }
+        if (_negAtiva && _negAtiva._supaId === _sid) renderContrapartidasDet(n.contrapartidas);
       })();
     }
 
