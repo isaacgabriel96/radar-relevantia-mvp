@@ -3128,6 +3128,11 @@ function showSection(sectionId) {
 
   // Recarrega oportunidades sempre que o usuário abre a seção — garante dados frescos
   if (sectionId === 'oportunidades') {
+    // Se os filtros vieram de uma campanha, limpa antes de mostrar o Explorar
+    if (_ffLoadedFromCampanha) {
+      _ffLoadedFromCampanha = false;
+      if (typeof ffClear === 'function') ffClear();
+    }
     loadOpportunities(opps => { renderOpportunities(opps); carregarEstadoAcessos(); });
   }
 
@@ -3647,6 +3652,7 @@ function _updateFavCount() {
 // Config, estado e funções portáveis vivem em js/ff-filter.js (fonte única).
 // Aqui ficam só os wrappers/hooks específicos do dashboard.
 let _ffEditingCampanhaId = null;
+let _ffLoadedFromCampanha = false; // true quando filtros foram carregados de uma campanha
 
 // Footer padrão do dashboard (Explorar/salvar em campanha). Global para o agente
 // de campanha embutido poder restaurá-lo após usar o filtro no seu próprio contexto.
@@ -5935,6 +5941,7 @@ function ffEditFiltrosCampanha(campanhaId) {
   // Altera o botão "Salvar em campanha" para salvar de volta na mesma campanha
   const saveBtn = document.getElementById('ffSaveCampBtn');
   if (saveBtn) { saveBtn.textContent = 'Atualizar filtros'; saveBtn.disabled = false; saveBtn.classList.add('is-update'); }
+  _ffLoadedFromCampanha = true;
 }
 
 // Ao fechar o modal de filtros, reseta o estado de edição
