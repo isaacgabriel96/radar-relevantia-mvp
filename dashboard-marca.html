@@ -4869,7 +4869,7 @@ function renderContrapartidas(list) {
     // Autoria: na marca, 'marca' = Você, 'detentor' = Organizador
     const ehVoce = cp.propostoPor === 'marca';
     const autorLabel = ehVoce ? 'Você sugeriu' : 'Organizador sugeriu';
-    const autorHtml = `<span class="dl-author${ehVoce ? ' eu' : ''}"><span class="dl-author-dot"></span>${autorLabel}</span>`;
+    const autorHtml = `<span class="dl-author ${ehVoce ? 'eu' : 'eles'}"><span class="dl-author-dot"></span>${autorLabel}</span>`;
     const canAct = cp.propostoPor === 'detentor' && cp.status === 'proposta';
     let right = `<span class="dl-badge ${cp.status}">${statusLabel}</span>`;
     if (canAct) {
@@ -4878,7 +4878,7 @@ function renderContrapartidas(list) {
         <button class="dl-act-btn reject" onclick="rejectCpMarca('${cp.id}')">Recusar</button>
       </div>`;
     }
-    return `<div class="dl-row">
+    return `<div class="dl-row ${ehVoce ? 'mine' : 'theirs'}">
       <span class="dl-icon ${cp.status}"></span>
       <div class="dl-main">
         <span class="dl-desc">${escapeHtml(_parseDesc(cp.descricao))}</span>
@@ -6744,10 +6744,14 @@ async function removerMembro(userId) {
 .dl-list { border:1.5px solid var(--gray-200); border-radius:8px; overflow:hidden; margin-bottom:8px; }
 .dl-row {
   display:flex; align-items:flex-start; gap:9px; padding:11px 12px;
-  background:#fff; border-bottom:1px solid var(--gray-100); transition:background .1s;
+  background:#fff; border-bottom:1px solid var(--gray-100); border-left:3px solid transparent;
+  transition:background .12s;
 }
 .dl-row:last-child { border-bottom:none; }
-.dl-row:hover { background:var(--gray-50,#FBF8F2); }
+.dl-row.mine { background:rgba(184,134,11,0.05); border-left-color:var(--gold); }
+.dl-row.mine:hover { background:rgba(184,134,11,0.10); }
+.dl-row.theirs { background:rgba(37,99,235,0.04); border-left-color:rgba(37,99,235,0.5); }
+.dl-row.theirs:hover { background:rgba(37,99,235,0.08); }
 .dl-icon { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:5px; }
 .dl-icon.aceita { background:var(--green); }
 .dl-icon.proposta { background:var(--gold); }
@@ -6755,8 +6759,9 @@ async function removerMembro(userId) {
 .dl-main { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
 .dl-desc { font-size:13px; color:var(--text); line-height:1.4; }
 .dl-author { font-size:10px; font-weight:600; color:var(--gray-400); display:flex; align-items:center; gap:4px; }
-.dl-author .dl-author-dot { width:4px; height:4px; border-radius:50%; background:currentColor; opacity:.5; }
+.dl-author .dl-author-dot { width:4px; height:4px; border-radius:50%; background:currentColor; opacity:.6; }
 .dl-author.eu { color:var(--gold); }
+.dl-author.eles { color:#2563EB; }
 .dl-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; flex-shrink:0; margin-top:1px; }
 .dl-badge.aceita { background:var(--green-bg); color:var(--green); }
 .dl-badge.proposta { background:#FBF5E6; color:var(--gold); }
