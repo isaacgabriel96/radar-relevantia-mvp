@@ -3414,47 +3414,64 @@ br.mobile-only { display: none; }
         const NS = 'http://www.w3.org/2000/svg';
         const stencil = document.getElementById('continentStencil');
 
+        // Constrói o globo de pontos em PEDAÇOS (algumas linhas por frame), para
+        // nunca travar a main thread — o radar do hero e a logo não engasgam.
         function build() {
           const cx = 200, cy = 200, R = 178;
-          // Passo maior no mobile = menos pontos = bem menos isPointInFill (mais leve)
           const step = window.innerWidth <= 700 ? 10 : 7;
           const landDots = [];
           const seaDots = [];
           const canSVGPoint = stencil && typeof stencil.createSVGPoint === 'function';
-          for (let y = step; y < 400; y += step) {
-            for (let x = step; x < 400; x += step) {
-              const dx = x - cx, dy = y - cy;
-              if (dx*dx + dy*dy > R*R) continue;
-              let onLand = false;
-              for (const p of shapes) {
-                if (!p.isPointInFill) continue;
-                let pt;
-                if (canSVGPoint) { pt = stencil.createSVGPoint(); pt.x = x; pt.y = y; }
-                else { pt = { x, y }; }
-                if (p.isPointInFill(pt)) { onLand = true; break; }
+          const ROWS_PER_FRAME = 3;
+          let y = step;
+
+          function processChunk() {
+            let rows = 0;
+            for (; y < 400 && rows < ROWS_PER_FRAME; y += step, rows++) {
+              for (let x = step; x < 400; x += step) {
+                const dx = x - cx, dy = y - cy;
+                if (dx*dx + dy*dy > R*R) continue;
+                let onLand = false;
+                for (const p of shapes) {
+                  if (!p.isPointInFill) continue;
+                  let pt;
+                  if (canSVGPoint) { pt = stencil.createSVGPoint(); pt.x = x; pt.y = y; }
+                  else { pt = { x, y }; }
+                  if (p.isPointInFill(pt)) { onLand = true; break; }
+                }
+                (onLand ? landDots : seaDots).push([x, y]);
               }
-              (onLand ? landDots : seaDots).push([x, y]);
             }
+            if (y < 400) { requestAnimationFrame(processChunk); return; }
+            // Terminou: renderiza os dois paths (mar + terra)
+            const r = 1.2;
+            const buildPath = (pts) => pts.map(([px,py]) => `M${px} ${py}m-${r} 0a${r} ${r} 0 1 0 ${r*2} 0a${r} ${r} 0 1 0 -${r*2} 0`).join('');
+            const seaP = document.createElementNS(NS, 'path');
+            seaP.setAttribute('d', buildPath(seaDots));
+            seaP.setAttribute('fill', '#7a5c1e');
+            seaP.setAttribute('opacity', '0.18');
+            map.appendChild(seaP);
+            const landP = document.createElementNS(NS, 'path');
+            landP.setAttribute('d', buildPath(landDots));
+            landP.setAttribute('fill', '#c8a428');
+            landP.setAttribute('opacity', '0.85');
+            map.appendChild(landP);
           }
-          const r = 1.2;
-          const buildPath = (pts) => pts.map(([px,py]) => `M${px} ${py}m-${r} 0a${r} ${r} 0 1 0 ${r*2} 0a${r} ${r} 0 1 0 -${r*2} 0`).join('');
-          const seaP = document.createElementNS(NS, 'path');
-          seaP.setAttribute('d', buildPath(seaDots));
-          seaP.setAttribute('fill', '#7a5c1e');
-          seaP.setAttribute('opacity', '0.18');
-          map.appendChild(seaP);
-          const landP = document.createElementNS(NS, 'path');
-          landP.setAttribute('d', buildPath(landDots));
-          landP.setAttribute('fill', '#c8a428');
-          landP.setAttribute('opacity', '0.85');
-          map.appendChild(landP);
+          requestAnimationFrame(processChunk);
         }
 
-        // Defer heavy geometry computation so it doesn't block initial page render
-        if (typeof requestIdleCallback !== 'undefined') {
-          requestIdleCallback(build, { timeout: 2000 });
+        // Só constrói quando a seção do globo está PERTO da viewport — assim
+        // nenhum trabalho roda no load inicial (o globo fica bem abaixo da dobra).
+        const globeSection = map.closest('section') || document.body;
+        let built = false;
+        function trigger() { if (!built) { built = true; build(); } }
+        if ('IntersectionObserver' in window) {
+          const io = new IntersectionObserver((entries, obs) => {
+            if (entries.some(e => e.isIntersecting)) { obs.disconnect(); trigger(); }
+          }, { rootMargin: '800px 0px 800px 0px' });
+          io.observe(globeSection);
         } else {
-          setTimeout(build, 50);
+          setTimeout(trigger, 1200);
         }
       })();
       </script>
