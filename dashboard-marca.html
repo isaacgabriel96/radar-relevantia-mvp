@@ -3648,15 +3648,9 @@ function _updateFavCount() {
 // Aqui ficam só os wrappers/hooks específicos do dashboard.
 let _ffEditingCampanhaId = null;
 
-FF.init({
-  onChange: ffLiveCount,
-  onClear:  () => { ffUpdateBadge(); filterOpportunities(); },
-  onClose:  () => {
-    _ffEditingCampanhaId = null;
-    const saveBtn = document.getElementById('ffSaveCampBtn');
-    if (saveBtn) { saveBtn.textContent = 'Salvar em campanha'; saveBtn.classList.remove('is-update'); }
-  },
-  footer: `
+// Footer padrão do dashboard (Explorar/salvar em campanha). Global para o agente
+// de campanha embutido poder restaurá-lo após usar o filtro no seu próprio contexto.
+const _FF_DASH_FOOTER = `
     <div class="ff-foot-left">
       <button class="ff-clear" onclick="ffClear()">Limpar tudo</button>
       <button class="ff-save-camp" id="ffSaveCampBtn" disabled onclick="ffOpenCampPicker()">
@@ -3664,8 +3658,27 @@ FF.init({
         Salvar em campanha
       </button>
     </div>
-    <button class="ff-apply" id="ffApply" onclick="ffApply()">Ver oportunidades</button>`
-});
+    <button class="ff-apply" id="ffApply" onclick="ffApply()">Ver oportunidades</button>`;
+
+// Hooks padrão do dashboard (Explorar). Global para o agente de campanha restaurar.
+const _FF_DASH_OPTS = {
+  onChange: ffLiveCount,
+  onClear:  () => { ffUpdateBadge(); filterOpportunities(); },
+  onClose:  () => {
+    _ffEditingCampanhaId = null;
+    const saveBtn = document.getElementById('ffSaveCampBtn');
+    if (saveBtn) { saveBtn.textContent = 'Salvar em campanha'; saveBtn.classList.remove('is-update'); }
+  },
+  footer: _FF_DASH_FOOTER
+};
+
+FF.init(_FF_DASH_OPTS);
+
+// Restaura o filtro ao contexto padrão do dashboard (após o agente de campanha usá-lo)
+function _ffRestoreDashContext() {
+  FF._opts = _FF_DASH_OPTS;
+  FF.setFooter(_FF_DASH_FOOTER);
+}
 
 // Botão "Filtros" da página Explorar
 function ffOpen() {
@@ -7393,7 +7406,44 @@ async function loadFinanceiroMarca() {
    ══════════════════════════════════════════════════ */
 (function(){
   const CAM_API_BASE = window.location.protocol === 'file:' ? 'https://radar-relevantia.com.br' : '';
-  let _st = { loading: false, history: [], lastResult: null, pendingOppId: null, editingCampanha: null };
+  let _st = { loading: false, history: [], lastResult: null, pendingOppId: null, editingCampanha: null, filtroManual: false };
+  let _camUltimoFiltro = null; // último filtro do agente OU editado manualmente
+
+  // ── Filtro de oportunidades (módulo FF) — paridade com criar-campanha.html ──
+  function _filtroExplicacaoHtml() {
+    return `<div style="font-size:12px;color:var(--gray-4);margin-top:12px;line-height:1.55">
+      Com base na conversa, montei o <strong>filtro de oportunidades</strong> desta campanha — é por ele que o Radar vai buscar os ativos certos.
+      Você pode <strong>editá-lo direto</strong> no botão abaixo ou me <strong>pedir ajustes</strong> aqui na conversa.
+    </div>`;
+  }
+  function _filtroBtnHtml() {
+    return `<button type="button" onclick="window._camEditarFiltro()"
+      style="display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:9px 14px;background:var(--gold-pale);border:1.5px solid var(--gold-border,rgba(184,134,11,.22));border-radius:100px;font-size:12.5px;font-weight:600;color:var(--brown-warm,#7A5C1E);cursor:pointer;font-family:var(--font-body);transition:all .15s"
+      onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--gold-border,rgba(184,134,11,.22))'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Ver / editar filtro configurado
+    </button>`;
+  }
+  window._camEditarFiltro = function() {
+    const f = _st.lastResult?.filtro || _camUltimoFiltro || { tipo:'todos', sel:{}, toggles:{ incentivo:false, cotas:false } };
+    // Reconfigura o FF para o contexto da campanha em criação; restaura o do dashboard ao fechar
+    FF._opts = {
+      liveCount: null,
+      onApply: (s) => _camOnFiltroApply(s),
+      onClose: () => { if (typeof _ffRestoreDashContext === 'function') _ffRestoreDashContext(); }
+    };
+    FF.setFooter(`<div class="ff-foot-left"><button class="ff-clear" onclick="ffClear()">Limpar tudo</button></div>
+               <button class="ff-apply" onclick="FF.apply()">Aplicar filtro</button>`);
+    FF.open(f);
+  };
+  function _camOnFiltroApply(stateJson) {
+    _camUltimoFiltro = stateJson;
+    _st.filtroManual = true;
+    if (_st.lastResult) _st.lastResult.filtro = stateJson;
+    const card = document.getElementById('cam-result-step');
+    if (_st.lastResult && card && card.style.display !== 'none') _mostrarResult(_st.lastResult);
+    FF.close(); // dispara onClose → restaura contexto do dashboard
+  }
 
   function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function _optText(o){ if(o==null)return''; if(typeof o==='string')return o; if(typeof o==='object')return o.label||o.texto||o.opcao||o.valor||o.value||o.nome||o.l||o.text||o.pergunta||String(o); return String(o); }
@@ -7466,6 +7516,7 @@ async function loadFinanceiroMarca() {
     if(campanha.contexto)html+=`<div style="font-size:12px;color:var(--gray-4);margin-bottom:6px;line-height:1.5"><strong style="color:var(--black)">Contexto:</strong> ${_esc(campanha.contexto)}</div>`;
     if(campanha.definicao_publico)html+=`<div style="font-size:12px;color:var(--gray-4);margin-bottom:8px;line-height:1.5"><strong style="color:var(--black)">Público:</strong> ${_esc(campanha.definicao_publico)}</div>`;
     if(chips.length)html+=`<div class="cam-result-chips">${chips.map(c=>`<span class="cam-result-chip">${_esc(c)}</span>`).join('')}</div>`;
+    if(campanha.filtro || _camUltimoFiltro) html+=_filtroBtnHtml();
     document.getElementById('cam-result-card').innerHTML=html;
     document.getElementById('cam-result-step').style.display='block';
     document.getElementById('cam-input-row').style.display='none';
@@ -7478,13 +7529,20 @@ async function loadFinanceiroMarca() {
     if(!parsed){ _addMsg('agent','<span style="color:#DC2626">❌ Erro. Tente novamente.</span>'); return; }
     let html='';
     if(parsed.resumo)html+=`${_html(parsed.resumo)}<br><br>`;
+    // Captura o filtro do agente (a menos que o usuário já tenha editado manualmente)
+    if(parsed.campanha?.filtro && !_st.filtroManual) _camUltimoFiltro = parsed.campanha.filtro;
+    const temFiltro = !!(parsed.campanha?.filtro || _camUltimoFiltro);
+    // Filtro só aparece quando o agente sinaliza proposta pronta (pronto_filtro) ou concluiu.
+    const mostrarFiltro = temFiltro && (parsed.pronto_filtro || parsed.concluido);
     if(parsed.concluido){
       html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br><span style="font-size:12px;color:#A89880">Revise abaixo e confirme para criar.</span>`;
+      if(mostrarFiltro) html+=_filtroExplicacaoHtml()+_filtroBtnHtml();
       _addMsg('agent',html);
       setTimeout(()=>_mostrarResult(parsed.campanha),300);
       return;
     }
     if(parsed.pergunta)html+=_html(parsed.pergunta);
+    if(mostrarFiltro) html+=_filtroExplicacaoHtml()+_filtroBtnHtml();
     if(parsed.opcoes?.length){
       const mid='cam_opts_'+Date.now();
       const isMulti=!!parsed.multiselect;
@@ -7534,7 +7592,8 @@ async function loadFinanceiroMarca() {
 
   // ── API pública ──────────────────────────────────────────────────
   window.camOpen = function(pendingOppId, existingCampanha){
-    _st={loading:false,history:[],lastResult:null,pendingOppId:pendingOppId||null,editingCampanha:existingCampanha||null};
+    _st={loading:false,history:[],lastResult:null,pendingOppId:pendingOppId||null,editingCampanha:existingCampanha||null,filtroManual:false};
+    _camUltimoFiltro = existingCampanha?.filtros || null; // semeia o filtro ao editar campanha existente
     const ps=document.getElementById('cam-prompt-step');
     const cs=document.getElementById('cam-chat-step');
     ps.style.display='flex'; ps.style.flexDirection='column';
@@ -7658,7 +7717,15 @@ async function loadFinanceiroMarca() {
     const input=document.getElementById('cam-input');
     const text=(input?.value||'').trim(); if(!text)return;
     _showErr(''); input.value=''; input.style.height='auto';
-    _addMsg('user',_html(text)); _st.history.push({role:'user',content:text});
+    _addMsg('user',_html(text));
+    // Se o usuário editou o filtro manualmente, reenvia como contexto para o agente não sobrescrever.
+    let outgoing = text;
+    if (_st.filtroManual && _camUltimoFiltro) {
+      outgoing = `[CAMPANHA EXISTENTE]\nfiltro=${JSON.stringify(_camUltimoFiltro)}\n\n`
+        + `[INSTRUÇÃO] O usuário ajustou o filtro manualmente na interface. Preserve esse filtro, a menos que o pedido abaixo mude explicitamente os critérios.\n\n`
+        + `[PEDIDO DO USUÁRIO]\n${text}`;
+    }
+    _st.history.push({role:'user',content:outgoing});
     _setLoading(true); _addMsg('agent','',true);
     const phases=['🧠 Processando','✦ Ajustando filtros'];
     let pi=0; const pt=setInterval(()=>_phaseUpdate(phases,++pi),3000);
