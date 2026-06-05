@@ -4866,6 +4866,10 @@ function renderContrapartidas(list) {
 
   function cpRowHtml(cp) {
     const statusLabel = cp.status === 'proposta' ? 'Proposta' : cp.status === 'aceita' ? 'Aceita' : 'Recusada';
+    // Autoria: na marca, 'marca' = Você, 'detentor' = Organizador
+    const ehVoce = cp.propostoPor === 'marca';
+    const autorLabel = ehVoce ? 'Você sugeriu' : 'Organizador sugeriu';
+    const autorHtml = `<span class="dl-author${ehVoce ? ' eu' : ''}"><span class="dl-author-dot"></span>${autorLabel}</span>`;
     const canAct = cp.propostoPor === 'detentor' && cp.status === 'proposta';
     let right = `<span class="dl-badge ${cp.status}">${statusLabel}</span>`;
     if (canAct) {
@@ -4876,7 +4880,10 @@ function renderContrapartidas(list) {
     }
     return `<div class="dl-row">
       <span class="dl-icon ${cp.status}"></span>
-      <span class="dl-desc">${escapeHtml(_parseDesc(cp.descricao))}</span>
+      <div class="dl-main">
+        <span class="dl-desc">${escapeHtml(_parseDesc(cp.descricao))}</span>
+        ${autorHtml}
+      </div>
       ${right}
     </div>`;
   }
@@ -6736,17 +6743,21 @@ async function removerMembro(userId) {
 
 .dl-list { border:1.5px solid var(--gray-200); border-radius:8px; overflow:hidden; margin-bottom:8px; }
 .dl-row {
-  display:flex; align-items:center; gap:9px; padding:10px 12px;
+  display:flex; align-items:flex-start; gap:9px; padding:11px 12px;
   background:#fff; border-bottom:1px solid var(--gray-100); transition:background .1s;
 }
 .dl-row:last-child { border-bottom:none; }
 .dl-row:hover { background:var(--gray-50,#FBF8F2); }
-.dl-icon { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.dl-icon { width:6px; height:6px; border-radius:50%; flex-shrink:0; margin-top:5px; }
 .dl-icon.aceita { background:var(--green); }
 .dl-icon.proposta { background:var(--gold); }
 .dl-icon.recusada { background:#DC2626; }
-.dl-desc { flex:1; font-size:13px; color:var(--text); line-height:1.4; }
-.dl-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; flex-shrink:0; }
+.dl-main { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.dl-desc { font-size:13px; color:var(--text); line-height:1.4; }
+.dl-author { font-size:10px; font-weight:600; color:var(--gray-400); display:flex; align-items:center; gap:4px; }
+.dl-author .dl-author-dot { width:4px; height:4px; border-radius:50%; background:currentColor; opacity:.5; }
+.dl-author.eu { color:var(--gold); }
+.dl-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; flex-shrink:0; margin-top:1px; }
 .dl-badge.aceita { background:var(--green-bg); color:var(--green); }
 .dl-badge.proposta { background:#FBF5E6; color:var(--gold); }
 .dl-badge.recusada { background:#FEF2F2; color:#DC2626; }
