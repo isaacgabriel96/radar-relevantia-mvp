@@ -1022,7 +1022,7 @@ tbody tr:last-child td { border-bottom: none; }
 .modal-neg-opp { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
 .modal-neg-close { background: var(--gray-100); border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); flex-shrink: 0; transition: background 0.15s; }
 .modal-neg-close:hover { background: var(--gray-200); color: var(--black); }
-.modal-neg-body { padding: 20px 24px 24px; flex: 1; overflow-y: auto; overflow-x: hidden; }
+.modal-neg-body { padding: 20px 24px 0; flex: 1; overflow-y: auto; overflow-x: hidden; }
 .modal-neg-from { display: flex; align-items: center; gap: 10px; background: var(--gray-1); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; }
 .modal-neg-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--gold-gradient); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--black); flex-shrink: 0; }
 .modal-neg-from-info { display: flex; flex-direction: column; gap: 1px; }
@@ -5412,14 +5412,22 @@ function renderAceitaBadgeDet() {
 }
 
 /* ── Mensagens colapsável ── */
+function _setMsgHintDet(open) {
+  const hint = document.getElementById('mn-msg-hint');
+  if (!hint) return;
+  const cntEl = document.getElementById('mn-msg-count');
+  const cnt = cntEl ? parseInt(cntEl.textContent || '0', 10) : 0;
+  hint.textContent = open ? 'Ocultar' : (cnt > 0 ? 'Ver conversa' : 'Iniciar conversa');
+}
 function toggleNegMsg() {
   const body = document.getElementById('mn-msg-body');
   const chev = document.getElementById('mn-msg-chevron');
   if (!body) return;
-  body.classList.toggle('open');
-  if (chev) chev.classList.toggle('open');
+  const open = body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open', open);
+  _setMsgHintDet(open);
   // Ao abrir, rola a thread para o fim
-  if (body.classList.contains('open')) {
+  if (open) {
     const el = document.getElementById('mn-thread');
     if (el) setTimeout(function(){ el.scrollTop = el.scrollHeight; }, 50);
   }
@@ -5492,6 +5500,7 @@ async function openNegModal(id) {
   const temMsg = n.thread && n.thread.length > 0;
   if (msgBody) msgBody.classList.toggle('open', temMsg);
   if (msgChev) msgChev.classList.toggle('open', temMsg);
+  _setMsgHintDet(temMsg);
 
   // Realtime: mensagens da marca chegam sem precisar recarregar
   if (n._supaId && sb && !isDemoMode()) {
@@ -7470,19 +7479,23 @@ async function removerMembro(userId) {
 /* Mensagens colapsável */
 .neg-msg-toggle {
   display:flex; align-items:center; justify-content:space-between; cursor:pointer;
-  user-select:none; padding:14px 0;
+  user-select:none; padding:14px 20px; margin:0 -20px; border-radius:0;
+  transition:background .15s;
 }
-.neg-msg-toggle:hover .neg-msg-title { color:var(--gold); }
+.neg-msg-toggle:hover { background:var(--gray-50,#FBF8F2); }
+.neg-msg-toggle:hover .neg-msg-title,
+.neg-msg-toggle:hover .neg-msg-chevron { color:var(--gold); }
 .neg-msg-left { display:flex; align-items:center; gap:8px; }
 .neg-msg-title { font-size:13px; font-weight:700; color:var(--gray-600,#4A3D2A); transition:color .15s; }
+.neg-msg-hint { font-size:11px; color:var(--gray-400); font-weight:400; }
 .neg-msg-count {
   font-size:10px; font-weight:800; background:#2563EB; color:#fff;
   padding:2px 7px; border-radius:20px; min-width:22px; text-align:center;
 }
-.neg-msg-chevron { color:var(--gray-400); transition:transform .2s; flex-shrink:0; }
+.neg-msg-chevron { color:var(--gray-400); transition:transform .2s, color .15s; flex-shrink:0; }
 .neg-msg-chevron.open { transform:rotate(180deg); }
 .neg-msg-body { display:none; }
-.neg-msg-body.open { display:block; padding-bottom:4px; }
+.neg-msg-body.open { display:block; padding-bottom:20px; }
 
 /* Modal Como Funciona */
 .how-overlay {
@@ -7668,7 +7681,10 @@ async function removerMembro(userId) {
               <span class="neg-msg-title">Mensagens</span>
               <span class="neg-msg-count" id="mn-msg-count" style="display:none">0</span>
             </div>
-            <svg class="neg-msg-chevron" id="mn-msg-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+            <div style="display:flex;align-items:center;gap:7px">
+              <span class="neg-msg-hint" id="mn-msg-hint">Ver conversa</span>
+              <svg class="neg-msg-chevron" id="mn-msg-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
           </div>
           <div class="neg-msg-body" id="mn-msg-body">
           <span id="mn-msg-label" style="display:none"></span>
