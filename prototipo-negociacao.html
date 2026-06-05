@@ -924,15 +924,17 @@ function setPerspectiva(p) {
   // Switcher visual
   document.getElementById('persp-marca').classList.toggle('active', p === 'marca');
   document.getElementById('persp-detentor').classList.toggle('active', p === 'detentor');
-  // Adapta dados de display
+  // Header sempre mostra a CONTRAPARTE (com quem você está negociando)
   const avatar = document.querySelector('.party-avatar');
   const nameEl = document.getElementById('party-name');
   if (p === 'marca') {
-    avatar.textContent = 'R'; avatar.className = 'party-avatar gold';
-    nameEl.textContent = 'Relevantia';
-  } else {
+    // Marca vê o Detentor
     avatar.textContent = 'C'; avatar.className = 'party-avatar';
     nameEl.textContent = 'Casemiro Sports';
+  } else {
+    // Detentor vê a Marca
+    avatar.textContent = 'R'; avatar.className = 'party-avatar gold';
+    nameEl.textContent = 'Relevantia';
   }
   // Toggle aceita propostas visível só no detentor
   document.getElementById('sec-toggle-aceita').style.display = p === 'detentor' ? '' : 'none';
@@ -1057,13 +1059,15 @@ function setState(s) {
   document.getElementById('prop-section-title').textContent = cfg.propTitle;
   document.getElementById('prop-rodada-badge').style.display = cfg.showRodada ? '' : 'none';
 
-  // Adapta labels do card conforme perspectiva
+  // Adapta labels do card — "enviado por [contraparte]"
   const lbl = document.getElementById('prop-card-label');
   const meta = document.getElementById('prop-card-meta');
-  if (lbl) lbl.textContent = perspectiva === 'marca' ? 'Valor proposto pelo organizador' : 'Valor proposto pela marca';
+  if (lbl) lbl.textContent = perspectiva === 'marca'
+    ? 'Valor proposto por Casemiro Sports'
+    : 'Valor proposto pela Relevantia';
   if (meta) meta.textContent = perspectiva === 'marca'
-    ? 'enviado por Casemiro Sports · hoje às 10h22 · Rodada 2'
-    : 'enviado por Relevantia · hoje às 10h22 · Rodada 2';
+    ? 'Casemiro Sports · hoje às 10h22 · Rodada 2'
+    : 'Relevantia · hoje às 10h22 · Rodada 2';
 
   // Blocos
   document.getElementById('bloco-aguardando-voce').style.display = s === 'aguardando-voce' ? '' : 'none';
