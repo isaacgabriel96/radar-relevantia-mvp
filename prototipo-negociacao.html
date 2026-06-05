@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Relevantia — Protótipo Negociação</title>
+<style>
+:root {
+  --black: #0A0A0A;
+  --white: #FFFFFF;
+  --gold: #C9972C;
+  --gray-50: #F9F9F8;
+  --gray-100: #F2F1EF;
+  --gray-200: #E5E4E1;
+  --gray-300: #C9C7C2;
+  --gray-400: #9B9892;
+  --gray-500: #6B6862;
+  --gray-600: #4A4845;
+  --text: #1A1917;
+  --green: #059669;
+  --green-light: #ECFDF5;
+  --red: #DC2626;
+  --red-light: #FEF2F2;
+  --blue: #2563EB;
+  --blue-light: #EFF6FF;
+  --amber: #D97706;
+  --amber-light: #FFFBEB;
+  --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  --r: 12px;
+  --rs: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: #D8D5CE;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+/* ── SWITCHER ── */
+.switcher {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: rgba(255,255,255,.5);
+  padding: 8px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+}
+.sw-btn {
+  padding: 7px 14px;
+  border-radius: 16px;
+  border: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  background: transparent;
+  color: var(--gray-500);
+}
+.sw-btn.active { background: var(--black); color: var(--white); }
+
+/* ── OVERLAY ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+  padding: 0;
+}
+@media(min-width:600px) { .overlay { align-items: center; padding: 20px; } }
+
+/* ── MODAL ── */
+.modal {
+  background: var(--white);
+  width: 100%;
+  max-width: 500px;
+  max-height: 93vh;
+  border-radius: var(--r) var(--r) 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,.2), 0 4px 20px rgba(0,0,0,.1);
+}
+@media(min-width:600px) { .modal { border-radius: var(--r); max-height: 90vh; } }
+
+/* ── HEADER ── */
+.modal-header {
+  padding: 16px 18px 0;
+  flex-shrink: 0;
+}
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.header-party {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+.party-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--black);
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: -.5px;
+}
+.party-avatar.gold { background: linear-gradient(135deg, #C9972C, #E8B84B); }
+.party-info { min-width: 0; }
+.party-name {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.party-opp {
+  font-size: 11px; color: var(--gray-400);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 1px;
+}
+.header-actions { display: flex; gap: 5px; flex-shrink: 0; }
+.btn-ico {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gray-200);
+  background: var(--gray-50);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 13px; font-weight: 700; color: var(--gray-500);
+  transition: all .15s;
+}
+.btn-ico:hover { background: var(--gray-100); color: var(--text); border-color: var(--gray-300); }
+.btn-ico.close { background: var(--gray-100); border-color: transparent; font-size: 15px; }
+.btn-ico.close:hover { background: var(--gray-200); }
+
+/* Status row */
+.status-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; }
+.status-pill.pendente { background: var(--amber-light); color: var(--amber); }
+.status-pill.pendente .status-dot { background: var(--amber); }
+.status-pill.analise { background: var(--blue-light); color: var(--blue); }
+.status-pill.analise .status-dot { background: var(--blue); }
+.status-pill.aceita { background: var(--green-light); color: var(--green); }
+.status-pill.aceita .status-dot { background: var(--green); }
+.status-hint { font-size: 11px; color: var(--gray-400); }
+
+/* ── TIMELINE ── */
+.timeline {
+  display: flex;
+  padding: 10px 0 14px;
+  border-top: 1px solid var(--gray-100);
+  position: relative;
+}
+.tl-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+}
+.tl-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 10px; left: 50%;
+  width: 100%; height: 1.5px;
+  background: var(--gray-200);
+  z-index: 0;
+}
+.tl-step.done:not(:last-child)::after { background: var(--black); }
+.tl-step.active:not(:last-child)::after {
+  background: linear-gradient(to right, var(--black) 0%, var(--gray-200) 100%);
+}
+.tl-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800;
+  z-index: 1;
+  position: relative;
+  transition: all .2s;
+}
+.tl-step.todo .tl-dot {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  color: var(--gray-400);
+}
+.tl-step.done .tl-dot {
+  background: var(--black);
+  border: 1.5px solid var(--black);
+  color: var(--white);
+}
+.tl-step.active .tl-dot {
+  background: var(--white);
+  border: 2px solid var(--black);
+  color: var(--black);
+  box-shadow: 0 0 0 3px rgba(10,10,10,.1);
+}
+.tl-label {
+  font-size: 9px; font-weight: 600;
+  color: var(--gray-300);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  line-height: 1.2;
+}
+.tl-step.active .tl-label { color: var(--text); font-weight: 800; }
+.tl-step.done .tl-label { color: var(--gray-500); }
+
+/* ── BODY ── */
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 18px;
+}
+.modal-body::-webkit-scrollbar { width: 3px; }
+.modal-body::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+
+/* ── SECTIONS ── */
+.section {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+.section:last-child { border-bottom: none; padding-bottom: 4px; }
+.sec-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.sec-title {
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: var(--gray-400);
+}
+.sec-badge {
+  font-size: 10px; font-weight: 700;
+  background: var(--gray-100); color: var(--gray-500);
+  padding: 2px 7px; border-radius: 20px;
+}
+.sec-badge.rodada { background: var(--black); color: var(--white); }
+
+/* ── PROPOSTA RECEBIDA CARD ── */
+.prop-card {
+  background: var(--gray-50);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--rs);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+.prop-card-label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--gray-400); margin-bottom: 4px;
+}
+.prop-card-valor {
+  font-size: 24px; font-weight: 800;
+  color: var(--text); letter-spacing: -.5px;
+  margin-bottom: 2px;
+}
+.prop-card-meta { font-size: 11px; color: var(--gray-400); }
+
+/* ── ACTION BTNS (aceitar/contrapropor) ── */
+.prop-actions { display: flex; gap: 8px; }
+.btn-accept {
+  flex: 1; padding: 10px;
+  background: var(--green); color: var(--white);
+  border: none; border-radius: var(--rs);
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: var(--font);
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: opacity .15s;
+}
+.btn-accept:hover { opacity: .85; }
+.btn-counter {
+  flex: 1; padding: 10px;
+  background: var(--white); color: var(--text);
+  border: 1.5px solid var(--gray-200); border-radius: var(--rs);
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: var(--font);
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: all .15s;
+}
+.btn-counter:hover { border-color: var(--black); }
+
+/* ── WAITING STATE ── */
+.waiting-card {
+  background: var(--gray-50);
+  border: 1px dashed var(--gray-300);
+  border-radius: var(--rs);
+  padding: 16px;
+  text-align: center;
+}
+.waiting-card-icon { font-size: 20px; margin-bottom: 6px; }
+.waiting-card-label { font-size: 13px; font-weight: 600; color: var(--gray-500); margin-bottom: 2px; }
+.waiting-card-sub { font-size: 11px; color: var(--gray-400); }
+
+/* ── DELIVERABLES ── */
+.dl-list {
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--rs);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.dl-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-100);
+  transition: background .1s;
+}
+.dl-row:last-child { border-bottom: none; }
+.dl-row:hover { background: var(--gray-50); }
+.dl-icon {
+  width: 5px; height: 5px;
+  border-radius: 50%; flex-shrink: 0;
+}
+.dl-icon.aceita { background: var(--green); }
+.dl-icon.proposta { background: var(--amber); }
+.dl-icon.recusada { background: var(--red); }
+.dl-desc { flex: 1; font-size: 13px; color: var(--text); }
+.dl-badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
+}
+.dl-badge.aceita { background: var(--green-light); color: var(--green); }
+.dl-badge.proposta { background: var(--amber-light); color: var(--amber); }
+.dl-badge.recusada { background: var(--red-light); color: var(--red); }
+
+.btn-add-dl {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 9px;
+  background: transparent;
+  border: 1.5px dashed var(--gray-200);
+  border-radius: var(--rs);
+  font-size: 12px; font-weight: 600;
+  color: var(--gray-400);
+  cursor: pointer; font-family: var(--font);
+  transition: all .15s;
+}
+.btn-add-dl:hover { border-color: var(--gray-400); color: var(--text); }
+
+/* ── VALOR INPUT ── */
+.valor-input-section { margin-top: 12px; }
+.valor-label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--gray-400); margin-bottom: 6px;
+}
+.valor-input-wrap {
+  display: flex; align-items: center;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--rs); overflow: hidden;
+  transition: border-color .15s;
+}
+.valor-input-wrap:focus-within { border-color: var(--black); }
+.valor-prefix {
+  padding: 10px 12px;
+  font-size: 13px; font-weight: 700; color: var(--gray-400);
+  background: var(--gray-50);
+  border-right: 1.5px solid var(--gray-200);
+  flex-shrink: 0;
+}
+.valor-input {
+  flex: 1; padding: 10px 12px;
+  font-size: 16px; font-weight: 800; color: var(--text);
+  border: none; outline: none; font-family: var(--font);
+  background: var(--white);
+}
+
+/* ── BTN ENVIAR PROPOSTA ── */
+.btn-enviar-prop {
+  width: 100%; margin-top: 12px;
+  padding: 12px;
+  background: var(--black); color: var(--white);
+  border: none; border-radius: var(--rs);
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: var(--font);
+  transition: opacity .15s;
+}
+.btn-enviar-prop:hover { opacity: .85; }
+
+/* ── COLLAPSIBLE ── */
+.collapsible-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0;
+  cursor: pointer; user-select: none;
+}
+.collapsible-header:hover .coll-title { color: var(--black); }
+.coll-left { display: flex; align-items: center; gap: 8px; }
+.coll-title { font-size: 13px; font-weight: 700; color: var(--gray-600); transition: color .15s; }
+.coll-chevron {
+  color: var(--gray-400);
+  transition: transform .2s;
+  flex-shrink: 0;
+}
+.coll-chevron.open { transform: rotate(180deg); }
+.coll-body { display: none; padding-bottom: 4px; }
+.coll-body.open { display: block; }
+
+/* ── OTHER OPPS ── */
+.opp-cards { display: flex; flex-direction: column; gap: 8px; }
+.opp-card {
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--rs); padding: 12px;
+  transition: all .15s; cursor: default;
+}
+.opp-card:hover { border-color: var(--gray-300); background: var(--gray-50); }
+.opp-card-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.opp-card-meta { font-size: 11px; color: var(--gray-400); margin-top: 2px; margin-bottom: 10px; }
+.opp-card-actions { display: flex; gap: 6px; }
+.opp-card-btn {
+  flex: 1; padding: 8px;
+  border-radius: 7px;
+  font-size: 11px; font-weight: 700;
+  border: 1.5px solid var(--gray-200);
+  background: var(--white); color: var(--text);
+  cursor: pointer; font-family: var(--font);
+  transition: all .15s;
+}
+.opp-card-btn:hover { border-color: var(--gray-400); }
+.opp-card-btn.primary {
+  background: var(--black); color: var(--white);
+  border-color: var(--black);
+}
+.opp-card-btn.primary:hover { opacity: .85; }
+
+/* ── MESSAGES ── */
+.msg-count-pill {
+  font-size: 10px; font-weight: 800;
+  background: var(--blue); color: var(--white);
+  padding: 2px 7px; border-radius: 20px;
+  min-width: 22px; text-align: center;
+}
+.msg-thread {
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+  padding-bottom: 12px;
+  scroll-behavior: smooth;
+}
+.msg-thread::-webkit-scrollbar { width: 3px; }
+.msg-thread::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 4px; }
+.msg-bubble { display: flex; flex-direction: column; max-width: 82%; }
+.msg-bubble.eles { align-self: flex-start; align-items: flex-start; }
+.msg-bubble.eu { align-self: flex-end; align-items: flex-end; }
+.msg-author { font-size: 10px; color: var(--gray-400); margin-bottom: 3px; }
+.msg-text {
+  font-size: 13px; line-height: 1.5;
+  padding: 8px 12px; border-radius: 14px;
+  color: var(--text);
+}
+.msg-bubble.eu .msg-text { background: var(--black); color: var(--white); border-radius: 14px 14px 2px 14px; }
+.msg-bubble.eles .msg-text { background: var(--gray-100); border-radius: 14px 14px 14px 2px; }
+.msg-time { font-size: 9px; color: var(--gray-400); margin-top: 3px; }
+
+.msg-empty { font-size: 12px; color: var(--gray-400); text-align: center; padding: 12px 0 8px; }
+
+.msg-compose-wrap { margin-top: 8px; }
+.msg-textarea {
+  width: 100%;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--rs);
+  padding: 9px 12px;
+  font-size: 13px; font-family: var(--font);
+  resize: none; outline: none; color: var(--text);
+  transition: border-color .15s;
+  line-height: 1.4; background: var(--white);
+}
+.msg-textarea:focus { border-color: var(--black); }
+.msg-compose-footer {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+.msg-hint { font-size: 10px; color: var(--gray-400); }
+.btn-send {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 14px;
+  background: var(--black); color: var(--white);
+  border: none; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  cursor: pointer; font-family: var(--font);
+  transition: opacity .15s;
+}
+.btn-send:hover { opacity: .85; }
+.btn-send:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── FOOTER ── */
+.modal-footer {
+  padding: 12px 18px 18px;
+  border-top: 1px solid var(--gray-100);
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.footer-left { }
+.footer-right { display: flex; gap: 6px; flex: 1; justify-content: flex-end; }
+.btn-encerrar {
+  padding: 9px 12px;
+  background: transparent; color: var(--gray-400);
+  border: 1.5px solid var(--gray-200); border-radius: var(--rs);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: var(--font);
+  transition: all .15s; white-space: nowrap;
+}
+.btn-encerrar:hover { color: var(--red); border-color: #FECACA; background: var(--red-light); }
+.btn-secondary {
+  padding: 9px 12px;
+  background: var(--white); color: var(--text);
+  border: 1.5px solid var(--gray-200); border-radius: var(--rs);
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: var(--font);
+  transition: all .15s; white-space: nowrap;
+}
+.btn-secondary:hover { border-color: var(--black); }
+.btn-primary {
+  padding: 9px 16px;
+  background: var(--black); color: var(--white);
+  border: none; border-radius: var(--rs);
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: var(--font);
+  transition: opacity .15s; white-space: nowrap;
+}
+.btn-primary:hover { opacity: .85; }
+
+/* ── "COMO FUNCIONA" ── */
+.how-modal {
+  background: var(--white);
+  width: 100%; max-width: 420px;
+  border-radius: var(--r);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,.25);
+  max-height: 90vh;
+}
+.how-header {
+  padding: 18px 18px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--gray-100);
+}
+.how-title { font-size: 16px; font-weight: 800; color: var(--text); }
+.how-body { flex: 1; overflow-y: auto; padding: 0 18px; }
+.how-steps { display: flex; flex-direction: column; }
+.how-step {
+  display: flex; gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+.how-step:last-child { border-bottom: none; }
+.how-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; flex-shrink: 0;
+  margin-top: 1px;
+}
+.how-num.n1 { background: #DBEAFE; color: #1D4ED8; }
+.how-num.n2 { background: #D1FAE5; color: #065F46; }
+.how-num.n3 { background: #FEF3C7; color: #92400E; }
+.how-num.n4 { background: #F3E8FF; color: #6D28D9; }
+.how-step-content {}
+.how-step-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.how-step-desc { font-size: 12px; color: var(--gray-500); line-height: 1.55; }
+.how-step-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--gray-100); color: var(--gray-500);
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  margin-top: 7px;
+}
+.how-footer {
+  padding: 14px 18px 18px;
+  border-top: 1px solid var(--gray-100);
+}
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: var(--black); color: var(--white);
+  padding: 9px 18px; border-radius: 20px;
+  font-size: 13px; font-weight: 600; font-family: var(--font);
+  opacity: 0; transition: all .22s;
+  pointer-events: none; z-index: 9999;
+  white-space: nowrap; max-width: 88vw;
+  overflow: hidden; text-overflow: ellipsis;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- STATE SWITCHER -->
+<div class="switcher" id="switcher">
+  <button class="sw-btn active" onclick="setState('aguardando-voce')">Aguardando você</button>
+  <button class="sw-btn" onclick="setState('aguardando-marca')">Aguardando marca</button>
+  <button class="sw-btn" onclick="setState('sem-proposta')">Sem proposta</button>
+  <button class="sw-btn" onclick="setState('aceita')">Deal fechado</button>
+  <button class="sw-btn" onclick="openHow()">❓ Como funciona</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODAL PRINCIPAL — NEGOCIAÇÃO
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-neg">
+  <div class="modal">
+
+    <!-- HEADER -->
+    <div class="modal-header">
+      <div class="header-row">
+        <div class="header-party">
+          <div class="party-avatar gold">R</div>
+          <div class="party-info">
+            <div class="party-name">Relevantia</div>
+            <div class="party-opp" id="opp-name">Casemiro Sports — R$ 200.000</div>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-ico" onclick="openHow()" title="Como funciona a negociação">?</button>
+          <button class="btn-ico close">✕</button>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="status-row">
+        <span class="status-pill pendente" id="status-pill">
+          <span class="status-dot"></span>
+          <span id="status-label">Aguardando você</span>
+        </span>
+        <span class="status-hint" id="status-hint">A marca fez uma proposta — responda abaixo</span>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline">
+        <div class="tl-step active" id="tl-1">
+          <div class="tl-dot">1</div>
+          <div class="tl-label">Negociação</div>
+        </div>
+        <div class="tl-step todo" id="tl-2">
+          <div class="tl-dot">2</div>
+          <div class="tl-label">Formalização</div>
+        </div>
+        <div class="tl-step todo" id="tl-3">
+          <div class="tl-dot">3</div>
+          <div class="tl-label">Pagamento</div>
+        </div>
+        <div class="tl-step todo" id="tl-4">
+          <div class="tl-dot">4</div>
+          <div class="tl-label">Ativação</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="modal-body">
+
+      <!-- ── PROPOSTA (muda conforme estado) ── -->
+      <div class="section" id="sec-proposta">
+        <div class="sec-header">
+          <span class="sec-title" id="prop-section-title">Proposta recebida</span>
+          <span class="sec-badge rodada" id="prop-rodada-badge">Rodada 2</span>
+        </div>
+
+        <!-- Aguardando você → mostra card + aceitar/contrapropor -->
+        <div id="bloco-aguardando-voce">
+          <div class="prop-card">
+            <div class="prop-card-label">Valor proposto pela marca</div>
+            <div class="prop-card-valor">R$ 50.000</div>
+            <div class="prop-card-meta">enviado por Relevantia · hoje às 10h22 · Rodada 2</div>
+          </div>
+          <div class="prop-actions">
+            <button class="btn-accept" onclick="toast('Deal aceito! Avançando para Formalização...')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+              Aceitar proposta
+            </button>
+            <button class="btn-counter" onclick="setState('sem-proposta')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m7 16 4-4-4-4M17 8l-4 4 4 4"/></svg>
+              Contrapropor
+            </button>
+          </div>
+        </div>
+
+        <!-- Aguardando marca → card aguardando -->
+        <div id="bloco-aguardando-marca" style="display:none">
+          <div class="prop-card" style="margin-bottom:0">
+            <div class="prop-card-label">Sua contraproposta enviada</div>
+            <div class="prop-card-valor">R$ 45.000</div>
+            <div class="prop-card-meta">enviado por você · hoje às 11h05 · Rodada 3</div>
+          </div>
+        </div>
+
+        <!-- Sem proposta → formulário de edição -->
+        <div id="bloco-sem-proposta" style="display:none">
+          <div class="valor-input-section">
+            <div class="valor-label">Valor da proposta <span style="font-weight:400;color:var(--gray-300)">(opcional)</span></div>
+            <div class="valor-input-wrap">
+              <div class="valor-prefix">R$</div>
+              <input class="valor-input" type="text" inputmode="numeric" placeholder="0,00" id="valor-input" oninput="maskValor(this)">
+            </div>
+          </div>
+          <button class="btn-enviar-prop" onclick="toast('Proposta enviada! Aguardando resposta da marca.')">Enviar proposta</button>
+        </div>
+
+        <!-- Deal aceito → banner verde -->
+        <div id="bloco-aceita" style="display:none">
+          <div style="background:var(--green-light);border:1.5px solid #A7F3D0;border-radius:var(--rs);padding:14px;text-align:center">
+            <div style="font-size:24px;margin-bottom:6px">🤝</div>
+            <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:2px">Acordo fechado!</div>
+            <div style="font-size:12px;color:#065F46">Valor acordado: <strong>R$ 50.000</strong></div>
+            <div style="font-size:11px;color:var(--green);margin-top:8px">A Relevantia enviará o contrato em breve</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ENTREGAS ── -->
+      <div class="section">
+        <div class="sec-header">
+          <span class="sec-title">Entregas</span>
+          <span class="sec-badge" id="dl-badge">3 itens</span>
+        </div>
+
+        <div class="dl-list">
+          <div class="dl-row">
+            <div class="dl-icon aceita"></div>
+            <div class="dl-desc">Logo na camiseta oficial do evento</div>
+            <span class="dl-badge aceita">Aceita</span>
+          </div>
+          <div class="dl-row">
+            <div class="dl-icon proposta"></div>
+            <div class="dl-desc">Estande 6m² no espaço VIP</div>
+            <span class="dl-badge proposta">Proposta</span>
+          </div>
+          <div class="dl-row">
+            <div class="dl-icon proposta"></div>
+            <div class="dl-desc">3 menções nas redes sociais do evento</div>
+            <span class="dl-badge proposta">Proposta</span>
+          </div>
+        </div>
+
+        <button class="btn-add-dl" id="btn-add-dl" onclick="toast('Sugerir nova entrega — em breve')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Sugerir entrega
+        </button>
+      </div>
+
+      <!-- ── OUTRAS OPORTUNIDADES DO DETENTOR ── -->
+      <div class="section" style="padding-bottom:0;border-bottom:none" id="sec-outras-opps">
+        <div class="collapsible-header" onclick="toggleColl('opps-body','chevron-opps')">
+          <div class="coll-left">
+            <span class="coll-title">Outras oportunidades deste organizador</span>
+            <span class="sec-badge">2 disponíveis</span>
+          </div>
+          <svg class="coll-chevron" id="chevron-opps" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <div class="coll-body" id="opps-body">
+          <div class="opp-cards" style="margin-bottom:14px">
+            <div class="opp-card">
+              <div class="opp-card-name">Festival Verão Nordeste 2026</div>
+              <div class="opp-card-meta">Salvador, BA · Patrocínio até R$ 80.000 · 2 cotas abertas</div>
+              <div class="opp-card-actions">
+                <button class="opp-card-btn" onclick="toast('Abrindo detalhes do festival...')">Ver detalhes</button>
+                <button class="opp-card-btn primary" onclick="toast('Entregas do festival adicionadas à negociação!')">+ Incluir na proposta</button>
+              </div>
+            </div>
+            <div class="opp-card">
+              <div class="opp-card-name">Copa Interestadual de Futsal</div>
+              <div class="opp-card-meta">Recife, PE · Patrocínio até R$ 30.000 · 5 cotas abertas</div>
+              <div class="opp-card-actions">
+                <button class="opp-card-btn" onclick="toast('Abrindo detalhes da copa...')">Ver detalhes</button>
+                <button class="opp-card-btn primary" onclick="toast('Entregas da copa adicionadas à negociação!')">+ Incluir na proposta</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MENSAGENS (collapsible) ── -->
+      <div style="border-top:1px solid var(--gray-100)">
+        <div class="collapsible-header" onclick="toggleColl('msg-body','chevron-msg')">
+          <div class="coll-left">
+            <span class="coll-title">Mensagens</span>
+            <span class="msg-count-pill" id="msg-count">10</span>
+          </div>
+          <svg class="coll-chevron" id="chevron-msg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <div class="coll-body" id="msg-body">
+          <div class="msg-thread" id="msg-thread">
+            <div class="msg-bubble eles">
+              <div class="msg-author">Relevantia</div>
+              <div class="msg-text">Olá! Temos muito interesse neste patrocínio. O evento tem histórico de público relevante para nossa marca.</div>
+              <div class="msg-time">03/06 · 14h22</div>
+            </div>
+            <div class="msg-bubble eu">
+              <div class="msg-author">Você</div>
+              <div class="msg-text">Ótimo! Nosso evento tem crescido 30% ao ano. Podemos conversar sobre as cotas disponíveis?</div>
+              <div class="msg-time">03/06 · 15h10</div>
+            </div>
+            <div class="msg-bubble eles">
+              <div class="msg-author">Relevantia</div>
+              <div class="msg-text">Enviei a proposta atualizada com valor de R$ 50.000 e as entregas revisadas. Aguardo seu retorno!</div>
+              <div class="msg-time">05/06 · 09h45</div>
+            </div>
+          </div>
+          <div class="msg-compose-wrap">
+            <textarea class="msg-textarea" id="msg-input" rows="2"
+              placeholder="Escreva uma mensagem… (Enter para enviar, Shift+Enter para nova linha)"
+              oninput="document.getElementById('btn-send').disabled = !this.value.trim()"
+              onkeydown="handleKey(event)"></textarea>
+            <div class="msg-compose-footer">
+              <span class="msg-hint">Shift+Enter para nova linha</span>
+              <button class="btn-send" id="btn-send" disabled onclick="sendMsg()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                Enviar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+
+    <!-- FOOTER -->
+    <div class="modal-footer" id="modal-footer">
+      <div class="footer-left">
+        <button class="btn-encerrar" id="btn-encerrar" onclick="toast('Para encerrar, confirme no diálogo de segurança.')">Encerrar</button>
+      </div>
+      <div class="footer-right" id="footer-right">
+        <!-- Preenchido pelo JS conforme estado -->
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODAL "COMO FUNCIONA"
+════════════════════════════════════════════ -->
+<div class="overlay" id="modal-how" style="z-index:200;display:none;opacity:0;transition:opacity .2s">
+  <div class="how-modal">
+    <div class="how-header">
+      <div class="how-title">Como funciona</div>
+      <button class="btn-ico close" onclick="closeHow()">✕</button>
+    </div>
+    <div class="how-body">
+      <div class="how-steps">
+        <div class="how-step">
+          <div class="how-num n1">1</div>
+          <div class="how-step-content">
+            <div class="how-step-title">Negociação</div>
+            <div class="how-step-desc">Você e a marca debatem as <strong>entregas</strong> (o que vai ser entregue) e o <strong>valor</strong> do patrocínio. Podem ir e vir quantas rodadas forem necessárias até chegarem a um acordo. Use o chat para alinhar detalhes.</div>
+            <div class="how-step-tag">⏱ Você está aqui agora</div>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-num n2">2</div>
+          <div class="how-step-content">
+            <div class="how-step-title">Formalização</div>
+            <div class="how-step-desc">Após o acordo, a <strong>Relevantia prepara o contrato</strong> com todos os termos acordados e envia para assinatura digital de ambas as partes.</div>
+            <div class="how-step-tag">📄 Relevantia envia o contrato</div>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-num n3">3</div>
+          <div class="how-step-content">
+            <div class="how-step-title">Pagamento</div>
+            <div class="how-step-desc">Com o contrato assinado, o pagamento é processado. Você recebe o <strong>valor líquido</strong> na conta cadastrada, já descontada a taxa da plataforma.</div>
+            <div class="how-step-tag">💳 Taxa da plataforma: 10%</div>
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="how-num n4">4</div>
+          <div class="how-step-content">
+            <div class="how-step-title">Ativação</div>
+            <div class="how-step-desc">Com pagamento confirmado, você executa as entregas acordadas. A Relevantia <strong>acompanha e registra</strong> cada entrega, garantindo transparência para a marca.</div>
+            <div class="how-step-tag">✅ Entregas monitoradas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="how-footer">
+      <button class="btn-primary" style="width:100%;padding:11px" onclick="closeHow()">Entendi, vamos negociar!</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ─── ESTADO ─── */
+const STATES = {
+  'aguardando-voce': {
+    statusClass: 'pendente',
+    statusLabel: 'Aguardando você',
+    statusHint: 'A marca propôs um acordo — responda abaixo',
+    propTitle: 'Proposta recebida',
+    showRodada: true,
+    footer: `
+      <button class="btn-secondary" onclick="setState('sem-proposta')">Contrapropor</button>
+      <button class="btn-primary" onclick="toast('Deal aceito! Avançando para Formalização...')">✓ Aceitar acordo</button>
+    `
+  },
+  'aguardando-marca': {
+    statusClass: 'analise',
+    statusLabel: 'Aguardando marca',
+    statusHint: 'Sua contraproposta foi enviada — aguardando resposta',
+    propTitle: 'Proposta enviada',
+    showRodada: true,
+    footer: `
+      <button class="btn-secondary" onclick="setState('aguardando-voce')">← Voltar</button>
+    `
+  },
+  'sem-proposta': {
+    statusClass: 'pendente',
+    statusLabel: 'Sem proposta',
+    statusHint: 'Defina as entregas e o valor e envie sua proposta',
+    propTitle: 'Sua proposta',
+    showRodada: false,
+    footer: `
+      <button class="btn-secondary" onclick="setState('aguardando-voce')">Cancelar</button>
+      <button class="btn-primary" onclick="setState('aguardando-marca');toast('Proposta enviada! Aguardando a marca.')">Enviar proposta</button>
+    `
+  },
+  'aceita': {
+    statusClass: 'aceita',
+    statusLabel: 'Deal fechado',
+    statusHint: 'Acordo confirmado — próxima etapa: Formalização',
+    propTitle: 'Acordo fechado',
+    showRodada: false,
+    footer: ``
+  }
+};
+
+let currentState = 'aguardando-voce';
+
+function setState(s) {
+  currentState = s;
+  const cfg = STATES[s];
+  if (!cfg) return;
+
+  // Update switcher
+  document.querySelectorAll('.sw-btn').forEach(b => {
+    b.classList.toggle('active', b.getAttribute('onclick')?.includes(s));
+  });
+
+  // Status pill
+  const pill = document.getElementById('status-pill');
+  pill.className = 'status-pill ' + cfg.statusClass;
+  document.getElementById('status-label').textContent = cfg.statusLabel;
+  document.getElementById('status-hint').textContent = cfg.statusHint;
+
+  // Timeline
+  const tl1 = document.getElementById('tl-1');
+  const tl2 = document.getElementById('tl-2');
+  const tl3 = document.getElementById('tl-3');
+  const tl4 = document.getElementById('tl-4');
+  if (s === 'aceita') {
+    tl1.className = 'tl-step done';
+    tl1.querySelector('.tl-dot').textContent = '✓';
+    tl2.className = 'tl-step active';
+    tl3.className = 'tl-step todo';
+    tl4.className = 'tl-step todo';
+  } else {
+    tl1.className = 'tl-step active';
+    tl1.querySelector('.tl-dot').textContent = '1';
+    tl2.className = 'tl-step todo';
+    tl3.className = 'tl-step todo';
+    tl4.className = 'tl-step todo';
+  }
+
+  // Proposta section
+  document.getElementById('prop-section-title').textContent = cfg.propTitle;
+  document.getElementById('prop-rodada-badge').style.display = cfg.showRodada ? '' : 'none';
+
+  // Blocos
+  document.getElementById('bloco-aguardando-voce').style.display = s === 'aguardando-voce' ? '' : 'none';
+  document.getElementById('bloco-aguardando-marca').style.display = s === 'aguardando-marca' ? '' : 'none';
+  document.getElementById('bloco-sem-proposta').style.display = s === 'sem-proposta' ? '' : 'none';
+  document.getElementById('bloco-aceita').style.display = s === 'aceita' ? '' : 'none';
+
+  // Footer
+  document.getElementById('footer-right').innerHTML = cfg.footer || '';
+  const encerrar = document.getElementById('btn-encerrar');
+  if (encerrar) encerrar.style.display = s === 'aceita' ? 'none' : '';
+
+  // Entregas: no estado aceita, sem botão de adicionar
+  document.getElementById('btn-add-dl').style.display = s === 'aceita' ? 'none' : '';
+
+  // Outras opps: apenas quando não aceita
+  document.getElementById('sec-outras-opps').style.display = s === 'aceita' ? 'none' : '';
+}
+
+/* ─── COLLAPSIBLE ─── */
+function toggleColl(bodyId, chevronId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevronId);
+  body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+}
+
+/* ─── MENSAGENS ─── */
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (!document.getElementById('btn-send').disabled) sendMsg();
+  }
+}
+function sendMsg() {
+  const inp = document.getElementById('msg-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  const thread = document.getElementById('msg-thread');
+  const b = document.createElement('div');
+  b.className = 'msg-bubble eu';
+  b.innerHTML = `
+    <div class="msg-author">Você</div>
+    <div class="msg-text">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    <div class="msg-time">agora</div>
+  `;
+  thread.appendChild(b);
+  thread.scrollTop = thread.scrollHeight;
+  inp.value = '';
+  document.getElementById('btn-send').disabled = true;
+  // count
+  const cnt = document.getElementById('msg-count');
+  cnt.textContent = parseInt(cnt.textContent) + 1;
+}
+
+/* ─── VALOR MASK ─── */
+function maskValor(el) {
+  let raw = el.value.replace(/\D/g,'');
+  if (!raw) { el.value = ''; return; }
+  const cents = parseInt(raw, 10);
+  el.value = (cents/100).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+/* ─── COMO FUNCIONA ─── */
+function openHow() {
+  const m = document.getElementById('modal-how');
+  m.style.display = 'flex';
+  requestAnimationFrame(() => { m.style.opacity = '1'; m.style.pointerEvents = 'all'; });
+}
+function closeHow() {
+  const m = document.getElementById('modal-how');
+  m.style.opacity = '0';
+  setTimeout(() => { m.style.display = 'none'; }, 200);
+}
+document.getElementById('modal-how').addEventListener('click', e => { if (e.target === e.currentTarget) closeHow(); });
+
+/* ─── TOAST ─── */
+let _tt;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ─── INIT ─── */
+setState('aguardando-voce');
+</script>
+</body>
+</html>
