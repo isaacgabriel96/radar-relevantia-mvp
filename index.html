@@ -2665,6 +2665,30 @@ br.mobile-only { display: none; }
 }
 
 /* ═══════════════════════════════════════════════
+   PRELOADER — segura a página até tudo estar pronto, revela perfeita.
+   Failsafe: some sozinho via animação CSS mesmo se o JS não rodar (nunca prende).
+   ═══════════════════════════════════════════════ */
+#preloader {
+  position: fixed; inset: 0; z-index: 99999;
+  display: flex; align-items: center; justify-content: center;
+  background: #050300;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+  /* Failsafe: se o JS falhar, o preloader some em 5s de qualquer forma */
+  animation: preloaderFailsafe 0.5s ease 5s forwards;
+}
+#preloader.loaded { opacity: 0; }
+#preloader.hidden { display: none; }
+@keyframes preloaderFailsafe { to { opacity: 0; visibility: hidden; } }
+.preloader-ring {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 3px solid rgba(184,134,11,0.25);
+  border-top-color: #c8a428;
+  animation: preloaderSpin 0.9s linear infinite;
+}
+@keyframes preloaderSpin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════════════
    MOBILE — comprehensive 375–600px overrides
    ═══════════════════════════════════════════════ */
 @media (max-width: 600px) {
@@ -3198,6 +3222,9 @@ br.mobile-only { display: none; }
 </script>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════════════ PRELOADER ═══════════════════════════════════════════════ -->
+<div id="preloader" aria-hidden="true"><div class="preloader-ring"></div></div>
 
 <!-- ═══════════════════════════════════════════════ NAV ═══════════════════════════════════════════════ -->
 <nav class="nav" id="nav">
@@ -4243,6 +4270,43 @@ br.mobile-only { display: none; }
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+/* ═══════════════════════════════════════════════
+   PRELOADER — esconde quando tudo está pronto (fontes + logo + load),
+   para a página aparecer perfeita de uma vez. Com failsafe por timeout.
+   ═══════════════════════════════════════════════ */
+(function() {
+  const pre = document.getElementById('preloader');
+  if (!pre) return;
+  let done = false;
+  function hide() {
+    if (done) return;
+    done = true;
+    pre.classList.add('loaded');
+    setTimeout(() => { pre.classList.add('hidden'); }, 550);
+  }
+
+  const waits = [];
+  // 1) Fontes carregadas (evita texto/medições saltando)
+  if (document.fonts && document.fonts.ready) waits.push(document.fonts.ready.catch(() => {}));
+  // 2) Logo decodificada (era a que "demorava a aparecer")
+  const logo = document.querySelector('.nav-wordmark');
+  if (logo && !(logo.complete && logo.naturalWidth > 0)) {
+    waits.push(new Promise(res => { logo.addEventListener('load', res, { once: true }); logo.addEventListener('error', res, { once: true }); }));
+  }
+  // 3) Todos os recursos da página
+  waits.push(new Promise(res => {
+    if (document.readyState === 'complete') res();
+    else window.addEventListener('load', res, { once: true });
+  }));
+
+  Promise.all(waits).then(() => {
+    // 2 frames extras para o hero/radar pintarem antes de revelar
+    requestAnimationFrame(() => requestAnimationFrame(hide));
+  });
+  // Failsafe: nunca prende o usuário mais que 4s
+  setTimeout(hide, 4000);
+})();
+
 /* ═══════════════════════════════════════════════
    Hero word rotator — creators / músicos / eventos / mídia
    ═══════════════════════════════════════════════ */
