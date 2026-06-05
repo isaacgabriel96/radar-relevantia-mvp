@@ -4593,8 +4593,13 @@ let _modoContrapropostaMarca = false;
 function renderMsgThread(thread) {
   const el = document.getElementById('mp-thread');
   if (!el) return;
-  const lbl = document.getElementById('mp-msg-label');
-  if (lbl) lbl.textContent = thread && thread.length > 0 ? 'Mensagens (' + thread.length + ')' : 'Mensagens';
+  // Contador no toggle colapsável
+  const cnt = document.getElementById('mp-msg-count');
+  if (cnt) {
+    const n = thread ? thread.length : 0;
+    cnt.textContent = n;
+    cnt.style.display = n > 0 ? '' : 'none';
+  }
   if (!thread || thread.length === 0) {
     el.innerHTML = '<div class="msg-empty" style="font-size:12px;color:var(--gray-400);padding:8px 0">Nenhuma mensagem ainda. Inicie a conversa com o organizador.</div>';
     return;
@@ -4609,6 +4614,69 @@ function renderMsgThread(thread) {
   el.scrollTop = el.scrollHeight;
 }
 
+/* ── Timeline do fluxo (marca) ── */
+function renderTimelineMarca(p) {
+  const tl = document.getElementById('mp-timeline');
+  if (!tl || !p) return;
+  let active = 1;
+  if (p.status === 'aceita') {
+    if (p.contrato_validado) active = 3;
+    else active = 2;
+  }
+  tl.querySelectorAll('.tl-step').forEach(function(st) {
+    const num = parseInt(st.getAttribute('data-step'), 10);
+    const dot = st.querySelector('.tl-dot');
+    if (num < active) { st.className = 'tl-step done'; if (dot) dot.textContent = '✓'; }
+    else if (num === active) { st.className = 'tl-step active'; if (dot) dot.textContent = num; }
+    else { st.className = 'tl-step todo'; if (dot) dot.textContent = num; }
+  });
+}
+
+/* ── Badge "organizador aceita contrapropostas" ── */
+function renderAceitaBadgeMarca() {
+  const p = _propostaAtiva;
+  const host = document.getElementById('mp-aceita-contra-badge');
+  const label = document.getElementById('mp-aceita-contra-label');
+  if (!host) return;
+  const vd = p && p.valorDeal;
+  // Mostra quando o organizador enviou e a marca precisa responder (aguardando_marca)
+  const show = vd && vd.status === 'aguardando_marca' && !_modoContrapropostaMarca;
+  host.style.display = show ? 'flex' : 'none';
+  if (!show) return;
+  const aberto = p.aceitaNovasPropostas !== false;
+  host.style.background = aberto ? 'var(--green-bg)' : '#FEF9C3';
+  host.style.border = aberto ? '1px solid var(--green-border)' : '1px solid #FDE68A';
+  const svg = host.querySelector('svg');
+  if (svg) svg.setAttribute('stroke', aberto ? 'var(--green)' : '#92400E');
+  if (label) {
+    label.style.color = aberto ? 'var(--green)' : '#92400E';
+    label.textContent = aberto ? 'O organizador aceita contrapropostas' : 'O organizador não aceita novas propostas';
+  }
+}
+
+/* ── Mensagens colapsável (marca) ── */
+function toggleMarcaMsg() {
+  const body = document.getElementById('mp-msg-body');
+  const chev = document.getElementById('mp-msg-chevron');
+  if (!body) return;
+  body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+  if (body.classList.contains('open')) {
+    const el = document.getElementById('mp-thread');
+    if (el) setTimeout(function(){ el.scrollTop = el.scrollHeight; }, 50);
+  }
+}
+
+/* ── Modal Como Funciona (marca) ── */
+function openHowMarca() {
+  const o = document.getElementById('how-overlay-marca');
+  if (o) o.classList.add('show');
+}
+function closeHowMarca() {
+  const o = document.getElementById('how-overlay-marca');
+  if (o) o.classList.remove('show');
+}
+
 async function openPropostaModal(id) {
   const p = PROPOSTAS.find(x => x.id === id);
   if (!p) return;
@@ -4619,12 +4687,22 @@ async function openPropostaModal(id) {
   document.getElementById('mp-status-wrap').className = 'modal-prop-status ' + p.status;
   document.getElementById('mp-status-label').textContent = p.statusLabel;
   document.getElementById('mp-status-hint').textContent = p.statusHint;
-  // Header compacto da oportunidade
+  // Header: avatar (inicial da oportunidade) + nome
+  const oppAvatar = document.getElementById('mp-opp-avatar');
+  if (oppAvatar) oppAvatar.textContent = (p.opp || '?').charAt(0).toUpperCase();
   document.getElementById('mp-opp-name').textContent = p.opp || 'Oportunidade';
   var oppSub = '';
   if (p.cota) { oppSub += p.cota; if (p.enviadaEm) oppSub += '  ·  '; }
   if (p.enviadaEm) oppSub += p.enviadaEm;
   document.getElementById('mp-opp-sub').textContent = oppSub;
+  // Timeline do fluxo
+  renderTimelineMarca(p);
+  // Mensagens começam colapsadas (abre se já houver conversa)
+  const mpMsgBody = document.getElementById('mp-msg-body');
+  const mpMsgChev = document.getElementById('mp-msg-chevron');
+  const mpTemMsg = p.thread && p.thread.length > 0;
+  if (mpMsgBody) mpMsgBody.classList.toggle('open', mpTemMsg);
+  if (mpMsgChev) mpMsgChev.classList.toggle('open', mpTemMsg);
 
   // Auto-carregar benefícios da cota como contrapartidas (se ainda não existem)
   if (p.cota && (!p.contrapartidas || p.contrapartidas.length === 0) && p.opp_id && !isDemoMode()) {
@@ -5123,20 +5201,9 @@ function _renderValorDealM(p) {
   badge.className   = 'valor-deal-badge-m ' + (vd.status || 'sem_proposta');
   badge.textContent = BADGE_LABEL[vd.status] || 'Sem proposta';
 
-  // Indicador de rodada
-  const rodadaIndicator = document.getElementById('mp-rodada-indicator');
-  const rodadaNum = document.getElementById('mp-rodada-num');
-  const rodadaTxt = document.getElementById('mp-rodada-txt');
-  if (rodadaIndicator && p._rodadas && p._rodadas.length > 0) {
-    const ultimaRodada = p._rodadas[0];
-    const quem = ultimaRodada.proposto_por === 'marca' ? 'Você propôs' : 'Organizador propôs';
-    const val = ultimaRodada.valor ? ' · ' + ('R$ ' + Number(ultimaRodada.valor).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })) : '';
-    if (rodadaNum) rodadaNum.textContent = ultimaRodada.numero;
-    if (rodadaTxt) rodadaTxt.textContent = 'Rodada ' + ultimaRodada.numero + ' · ' + quem + val;
-    rodadaIndicator.style.display = 'flex';
-  } else if (rodadaIndicator) {
-    rodadaIndicator.style.display = 'none';
-  }
+  // Badge "organizador aceita contrapropostas" + timeline
+  renderAceitaBadgeMarca();
+  renderTimelineMarca(p);
 
   // Banner modo contraoferta
   const contraBanner = document.getElementById('mp-contra-banner');
@@ -5204,7 +5271,7 @@ function _renderPropostaEnviada(p) {
   if (fmtVal) {
     if (cps.length > 0) html += '<div style="border-top:1px solid var(--gray-200);margin:10px 0 8px"></div>';
     html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:4px">Valor proposto</div>`;
-    html += `<div style="font-size:15px;font-weight:700;color:var(--text)">${fmtVal}</div>`;
+    html += `<div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.5px">${fmtVal}</div>`;
   }
   html += '</div>';
 
@@ -6590,17 +6657,121 @@ async function removerMembro(userId) {
 }
 </script>
 
+<!-- ═══════════════════ ESTILOS NOVOS: TIMELINE + HEADER + COMO FUNCIONA ═══════════════════ -->
+<style>
+.neg-party { display:flex; align-items:center; gap:11px; min-width:0; flex:1; }
+.neg-party-avatar {
+  width:44px; height:44px; border-radius:10px; flex-shrink:0; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--gray-100); border:1.5px solid var(--gray-200);
+  color:var(--gray-500); font-size:15px; font-weight:800; letter-spacing:-.5px;
+}
+.neg-party-avatar img { width:100%; height:100%; object-fit:cover; }
+.neg-party-avatar.gold { background:var(--gold-gradient); border-color:var(--gold); color:#fff; }
+.neg-party-name {
+  font-size:16px; font-weight:800; color:var(--text); letter-spacing:-.2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.neg-head-actions { display:flex; gap:6px; flex-shrink:0; }
+.neg-ico-btn {
+  width:30px; height:30px; border-radius:50%; border:1.5px solid var(--gray-200);
+  background:var(--gray-50,#FBF8F2); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:14px; font-weight:700; color:var(--gray-500); transition:all .15s;
+  font-family:var(--font-body);
+}
+.neg-ico-btn:hover { background:var(--gray-100); color:var(--text); border-color:var(--gray-400); }
+
+.neg-timeline { display:flex; padding:12px 0 6px; position:relative; }
+.tl-step { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; position:relative; }
+.tl-step:not(:last-child)::after {
+  content:''; position:absolute; top:10px; left:50%; width:100%; height:1.5px;
+  background:var(--gray-200); z-index:0;
+}
+.tl-step.done:not(:last-child)::after { background:var(--gold); }
+.tl-step.active:not(:last-child)::after { background:linear-gradient(to right,var(--gold) 0%,var(--gray-200) 100%); }
+.tl-dot {
+  width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:9px; font-weight:800; z-index:1; position:relative; transition:all .2s;
+}
+.tl-step.todo .tl-dot { background:#fff; border:1.5px solid var(--gray-200); color:var(--gray-400); }
+.tl-step.done .tl-dot { background:var(--gold); border:1.5px solid var(--gold); color:#fff; }
+.tl-step.active .tl-dot { background:#fff; border:2px solid var(--gold); color:var(--gold); box-shadow:0 0 0 3px rgba(184,134,11,.15); }
+.tl-label {
+  font-size:9px; font-weight:600; color:var(--gray-300,#C8BCA8); text-align:center;
+  text-transform:uppercase; letter-spacing:.04em; line-height:1.2;
+}
+.tl-step.active .tl-label { color:var(--gold); font-weight:800; }
+.tl-step.done .tl-label { color:var(--gray-500); }
+
+.aceita-contra-badge {
+  display:flex; align-items:center; gap:6px; padding:7px 10px; margin-top:10px;
+  border-radius:8px;
+}
+.aceita-contra-badge svg { flex-shrink:0; }
+.aceita-contra-badge span { font-size:11px; font-weight:600; }
+
+.neg-msg-toggle {
+  display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+  user-select:none; padding:14px 0;
+}
+.neg-msg-toggle:hover .neg-msg-title { color:var(--gold); }
+.neg-msg-left { display:flex; align-items:center; gap:8px; }
+.neg-msg-title { font-size:13px; font-weight:700; color:var(--gray-600,#5C4C38); transition:color .15s; }
+.neg-msg-count {
+  font-size:10px; font-weight:800; background:var(--gold); color:#fff;
+  padding:2px 7px; border-radius:20px; min-width:22px; text-align:center;
+}
+.neg-msg-chevron { color:var(--gray-400); transition:transform .2s; flex-shrink:0; }
+.neg-msg-chevron.open { transform:rotate(180deg); }
+.neg-msg-body { display:none; }
+.neg-msg-body.open { display:block; padding-bottom:4px; }
+
+.how-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:700;
+  display:none; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity .2s;
+}
+.how-overlay.show { display:flex; opacity:1; }
+.how-modal {
+  background:#fff; width:100%; max-width:420px; border-radius:14px; overflow:hidden;
+  display:flex; flex-direction:column; max-height:90vh; box-shadow:0 32px 80px rgba(0,0,0,.25);
+}
+.how-head { padding:18px 18px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--gray-100); }
+.how-title { font-size:16px; font-weight:800; color:var(--text); }
+.how-body { flex:1; overflow-y:auto; padding:0 18px; }
+.how-step { display:flex; gap:14px; padding:16px 0; border-bottom:1px solid var(--gray-100); }
+.how-step:last-child { border-bottom:none; }
+.how-num { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; margin-top:1px; }
+.how-num.n1 { background:#FBF5E6; color:var(--gold); }
+.how-num.n2 { background:#D1FAE5; color:#065F46; }
+.how-num.n3 { background:#FEF3C7; color:#92400E; }
+.how-num.n4 { background:#F3E8FF; color:#6D28D9; }
+.how-step-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.how-step-desc { font-size:12px; color:var(--gray-500); line-height:1.55; }
+.how-step-tag { display:inline-flex; align-items:center; gap:4px; background:var(--gray-100); color:var(--gray-500); font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; margin-top:7px; }
+.how-foot { padding:14px 18px 18px; border-top:1px solid var(--gray-100); }
+.how-foot-btn { width:100%; padding:11px; background:var(--black); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font-body); }
+</style>
+
 <!-- MODAL DETALHES DA PROPOSTA -->
 <div class="modal-overlay" id="modal-proposta" onclick="if(event.target===this)closePropostaModal()">
   <div class="modal-prop">
     <div class="modal-prop-header">
-      <div>
-        <div class="modal-prop-title">Detalhes da proposta</div>
-        <div class="modal-prop-opp" id="mp-opp"></div>
+      <div class="neg-party">
+        <div class="neg-party-avatar gold" id="mp-opp-avatar"></div>
+        <div style="min-width:0">
+          <div class="neg-party-name" id="mp-opp-name"></div>
+        </div>
       </div>
-      <button class="modal-prop-close" onclick="closePropostaModal()">✕</button>
+      <div class="neg-head-actions">
+        <button class="neg-ico-btn" onclick="openHowMarca()" title="Como funciona a negociação">?</button>
+        <button class="neg-ico-btn" onclick="closePropostaModal()" style="font-size:16px">✕</button>
+      </div>
     </div>
     <div class="modal-prop-body">
+
+      <!-- compat: ids antigos ocultos -->
+      <span id="mp-opp" style="display:none"></span>
+      <span id="mp-opp-sub" style="display:none"></span>
 
       <!-- Status + detalhes (sempre visível) -->
       <div class="modal-prop-status" id="mp-status-wrap">
@@ -6609,21 +6780,21 @@ async function removerMembro(userId) {
         <span class="modal-prop-status-hint" id="mp-status-hint"></span>
       </div>
 
-      <div class="mp-opp-header" id="mp-opp-header">
-        <div class="mp-opp-name" id="mp-opp-name"></div>
-        <div class="mp-opp-sub" id="mp-opp-sub"></div>
-      </div>
-
-      <!-- Banner: aceita novas propostas -->
+      <!-- Banner: aceita novas propostas (compat, oculto) -->
       <div id="mp-aceita-banner" class="aceita-propostas-banner sim" style="display:none"></div>
 
-      <!-- Indicador de rodada de negociação -->
-      <div id="mp-rodada-indicator" style="display:none;font-size:11px;color:var(--gray-400);margin:4px 0 0;align-items:center;gap:6px">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--gray-200);font-size:9px;font-weight:700;color:var(--gray-500)" id="mp-rodada-num">1</span>
-        <span id="mp-rodada-txt"></span>
+      <!-- Timeline do fluxo -->
+      <div class="neg-timeline" id="mp-timeline">
+        <div class="tl-step active" data-step="1"><div class="tl-dot">1</div><div class="tl-label">Negociação</div></div>
+        <div class="tl-step todo" data-step="2"><div class="tl-dot">2</div><div class="tl-label">Formalização</div></div>
+        <div class="tl-step todo" data-step="3"><div class="tl-dot">3</div><div class="tl-label">Pagamento</div></div>
+        <div class="tl-step todo" data-step="4"><div class="tl-dot">4</div><div class="tl-label">Ativação</div></div>
       </div>
 
       <hr class="modal-prop-divider">
+
+      <!-- compat: indicador de rodada antigo (oculto) -->
+      <span id="mp-rodada-indicator" style="display:none"><span id="mp-rodada-num"></span><span id="mp-rodada-txt"></span></span>
 
       <!-- PAINEL ÚNICO: Proposta + Mensagens -->
       <div data-panel="proposta">
@@ -6637,6 +6808,12 @@ async function removerMembro(userId) {
 
           <!-- BLOCO A: Proposta enviada (snapshot read-only) -->
           <div id="mp-proposta-enviada" style="display:none"></div>
+
+          <!-- Badge: organizador aberto a contrapropostas -->
+          <div class="aceita-contra-badge" id="mp-aceita-contra-badge" style="display:none">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            <span id="mp-aceita-contra-label">O organizador aceita contrapropostas</span>
+          </div>
 
           <!-- BLOCO B: Edição / Nova proposta -->
           <div id="mp-proposta-edit">
@@ -6716,9 +6893,17 @@ async function removerMembro(userId) {
           </div>
         </div>
 
-        <!-- ── Mensagens inline ── -->
-        <div style="border-top:1px solid var(--gray-200);margin:16px -20px 0;padding:16px 20px 0">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px" id="mp-msg-label">Mensagens</div>
+        <!-- ── Mensagens (colapsável) ── -->
+        <div style="border-top:1px solid var(--gray-200);margin:16px -20px 0;padding:0 20px">
+          <div class="neg-msg-toggle" onclick="toggleMarcaMsg()">
+            <div class="neg-msg-left">
+              <span class="neg-msg-title">Mensagens</span>
+              <span class="neg-msg-count" id="mp-msg-count" style="display:none">0</span>
+            </div>
+            <svg class="neg-msg-chevron" id="mp-msg-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="neg-msg-body" id="mp-msg-body">
+          <span id="mp-msg-label" style="display:none"></span>
           <div class="msg-thread" id="mp-thread" style="max-height:200px"></div>
           <div class="msg-compose" style="margin-top:10px">
             <textarea
@@ -6736,11 +6921,59 @@ async function removerMembro(userId) {
               </button>
             </div>
           </div>
+          </div><!-- /neg-msg-body -->
         </div>
 
         <div class="modal-deal-footer" id="mp-deal-footer"></div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL COMO FUNCIONA (MARCA) ═══════════════════ -->
+<div class="how-overlay" id="how-overlay-marca" onclick="if(event.target===this)closeHowMarca()">
+  <div class="how-modal">
+    <div class="how-head">
+      <div class="how-title">Como funciona</div>
+      <button class="neg-ico-btn" onclick="closeHowMarca()" style="font-size:16px">✕</button>
+    </div>
+    <div class="how-body">
+      <div class="how-step">
+        <div class="how-num n1">1</div>
+        <div>
+          <div class="how-step-title">Negociação</div>
+          <div class="how-step-desc">Você e o organizador debatem as <strong>entregas</strong> e o <strong>valor</strong> do patrocínio. Podem trocar quantas rodadas forem necessárias até chegar a um acordo. Use o chat para alinhar detalhes.</div>
+          <div class="how-step-tag">⏱ Você está aqui agora</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num n2">2</div>
+        <div>
+          <div class="how-step-title">Formalização</div>
+          <div class="how-step-desc">Após o acordo, a <strong>Relevantia prepara o contrato</strong> com os termos acordados e envia para assinatura digital de ambas as partes.</div>
+          <div class="how-step-tag">📄 Relevantia envia o contrato</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num n3">3</div>
+        <div>
+          <div class="how-step-title">Pagamento</div>
+          <div class="how-step-desc">Com o contrato assinado, você realiza o pagamento pela plataforma de forma <strong>segura e rastreável</strong>. O valor fica protegido até a confirmação.</div>
+          <div class="how-step-tag">💳 Pagamento protegido</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num n4">4</div>
+        <div>
+          <div class="how-step-title">Ativação</div>
+          <div class="how-step-desc">Com pagamento confirmado, o organizador executa as entregas acordadas. A Relevantia <strong>acompanha e registra</strong> cada entrega, garantindo que tudo seja cumprido.</div>
+          <div class="how-step-tag">✅ Entregas monitoradas</div>
+        </div>
+      </div>
+    </div>
+    <div class="how-foot">
+      <button class="how-foot-btn" onclick="closeHowMarca()">Entendi, vamos negociar!</button>
     </div>
   </div>
 </div>

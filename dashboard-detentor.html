@@ -5342,8 +5342,13 @@ let _prefilledCpIds = [];         // IDs das entregas pré-aceitas pelo prefill 
 function renderNegThread(thread) {
   const el = document.getElementById('mn-thread');
   if (!el) return;
-  const lbl = document.getElementById('mn-msg-label');
-  if (lbl) lbl.textContent = thread && thread.length > 0 ? 'Mensagens (' + thread.length + ')' : 'Mensagens';
+  // Contador no toggle colapsável
+  const cnt = document.getElementById('mn-msg-count');
+  if (cnt) {
+    const n = thread ? thread.length : 0;
+    cnt.textContent = n;
+    cnt.style.display = n > 0 ? '' : 'none';
+  }
   if (!thread || thread.length === 0) {
     el.innerHTML = '<div class="msg-empty" style="font-size:12px;color:var(--gray-400);padding:8px 0">Nenhuma mensagem ainda. Inicie a conversa com a marca.</div>';
     return;
@@ -5356,6 +5361,59 @@ function renderNegThread(thread) {
     </div>
   `).join('');
   el.scrollTop = el.scrollHeight;
+}
+
+/* ── Timeline do fluxo (Negociação → Formalização → Pagamento → Ativação) ── */
+function renderTimelineDet(n) {
+  const tl = document.getElementById('mn-timeline');
+  if (!tl || !n) return;
+  // Determina o passo ativo conforme estado do deal
+  // 1=Negociação (default), 2=Formalização (aceita, sem contrato validado), 3=Pagamento (contrato validado), 4=Ativação
+  let active = 1;
+  if (n.status === 'aceita') {
+    if (n.contrato_validado) active = 3;
+    else active = 2;
+  }
+  const steps = tl.querySelectorAll('.tl-step');
+  steps.forEach(function(st) {
+    const num = parseInt(st.getAttribute('data-step'), 10);
+    const dot = st.querySelector('.tl-dot');
+    if (num < active) { st.className = 'tl-step done'; if (dot) dot.textContent = '✓'; }
+    else if (num === active) { st.className = 'tl-step active'; if (dot) dot.textContent = num; }
+    else { st.className = 'tl-step todo'; if (dot) dot.textContent = num; }
+  });
+}
+
+/* ── Badge "aceita contrapropostas" ──
+   No detentor é redundante (ele já tem o toggle "Aceitar novas propostas"
+   logo acima), então fica sempre oculto. Mantido apenas na vista da marca. */
+function renderAceitaBadgeDet() {
+  const host = document.getElementById('mn-aceita-contra-badge');
+  if (host) host.style.display = 'none';
+}
+
+/* ── Mensagens colapsável ── */
+function toggleNegMsg() {
+  const body = document.getElementById('mn-msg-body');
+  const chev = document.getElementById('mn-msg-chevron');
+  if (!body) return;
+  body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+  // Ao abrir, rola a thread para o fim
+  if (body.classList.contains('open')) {
+    const el = document.getElementById('mn-thread');
+    if (el) setTimeout(function(){ el.scrollTop = el.scrollHeight; }, 50);
+  }
+}
+
+/* ── Modal Como Funciona ── */
+function openHowDet() {
+  const o = document.getElementById('how-overlay-det');
+  if (o) o.classList.add('show');
+}
+function closeHowDet() {
+  const o = document.getElementById('how-overlay-det');
+  if (o) o.classList.remove('show');
 }
 
 async function openNegModal(id) {
@@ -5407,6 +5465,14 @@ async function openNegModal(id) {
   renderContrapartidasDet(n.contrapartidas || []);
   renderValorDeal();
   renderHistoricoRodadas();
+  renderTimelineDet(n);
+
+  // Mensagens começam colapsadas (abre só se houver conversa)
+  const msgBody = document.getElementById('mn-msg-body');
+  const msgChev = document.getElementById('mn-msg-chevron');
+  const temMsg = n.thread && n.thread.length > 0;
+  if (msgBody) msgBody.classList.toggle('open', temMsg);
+  if (msgChev) msgChev.classList.toggle('open', temMsg);
 
   // Realtime: mensagens da marca chegam sem precisar recarregar
   if (n._supaId && sb && !isDemoMode()) {
@@ -5726,20 +5792,8 @@ function renderValorDeal() {
   };
   if (badge) { badge.textContent = badgeLabels[vd.status] || ''; badge.className = 'valor-deal-badge ' + vd.status; }
 
-  // Indicador de rodada
-  const rodadaIndicator = document.getElementById('mn-rodada-indicator');
-  const rodadaNum = document.getElementById('mn-rodada-num');
-  const rodadaTxt = document.getElementById('mn-rodada-txt');
-  if (rodadaIndicator && n._rodadas && n._rodadas.length > 0) {
-    const ultimaRodada = n._rodadas[0];
-    const quem = ultimaRodada.proposto_por === 'detentor' ? 'Você propôs' : 'Marca propôs';
-    const val = ultimaRodada.valor ? ' · ' + _fmtValor(ultimaRodada.valor) : '';
-    if (rodadaNum) rodadaNum.textContent = ultimaRodada.numero;
-    if (rodadaTxt) rodadaTxt.textContent = 'Rodada ' + ultimaRodada.numero + ' · ' + quem + val;
-    rodadaIndicator.style.display = 'flex';
-  } else if (rodadaIndicator) {
-    rodadaIndicator.style.display = 'none';
-  }
+  // Badge "marca aberta a contrapropostas"
+  renderAceitaBadgeDet();
 
   // Banner contraproposta
   const contraBanner = document.getElementById('mn-contra-banner');
@@ -5812,7 +5866,7 @@ function _renderPropostaEnviadaDet(n) {
   if (fmtVal) {
     if (cps.length > 0) html += '<div style="border-top:1px solid var(--gray-200);margin:10px 0 8px"></div>';
     html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:4px">Valor ${aguardandoDet ? 'proposto pela marca' : 'proposto'}</div>`;
-    html += `<div style="font-size:15px;font-weight:700;color:var(--text)">${fmtVal}</div>`;
+    html += `<div style="font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.5px">${fmtVal}</div>`;
   }
   html += '</div>';
 
@@ -7306,19 +7360,128 @@ async function removerMembro(userId) {
   </div>
 </div>
 
+<!-- ═══════════════════ ESTILOS NOVOS: TIMELINE + HEADER + COMO FUNCIONA ═══════════════════ -->
+<style>
+/* Header contraparte (tile quadrado, como em configurações) */
+.neg-party { display:flex; align-items:center; gap:11px; min-width:0; flex:1; }
+.neg-party-avatar {
+  width:44px; height:44px; border-radius:10px; flex-shrink:0; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--gray-100); border:1.5px solid var(--gray-200);
+  color:var(--gray-500); font-size:15px; font-weight:800; letter-spacing:-.5px;
+}
+.neg-party-avatar img { width:100%; height:100%; object-fit:cover; }
+.neg-party-avatar.gold { background:var(--gold-gradient); border-color:var(--gold); color:#fff; }
+.neg-party-name {
+  font-size:16px; font-weight:800; color:var(--text); letter-spacing:-.2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.neg-head-actions { display:flex; gap:6px; flex-shrink:0; }
+.neg-ico-btn {
+  width:30px; height:30px; border-radius:50%; border:1.5px solid var(--gray-200);
+  background:var(--gray-50,#FBF8F2); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:14px; font-weight:700; color:var(--gray-500); transition:all .15s;
+  font-family:var(--font-body);
+}
+.neg-ico-btn:hover { background:var(--gray-100); color:var(--text); border-color:var(--gray-400); }
+
+/* Timeline 4 passos */
+.neg-timeline { display:flex; padding:12px 0 6px; position:relative; }
+.tl-step { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; position:relative; }
+.tl-step:not(:last-child)::after {
+  content:''; position:absolute; top:10px; left:50%; width:100%; height:1.5px;
+  background:var(--gray-200); z-index:0;
+}
+.tl-step.done:not(:last-child)::after { background:var(--gold); }
+.tl-step.active:not(:last-child)::after { background:linear-gradient(to right,var(--gold) 0%,var(--gray-200) 100%); }
+.tl-dot {
+  width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:9px; font-weight:800; z-index:1; position:relative; transition:all .2s;
+}
+.tl-step.todo .tl-dot { background:#fff; border:1.5px solid var(--gray-200); color:var(--gray-400); }
+.tl-step.done .tl-dot { background:var(--gold); border:1.5px solid var(--gold); color:#fff; }
+.tl-step.active .tl-dot { background:#fff; border:2px solid var(--gold); color:var(--gold); box-shadow:0 0 0 3px rgba(184,134,11,.15); }
+.tl-label {
+  font-size:9px; font-weight:600; color:var(--gray-300,#C9C0B0); text-align:center;
+  text-transform:uppercase; letter-spacing:.04em; line-height:1.2;
+}
+.tl-step.active .tl-label { color:var(--gold); font-weight:800; }
+.tl-step.done .tl-label { color:var(--gray-500); }
+
+/* Badge aceita contrapropostas */
+.aceita-contra-badge {
+  display:flex; align-items:center; gap:6px; padding:7px 10px; margin-top:10px;
+  background:var(--green-bg); border:1px solid var(--green-border); border-radius:8px;
+}
+.aceita-contra-badge svg { flex-shrink:0; }
+.aceita-contra-badge span { font-size:11px; font-weight:600; }
+
+/* Mensagens colapsável */
+.neg-msg-toggle {
+  display:flex; align-items:center; justify-content:space-between; cursor:pointer;
+  user-select:none; padding:14px 0;
+}
+.neg-msg-toggle:hover .neg-msg-title { color:var(--gold); }
+.neg-msg-left { display:flex; align-items:center; gap:8px; }
+.neg-msg-title { font-size:13px; font-weight:700; color:var(--gray-600,#4A3D2A); transition:color .15s; }
+.neg-msg-count {
+  font-size:10px; font-weight:800; background:var(--gold); color:#fff;
+  padding:2px 7px; border-radius:20px; min-width:22px; text-align:center;
+}
+.neg-msg-chevron { color:var(--gray-400); transition:transform .2s; flex-shrink:0; }
+.neg-msg-chevron.open { transform:rotate(180deg); }
+.neg-msg-body { display:none; }
+.neg-msg-body.open { display:block; padding-bottom:4px; }
+
+/* Modal Como Funciona */
+.how-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:700;
+  display:none; align-items:center; justify-content:center; padding:20px; opacity:0; transition:opacity .2s;
+}
+.how-overlay.show { display:flex; opacity:1; }
+.how-modal {
+  background:#fff; width:100%; max-width:420px; border-radius:14px; overflow:hidden;
+  display:flex; flex-direction:column; max-height:90vh; box-shadow:0 32px 80px rgba(0,0,0,.25);
+}
+.how-head { padding:18px 18px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--gray-100); }
+.how-title { font-size:16px; font-weight:800; color:var(--text); }
+.how-body { flex:1; overflow-y:auto; padding:0 18px; }
+.how-step { display:flex; gap:14px; padding:16px 0; border-bottom:1px solid var(--gray-100); }
+.how-step:last-child { border-bottom:none; }
+.how-num { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; margin-top:1px; }
+.how-num.n1 { background:#FBF5E6; color:var(--gold); }
+.how-num.n2 { background:#D1FAE5; color:#065F46; }
+.how-num.n3 { background:#FEF3C7; color:#92400E; }
+.how-num.n4 { background:#F3E8FF; color:#6D28D9; }
+.how-step-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.how-step-desc { font-size:12px; color:var(--gray-500); line-height:1.55; }
+.how-step-tag { display:inline-flex; align-items:center; gap:4px; background:var(--gray-100); color:var(--gray-500); font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; margin-top:7px; }
+.how-foot { padding:14px 18px 18px; border-top:1px solid var(--gray-100); }
+.how-foot-btn { width:100%; padding:11px; background:var(--black); color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font-body); }
+</style>
+
 <!-- ═══════════════════ MODAL NEGOCIAÇÃO (DETENTOR) ═══════════════════ -->
 <div class="modal-overlay-det" id="modal-neg" onclick="if(event.target===this)closeNegModal()">
   <div class="modal-neg">
 
     <div class="modal-neg-header">
-      <div>
-        <div class="modal-neg-title">Detalhes da Negociação</div>
-        <div class="modal-neg-opp" id="mn-marca"></div>
+      <div class="neg-party">
+        <div class="neg-party-avatar gold" id="mn-brand-avatar"></div>
+        <div style="min-width:0">
+          <div class="neg-party-name" id="mn-brand-name"></div>
+        </div>
       </div>
-      <button class="modal-close-det" onclick="closeNegModal()">✕</button>
+      <div class="neg-head-actions">
+        <button class="neg-ico-btn" onclick="openHowDet()" title="Como funciona a negociação">?</button>
+        <button class="neg-ico-btn" onclick="closeNegModal()" style="font-size:16px">✕</button>
+      </div>
     </div>
 
     <div class="modal-neg-body">
+
+      <!-- compat: ids antigos mantidos ocultos -->
+      <span id="mn-marca" style="display:none"></span>
+      <span id="mn-brand-sub" style="display:none"></span>
 
       <!-- Status badge + detalhes (sempre visíveis) -->
       <div class="modal-neg-status" id="mn-status-wrap">
@@ -7327,18 +7490,12 @@ async function removerMembro(userId) {
         <span class="modal-neg-status-hint" id="mn-status-hint"></span>
       </div>
 
-      <!-- Indicador de rodada de negociação -->
-      <div id="mn-rodada-indicator" style="display:none;font-size:11px;color:var(--gray-400);margin:4px 0 0;align-items:center;gap:6px">
-        <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--gray-200);font-size:9px;font-weight:700;color:var(--gray-500)" id="mn-rodada-num">1</span>
-        <span id="mn-rodada-txt"></span>
-      </div>
-
-      <div class="mn-brand-header" id="mn-brand-header">
-        <div class="mn-brand-avatar" id="mn-brand-avatar"></div>
-        <div class="mn-brand-info">
-          <div class="mn-brand-name" id="mn-brand-name"></div>
-          <div class="mn-brand-sub" id="mn-brand-sub"></div>
-        </div>
+      <!-- Timeline do fluxo -->
+      <div class="neg-timeline" id="mn-timeline">
+        <div class="tl-step active" data-step="1"><div class="tl-dot">1</div><div class="tl-label">Negociação</div></div>
+        <div class="tl-step todo" data-step="2"><div class="tl-dot">2</div><div class="tl-label">Formalização</div></div>
+        <div class="tl-step todo" data-step="3"><div class="tl-dot">3</div><div class="tl-label">Pagamento</div></div>
+        <div class="tl-step todo" data-step="4"><div class="tl-dot">4</div><div class="tl-label">Ativação</div></div>
       </div>
 
       <hr class="modal-neg-divider">
@@ -7376,6 +7533,12 @@ async function removerMembro(userId) {
 
           <!-- BLOCO A: Read-only (proposta enviada ou recebida) -->
           <div id="mn-proposta-enviada" style="display:none"></div>
+
+          <!-- Badge: marca aberta a contrapropostas -->
+          <div class="aceita-contra-badge" id="mn-aceita-contra-badge" style="display:none">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+            <span style="color:var(--green)">A marca está aberta a contrapropostas</span>
+          </div>
 
           <!-- BLOCO B: Edição / Nova proposta -->
           <div id="mn-proposta-edit">
@@ -7455,9 +7618,17 @@ async function removerMembro(userId) {
           </div>
         </div>
 
-        <!-- ── Mensagens inline ── -->
-        <div style="border-top:1px solid var(--gray-200);margin:16px -20px 0;padding:16px 20px 0">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px" id="mn-msg-label">Mensagens</div>
+        <!-- ── Mensagens (colapsável) ── -->
+        <div style="border-top:1px solid var(--gray-200);margin:16px -20px 0;padding:0 20px">
+          <div class="neg-msg-toggle" onclick="toggleNegMsg()">
+            <div class="neg-msg-left">
+              <span class="neg-msg-title">Mensagens</span>
+              <span class="neg-msg-count" id="mn-msg-count" style="display:none">0</span>
+            </div>
+            <svg class="neg-msg-chevron" id="mn-msg-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="neg-msg-body" id="mn-msg-body">
+          <span id="mn-msg-label" style="display:none"></span>
           <div class="msg-thread" id="mn-thread" style="max-height:200px"></div>
           <div class="msg-compose-det" style="margin-top:10px">
             <textarea
@@ -7475,6 +7646,7 @@ async function removerMembro(userId) {
               </button>
             </div>
           </div>
+          </div><!-- /neg-msg-body -->
         </div>
 
         <div class="modal-deal-footer">
@@ -7483,6 +7655,53 @@ async function removerMembro(userId) {
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODAL COMO FUNCIONA ═══════════════════ -->
+<div class="how-overlay" id="how-overlay-det" onclick="if(event.target===this)closeHowDet()">
+  <div class="how-modal">
+    <div class="how-head">
+      <div class="how-title">Como funciona</div>
+      <button class="neg-ico-btn" onclick="closeHowDet()" style="font-size:16px">✕</button>
+    </div>
+    <div class="how-body">
+      <div class="how-step">
+        <div class="how-num n1">1</div>
+        <div>
+          <div class="how-step-title">Negociação</div>
+          <div class="how-step-desc">Você e a marca debatem as <strong>entregas</strong> e o <strong>valor</strong> do patrocínio. Podem trocar quantas rodadas forem necessárias até chegar a um acordo. Use o chat para alinhar detalhes.</div>
+          <div class="how-step-tag">⏱ Você está aqui agora</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num n2">2</div>
+        <div>
+          <div class="how-step-title">Formalização</div>
+          <div class="how-step-desc">Após o acordo, a <strong>Relevantia prepara o contrato</strong> com os termos acordados e envia para assinatura digital de ambas as partes.</div>
+          <div class="how-step-tag">📄 Relevantia envia o contrato</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num n3">3</div>
+        <div>
+          <div class="how-step-title">Pagamento</div>
+          <div class="how-step-desc">Com o contrato assinado, o pagamento é processado. Você recebe o <strong>valor líquido</strong> na conta cadastrada, já descontada a taxa da plataforma.</div>
+          <div class="how-step-tag">💳 Pagamento garantido</div>
+        </div>
+      </div>
+      <div class="how-step">
+        <div class="how-num n4">4</div>
+        <div>
+          <div class="how-step-title">Ativação</div>
+          <div class="how-step-desc">Com pagamento confirmado, você executa as entregas acordadas. A Relevantia <strong>acompanha e registra</strong> cada entrega, garantindo transparência para a marca.</div>
+          <div class="how-step-tag">✅ Entregas monitoradas</div>
+        </div>
+      </div>
+    </div>
+    <div class="how-foot">
+      <button class="how-foot-btn" onclick="closeHowDet()">Entendi, vamos negociar!</button>
     </div>
   </div>
 </div>
