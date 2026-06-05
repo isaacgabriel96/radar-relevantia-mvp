@@ -5381,60 +5381,7 @@ async function openNegModal(id) {
   const sel = document.getElementById('mn-status-select');
   if (sel) sel.value = n.status;
 
-  // Limpar entradas corrompidas (descricao salva como JSON string pelo bug antigo)
-  if (n._supaId && !isDemoMode() && n.contrapartidas && n.contrapartidas.length > 0) {
-    const corrompidas = n.contrapartidas.filter(cp => cp.descricao && cp.descricao.startsWith('{'));
-    if (corrompidas.length > 0) {
-      // Normaliza a descrição das corrompidas para deduplicar
-      const boas = n.contrapartidas.filter(cp => !cp.descricao || !cp.descricao.startsWith('{'));
-      const boasNorm = new Set(boas.map(cp => (cp.descricao || '').toLowerCase().trim()));
-      for (const cp of corrompidas) {
-        try {
-          const o = JSON.parse(cp.descricao);
-          const norm = ((o.titulo || '') + (o.descricao && o.descricao !== o.titulo ? ': ' + o.descricao : '')).toLowerCase().trim();
-          // Só deleta se já existe uma entrada boa equivalente (duplicata confirmada)
-          if (boasNorm.has(norm)) { await deleteContrapartida(cp.id); }
-        } catch(e) {}
-      }
-      // Atualiza array em memória removendo apenas as deletadas (que tinham duplicata boa)
-      const boasIds = new Set(boas.map(cp => cp.id));
-      n.contrapartidas = n.contrapartidas.filter(cp => boasIds.has(cp.id) || !cp.descricao || !cp.descricao.startsWith('{'));
-    }
-  }
-
-  // Auto-carregar benefícios da cota como contrapartidas (se ainda não existem)
-  if (n.cota && (!n.contrapartidas || n.contrapartidas.length === 0) && n.opp_id && !isDemoMode()) {
-    try {
-      const beneficios = await fetchCotaBeneficios(n.opp_id, n.cota);
-      if (beneficios.length > 0) {
-        for (const b of beneficios) {
-          const titulo = typeof b === 'string' ? b : (b.titulo || '');
-          const detalhe = typeof b === 'string' ? '' : (b.descricao || '');
-          const descricao = titulo + (detalhe && detalhe !== titulo ? ': ' + detalhe : '');
-          const created = await createContrapartida({
-            negociacao_id: n._supaId,
-            descricao: descricao,
-            status: 'proposta',
-            proposto_por: 'detentor'
-          });
-          if (created) {
-            n.contrapartidas.push({
-              id: created.id, descricao: descricao, categoria: '',
-              prazo: '', status: 'proposta', propostoPor: 'detentor'
-            });
-          }
-        }
-      }
-    } catch (err) { console.error('[openNegModal] Auto-load benefícios failed:', err); }
-  }
-
-  // Carregar rodadas do histórico
-  n._rodadas = [];
-  if (n._supaId && !isDemoMode()) {
-    try { n._rodadas = await fetchRodadas(n._supaId); } catch(e) { console.error('[openNegModal] fetchRodadas failed:', e); }
-  }
-
-  // thread + contrapartidas + valor deal + histórico
+  // Renderiza imediatamente com dados já em memória
   renderNegThread(n.thread);
   renderContrapartidasDet(n.contrapartidas || []);
   renderValorDeal();
@@ -5479,6 +5426,56 @@ async function openNegModal(id) {
 
   document.getElementById('modal-neg').classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // ── Background: dados lentos carregam após o modal já estar visível ──
+  if (!isDemoMode() && n._supaId) {
+    const _sid = n._supaId;
+
+    // 1. Rodadas do histórico (busca no banco em background)
+    fetchRodadas(_sid)
+      .then(rodadas => {
+        if (!_negAtiva || _negAtiva._supaId !== _sid) return;
+        n._rodadas = rodadas;
+        renderHistoricoRodadas();
+      })
+      .catch(e => console.error('[openNegModal] fetchRodadas failed:', e));
+
+    // 2. Benefícios da cota → cria contrapartidas se ainda não existem
+    if (n.cota && (!n.contrapartidas || n.contrapartidas.length === 0) && n.opp_id) {
+      (async () => {
+        try {
+          const beneficios = await fetchCotaBeneficios(n.opp_id, n.cota);
+          if (!_negAtiva || _negAtiva._supaId !== _sid) return;
+          for (const b of beneficios) {
+            const titulo = typeof b === 'string' ? b : (b.titulo || '');
+            const detalhe = typeof b === 'string' ? '' : (b.descricao || '');
+            const descricao = titulo + (detalhe && detalhe !== titulo ? ': ' + detalhe : '');
+            const created = await createContrapartida({ negociacao_id: _sid, descricao, status: 'proposta', proposto_por: 'detentor' });
+            if (created) n.contrapartidas.push({ id: created.id, descricao, categoria: '', prazo: '', status: 'proposta', propostoPor: 'detentor' });
+          }
+          if (_negAtiva && _negAtiva._supaId === _sid) renderContrapartidasDet(n.contrapartidas);
+        } catch(e) { console.error('[openNegModal] fetchCotaBeneficios failed:', e); }
+      })();
+    }
+
+    // 3. Limpeza de contrapartidas com descrição corrompida (background, não crítico)
+    if (n.contrapartidas && n.contrapartidas.some(cp => cp.descricao && cp.descricao.startsWith('{'))) {
+      (async () => {
+        const boas = n.contrapartidas.filter(cp => !cp.descricao || !cp.descricao.startsWith('{'));
+        const boasNorm = new Set(boas.map(cp => (cp.descricao || '').toLowerCase().trim()));
+        for (const cp of n.contrapartidas.filter(cp => cp.descricao && cp.descricao.startsWith('{'))) {
+          try {
+            const o = JSON.parse(cp.descricao);
+            const norm = ((o.titulo || '') + (o.descricao && o.descricao !== o.titulo ? ': ' + o.descricao : '')).toLowerCase().trim();
+            if (boasNorm.has(norm)) await deleteContrapartida(cp.id);
+          } catch(e) {}
+        }
+        const boasIds = new Set(boas.map(cp => cp.id));
+        n.contrapartidas = n.contrapartidas.filter(cp => boasIds.has(cp.id) || !cp.descricao || !cp.descricao.startsWith('{'));
+        if (_negAtiva && _negAtiva._supaId === _sid) renderContrapartidasDet(n.contrapartidas);
+      })();
+    }
+  }
 }
 
 function switchNegTab(tab) {
