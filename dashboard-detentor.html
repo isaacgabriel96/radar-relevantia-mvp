@@ -5600,12 +5600,19 @@ function formatValorCpDet(v) {
 
 function renderContrapartidasDet(list) {
   const tbody = document.getElementById('mn-cp-tbody');
-  const tableWrap = document.querySelector('.cp-table-wrap');
+  const tableWrap = document.querySelector('#modal-neg .cp-table-wrap');
   if (!tbody) return;
 
   // Separate active from refused
   const ativas    = list.filter(cp => cp.status !== 'recusada');
   const recusadas = list.filter(cp => cp.status === 'recusada');
+
+  // Contador de itens no header
+  const countEl = document.getElementById('mn-cp-count');
+  if (countEl) {
+    if (ativas.length > 0) { countEl.textContent = ativas.length + (ativas.length === 1 ? ' item' : ' itens'); countEl.style.display = ''; }
+    else countEl.style.display = 'none';
+  }
 
   function _parseDesc(raw) {
     if (!raw) return '';
@@ -5616,62 +5623,52 @@ function renderContrapartidasDet(list) {
   function cpRowHtml(cp) {
     const desc = _parseDesc(cp.descricao);
     const statusLabel = cp.status === 'proposta' ? 'Proposta' : cp.status === 'aceita' ? 'Aceita' : 'Recusada';
-    // Só mostra ações quando detentor está em modo contraproposta
-    let actions = '';
+    // Em modo contraproposta, mostra ações em vez do badge
+    let right = `<span class="dl-badge ${cp.status}">${statusLabel}</span>`;
     if (_modoContraproposta && cp.propostoPor === 'marca') {
       if (cp.status === 'proposta') {
-        actions = `<div class="cp-actions">
-          <button class="cp-btn accept" onclick="acceptCpDet('${cp.id}')">Aceitar</button>
-          <button class="cp-btn reject" onclick="rejectCpDet('${cp.id}')">Recusar</button>
-         </div>`;
+        right = `<div class="dl-acts">
+          <button class="dl-act-btn accept" onclick="acceptCpDet('${cp.id}')">Aceitar</button>
+          <button class="dl-act-btn reject" onclick="rejectCpDet('${cp.id}')">Recusar</button>
+        </div>`;
       } else if (cp.status === 'aceita') {
-        // Pré-aceita pelo prefill — permite recusar
-        actions = `<div class="cp-actions">
-          <button class="cp-btn reject" onclick="rejectCpDet('${cp.id}')">Recusar</button>
-         </div>`;
+        right = `<div class="dl-acts">
+          <span class="dl-badge aceita">Aceita</span>
+          <button class="dl-act-btn reject" onclick="rejectCpDet('${cp.id}')">Recusar</button>
+        </div>`;
       }
     }
-    return `<tr>
-      <td>${escapeHtml(desc)}</td>
-      <td><span class="cp-status ${cp.status}">${statusLabel}</span></td>
-      <td>${actions}</td>
-    </tr>`;
+    return `<div class="dl-row">
+      <span class="dl-icon ${cp.status}"></span>
+      <span class="dl-desc">${escapeHtml(desc)}</span>
+      ${right}
+    </div>`;
   }
 
-  if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--gray-4);padding:20px;font-size:13px;">Nenhuma contrapartida adicionada ainda.</td></tr>';
-    // Remove any existing recusadas section
-    const old = tableWrap ? tableWrap.querySelector('.cp-recusadas-section') : null;
-    if (old) old.remove();
+  // Remove seção de recusadas antiga
+  const old = tableWrap ? tableWrap.querySelector('.cp-recusadas-section') : null;
+  if (old) old.remove();
+
+  if (ativas.length === 0) {
+    tbody.innerHTML = '<div style="text-align:center;color:var(--gray-400);padding:18px 12px;font-size:13px">Nenhuma entrega adicionada ainda.</div>';
   } else {
-    // Render active rows
-    tbody.innerHTML = ativas.length
-      ? ativas.map(cpRowHtml).join('')
-      : '<tr><td colspan="3" style="text-align:center;color:var(--gray-4);padding:20px;font-size:13px;">Nenhuma contrapartida ativa.</td></tr>';
-
-    // Remove old recusadas section if exists
-    const old = tableWrap ? tableWrap.querySelector('.cp-recusadas-section') : null;
-    if (old) old.remove();
-
-    // Render collapse section for refused items
-    if (recusadas.length > 0 && tableWrap) {
-      const section = document.createElement('div');
-      section.className = 'cp-recusadas-section';
-      section.innerHTML = `
-        <button class="cp-recusadas-toggle" onclick="toggleCpRecusadas(this)">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
-          <span>Ver ${recusadas.length} recusada${recusadas.length > 1 ? 's' : ''}</span>
-          <span class="cp-recusadas-count">${recusadas.length}</span>
-        </button>
-        <div class="cp-recusadas-list">
-          <table class="cp-table">
-            <tbody>${recusadas.map(cpRowHtml).join('')}</tbody>
-          </table>
-        </div>`;
-      tableWrap.appendChild(section);
-    }
+    tbody.innerHTML = ativas.map(cpRowHtml).join('');
   }
 
+  // Seção colapsável de recusadas
+  if (recusadas.length > 0 && tableWrap) {
+    const section = document.createElement('div');
+    section.className = 'cp-recusadas-section';
+    section.innerHTML = `
+      <button class="dl-recusadas-toggle" onclick="toggleCpRecusadas(this)">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+        <span>Ver ${recusadas.length} recusada${recusadas.length > 1 ? 's' : ''}</span>
+      </button>
+      <div class="dl-recusadas-list">
+        <div class="dl-list" style="margin-top:6px">${recusadas.map(cpRowHtml).join('')}</div>
+      </div>`;
+    tableWrap.appendChild(section);
+  }
 }
 
 function toggleCpRecusadas(btn) {
@@ -7408,6 +7405,44 @@ async function removerMembro(userId) {
 .tl-step.active .tl-label { color:var(--gold); font-weight:800; }
 .tl-step.done .tl-label { color:var(--gray-500); }
 
+/* Entregas — lista limpa (estilo protótipo) */
+.dl-list { border:1.5px solid var(--gray-200); border-radius:8px; overflow:hidden; margin-bottom:8px; }
+.dl-row {
+  display:flex; align-items:center; gap:9px; padding:10px 12px;
+  background:#fff; border-bottom:1px solid var(--gray-100); transition:background .1s;
+}
+.dl-row:last-child { border-bottom:none; }
+.dl-row:hover { background:var(--gray-50,#FBF8F2); }
+.dl-icon { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.dl-icon.aceita { background:var(--green); }
+.dl-icon.proposta { background:var(--gold); }
+.dl-icon.recusada { background:#DC2626; }
+.dl-desc { flex:1; font-size:13px; color:var(--text); line-height:1.4; }
+.dl-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; flex-shrink:0; }
+.dl-badge.aceita { background:var(--green-bg); color:var(--green); }
+.dl-badge.proposta { background:#FBF5E6; color:var(--gold); }
+.dl-badge.recusada { background:#FEF2F2; color:#DC2626; }
+.dl-acts { display:flex; gap:5px; flex-shrink:0; }
+.dl-act-btn { font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; border:1.5px solid var(--gray-200); background:#fff; cursor:pointer; font-family:var(--font-body); transition:all .12s; }
+.dl-act-btn.accept { color:var(--green); border-color:rgba(34,197,94,.3); }
+.dl-act-btn.accept:hover { background:var(--green-bg); }
+.dl-act-btn.reject { color:#DC2626; border-color:#FECACA; }
+.dl-act-btn.reject:hover { background:#FEF2F2; }
+.dl-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.dl-head-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--gray-400); }
+.dl-head-count { font-size:10px; font-weight:700; background:var(--gray-100); color:var(--gray-500); padding:2px 8px; border-radius:20px; }
+.btn-add-dl-proto {
+  width:100%; display:flex; align-items:center; justify-content:center; gap:6px; padding:9px;
+  background:transparent; border:1.5px dashed var(--gray-200); border-radius:8px;
+  font-size:12px; font-weight:600; color:var(--gray-400); cursor:pointer; font-family:var(--font-body); transition:all .15s;
+}
+.btn-add-dl-proto:hover { border-color:var(--gray-400); color:var(--text); }
+.dl-recusadas-toggle { display:flex; align-items:center; gap:6px; width:100%; background:none; border:none; cursor:pointer; padding:8px 0; font-size:11px; font-weight:600; color:var(--gray-400); font-family:var(--font-body); }
+.dl-recusadas-toggle svg { transition:transform .2s; }
+.dl-recusadas-toggle.open svg { transform:rotate(180deg); }
+.dl-recusadas-list { display:none; }
+.dl-recusadas-list.open { display:block; }
+
 /* Badge aceita contrapropostas */
 .aceita-contra-badge {
   display:flex; align-items:center; gap:6px; padding:7px 10px; margin-top:10px;
@@ -7425,7 +7460,7 @@ async function removerMembro(userId) {
 .neg-msg-left { display:flex; align-items:center; gap:8px; }
 .neg-msg-title { font-size:13px; font-weight:700; color:var(--gray-600,#4A3D2A); transition:color .15s; }
 .neg-msg-count {
-  font-size:10px; font-weight:800; background:var(--gold); color:#fff;
+  font-size:10px; font-weight:800; background:#2563EB; color:#fff;
   padding:2px 7px; border-radius:20px; min-width:22px; text-align:center;
 }
 .neg-msg-chevron { color:var(--gray-400); transition:transform .2s; flex-shrink:0; }
@@ -7549,19 +7584,13 @@ async function removerMembro(userId) {
             </div>
 
             <!-- 1. Entregas -->
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>
+            <div class="dl-head">
+              <span class="dl-head-title">Entregas</span>
+              <span class="dl-head-count" id="mn-cp-count" style="display:none">0 itens</span>
+            </div>
 
             <div class="cp-table-wrap" style="margin-bottom:8px">
-              <table class="cp-table">
-                <thead>
-                  <tr>
-                    <th>Descrição</th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="mn-cp-tbody"></tbody>
-              </table>
+              <div class="dl-list" id="mn-cp-tbody"></div>
             </div>
 
             <!-- Form adicionar -->
@@ -7578,9 +7607,9 @@ async function removerMembro(userId) {
               </div>
             </div>
 
-            <button class="btn-add-cp-det" id="mn-btn-add-cp" onclick="toggleCpFormDet()">
+            <button class="btn-add-dl-proto" id="mn-btn-add-cp" onclick="toggleCpFormDet()">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-              Adicionar contrapartida
+              Sugerir entrega
             </button>
 
             <!-- Divider -->
