@@ -2650,8 +2650,12 @@ h3 { font-size: clamp(22px, 2.5vw, 28px); }
 .prazer-link:hover svg { transform: translateX(4px); }
 
 /* === REVEAL ANIMATIONS === */
-.reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s var(--ease-out); }
-.reveal.is-visible { opacity: 1; transform: translateY(0); }
+/* Conteúdo VISÍVEL por padrão. Só escondemos para animar quando o JS está
+   saudável e adiciona a classe .js-anim em <html>. Se qualquer erro de JS
+   ocorrer, .js-anim nunca é adicionada (ou é removida) → nada fica em branco. */
+.reveal { transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out); }
+html.js-anim .reveal { opacity: 0; transform: translateY(30px); }
+html.js-anim .reveal.is-visible { opacity: 1; transform: translateY(0); }
 
 /* Utility: visível só em mobile */
 br.mobile-only { display: none; }
@@ -3188,6 +3192,17 @@ br.mobile-only { display: none; }
   }
 }
 </style>
+<script>
+  /* Ativa as animações de reveal SOMENTE se o browser suporta o necessário.
+     Roda antes da primeira pintura (sem flash). Se este script falhar ou o
+     browser for antigo, o conteúdo permanece visível por padrão — nunca branco. */
+  try {
+    if ('IntersectionObserver' in window &&
+        !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('js-anim');
+    }
+  } catch (e) { /* sem animação, conteúdo visível */ }
+</script>
 </head>
 <body>
 
@@ -4475,38 +4490,54 @@ function animateCount(el) {
   requestAnimationFrame(step);
 }
 
-if (reduceMotion) {
+// Mostra o valor final de todos os counters (usado como fallback e no reduced-motion)
+function finalizeCounts() {
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const t = parseFloat(el.dataset.count);
+    el.textContent = (Number.isInteger(t) ? t : t.toFixed(1)) + (el.dataset.suffix || '');
+  });
+}
+// Última linha de defesa: revela tudo que sobrou escondido (nunca deixa em branco)
+function revealAll() {
+  document.documentElement.classList.remove('js-anim');
+  document.querySelectorAll('.reveal:not(.is-visible)').forEach(el => el.classList.add('is-visible'));
+}
+
+if (reduceMotion || !('IntersectionObserver' in window)) {
   // Sem animação: mostra tudo imediatamente
   document.querySelectorAll('.reveal').forEach(el => el.classList.add('is-visible'));
-  document.querySelectorAll('[data-count]').forEach(el => {
-    el.textContent = el.dataset.count + (el.dataset.suffix || '');
-  });
+  finalizeCounts();
 } else {
-  // Reveals: fade + slide quando entram na viewport.
-  // Se o elemento já está ACIMA da viewport (página recarregada no meio, ou
-  // âncora), aparece instantaneamente — nunca fica preso invisível.
-  const revealIO = new IntersectionObserver((entries, obs) => {
-    entries.forEach(e => {
-      if (e.isIntersecting || e.boundingClientRect.top < 0) {
-        e.target.classList.add('is-visible'); obs.unobserve(e.target);
-      }
-    });
-  }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
-  document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
+  try {
+    // Reveals: fade + slide quando entram na viewport.
+    // Se o elemento já está ACIMA da viewport (página recarregada no meio, ou
+    // âncora), aparece instantaneamente — nunca fica preso invisível.
+    const revealIO = new IntersectionObserver((entries, obs) => {
+      entries.forEach(e => {
+        if (e.isIntersecting || e.boundingClientRect.top < 0) {
+          e.target.classList.add('is-visible'); obs.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealIO.observe(el));
 
-  // Counters: anima ao entrar na viewport; se já passou (acima), mostra o valor final.
-  const countIO = new IntersectionObserver((entries, obs) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) { animateCount(e.target); obs.unobserve(e.target); }
-      else if (e.boundingClientRect.top < 0) {
-        const t = parseFloat(e.target.dataset.count);
-        const sfx = e.target.dataset.suffix || '';
-        e.target.textContent = (Number.isInteger(t) ? t : t.toFixed(1)) + sfx;
-        obs.unobserve(e.target);
-      }
-    });
-  }, { rootMargin: '0px 0px -15% 0px', threshold: 0.1 });
-  document.querySelectorAll('[data-count]').forEach(el => countIO.observe(el));
+    // Counters: anima ao entrar na viewport; se já passou (acima), mostra o valor final.
+    const countIO = new IntersectionObserver((entries, obs) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { animateCount(e.target); obs.unobserve(e.target); }
+        else if (e.boundingClientRect.top < 0) {
+          const t = parseFloat(e.target.dataset.count);
+          e.target.textContent = (Number.isInteger(t) ? t : t.toFixed(1)) + (e.target.dataset.suffix || '');
+          obs.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -15% 0px', threshold: 0.1 });
+    document.querySelectorAll('[data-count]').forEach(el => countIO.observe(el));
+  } catch (err) {
+    // Se o observer falhar por qualquer motivo, revela tudo
+    revealAll();
+    finalizeCounts();
+  }
 }
 
 /* Features sticky scroll: vertical page scroll moves the rail horizontally */
