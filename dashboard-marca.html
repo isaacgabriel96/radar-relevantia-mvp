@@ -5249,6 +5249,8 @@ function recusarValorDetentor() {
 function _renderAceitaBanner(p) {
   const el = document.getElementById('mp-aceita-banner');
   if (!el) return;
+  // Pós-aceite o banner não faz sentido (negociação encerrada)
+  if (p.status === 'aceita') { el.style.display = 'none'; return; }
   const aceita = p.aceitaNovasPropostas !== false; // default true se não definido
   el.style.display = 'flex';
   el.className = 'aceita-propostas-banner ' + (aceita ? 'sim' : 'nao');
@@ -5323,35 +5325,12 @@ function _renderValorDealM(p) {
     }
   }
 
-  // Pós-aceite: colapsa a proposta (clicável) — foco vai pra formalização
-  const aceito = p.status === 'aceita';
-  const propHeader  = document.getElementById('mp-prop-header');
-  const propChevron = document.getElementById('mp-prop-chevron');
-  if (propHeader && propChevron) {
-    if (aceito) {
-      propChevron.style.display = '';
-      propHeader.style.cursor = 'pointer';
-      propHeader.onclick = togglePropostaAceitaMarca;
-      if (blocoEnviado) blocoEnviado.style.display = 'none';   // colapsado por padrão
-      propChevron.style.transform = '';
-    } else {
-      propChevron.style.display = 'none';
-      propHeader.style.cursor = '';
-      propHeader.onclick = null;
-    }
-  }
+  // Pós-aceite: esconde a caixa de proposta (entregas vão minimalistas no fim do pós-deal)
+  const vdSection = document.getElementById('mp-valor-deal-section');
+  if (vdSection) vdSection.style.display = (p.status === 'aceita') ? 'none' : '';
 
   // Footer fixo com as ações contextuais
   _updatePropostaDealFooter();
-}
-
-function togglePropostaAceitaMarca() {
-  const body = document.getElementById('mp-proposta-enviada');
-  const chev = document.getElementById('mp-prop-chevron');
-  if (!body) return;
-  const open = body.style.display === 'none';
-  body.style.display = open ? '' : 'none';
-  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
 function _renderPropostaEnviada(p) {
@@ -5573,15 +5552,31 @@ function renderPosDealMarca(p) {
 
   window._ddmCurrentProp = propId;
 
-  // Gating estilo protótipo / 3 etapas:
-  //  • Formalização (não pago): foca no pagamento — esconde ativação, materiais e financeiro
-  //  • Ativação (pago): mostra entregas, materiais e financeiro; pagamento vira confirmado
+  // Entregas minimalistas (referência, no fim) — só na Formalização (na Ativação o checklist cobre)
+  _renderEntregasMinMarca(entregas);
+
+  // Gating minimalista (estilo protótipo):
+  //  • Formalização (não pago): só Pagamento + Entregas (no fim). Esconde o resto.
+  //  • Ativação (pago): checklist + materiais + acordo + pagamento confirmado. Esconde entregas (o checklist cobre).
   const pago = !!p.contrato_validado;
   const setDisp = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; };
-  setDisp('mp-posdeal-ativacao',   pago);
+  setDisp('mp-posdeal-ativacao',    pago);
   setDisp('mdm-materiais-section',  pago);
-  setDisp('mp-posdeal-financeiro',  pago);
-  // Acordo (baixar comprovante) e Pagamento ficam sempre visíveis
+  setDisp('mp-posdeal-financeiro',  false);   // redundante com o pagamento — sempre oculto
+  setDisp('mp-posdeal-acordo',      pago);     // baixar comprovante só após pago
+  setDisp('mp-posdeal-entregas',    !pago);    // referência só na formalização
+}
+
+function _renderEntregasMinMarca(cps) {
+  const el = document.getElementById('mp-entregas-min');
+  if (!el) return;
+  const aceitas = (cps || []).filter(c => c.status === 'aceita');
+  if (!aceitas.length) { el.innerHTML = '<div style="font-size:12px;color:var(--gray-400)">Nenhuma entrega acordada.</div>'; return; }
+  el.innerHTML = '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">' + aceitas.map(c => {
+    let d = c.descricao || '';
+    if (d.startsWith('{')) { try { const o = JSON.parse(d); d = o.titulo || o.descricao || d; } catch(e){} }
+    return `<li style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><span style="width:5px;height:5px;border-radius:50%;background:var(--gray-300);flex-shrink:0"></span>${escapeHtml(d)}</li>`;
+  }).join('') + '</ul>';
 }
 
 /* ── Ativação: checklist de entregas (marca valida) ── */
@@ -7296,9 +7291,9 @@ async function removerMembro(userId) {
         <!-- ══════════ PÓS-DEAL: Formalização + Ativação (inline, só quando aceita) ══════════ -->
         <div id="mp-posdeal" style="display:none">
 
-          <!-- Formalização — Pagamento -->
+          <!-- Pagamento -->
           <div id="mp-posdeal-formalizacao" style="margin-top:18px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Formalização — pagamento</div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Pagamento</div>
             <div id="mdm-pagamento-area"></div>
           </div>
 
@@ -7324,6 +7319,12 @@ async function removerMembro(userId) {
           <div id="mp-posdeal-acordo" style="margin-top:18px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Acordo</div>
             <div id="mdm-contrato-area"></div>
+          </div>
+
+          <!-- Entregas (referência minimalista, no fim) -->
+          <div id="mp-posdeal-entregas" style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Entregas acordadas</div>
+            <div id="mp-entregas-min"></div>
           </div>
         </div>
 

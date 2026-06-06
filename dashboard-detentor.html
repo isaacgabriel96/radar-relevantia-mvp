@@ -5930,37 +5930,16 @@ function renderValorDeal() {
     }
   }
 
-  // Pós-aceite: esconde toggle de novas propostas e colapsa a proposta (clicável)
+  // Pós-aceite: esconde toggle de novas propostas e a caixa de proposta
+  // (entregas vão minimalistas no fim do pós-deal)
   const aceito = n.status === 'aceita';
   const toggleRow = document.getElementById('mn-toggle-row');
   if (toggleRow) toggleRow.style.display = aceito ? 'none' : '';
-  const propHeader  = document.getElementById('mn-prop-header');
-  const propChevron = document.getElementById('mn-prop-chevron');
-  if (propHeader && propChevron) {
-    if (aceito) {
-      propChevron.style.display = '';
-      propHeader.style.cursor = 'pointer';
-      propHeader.onclick = togglePropostaAceitaDet;
-      if (blocoEnviado) blocoEnviado.style.display = 'none';   // colapsado por padrão
-      propChevron.style.transform = '';
-    } else {
-      propChevron.style.display = 'none';
-      propHeader.style.cursor = '';
-      propHeader.onclick = null;
-    }
-  }
+  const vdSection = document.getElementById('mn-valor-deal-section');
+  if (vdSection) vdSection.style.display = aceito ? 'none' : '';
 
   // Footer fixo com as ações contextuais
   renderNegFooterDet();
-}
-
-function togglePropostaAceitaDet() {
-  const body = document.getElementById('mn-proposta-enviada');
-  const chev = document.getElementById('mn-prop-chevron');
-  if (!body) return;
-  const open = body.style.display === 'none';
-  body.style.display = open ? '' : 'none';
-  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
 /* ── Footer fixo contextual do detentor ── */
@@ -6620,14 +6599,30 @@ function renderPosDealDet(n) {
   // Store current negociacao id for upload
   window._ddetCurrentNeg = n.id;
 
-  // Gating 3 etapas:
-  //  • Formalização (não pago): foca no pagamento — esconde ativação, materiais e financeiro
-  //  • Ativação (pago): mostra tudo
+  // Entregas minimalistas (referência, no fim) — só na Formalização
+  _renderEntregasMinDet(entregas);
+
+  // Gating minimalista (estilo protótipo):
+  //  • Formalização (não pago): só Pagamento (status) + Entregas (no fim).
+  //  • Ativação (pago): checklist + materiais + acordo + pagamento confirmado.
   const setDisp = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; };
   setDisp('mn-posdeal-ativacao',   pago);
   setDisp('mn-posdeal-materiais',  pago);
-  setDisp('mn-posdeal-financeiro', pago);
-  // Pagamento (status) e Acordo ficam sempre visíveis
+  setDisp('mn-posdeal-financeiro', false);   // redundante — sempre oculto
+  setDisp('mn-posdeal-acordo',     pago);     // baixar comprovante só após pago
+  setDisp('mn-posdeal-entregas',   !pago);    // referência só na formalização
+}
+
+function _renderEntregasMinDet(cps) {
+  const el = document.getElementById('mn-entregas-min');
+  if (!el) return;
+  const aceitas = (cps || []).filter(c => c.status === 'aceita');
+  if (!aceitas.length) { el.innerHTML = '<div style="font-size:12px;color:var(--gray-400)">Nenhuma entrega acordada.</div>'; return; }
+  el.innerHTML = '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">' + aceitas.map(c => {
+    let d = c.descricao || '';
+    if (d.startsWith('{')) { try { const o = JSON.parse(d); d = o.titulo || o.descricao || d; } catch(e){} }
+    return `<li style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><span style="width:5px;height:5px;border-radius:50%;background:var(--gray-300);flex-shrink:0"></span>${escapeHtml(d)}</li>`;
+  }).join('') + '</ul>';
 }
 
 /* ── Ativação: checklist de entregas (detentor marca como entregue) ── */
@@ -7943,9 +7938,9 @@ async function removerMembro(userId) {
         <!-- ══════════ PÓS-DEAL: Formalização + Ativação (inline, só quando aceita) ══════════ -->
         <div id="mn-posdeal" style="display:none">
 
-          <!-- Formalização — Pagamento (status) -->
+          <!-- Pagamento (status) -->
           <div id="mn-posdeal-formalizacao" style="margin-top:18px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Formalização — pagamento</div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Pagamento</div>
             <div id="ddet-pagamento-area">—</div>
           </div>
 
@@ -7971,6 +7966,12 @@ async function removerMembro(userId) {
           <div id="mn-posdeal-acordo" style="margin-top:18px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Acordo</div>
             <div id="ddet-contrato-area">—</div>
+          </div>
+
+          <!-- Entregas (referência minimalista, no fim) -->
+          <div id="mn-posdeal-entregas" style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Entregas acordadas</div>
+            <div id="mn-entregas-min"></div>
           </div>
         </div>
 
