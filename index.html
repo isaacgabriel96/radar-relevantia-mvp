@@ -391,9 +391,17 @@ h3 { font-size: clamp(22px, 2.5vw, 28px); }
   aspect-ratio: 1 / 1;
 }
 .hero-radar > svg { width: 100% !important; height: 100% !important; display: block; }
-/* Radar animado via SMIL (<animateTransform>/<animate>) direto no SVG — robusto
-   no Safari iOS, imune a quirks de transform-origin em CSS e à media query de
-   "Reduzir movimento". A animação fica no HTML do SVG (busque por radar-sweep). */
+/* Camada de varredura: sobreposta ao radar e rotacionada via CSS transform.
+   Por ser um <svg> de nível HTML (elemento substituído), a rotação é composta
+   na GPU — não trava com trabalho da main thread (medições, word-rotator…). */
+.radar-sweep-layer {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  transform-origin: center center;
+  will-change: transform;
+  animation: radarSpinGPU 5s linear infinite;
+}
+@keyframes radarSpinGPU { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 /* Floating chips around radar */
 .radar-chip {
@@ -2662,6 +2670,9 @@ br.mobile-only { display: none; }
     transition-duration: 0.01s !important;
   }
   .reveal { opacity: 1; transform: none; }
+  /* Radar é a identidade da marca: continua girando suavemente (5s) mesmo com
+     "Reduzir movimento". Sem isto, o duration 0.01s o faria girar ~100x/s. */
+  .radar-sweep-layer { animation-duration: 5s !important; }
 }
 
 /* ═══════════════════════════════════════════════
@@ -3297,14 +3308,6 @@ br.mobile-only { display: none; }
         <circle cx="140" cy="140" r="80" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.45"/>
         <line x1="140" y1="22" x2="140" y2="258" stroke="#b89824" stroke-width="0.8" opacity="0.5"/>
         <line x1="22" y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.5"/>
-        <g clip-path="url(#dc)">
-          <g class="radar-sweep">
-            <animateTransform attributeName="transform" attributeType="XML" type="rotate"
-              from="0 140 140" to="360 140 140" dur="5s" repeatCount="indefinite"/>
-            <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#swG)"/>
-            <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
-          </g>
-        </g>
         <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6"/>
         <circle cx="190" cy="72" r="5" fill="#d8c890" class="radar-dot1" opacity="0">
           <animate attributeName="opacity" values="0;1;1;0.3" keyTimes="0;0.1;0.6;1" dur="5s" begin="0.4s" repeatCount="indefinite"/>
@@ -3315,6 +3318,23 @@ br.mobile-only { display: none; }
         <circle cx="222" cy="195" r="5" fill="#d8c890" class="radar-dot3" opacity="0">
           <animate attributeName="opacity" values="0;1;1;0.3" keyTimes="0;0.1;0.6;1" dur="5s" begin="3.2s" repeatCount="indefinite"/>
         </circle>
+      </svg>
+
+      <!-- Varredura do radar em camada própria: rotaciona via CSS transform num
+           elemento <svg> de nível HTML = animação composta na GPU, imune a
+           travamentos da main thread (medições, word-rotator, etc.). -->
+      <svg class="radar-sweep-layer" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="swG2" x1="0.5" y1="0" x2="0" y2="0.5">
+            <stop offset="0%" stop-color="#c8a428" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#c8a428" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="dc2"><circle cx="140" cy="140" r="118"/></clipPath>
+        </defs>
+        <g clip-path="url(#dc2)">
+          <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#swG2)"/>
+          <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
+        </g>
       </svg>
 
       <div class="radar-chips-wrap">
