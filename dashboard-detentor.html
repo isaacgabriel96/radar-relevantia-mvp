@@ -5543,6 +5543,17 @@ async function openNegModal(id) {
   // estado dos botões de deal no footer
   _updateDealFooterState();
 
+  // Pós-deal inline (Formalização + Ativação) — só quando aceita
+  const posdealDet = document.getElementById('mn-posdeal');
+  if (posdealDet) {
+    if (n.status === 'aceita') {
+      posdealDet.style.display = '';
+      renderPosDealDet(n);
+    } else {
+      posdealDet.style.display = 'none';
+    }
+  }
+
   document.getElementById('modal-neg').classList.add('open');
   document.body.style.overflow = 'hidden';
 
@@ -5905,7 +5916,8 @@ function renderNegFooterDet() {
   let html = '';
 
   if (st === 'aceita' || vd.status === 'aceito') {
-    html = '<span class="footer-wait">✓ Deal fechado</span><div class="footer-spacer"></div><button class="btn-aceitar-neg" onclick="openDealDetModal(_negAtiva && _negAtiva.id)">Ver deal</button>';
+    // Deal fechado: ativação/pagamento aparecem inline no próprio modal (sem "Ver deal")
+    html = '<span class="footer-wait">✓ Deal fechado</span><div class="footer-spacer"></div><button class="btn-aceitar-neg" onclick="closeNegModal()">Fechar</button>';
   } else if (st === 'recusada') {
     html = '<span class="footer-wait">Negociação encerrada</span>';
   } else if (_modoContraproposta) {
@@ -6293,10 +6305,11 @@ function fecharDeal() {
   const badge = document.getElementById('deals-badge-count');
   if (badge) badge.textContent = NEGOCIACOES.filter(n => n.status === 'aceita').length;
   showToast('Deal fechado com sucesso! A Relevantia enviará o contrato em breve.', 'success');
-  // Fecha o modal de negociação e abre os detalhes do deal direto
-  const negId = _negAtiva.id;
-  closeNegModal();
-  setTimeout(function() { openDealDetModal(negId); }, 300);
+  // Atualiza timeline + revela o bloco pós-deal (Formalização/Ativação) inline
+  if (typeof renderTimelineDet === 'function') renderTimelineDet(_negAtiva);
+  if (typeof renderValorDeal === 'function') renderValorDeal();
+  const posdealDet = document.getElementById('mn-posdeal');
+  if (posdealDet) { posdealDet.style.display = ''; renderPosDealDet(_negAtiva); }
 }
 
 async function sendNegMsg() {
@@ -6479,17 +6492,19 @@ function renderDealCards() {
 // Legado — toggleDealAcc agora redireciona para openDealOppDetail
 function toggleDealAcc(oppId) { openDealOppDetail(oppId); }
 
+// Compat: redireciona o antigo "Ver deal" para o modal de negociação unificado
 function openDealDetModal(negId) {
-  const n = NEGOCIACOES.find(x => x.id === negId);
+  openNegModal(negId);
+}
+
+/* ── Pós-deal (Formalização + Ativação) renderizado INLINE no modal de negociação ── */
+function renderPosDealDet(n) {
   if (!n) return;
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
   const entregas   = (n.contrapartidas || []).filter(c => c.status === 'aceita');
   const totalBruto = Number(n.valor_deal) || 0;
   const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
   const liquido    = totalBruto - taxa;
-
-  document.getElementById('ddet-title').textContent = n.marca;
-  document.getElementById('ddet-sub').textContent   = n.opp + ' · ' + n.cota;
 
   renderAtivacaoDet(n, entregas);
   renderMateriaisDet(n);
@@ -6539,8 +6554,19 @@ function openDealDetModal(negId) {
   }
 
   // Store current negociacao id for upload
-  window._ddetCurrentNeg = negId;
-  document.getElementById('modal-deal-det').classList.add('open');
+  window._ddetCurrentNeg = n.id;
+
+  // Gating estilo protótipo: Ativação só abre após confirmação do pagamento (contrato_validado)
+  const ativSection = document.getElementById('mn-posdeal-ativacao');
+  if (ativSection) {
+    if (n.contrato_validado) {
+      ativSection.style.display = '';
+    } else {
+      ativSection.style.display = '';
+      const host = document.getElementById('ddet-entregas');
+      if (host) host.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:10px 12px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:10px;line-height:1.5">A ativação abre assim que a Relevantia confirmar o pagamento da marca. As entregas e comprovantes aparecerão aqui.</div>`;
+    }
+  }
 }
 
 /* ── Ativação: checklist de entregas (detentor marca como entregue) ── */
@@ -6839,8 +6865,10 @@ async function handleContratoUpload(file, negId) {
 
     showToast('Contrato enviado com sucesso!', 'success');
 
-    // Re-renderizar modal com contrato enviado
-    setTimeout(() => openDealDetModal(negId), 600);
+    // Re-renderizar bloco pós-deal inline com contrato enviado
+    if (_negAtiva && _negAtiva.id === negId && typeof renderPosDealDet === 'function') {
+      renderPosDealDet(_negAtiva);
+    }
 
   } catch (err) {
     console.error('Erro upload contrato:', err);
@@ -6850,7 +6878,9 @@ async function handleContratoUpload(file, negId) {
 }
 
 function closeDealDetModal() {
-  document.getElementById('modal-deal-det').classList.remove('open');
+  // Modal de deal separado foi unificado no modal de negociação — mantido por compat
+  const m = document.getElementById('modal-deal-det');
+  if (m) m.classList.remove('open');
   if (_dealOppAtiva !== null) {
     renderDealCards();
   } else {
@@ -7535,47 +7565,6 @@ async function removerMembro(userId) {
 </script>
 
 <!-- ═══════════════════ MODAL DEAL DETALHE ═══════════════════ -->
-<div class="modal-deal-det-overlay" id="modal-deal-det" onclick="if(event.target===this)closeDealDetModal()">
-  <div class="modal-deal-det">
-    <div class="modal-deal-det-header">
-      <div>
-        <div class="modal-deal-det-title" id="ddet-title">—</div>
-        <div class="modal-deal-det-sub" id="ddet-sub">—</div>
-      </div>
-      <button class="modal-deal-det-close" onclick="closeDealDetModal()">✕</button>
-    </div>
-    <div class="modal-deal-det-body">
-      <!-- Materiais enviados pela marca -->
-      <div class="modal-deal-det-section" id="ddet-materiais-section">
-        <div class="modal-deal-det-section-title">Materiais da marca</div>
-        <div id="ddet-materiais"><span style="font-size:12px;color:var(--gray-400)">—</span></div>
-      </div>
-      <!-- Ativação: entregas acordadas + validação -->
-      <div class="modal-deal-det-section">
-        <div class="modal-deal-det-section-title">Ativação — entregas</div>
-        <div id="ddet-entregas">—</div>
-      </div>
-      <!-- Financeiro -->
-      <div class="modal-deal-det-section">
-        <div class="modal-deal-det-section-title">Financeiro</div>
-        <div class="modal-deal-det-financeiro" id="ddet-financeiro">—</div>
-      </div>
-
-      <!-- ══ ACORDO + COMPROVANTE ══ -->
-      <div class="modal-deal-det-section" id="ddet-contrato-section">
-        <div class="modal-deal-det-section-title">Acordo</div>
-        <div id="ddet-contrato-area">—</div>
-      </div>
-
-      <!-- ══ PAGAMENTO (via Relevantia) ══ -->
-      <div class="modal-deal-det-section" id="ddet-pagamento-section">
-        <div class="modal-deal-det-section-title">Pagamento</div>
-        <div id="ddet-pagamento-area">—</div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ═══════════════════ ESTILOS NOVOS: TIMELINE + HEADER + COMO FUNCIONA ═══════════════════ -->
 <style>
 /* Header contraparte (tile quadrado, como em configurações) */
@@ -7884,6 +7873,40 @@ async function removerMembro(userId) {
               <svg id="mn-rodadas-chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:14px;height:14px;transition:transform .2s"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
             </button>
             <div id="mn-rodadas-list" style="display:none;margin-top:8px"></div>
+          </div>
+        </div>
+
+        <!-- ══════════ PÓS-DEAL: Formalização + Ativação (inline, só quando aceita) ══════════ -->
+        <div id="mn-posdeal" style="display:none">
+
+          <!-- Materiais enviados pela marca -->
+          <div style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Materiais da marca</div>
+            <div id="ddet-materiais"><span style="font-size:12px;color:var(--gray-400)">—</span></div>
+          </div>
+
+          <!-- Ativação — entregas -->
+          <div id="mn-posdeal-ativacao" style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Ativação — entregas</div>
+            <div id="ddet-entregas">—</div>
+          </div>
+
+          <!-- Financeiro -->
+          <div style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Financeiro</div>
+            <div class="modal-deal-det-financeiro" id="ddet-financeiro">—</div>
+          </div>
+
+          <!-- Pagamento -->
+          <div style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Pagamento</div>
+            <div id="ddet-pagamento-area">—</div>
+          </div>
+
+          <!-- Acordo -->
+          <div style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Acordo</div>
+            <div id="ddet-contrato-area">—</div>
           </div>
         </div>
 

@@ -4826,6 +4826,17 @@ async function openPropostaModal(id) {
   _renderAceitaBanner(p);
   _renderValorDealM(p);
 
+  // Pós-deal inline (Formalização + Ativação) — só quando aceita
+  const posdeal = document.getElementById('mp-posdeal');
+  if (posdeal) {
+    if (p.status === 'aceita') {
+      posdeal.style.display = '';
+      renderPosDealMarca(p);
+    } else {
+      posdeal.style.display = 'none';
+    }
+  }
+
   document.getElementById('modal-proposta').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -4931,7 +4942,8 @@ function _updatePropostaDealFooter() {
   let html = '';
 
   if (st === 'aceita' || vd.status === 'aceito') {
-    html = cancelInteresse + spacer + '<button class="btn-aceitar-neg" onclick="openDealDetModalMarca(_propostaAtiva && _propostaAtiva.id)">Ver deal</button>';
+    // Deal fechado: ativação/pagamento aparecem inline no próprio modal (sem "Ver deal")
+    html = '<span class="footer-wait">✓ Deal fechado</span>' + spacer + '<button class="btn-aceitar-neg" onclick="closePropostaModal()">Fechar</button>';
     if (btnAddCp) btnAddCp.style.display = 'none';
   } else if (st === 'recusada') {
     html = cancelInteresse + spacer + '<button class="btn-enviar-neg" onclick="reenviarPropostaMarca()">Reenviar proposta</button>';
@@ -5425,21 +5437,24 @@ function fecharDealMarca() {
   _updatePropostaDealFooter();
   renderPropostasTable();
   showToast('Deal fechado! A Relevantia enviará o contrato em breve.', 'success');
-  // Fecha o modal de proposta e abre os detalhes do deal
-  const propId = p.id;
-  closePropostaModal();
-  setTimeout(function() { openDealDetModalMarca(propId); }, 300);
+  // Atualiza timeline + revela o bloco pós-deal (Formalização/Ativação) inline
+  if (typeof renderTimelineMarca === 'function') renderTimelineMarca(p);
+  const posdeal = document.getElementById('mp-posdeal');
+  if (posdeal) { posdeal.style.display = ''; renderPosDealMarca(p); }
 }
 
+// Compat: redireciona o antigo "Ver deal" para o modal de negociação unificado
 function openDealDetModalMarca(propId) {
-  const p = PROPOSTAS.find(x => x.id === propId);
+  openPropostaModal(propId);
+}
+
+/* ── Pós-deal (Formalização + Ativação) renderizado INLINE no modal de negociação ── */
+function renderPosDealMarca(p) {
   if (!p) return;
+  const propId = p.id;
   const fmt = v => v ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—';
   const entregas = (p.contrapartidas || []).filter(c => c.status === 'aceita');
   const totalBruto = Number(p.valorDeal?.proposto || p.valor_deal) || 0;
-
-  document.getElementById('mdm-title').textContent = p.opp || 'Deal fechado';
-  document.getElementById('mdm-sub').textContent = p.opp + (totalBruto ? ' · ' + fmt(totalBruto) : '');
 
   renderAtivacaoMarca(p, entregas);
   renderMateriaisMarca(p);
@@ -5503,7 +5518,19 @@ function openDealDetModalMarca(propId) {
   }
 
   window._ddmCurrentProp = propId;
-  document.getElementById('modal-deal-marca').classList.add('open');
+
+  // Gating estilo protótipo: Ativação só abre após confirmação do pagamento (contrato_validado)
+  const ativSection = document.getElementById('mp-posdeal-ativacao');
+  if (ativSection) {
+    if (p.contrato_validado) {
+      ativSection.style.display = '';
+    } else {
+      // Antes da confirmação: mostra aviso de que a ativação abre depois
+      ativSection.style.display = '';
+      const host = document.getElementById('mdm-entregas');
+      if (host) host.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:10px 12px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:10px;line-height:1.5">A ativação abre assim que a Relevantia confirmar o recebimento do pagamento. As entregas e comprovantes aparecerão aqui.</div>`;
+    }
+  }
 }
 
 /* ── Ativação: checklist de entregas (marca valida) ── */
@@ -7208,6 +7235,40 @@ async function removerMembro(userId) {
           </div>
         </div>
 
+        <!-- ══════════ PÓS-DEAL: Formalização + Ativação (inline, só quando aceita) ══════════ -->
+        <div id="mp-posdeal" style="display:none">
+
+          <!-- Formalização — Pagamento -->
+          <div id="mp-posdeal-formalizacao" style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Formalização — pagamento</div>
+            <div id="mdm-pagamento-area"></div>
+          </div>
+
+          <!-- Ativação — entregas -->
+          <div id="mp-posdeal-ativacao" style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Ativação — entregas</div>
+            <div id="mdm-entregas"></div>
+          </div>
+
+          <!-- Materiais para o organizador -->
+          <div id="mdm-materiais-section" style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Materiais para o organizador</div>
+            <div id="mdm-materiais"></div>
+          </div>
+
+          <!-- Financeiro -->
+          <div style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Financeiro</div>
+            <div class="modal-deal-det-financeiro" id="mdm-financeiro"></div>
+          </div>
+
+          <!-- Acordo -->
+          <div style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Acordo</div>
+            <div id="mdm-contrato-area"></div>
+          </div>
+        </div>
+
         <!-- ── Mensagens (colapsável) ── -->
         <div style="border-top:1px solid var(--gray-200);margin:16px -20px 0;padding:0 20px">
           <div class="neg-msg-toggle" onclick="toggleMarcaMsg()">
@@ -7295,53 +7356,6 @@ async function removerMembro(userId) {
     </div>
     <div class="how-foot">
       <button class="how-foot-btn" onclick="closeHowMarca()">Entendi, vamos negociar!</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══ MODAL: DEAL FECHADO (MARCA) ══ -->
-<div class="modal-overlay" id="modal-deal-marca" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal-prop" style="max-width:520px">
-    <div class="modal-prop-header">
-      <div>
-        <div class="modal-prop-opp" id="mdm-title">Deal fechado</div>
-        <div style="font-size:12px;color:var(--gray-400);margin-top:2px" id="mdm-sub"></div>
-      </div>
-      <button class="modal-close" onclick="document.getElementById('modal-deal-marca').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-prop-body" style="padding:20px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;max-height:70vh">
-
-      <!-- Entregas -->
-      <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Ativação — entregas</div>
-        <div id="mdm-entregas"></div>
-      </div>
-
-      <!-- Financeiro -->
-      <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Financeiro</div>
-        <div class="modal-deal-det-financeiro" id="mdm-financeiro"></div>
-      </div>
-
-      <!-- Acordo -->
-      <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Acordo</div>
-        <div id="mdm-contrato-area"></div>
-      </div>
-
-      <!-- Pagamento -->
-      <div>
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Pagamento</div>
-        <div id="mdm-pagamento-area"></div>
-      </div>
-
-      <!-- Materiais para o organizador -->
-      <div id="mdm-materiais-section">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Materiais para o organizador</div>
-        <div id="mdm-materiais"></div>
-      </div>
-
     </div>
   </div>
 </div>
