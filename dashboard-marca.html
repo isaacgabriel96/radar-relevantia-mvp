@@ -5323,8 +5323,35 @@ function _renderValorDealM(p) {
     }
   }
 
+  // Pós-aceite: colapsa a proposta (clicável) — foco vai pra formalização
+  const aceito = p.status === 'aceita';
+  const propHeader  = document.getElementById('mp-prop-header');
+  const propChevron = document.getElementById('mp-prop-chevron');
+  if (propHeader && propChevron) {
+    if (aceito) {
+      propChevron.style.display = '';
+      propHeader.style.cursor = 'pointer';
+      propHeader.onclick = togglePropostaAceitaMarca;
+      if (blocoEnviado) blocoEnviado.style.display = 'none';   // colapsado por padrão
+      propChevron.style.transform = '';
+    } else {
+      propChevron.style.display = 'none';
+      propHeader.style.cursor = '';
+      propHeader.onclick = null;
+    }
+  }
+
   // Footer fixo com as ações contextuais
   _updatePropostaDealFooter();
+}
+
+function togglePropostaAceitaMarca() {
+  const body = document.getElementById('mp-proposta-enviada');
+  const chev = document.getElementById('mp-prop-chevron');
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
 function _renderPropostaEnviada(p) {
@@ -7179,9 +7206,12 @@ async function removerMembro(userId) {
 
         <!-- Seção unificada: Sua proposta (entregas primeiro, valor depois) -->
         <div class="valor-deal-section-m" id="mp-valor-deal-section">
-          <div class="valor-deal-header-m">
+          <div class="valor-deal-header-m" id="mp-prop-header">
             <span class="valor-deal-title-m" id="mp-proposta-title">Sua proposta</span>
-            <span class="valor-deal-badge-m sem_proposta" id="mp-vd-badge">Sem proposta</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="valor-deal-badge-m sem_proposta" id="mp-vd-badge">Sem proposta</span>
+              <svg id="mp-prop-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2.5" style="display:none;transition:transform .2s"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
           </div>
 
           <!-- BLOCO A: Proposta enviada (snapshot read-only) -->

@@ -5930,8 +5930,37 @@ function renderValorDeal() {
     }
   }
 
+  // Pós-aceite: esconde toggle de novas propostas e colapsa a proposta (clicável)
+  const aceito = n.status === 'aceita';
+  const toggleRow = document.getElementById('mn-toggle-row');
+  if (toggleRow) toggleRow.style.display = aceito ? 'none' : '';
+  const propHeader  = document.getElementById('mn-prop-header');
+  const propChevron = document.getElementById('mn-prop-chevron');
+  if (propHeader && propChevron) {
+    if (aceito) {
+      propChevron.style.display = '';
+      propHeader.style.cursor = 'pointer';
+      propHeader.onclick = togglePropostaAceitaDet;
+      if (blocoEnviado) blocoEnviado.style.display = 'none';   // colapsado por padrão
+      propChevron.style.transform = '';
+    } else {
+      propChevron.style.display = 'none';
+      propHeader.style.cursor = '';
+      propHeader.onclick = null;
+    }
+  }
+
   // Footer fixo com as ações contextuais
   renderNegFooterDet();
+}
+
+function togglePropostaAceitaDet() {
+  const body = document.getElementById('mn-proposta-enviada');
+  const chev = document.getElementById('mn-prop-chevron');
+  if (!body) return;
+  const open = body.style.display === 'none';
+  body.style.display = open ? '' : 'none';
+  if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
 /* ── Footer fixo contextual do detentor ── */
@@ -7809,7 +7838,7 @@ async function removerMembro(userId) {
       <div data-panel="proposta">
 
         <!-- Toggle: aceitar novas propostas -->
-        <div class="propostas-toggle-row">
+        <div class="propostas-toggle-row" id="mn-toggle-row">
           <div class="propostas-toggle-info">
             <span class="propostas-toggle-label">Aceitar novas propostas</span>
             <span class="propostas-toggle-hint" id="mn-toggle-hint">A marca pode sugerir novos itens e valores</span>
@@ -7823,9 +7852,12 @@ async function removerMembro(userId) {
 
         <!-- Seção unificada: Proposta (entregas primeiro, valor depois) -->
         <div class="valor-deal-section" id="mn-valor-deal-section">
-          <div class="valor-deal-header">
+          <div class="valor-deal-header" id="mn-prop-header">
             <span class="valor-deal-title" id="mn-proposta-title">Proposta</span>
-            <span class="valor-deal-badge sem_proposta" id="mn-valor-badge">Sem proposta</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="valor-deal-badge sem_proposta" id="mn-valor-badge">Sem proposta</span>
+              <svg id="mn-prop-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2.5" style="display:none;transition:transform .2s"><path d="m6 9 6 6 6-6"/></svg>
+            </div>
           </div>
 
           <!-- BLOCO A: Read-only (proposta enviada ou recebida) -->
