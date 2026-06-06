@@ -5468,17 +5468,34 @@ function openDealDetModalMarca(propId) {
       <div style="font-size:12px;color:var(--gray-400)">Recebido pela Relevantia</div>
     </div></div>`;
   } else {
+    const pg = (typeof PAGAMENTO_RELEVANTIA !== 'undefined') ? PAGAMENTO_RELEVANTIA : {};
     pagEl.innerHTML = `
       <div class="ddet-pagamento-box" style="text-align:left">
         <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#D97706;margin-bottom:8px">
           <span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;flex-shrink:0"></span> Pagamento pendente
         </div>
-        <div style="font-size:12px;color:var(--gray-400);line-height:1.5;margin-bottom:12px">
-          Realize o pagamento de <strong>${fmt(totalBruto)}</strong> à Relevantia. O valor fica em custódia e é repassado ao organizador após a confirmação das entregas.
+        <div style="font-size:12px;color:var(--gray-400);line-height:1.5;margin-bottom:14px">
+          Pague <strong>${fmt(totalBruto)}</strong> via PIX para a Relevantia. O valor fica em <strong>custódia</strong> e é repassado ao organizador após a confirmação das entregas.
         </div>
-        <button onclick="showToast('Em breve: pagamento via PIX/cartão direto na plataforma. Por ora, a Relevantia entrará em contato com os dados.', 'info')" style="width:100%;padding:11px;border-radius:10px;background:var(--black);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body)">
-          Pagar à Relevantia
+
+        <div style="background:#fff;border:1.5px solid var(--gray-200);border-radius:10px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+            <div style="min-width:0">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400)">Chave PIX (${escapeHtml(pg.pixTipo||'')})</div>
+              <div style="font-size:14px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="mdm-pix-chave">${escapeHtml(pg.pixChave||'—')}</div>
+            </div>
+            <button onclick="_copiarPix('${escapeHtml(pg.pixChave||'')}', this)" style="flex-shrink:0;font-size:11px;font-weight:700;padding:7px 12px;border-radius:8px;border:1.5px solid var(--gray-200);background:#fff;color:var(--text);cursor:pointer;font-family:var(--font-body)">Copiar</button>
+          </div>
+          <div style="font-size:11px;color:var(--gray-400);line-height:1.5;border-top:1px solid var(--gray-100);padding-top:10px">
+            <div><strong style="color:var(--gray-500)">Favorecido:</strong> ${escapeHtml(pg.favorecido||'—')}</div>
+            <div><strong style="color:var(--gray-500)">Valor:</strong> ${fmt(totalBruto)}</div>
+          </div>
+        </div>
+
+        <button onclick="_marcarPagamentoFeito('${propId}')" style="width:100%;padding:11px;border-radius:10px;background:var(--black);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body)">
+          Já realizei o pagamento
         </button>
+        <div style="font-size:11px;color:var(--gray-400);text-align:center;margin-top:8px">A Relevantia confirma o recebimento e o status atualiza aqui.</div>
       </div>`;
   }
 
@@ -5548,6 +5565,36 @@ function _baixarComprovanteMarca(propId) {
     organizador: p.opp, oportunidade: p.opp, cota: p.cota, entregas: entregas,
     valor: Number(p.valorDeal?.proposto || p.valor_deal) || null, dataFech: p.enviadaEm, negId: p.id
   });
+}
+
+/* ── Pagamento: copiar PIX + informar pagamento ── */
+function _copiarPix(chave, btn) {
+  if (!chave) return;
+  const done = () => { if (btn) { const t = btn.textContent; btn.textContent = 'Copiado!'; setTimeout(() => { btn.textContent = t; }, 1600); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(chave).then(done).catch(() => showToast('Não foi possível copiar.', 'error'));
+  } else {
+    const ta = document.createElement('textarea'); ta.value = chave; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch(e) { showToast('Copie manualmente: ' + chave, 'info'); }
+    document.body.removeChild(ta);
+  }
+}
+
+async function _marcarPagamentoFeito(propId) {
+  const p = PROPOSTAS.find(x => x.id === propId);
+  if (!p) return;
+  // Registra um aviso na thread (rastro para o organizador e a Relevantia)
+  const now = new Date();
+  const data = now.getDate().toString().padStart(2,'0') + '/' + (now.getMonth()+1).toString().padStart(2,'0') + ' · ' +
+               now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  const nome = (document.getElementById('sidebarName')?.textContent||'').trim() || 'Marca';
+  const texto = '💳 Informei que realizei o pagamento à Relevantia. Aguardando confirmação do recebimento.';
+  if (p.thread) { p.thread.push({ autor: 'marca', nome, texto, data }); if (typeof renderMsgThread === 'function') renderMsgThread(p.thread); }
+  if (p._supaId && !isDemoMode()) {
+    const userId = await getAuthUserId();
+    await sendMensagem({ negociacao_id: p._supaId, autor_id: userId || p.marca_id, autor_role: 'marca', autor_nome: nome, texto });
+  }
+  showToast('Pagamento informado! A Relevantia confirma o recebimento e o status atualiza aqui.', 'success');
 }
 
 function contraproporValorDealMarca() {

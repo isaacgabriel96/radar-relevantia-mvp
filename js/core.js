@@ -12,6 +12,16 @@
  *           createContrapartida, updateContrapartida, createNegociacao
  */
 
+// ─── DADOS DE PAGAMENTO DA RELEVANTIA ───────────────────────
+// Conta para onde a marca envia o pagamento (custódia/escrow).
+// ⚠️ SUBSTITUIR pelos dados reais da Relevantia antes do lançamento.
+const PAGAMENTO_RELEVANTIA = {
+  pixTipo:    'CNPJ',
+  pixChave:   '00.000.000/0001-00',
+  favorecido: 'Relevantia Tecnologia LTDA',
+  banco:      'Banco XYZ (000) · Ag. 0000 · CC 00000-0'
+};
+
 const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
 
