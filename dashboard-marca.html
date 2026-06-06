@@ -5325,9 +5325,12 @@ function _renderValorDealM(p) {
     }
   }
 
-  // Pós-aceite: esconde a caixa de proposta (entregas vão minimalistas no fim do pós-deal)
+  // Pós-aceite: esconde a caixa de proposta e o banner de status (a timeline já indica a etapa)
+  const sectAceita = p.status === 'aceita';
   const vdSection = document.getElementById('mp-valor-deal-section');
-  if (vdSection) vdSection.style.display = (p.status === 'aceita') ? 'none' : '';
+  if (vdSection) vdSection.style.display = sectAceita ? 'none' : '';
+  const statusWrap = document.getElementById('mp-status-wrap');
+  if (statusWrap) statusWrap.style.display = sectAceita ? 'none' : '';
 
   // Footer fixo com as ações contextuais
   _updatePropostaDealFooter();

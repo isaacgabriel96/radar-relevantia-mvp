@@ -5937,6 +5937,8 @@ function renderValorDeal() {
   if (toggleRow) toggleRow.style.display = aceito ? 'none' : '';
   const vdSection = document.getElementById('mn-valor-deal-section');
   if (vdSection) vdSection.style.display = aceito ? 'none' : '';
+  const statusWrap = document.getElementById('mn-status-wrap');
+  if (statusWrap) statusWrap.style.display = aceito ? 'none' : '';
 
   // Footer fixo com as ações contextuais
   renderNegFooterDet();
