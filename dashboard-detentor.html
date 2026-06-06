@@ -6581,17 +6581,14 @@ function renderPosDealDet(n) {
   // Store current negociacao id for upload
   window._ddetCurrentNeg = n.id;
 
-  // Gating estilo protótipo: Ativação só abre após confirmação do pagamento (contrato_validado)
-  const ativSection = document.getElementById('mn-posdeal-ativacao');
-  if (ativSection) {
-    if (n.contrato_validado) {
-      ativSection.style.display = '';
-    } else {
-      ativSection.style.display = '';
-      const host = document.getElementById('ddet-entregas');
-      if (host) host.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:10px 12px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:10px;line-height:1.5">A ativação abre assim que a Relevantia confirmar o pagamento da marca. As entregas e comprovantes aparecerão aqui.</div>`;
-    }
-  }
+  // Gating 3 etapas:
+  //  • Formalização (não pago): foca no pagamento — esconde ativação, materiais e financeiro
+  //  • Ativação (pago): mostra tudo
+  const setDisp = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; };
+  setDisp('mn-posdeal-ativacao',   pago);
+  setDisp('mn-posdeal-materiais',  pago);
+  setDisp('mn-posdeal-financeiro', pago);
+  // Pagamento (status) e Acordo ficam sempre visíveis
 }
 
 /* ── Ativação: checklist de entregas (detentor marca como entregue) ── */
@@ -7904,10 +7901,10 @@ async function removerMembro(userId) {
         <!-- ══════════ PÓS-DEAL: Formalização + Ativação (inline, só quando aceita) ══════════ -->
         <div id="mn-posdeal" style="display:none">
 
-          <!-- Materiais enviados pela marca -->
-          <div style="margin-top:18px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Materiais da marca</div>
-            <div id="ddet-materiais"><span style="font-size:12px;color:var(--gray-400)">—</span></div>
+          <!-- Formalização — Pagamento (status) -->
+          <div id="mn-posdeal-formalizacao" style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Formalização — pagamento</div>
+            <div id="ddet-pagamento-area">—</div>
           </div>
 
           <!-- Ativação — entregas -->
@@ -7916,20 +7913,20 @@ async function removerMembro(userId) {
             <div id="ddet-entregas">—</div>
           </div>
 
+          <!-- Materiais enviados pela marca -->
+          <div id="mn-posdeal-materiais" style="margin-top:18px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Materiais da marca</div>
+            <div id="ddet-materiais"><span style="font-size:12px;color:var(--gray-400)">—</span></div>
+          </div>
+
           <!-- Financeiro -->
-          <div style="margin-top:18px">
+          <div id="mn-posdeal-financeiro" style="margin-top:18px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Financeiro</div>
             <div class="modal-deal-det-financeiro" id="ddet-financeiro">—</div>
           </div>
 
-          <!-- Pagamento -->
-          <div style="margin-top:18px">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Pagamento</div>
-            <div id="ddet-pagamento-area">—</div>
-          </div>
-
           <!-- Acordo -->
-          <div style="margin-top:18px">
+          <div id="mn-posdeal-acordo" style="margin-top:18px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Acordo</div>
             <div id="ddet-contrato-area">—</div>
           </div>

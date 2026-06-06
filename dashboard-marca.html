@@ -989,6 +989,17 @@ tbody tr:last-child td { border-bottom: none; }
   .deal-flat-card { gap: 10px; padding: 12px 14px; }
 }
 
+/* ─── Caixas de acordo/pagamento (formalização no modal) ─── */
+.ddet-contrato-box { background: var(--gray-1); border-radius: 10px; padding: 16px; }
+.ddet-contrato-status { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 13px; font-weight: 600; }
+.ddet-contrato-status .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.ddet-contrato-status .dot.pendente { background: #F59E0B; }
+.ddet-contrato-status .dot.enviado { background: #059669; }
+.ddet-pagamento-box { background: var(--gray-1); border-radius: 10px; padding: 16px; text-align: center; }
+.ddet-pagamento-locked { color: var(--gray-400); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 0; }
+.ddet-pagamento-ready { font-size: 13px; color: var(--black); }
+.ddet-pagamento-ready .valor { font-family: var(--font-heading); font-size: 22px; font-weight: 700; color: var(--black); margin: 8px 0; }
+
 .deal-empty { text-align: center; padding: 48px 24px; color: var(--gray-400); }
 .deal-empty-icon { font-size: 32px; margin-bottom: 12px; }
 .deal-empty-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
@@ -5532,18 +5543,15 @@ function renderPosDealMarca(p) {
 
   window._ddmCurrentProp = propId;
 
-  // Gating estilo protótipo: Ativação só abre após confirmação do pagamento (contrato_validado)
-  const ativSection = document.getElementById('mp-posdeal-ativacao');
-  if (ativSection) {
-    if (p.contrato_validado) {
-      ativSection.style.display = '';
-    } else {
-      // Antes da confirmação: mostra aviso de que a ativação abre depois
-      ativSection.style.display = '';
-      const host = document.getElementById('mdm-entregas');
-      if (host) host.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:10px 12px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:10px;line-height:1.5">A ativação abre assim que a Relevantia confirmar o recebimento do pagamento. As entregas e comprovantes aparecerão aqui.</div>`;
-    }
-  }
+  // Gating estilo protótipo / 3 etapas:
+  //  • Formalização (não pago): foca no pagamento — esconde ativação, materiais e financeiro
+  //  • Ativação (pago): mostra entregas, materiais e financeiro; pagamento vira confirmado
+  const pago = !!p.contrato_validado;
+  const setDisp = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? '' : 'none'; };
+  setDisp('mp-posdeal-ativacao',   pago);
+  setDisp('mdm-materiais-section',  pago);
+  setDisp('mp-posdeal-financeiro',  pago);
+  // Acordo (baixar comprovante) e Pagamento ficam sempre visíveis
 }
 
 /* ── Ativação: checklist de entregas (marca valida) ── */
@@ -7264,13 +7272,13 @@ async function removerMembro(userId) {
           </div>
 
           <!-- Financeiro -->
-          <div style="margin-top:18px">
+          <div id="mp-posdeal-financeiro" style="margin-top:18px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Financeiro</div>
             <div class="modal-deal-det-financeiro" id="mdm-financeiro"></div>
           </div>
 
           <!-- Acordo -->
-          <div style="margin-top:18px">
+          <div id="mp-posdeal-acordo" style="margin-top:18px">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Acordo</div>
             <div id="mdm-contrato-area"></div>
           </div>
