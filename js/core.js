@@ -432,7 +432,7 @@ var _negSelectQuery = 'id,oportunidade_id,marca_id,detentor_id,cota,assunto,valo
   'status,status_label,status_hint,aceita_novas_propostas,created_at,campanha_id,' +
   'marca:marca_id(nome,empresa),' +
   'oportunidade:oportunidade_id(titulo,categoria),' +
-  'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por),' + // + entregue,entregue_em,validado,validado_em após migração de ativação
+  'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por,entregue,entregue_em,validado,validado_em),' +
   'contratos(id,documento_url,status,completo_em),' +
   'mensagens(id,autor_role,autor_nome,texto,created_at)';
 
