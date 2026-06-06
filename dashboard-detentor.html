@@ -6352,6 +6352,18 @@ async function sendNegMsg() {
 // ─── DEALS FECHADOS — STATE ───
 let _dealOppAtiva = null;
 
+// Valor bruto real do deal: valor_deal → valor_proposto → preço da cota (fallback)
+function _dealBrutoDet(n) {
+  if (!n) return 0;
+  var v = Number(n.valor_deal) || Number(n.valor_proposto_num) || 0;
+  if (v > 0) return v;
+  if (n.cota) {
+    var m = String(n.cota).match(/R\$\s*([0-9.]+(?:,[0-9]+)?)/);
+    if (m) { var p = parseFloat(m[1].replace(/\./g, '').replace(',', '.')); if (!isNaN(p) && p > 0) return p; }
+  }
+  return 0;
+}
+
 function renderDeals() {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
   const deals = NEGOCIACOES.filter(n => n.status === 'aceita');
@@ -6384,7 +6396,7 @@ function renderDeals() {
     const coverContent = imgCapa ? '' : cfg.icon;
     // total líquido do grupo (valor_deal é o valor total do pacote)
     const totalLiquido = g.items.reduce((sum, n) => {
-      const bruto = Number(n.valor_deal) || 0;
+      const bruto = _dealBrutoDet(n);
       return sum + (bruto - Math.round(bruto * PLATAFORMA_TAXA));
     }, 0);
 
@@ -6435,7 +6447,7 @@ function openDealOppDetail(oppId) {
 
   // Preenche total no header (valor_deal = valor total do pacote)
   const totalLiquido = deals.reduce((sum, n) => {
-    const bruto = Number(n.valor_deal) || 0;
+    const bruto = _dealBrutoDet(n);
     return sum + (bruto - Math.round(bruto * PLATAFORMA_TAXA));
   }, 0);
   const totalEl = document.getElementById('deals-detail-total');
@@ -6469,7 +6481,7 @@ function renderDealCards() {
 
   container.innerHTML = deals.map(n => {
     const aceitos    = (n.contrapartidas || []).filter(c => c.status === 'aceita');
-    const totalBruto = Number(n.valor_deal) || 0;
+    const totalBruto = _dealBrutoDet(n);
     const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
     const liquido    = totalBruto - taxa;
     const entregasLabel = aceitos.length + ' entrega' + (aceitos.length !== 1 ? 's' : '') + ' acordada' + (aceitos.length !== 1 ? 's' : '');
@@ -6502,7 +6514,7 @@ function renderPosDealDet(n) {
   if (!n) return;
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
   const entregas   = (n.contrapartidas || []).filter(c => c.status === 'aceita');
-  const totalBruto = Number(n.valor_deal) || 0;
+  const totalBruto = _dealBrutoDet(n);
   const taxa       = Math.round(totalBruto * PLATAFORMA_TAXA);
   const liquido    = totalBruto - taxa;
 

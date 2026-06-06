@@ -5454,7 +5454,7 @@ function renderPosDealMarca(p) {
   const propId = p.id;
   const fmt = v => v ? 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—';
   const entregas = (p.contrapartidas || []).filter(c => c.status === 'aceita');
-  const totalBruto = Number(p.valorDeal?.proposto || p.valor_deal) || 0;
+  const totalBruto = _dealBrutoMarca(p);
 
   renderAtivacaoMarca(p, entregas);
   renderMateriaisMarca(p);
@@ -6599,6 +6599,18 @@ function toggleDealAcc(el) {
   if (list) list.style.display = open ? 'none' : 'block';
 }
 
+// Valor bruto real do deal: valor_deal → valor_proposto → preço da cota (fallback)
+function _dealBrutoMarca(p) {
+  if (!p) return 0;
+  var v = Number(p.valorDeal && p.valorDeal.proposto) || Number(p.valor_deal) || Number(p.valor_proposto_num) || 0;
+  if (v > 0) return v;
+  if (p.cota) {
+    var m = String(p.cota).match(/R\$\s*([0-9.]+(?:,[0-9]+)?)/);
+    if (m) { var n = parseFloat(m[1].replace(/\./g, '').replace(',', '.')); if (!isNaN(n) && n > 0) return n; }
+  }
+  return 0;
+}
+
 function renderDealsPropostas() {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
   const deals = PROPOSTAS.filter(p => p.status === 'aceita');
@@ -6633,20 +6645,19 @@ function renderDealsPropostas() {
     const focalData = (catalogItem && catalogItem._imagensFocal && imgCapa) ? (catalogItem._imagensFocal[imgCapa] || {x:50,y:20}) : {x:50,y:20};
     const coverStyle = imgCapa ? `background:url(${imgCapa}) ${focalData.x}% ${focalData.y}% / cover no-repeat` : `background:${cat.bg}`;
     const coverContent = imgCapa ? '' : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
-    const totalGrupo = group.items.reduce((s, p) => {
-      return s + (p.contrapartidas || []).filter(c => c.status === 'aceita').reduce((a, c) => a + c.valor, 0);
-    }, 0);
+    const totalGrupo = group.items.reduce((s, p) => s + _dealBrutoMarca(p), 0);
     const accId = 'deals-acc-' + gi;
 
     const rows = group.items.map(p => {
       const aceitos = (p.contrapartidas || []).filter(c => c.status === 'aceita');
-      const totalP  = aceitos.reduce((s, c) => s + c.valor, 0);
+      const totalP  = _dealBrutoMarca(p);
+      const cotaNome = (p.cota || '').split('—')[0].trim() || p.cota || 'Cota';
       return `<div class="deals-opp-list-item" style="cursor:pointer" onclick="openPropostaModal('${p.id}')">
         <div class="deals-item-avatar" style="background:${cat.bg}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;color:rgba(255,255,255,0.7)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
         </div>
         <div style="flex:1">
-          <div class="deals-item-name">${p.cota}</div>
+          <div class="deals-item-name">${cotaNome}</div>
           <div class="deals-item-cota">${aceitos.length} contrapartida${aceitos.length !== 1 ? 's' : ''} aceita${aceitos.length !== 1 ? 's' : ''}</div>
         </div>
         <div style="text-align:right">
