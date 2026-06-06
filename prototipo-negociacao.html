@@ -647,6 +647,7 @@ body {
     <span style="font-size:11px;font-weight:600;color:rgba(0,0,0,.4);padding:0 4px">Vista:</span>
     <button class="sw-btn active" id="persp-marca" onclick="setPerspectiva('marca')">🏷 Marca</button>
     <button class="sw-btn" id="persp-detentor" onclick="setPerspectiva('detentor')">🏟 Detentor</button>
+    <button class="sw-btn" id="persp-relevantia" onclick="setPerspectiva('relevantia')">⭐ Relevantia</button>
     <button class="sw-btn" onclick="openHow()" style="margin-left:4px">❓ Como funciona</button>
   </div>
   <!-- Estado -->
@@ -655,7 +656,8 @@ body {
     <button class="sw-btn active" id="sw-aguardando-voce" onclick="setState('aguardando-voce')">Aguardando você</button>
     <button class="sw-btn" id="sw-aguardando-outro" onclick="setState('aguardando-outro')">Aguardando outro lado</button>
     <button class="sw-btn" id="sw-sem-proposta" onclick="setState('sem-proposta')">Sem proposta</button>
-    <button class="sw-btn" id="sw-aceita" onclick="setState('aceita')">Deal fechado</button>
+    <button class="sw-btn" id="sw-aceita" onclick="setState('aceita')">Formalização</button>
+    <button class="sw-btn" id="sw-ativacao" onclick="setState('ativacao')">Ativação</button>
   </div>
 </div>
 
@@ -701,10 +703,6 @@ body {
         </div>
         <div class="tl-step todo" id="tl-3">
           <div class="tl-dot">3</div>
-          <div class="tl-label">Pagamento</div>
-        </div>
-        <div class="tl-step todo" id="tl-4">
-          <div class="tl-dot">4</div>
           <div class="tl-label">Ativação</div>
         </div>
       </div>
@@ -773,19 +771,94 @@ body {
           <button class="btn-enviar-prop" onclick="toast('Proposta enviada! Aguardando resposta da marca.')">Enviar proposta</button>
         </div>
 
-        <!-- Deal aceito → banner verde -->
+        <!-- Formalização / Pagamento pendente (marca paga via PIX) -->
         <div id="bloco-aceita" style="display:none">
-          <div style="background:var(--green-light);border:1.5px solid #A7F3D0;border-radius:var(--rs);padding:14px;text-align:center">
-            <div style="font-size:24px;margin-bottom:6px">🤝</div>
-            <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:2px">Acordo fechado!</div>
-            <div style="font-size:12px;color:#065F46">Valor acordado: <strong>R$ 50.000</strong></div>
-            <div style="font-size:11px;color:var(--green);margin-top:8px">A Relevantia enviará o contrato em breve</div>
+          <div id="bloco-aceita-marca">
+            <!-- Sub-view: PIX pendente -->
+            <div id="aceita-pix-view">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#D97706;margin-bottom:8px">
+                <span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;flex-shrink:0"></span> Pagamento pendente
+              </div>
+              <div style="font-size:12px;color:#6B7280;line-height:1.5;margin-bottom:14px">
+                Pague <strong>R$ 50.000</strong> via PIX para a Relevantia. O valor fica em <strong>custódia</strong> e é repassado ao organizador após a confirmação das entregas.
+              </div>
+              <div style="background:#fff;border:1.5px solid #E5E7EB;border-radius:10px;padding:14px;margin-bottom:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px">
+                  <div style="min-width:0">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9CA3AF">Chave PIX (E-mail)</div>
+                    <div style="font-size:14px;font-weight:700;color:#111;overflow:hidden;text-overflow:ellipsis">hello@relevantia.com.br</div>
+                  </div>
+                  <button id="btn-pix-copiar" onclick="copiarPix()" style="flex-shrink:0;font-size:11px;font-weight:700;padding:7px 12px;border-radius:8px;border:1.5px solid #E5E7EB;background:#fff;color:#111;cursor:pointer;font-family:inherit">Copiar</button>
+                </div>
+                <div style="font-size:11px;color:#9CA3AF;line-height:1.6;border-top:1px solid #F3F4F6;padding-top:10px">
+                  <div><strong style="color:#6B7280">Favorecido:</strong> Relevantia Academy Ltda</div>
+                  <div><strong style="color:#6B7280">Banco:</strong> Nubank (260) · Ag. 0001 · CC 503403133-6</div>
+                  <div><strong style="color:#6B7280">Valor:</strong> R$ 50.000</div>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9CA3AF;margin-bottom:6px">Comprovante de pagamento</div>
+                <input id="pix-comprovante" type="file" accept="image/*,.pdf" style="display:none" onchange="onPixComprovanteChange(this)">
+                <div id="pix-comp-empty" onclick="document.getElementById('pix-comprovante').click()" style="border:1.5px dashed #D1D5DB;border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border-color .15s" onmouseenter="this.style.borderColor='#9CA3AF'" onmouseleave="this.style.borderColor='#D1D5DB'">
+                  <div style="font-size:20px;margin-bottom:4px">📎</div>
+                  <div style="font-size:12px;font-weight:600;color:#6B7280">Anexar foto ou PDF</div>
+                  <div style="font-size:11px;color:#9CA3AF;margin-top:2px">JPG, PNG ou PDF</div>
+                </div>
+                <div id="pix-comp-preview" style="display:none;padding:10px 12px;background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:8px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                    <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                      <span style="font-size:16px" id="pix-comp-icon">🖼️</span>
+                      <span style="font-size:12px;font-weight:600;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="pix-comp-name">arquivo.jpg</span>
+                    </div>
+                    <button onclick="removerComprovantePix()" style="font-size:11px;color:#9CA3AF;background:none;border:none;cursor:pointer;flex-shrink:0;padding:2px">✕</button>
+                  </div>
+                  <img id="pix-comp-thumb" src="" alt="" style="display:none;width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-top:8px">
+                </div>
+                <div style="font-size:11px;color:#9CA3AF;margin-top:4px">Opcional — facilita a confirmação pela Relevantia</div>
+              </div>
+            </div>
+            <!-- Sub-view: pagamento confirmado -->
+            <div id="aceita-confirmed-view" style="display:none">
+              <div style="background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:10px;padding:16px;text-align:center">
+                <div style="font-size:22px;margin-bottom:6px">✅</div>
+                <div style="font-size:14px;font-weight:700;color:#065F46;margin-bottom:2px">Pagamento confirmado!</div>
+                <div style="font-size:12px;color:#065F46">R$ 50.000 enviados para a Relevantia</div>
+              </div>
+              <div id="aceita-comp-enviado" style="display:none;margin-top:10px;padding:8px 10px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;font-size:12px">
+                <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9CA3AF">Comprovante</span>
+                <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                  <span style="font-size:14px" id="aceita-comp-icon2">🖼️</span>
+                  <span style="font-weight:600;color:#111" id="aceita-comp-name2">arquivo.jpg</span>
+                </div>
+                <img id="aceita-comp-thumb2" src="" alt="" style="display:none;width:100%;max-height:100px;object-fit:cover;border-radius:6px;margin-top:6px">
+              </div>
+            </div>
+          </div>
+          <div id="bloco-aceita-detentor" style="display:none">
+            <div style="background:var(--green-light);border:1.5px solid #A7F3D0;border-radius:var(--rs);padding:14px;text-align:center">
+              <div style="font-size:24px;margin-bottom:6px">🤝</div>
+              <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:2px">Acordo fechado!</div>
+              <div style="font-size:12px;color:#065F46;margin-bottom:8px">Valor acordado: <strong>R$ 50.000</strong></div>
+              <div style="font-size:11px;color:#059669;background:#fff;border:1px solid #A7F3D0;border-radius:8px;padding:8px 12px;text-align:left">
+                ⏳ Aguardando pagamento da marca via PIX para a Relevantia. Você receberá o valor líquido após confirmação das entregas.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagamento confirmado (step 3) -->
+        <div id="bloco-pagamento" style="display:none">
+          <div style="background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:var(--rs);padding:14px;text-align:center">
+            <div style="font-size:20px;margin-bottom:6px">✅</div>
+            <div style="font-size:14px;font-weight:700;color:#065F46;margin-bottom:2px">Pagamento confirmado!</div>
+            <div style="font-size:12px;color:#065F46">R$ 50.000 recebidos pela Relevantia</div>
+            <div style="font-size:11px;color:#059669;margin-top:8px">O valor será repassado ao organizador após confirmação das entregas</div>
           </div>
         </div>
       </div>
 
       <!-- ── ENTREGAS ── -->
-      <div class="section">
+      <div class="section" id="sec-entregas">
         <div class="sec-header">
           <span class="sec-title">Entregas</span>
           <span class="sec-badge" id="dl-badge">3 itens</span>
@@ -813,6 +886,17 @@ body {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
           Sugerir entrega
         </button>
+      </div>
+
+      <!-- ── ATIVAÇÃO (step 4) ── -->
+      <div id="sec-ativacao" style="display:none;border-top:1px solid var(--gray-100)">
+        <div class="section" style="border-top:none">
+          <div class="sec-header">
+            <span class="sec-title">Ativação</span>
+            <span class="sec-badge" id="ativ-badge">0/3 concluídas</span>
+          </div>
+          <div id="ativ-list" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
       </div>
 
       <!-- ── MENSAGENS (collapsible) ── -->
@@ -929,31 +1013,32 @@ body {
 
 <script>
 /* ─── PERSPECTIVA + ESTADO ─── */
-let perspectiva = 'marca';   // 'marca' | 'detentor'
+let perspectiva = 'marca';
 let currentState = 'aguardando-voce';
-let aceitaContra = true;     // toggle do detentor
+let aceitaContra = true;
+let pagamentoFeito = false;
 
 function setPerspectiva(p) {
   perspectiva = p;
-  // Switcher visual
-  document.getElementById('persp-marca').classList.toggle('active', p === 'marca');
-  document.getElementById('persp-detentor').classList.toggle('active', p === 'detentor');
-  // Header sempre mostra a CONTRAPARTE (com quem você está negociando)
+  ['marca','detentor','relevantia'].forEach(k => {
+    const el = document.getElementById('persp-' + k);
+    if (el) el.classList.toggle('active', k === p);
+  });
   const avatar = document.querySelector('.party-avatar');
   const nameEl = document.getElementById('party-name');
   if (p === 'marca') {
-    // Marca vê o Detentor
     avatar.textContent = 'C'; avatar.className = 'party-avatar';
     nameEl.textContent = 'Casemiro Sports';
-  } else {
-    // Detentor vê a Marca
+  } else if (p === 'detentor') {
     avatar.textContent = 'R'; avatar.className = 'party-avatar gold';
     nameEl.textContent = 'Relevantia';
+  } else {
+    avatar.textContent = '★'; avatar.className = 'party-avatar gold';
+    nameEl.textContent = 'Relevantia Admin';
   }
-  // Toggle aceita propostas visível só no detentor
   document.getElementById('sec-toggle-aceita').style.display = p === 'detentor' ? '' : 'none';
-  // Re-renderiza o estado atual com a nova perspectiva
   setState(currentState);
+  if (currentState === 'ativacao') renderAtivList();
 }
 
 function onToggleAceita(checked) {
@@ -1005,7 +1090,7 @@ function getStateCfg(s) {
       showRodada: true,
       footer: `
         <button class="btn-secondary" onclick="setState('sem-proposta')">Contrapropor</button>
-        <button class="btn-accept" onclick="toast('Proposta aceita! Avançando para Formalização...')">✓ Aceitar proposta</button>
+        <button class="btn-accept" onclick="setState('aceita')">✓ Aceitar proposta</button>
       `
     },
     'aguardando-outro': {
@@ -1029,8 +1114,18 @@ function getStateCfg(s) {
     },
     'aceita': {
       statusClass: 'aceita',
-      statusLabel: 'Deal fechado',
-      statusHint: 'Acordo confirmado — próxima etapa: Formalização',
+      statusLabel: 'Formalização',
+      statusHint: isMarca ? 'Acordo confirmado — realize o pagamento via PIX' : 'Acordo confirmado — aguardando pagamento da marca',
+      propTitle: 'Acordo fechado',
+      showRodada: false,
+      footer: isMarca
+        ? `<button class="btn-primary" onclick="registrarPagamento()">Já realizei o pagamento</button>`
+        : `<span style="font-size:12px;color:#9CA3AF">Aguardando confirmação do pagamento…</span>`
+    },
+    'ativacao': {
+      statusClass: 'aceita',
+      statusLabel: 'Em ativação',
+      statusHint: 'Confirme as entregas conforme forem realizadas',
       propTitle: 'Acordo fechado',
       showRodada: false,
       footer: ``
@@ -1045,7 +1140,7 @@ function setState(s) {
   if (!cfg) return;
 
   // Switcher
-  ['aguardando-voce','aguardando-outro','sem-proposta','aceita'].forEach(k => {
+  ['aguardando-voce','aguardando-outro','sem-proposta','aceita','ativacao'].forEach(k => {
     const el = document.getElementById('sw-' + k);
     if (el) el.classList.toggle('active', k === s);
   });
@@ -1055,19 +1150,19 @@ function setState(s) {
   document.getElementById('status-label').textContent = cfg.statusLabel;
   document.getElementById('status-hint').textContent = cfg.statusHint;
 
+  // Reset pagamentoFeito quando sai do estado aceita manualmente
+  if (s !== 'aceita') pagamentoFeito = false;
+
   // Timeline
-  const tl1 = document.getElementById('tl-1');
-  if (s === 'aceita') {
-    tl1.className = 'tl-step done';
-    tl1.querySelector('.tl-dot').textContent = '✓';
-    document.getElementById('tl-2').className = 'tl-step active';
-    document.getElementById('tl-3').className = 'tl-step todo';
-    document.getElementById('tl-4').className = 'tl-step todo';
-  } else {
-    tl1.className = 'tl-step active';
-    tl1.querySelector('.tl-dot').textContent = '1';
-    ['tl-2','tl-3','tl-4'].forEach(id => document.getElementById(id).className = 'tl-step todo');
-  }
+  const activeStep = { 'aguardando-voce':1, 'aguardando-outro':1, 'sem-proposta':1, 'aceita': pagamentoFeito ? 3 : 2, 'ativacao':3 }[s] || 1;
+  ['tl-1','tl-2','tl-3'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    const dot = el.querySelector('.tl-dot');
+    const num = i + 1;
+    if (num < activeStep)      { el.className = 'tl-step done';   if (dot) dot.textContent = '✓'; }
+    else if (num === activeStep){ el.className = 'tl-step active'; if (dot) dot.textContent = num; }
+    else                       { el.className = 'tl-step todo';   if (dot) dot.textContent = num; }
+  });
 
   // Labels da proposta
   document.getElementById('prop-section-title').textContent = cfg.propTitle;
@@ -1088,6 +1183,28 @@ function setState(s) {
   document.getElementById('bloco-aguardando-marca').style.display = s === 'aguardando-outro' ? '' : 'none';
   document.getElementById('bloco-sem-proposta').style.display = s === 'sem-proposta' ? '' : 'none';
   document.getElementById('bloco-aceita').style.display = s === 'aceita' ? '' : 'none';
+  document.getElementById('bloco-pagamento').style.display = s === 'pagamento' ? '' : 'none';
+
+  // Sub-blocos da formalização (perspectiva-dependente)
+  if (s === 'aceita') {
+    const isMarca = perspectiva === 'marca';
+    document.getElementById('bloco-aceita-marca').style.display = isMarca ? '' : 'none';
+    document.getElementById('bloco-aceita-detentor').style.display = isMarca ? 'none' : '';
+  }
+
+  // Seção de ativação + entregas (esconde entregas na ativação — redundante)
+  const secAtiv = document.getElementById('sec-ativacao');
+  if (secAtiv) secAtiv.style.display = s === 'ativacao' ? '' : 'none';
+  const secEntr = document.getElementById('sec-entregas');
+  if (secEntr) secEntr.style.display = s === 'ativacao' ? 'none' : '';
+  if (s === 'ativacao') {
+    // Garante que começa na vista do Detentor para mostrar os botões de upload
+    if (perspectiva !== 'detentor' && perspectiva !== 'relevantia') {
+      perspectiva = 'detentor';
+      ['marca','detentor','relevantia'].forEach(k => { const el = document.getElementById('persp-' + k); if (el) el.classList.toggle('active', k === 'detentor'); });
+    }
+    renderAtivList();
+  }
 
   // Footer
   document.getElementById('footer-right').innerHTML = cfg.footer || '';
@@ -1135,6 +1252,212 @@ function sendMsg() {
   // count
   const cnt = document.getElementById('msg-count');
   cnt.textContent = parseInt(cnt.textContent) + 1;
+}
+
+/* ─── PIX ─── */
+function copiarPix() {
+  const chave = 'hello@relevantia.com.br';
+  if (navigator.clipboard) navigator.clipboard.writeText(chave).catch(() => {});
+  const btn = document.getElementById('btn-pix-copiar');
+  if (btn) { btn.textContent = '✓ Copiado'; btn.style.background = '#ECFDF5'; btn.style.color = '#059669'; btn.style.borderColor = '#A7F3D0'; setTimeout(() => { btn.textContent = 'Copiar'; btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }, 2000); }
+  toast('Chave PIX copiada!');
+}
+
+function onPixComprovanteChange(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const empty = document.getElementById('pix-comp-empty');
+  const preview = document.getElementById('pix-comp-preview');
+  const nameEl = document.getElementById('pix-comp-name');
+  const iconEl = document.getElementById('pix-comp-icon');
+  const thumb = document.getElementById('pix-comp-thumb');
+  nameEl.textContent = file.name;
+  iconEl.textContent = file.type === 'application/pdf' ? '📄' : '🖼️';
+  if (empty) empty.style.display = 'none';
+  if (preview) preview.style.display = '';
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => { thumb.src = e.target.result; thumb.style.display = ''; };
+    reader.readAsDataURL(file);
+  } else {
+    thumb.style.display = 'none';
+  }
+}
+
+function removerComprovantePix() {
+  document.getElementById('pix-comprovante').value = '';
+  document.getElementById('pix-comp-empty').style.display = '';
+  document.getElementById('pix-comp-preview').style.display = 'none';
+  document.getElementById('pix-comp-thumb').style.display = 'none';
+}
+
+function registrarPagamento() {
+  pagamentoFeito = true;
+  // Alterna sub-views dentro do mesmo estado
+  document.getElementById('aceita-pix-view').style.display = 'none';
+  document.getElementById('aceita-confirmed-view').style.display = '';
+  // Copia comprovante para a view de confirmado, se houver
+  const thumb = document.getElementById('pix-comp-thumb');
+  const name  = document.getElementById('pix-comp-name');
+  const icon  = document.getElementById('pix-comp-icon');
+  if (name && name.textContent && document.getElementById('pix-comp-preview').style.display !== 'none') {
+    document.getElementById('aceita-comp-enviado').style.display = '';
+    document.getElementById('aceita-comp-name2').textContent  = name.textContent;
+    document.getElementById('aceita-comp-icon2').textContent  = icon.textContent;
+    if (thumb && thumb.src) { document.getElementById('aceita-comp-thumb2').src = thumb.src; document.getElementById('aceita-comp-thumb2').style.display = ''; }
+  }
+  // Atualiza timeline: steps 1+2 done, step 3 (Ativação) active
+  ['tl-1','tl-2'].forEach(id => { const el = document.getElementById(id); el.className = 'tl-step done'; el.querySelector('.tl-dot').textContent = '✓'; });
+  const tl3 = document.getElementById('tl-3'); tl3.className = 'tl-step active'; tl3.querySelector('.tl-dot').textContent = '3';
+  // Atualiza status e footer
+  document.getElementById('status-hint').textContent = 'Pagamento enviado — aguardando confirmação da Relevantia';
+  document.getElementById('footer-right').innerHTML = '<button class="btn-primary" onclick="setState(\'ativacao\')">Ver ativação →</button>';
+  const input = document.getElementById('pix-comprovante');
+  toast((input && input.files && input.files.length > 0) ? 'Pagamento registrado com comprovante!' : 'Pagamento registrado!');
+}
+
+/* ─── ATIVAÇÃO ─── */
+const ATIV_ITEMS = [
+  { id: 1, desc: 'Logo na camiseta oficial do evento' },
+  { id: 2, desc: 'Estande 6m² no espaço VIP' },
+  { id: 3, desc: '3 menções nas redes sociais do evento' }
+];
+function _emptyAtiv() { return { foto: null, fotoName: null, fotoPreview: null, video: null, videoName: null, link: '', linkShown: false, proofDate: null, marcaOk: false, relevantiaOk: false }; }
+const ativState = { 1: _emptyAtiv(), 2: _emptyAtiv(), 3: _emptyAtiv() };
+function _hasProof(st) { return !!(st.foto || st.video || st.link); }
+
+function renderAtivList() {
+  const list = document.getElementById('ativ-list');
+  if (!list) return;
+  list.innerHTML = ATIV_ITEMS.map(item => renderAtivCard(item)).join('');
+  updateAtivBadge();
+}
+
+function _ativNow() {
+  const n = new Date();
+  return n.getDate().toString().padStart(2,'0') + '/' + (n.getMonth()+1).toString().padStart(2,'0') + ' · ' + n.getHours().toString().padStart(2,'0') + 'h' + n.getMinutes().toString().padStart(2,'0');
+}
+
+function renderAtivCard(item) {
+  const st = ativState[item.id];
+  const id = item.id;
+  const isDet = perspectiva === 'detentor';
+  const isMarca = perspectiva === 'marca';
+  const isRel = perspectiva === 'relevantia';
+  const hasProof = _hasProof(st);
+  const concluido = hasProof && st.marcaOk && st.relevantiaOk;
+
+  let statusLabel = 'Pendente', statusBg = '#F3F4F6', statusTxt = '#9CA3AF';
+  if (concluido)        { statusLabel = 'Concluída';          statusBg = '#ECFDF5'; statusTxt = '#059669'; }
+  else if (st.marcaOk)  { statusLabel = 'Aguard. Relevantia'; statusBg = '#F5F3FF'; statusTxt = '#7C3AED'; }
+  else if (hasProof)    { statusLabel = 'Aguard. aprovação';  statusBg = '#FFF8E1'; statusTxt = '#D97706'; }
+
+  // ── Provas enviadas (foto, video, link) ──
+  let provasHtml = '';
+  if (st.fotoPreview) provasHtml += `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:7px;margin-bottom:5px"><div style="display:flex;align-items:center;gap:6px;min-width:0"><span>🖼️</span><span style="font-size:11px;font-weight:600;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${st.fotoName}</span></div>${isDet ? `<button onclick="removeAtivFoto(${id})" style="font-size:10px;color:#9CA3AF;background:none;border:none;cursor:pointer">✕</button>` : ''}</div><img src="${st.fotoPreview}" style="width:100%;max-height:100px;object-fit:cover;border-radius:6px;margin-bottom:6px">`;
+  if (st.video)         provasHtml += `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:7px;margin-bottom:5px"><div style="display:flex;align-items:center;gap:6px;min-width:0"><span>🎬</span><span style="font-size:11px;font-weight:600;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${st.videoName}</span></div>${isDet ? `<button onclick="removeAtivVideo(${id})" style="font-size:10px;color:#9CA3AF;background:none;border:none;cursor:pointer">✕</button>` : ''}</div>`;
+  if (st.link)          provasHtml += `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 8px;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:7px;margin-bottom:5px"><div style="display:flex;align-items:center;gap:6px;min-width:0"><span>🔗</span><a href="${st.link}" target="_blank" style="font-size:11px;font-weight:600;color:#2563EB;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none">${st.link.length>36?st.link.substring(0,36)+'…':st.link}</a></div>${isDet ? `<button onclick="removeAtivLink(${id})" style="font-size:10px;color:#9CA3AF;background:none;border:none;cursor:pointer">✕</button>` : ''}</div>`;
+  if (hasProof && st.proofDate) provasHtml += `<div style="font-size:10px;color:#9CA3AF;margin-top:2px">Enviado em ${st.proofDate}</div>`;
+
+  // ── Seção de comprovante ──
+  const btnStyle = 'font-size:11px;font-weight:700;padding:6px 10px;border-radius:7px;border:1.5px solid #E5E7EB;background:#fff;color:#374151;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px';
+  let proofHtml = `<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9CA3AF;margin-bottom:6px">Comprovante</div>`;
+
+  if (isDet) {
+    proofHtml += `
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${hasProof?'8px':'0'}">
+        <button style="${btnStyle}" onclick="document.getElementById('ativ-foto-${id}').click()">📷 Foto</button>
+        <button style="${btnStyle}" onclick="document.getElementById('ativ-video-${id}').click()">🎬 Vídeo</button>
+        <button style="${btnStyle}" onclick="toggleAtivLink(${id})">🔗 Link</button>
+      </div>
+      <input type="file" id="ativ-foto-${id}" accept="image/*" style="display:none" onchange="onAtivFoto(${id},this)">
+      <input type="file" id="ativ-video-${id}" accept="video/*" style="display:none" onchange="onAtivVideo(${id},this)">
+      <div id="ativ-link-wrap-${id}" style="display:${st.linkShown?'flex':'none'};gap:6px;margin-bottom:6px">
+        <input type="url" id="ativ-link-input-${id}" placeholder="Cole o link…" value="${st.link}" style="flex:1;min-width:0;border:1.5px solid #E5E7EB;border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box">
+        <button onclick="saveAtivLink(${id})" style="padding:7px 10px;background:#111;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">OK</button>
+      </div>`;
+    proofHtml += provasHtml;
+  } else {
+    proofHtml += hasProof ? provasHtml : `<div style="font-size:12px;color:#9CA3AF">⏳ Aguardando comprovante do organizador</div>`;
+  }
+  proofHtml += '</div>';
+
+  // ── Botões de aprovação ──
+  const marcaBtn = st.marcaOk
+    ? `<span style="font-size:11px;font-weight:600;color:#059669;display:flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Marca</span>`
+    : (isMarca && hasProof)
+      ? `<button onclick="approveAtivMarca(${id})" style="font-size:11px;font-weight:700;padding:5px 10px;background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;border-radius:6px;cursor:pointer;font-family:inherit">✓ Aprovar</button>`
+      : `<span style="font-size:11px;color:#D1D5DB">○ Marca</span>`;
+
+  const relBtn = st.relevantiaOk
+    ? `<span style="font-size:11px;font-weight:600;color:#7C3AED;display:flex;align-items:center;gap:3px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Relevantia</span>`
+    : (isRel && st.marcaOk)
+      ? `<button onclick="approveAtivRel(${id})" style="font-size:11px;font-weight:700;padding:5px 10px;background:#F5F3FF;color:#7C3AED;border:1px solid #DDD6FE;border-radius:6px;cursor:pointer;font-family:inherit">✓ Confirmar</button>`
+      : `<span style="font-size:11px;color:#D1D5DB">○ Relevantia</span>`;
+
+  return `
+    <div style="border:1.5px solid ${concluido?'#A7F3D0':'#E5E7EB'};border-radius:10px;padding:12px 14px;background:${concluido?'#F0FDF4':'#fff'}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <span style="font-size:13px;font-weight:600;color:#111;line-height:1.4">${item.desc}</span>
+        <span style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;background:${statusBg};color:${statusTxt};white-space:nowrap;flex-shrink:0">${statusLabel}</span>
+      </div>
+      ${proofHtml}
+      <div style="display:flex;align-items:center;gap:12px;margin-top:10px;padding-top:8px;border-top:1px solid #F3F4F6">
+        ${marcaBtn}
+        ${relBtn}
+      </div>
+    </div>`;
+}
+
+/* Foto */
+function onAtivFoto(id, input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { ativState[id].foto = file; ativState[id].fotoName = file.name; ativState[id].fotoPreview = e.target.result; _ativStamp(id); renderAtivList(); toast('Foto adicionada!'); };
+  reader.readAsDataURL(file);
+}
+function removeAtivFoto(id) { ativState[id].foto = null; ativState[id].fotoName = null; ativState[id].fotoPreview = null; renderAtivList(); }
+
+/* Vídeo */
+function onAtivVideo(id, input) {
+  const file = input.files[0]; if (!file) return;
+  ativState[id].video = file; ativState[id].videoName = file.name; _ativStamp(id); renderAtivList(); toast('Vídeo adicionado!');
+}
+function removeAtivVideo(id) { ativState[id].video = null; ativState[id].videoName = null; renderAtivList(); }
+
+/* Link */
+function toggleAtivLink(id) { ativState[id].linkShown = !ativState[id].linkShown; renderAtivList(); }
+function saveAtivLink(id) {
+  const input = document.getElementById('ativ-link-input-' + id);
+  const val = input ? input.value.trim() : '';
+  if (!val) { toast('Cole um link válido.'); return; }
+  ativState[id].link = val; ativState[id].linkShown = false; _ativStamp(id); renderAtivList(); toast('Link adicionado!');
+}
+function removeAtivLink(id) { ativState[id].link = ''; renderAtivList(); }
+
+function _ativStamp(id) { if (!ativState[id].proofDate) ativState[id].proofDate = _ativNow(); }
+
+function approveAtivMarca(id) {
+  ativState[id].marcaOk = true;
+  renderAtivList();
+  toast('Entrega aprovada pela marca!');
+}
+
+function approveAtivRel(id) {
+  ativState[id].relevantiaOk = true;
+  renderAtivList();
+  const done = Object.values(ativState).filter(s => s.relevantiaOk).length;
+  if (done === ATIV_ITEMS.length) toast('Todas as entregas confirmadas! 🎉');
+  else toast('Entrega confirmada pela Relevantia!');
+}
+
+function updateAtivBadge() {
+  const done = Object.values(ativState).filter(s => s.relevantiaOk && _hasProof(s)).length;
+  const badge = document.getElementById('ativ-badge');
+  if (!badge) return;
+  badge.textContent = done + '/' + ATIV_ITEMS.length + ' concluídas';
+  badge.style.background = done === ATIV_ITEMS.length ? '#ECFDF5' : '';
+  badge.style.color = done === ATIV_ITEMS.length ? '#059669' : '';
 }
 
 /* ─── VALOR MASK ─── */

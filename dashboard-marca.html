@@ -5440,6 +5440,7 @@ function openDealDetModalMarca(propId) {
   document.getElementById('mdm-sub').textContent = p.opp + (totalBruto ? ' · ' + fmt(totalBruto) : '');
 
   renderAtivacaoMarca(p, entregas);
+  renderMateriaisMarca(p);
 
   document.getElementById('mdm-financeiro').innerHTML = totalBruto
     ? `<div class="modal-deal-det-financeiro-row total"><span class="lbl">Valor acordado</span><span>${fmt(totalBruto)}</span></div>`
@@ -5509,34 +5510,159 @@ function _cpDescM(raw) {
   if (d.startsWith('{')) { try { const o = JSON.parse(d); d = (o.titulo||'') + (o.descricao && o.descricao!==o.titulo ? ': '+o.descricao : ''); } catch(e){} }
   return d;
 }
+function _provasRowsMarca(provas) {
+  if (!provas || !provas.length) return '';
+  return '<div style="margin-top:8px">' + provas.map(p => {
+    const icon = p.tipo === 'foto' ? '🖼️' : p.tipo === 'video' ? '🎬' : '🔗';
+    const label = p.tipo === 'link'
+      ? `<a href="${escapeHtml(p.url)}" target="_blank" style="color:#2563EB;font-size:11px;font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.url.length>36?p.url.substring(0,36)+'…':p.url)}</a>`
+      : `<span style="font-size:11px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.nome||p.tipo)}</span>`;
+    const thumb = p.tipo === 'foto' ? `<img src="${escapeHtml(p.url)}" style="display:block;width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:5px">` : '';
+    return `<div style="padding:6px 8px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:7px;margin-bottom:4px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+        <div style="display:flex;align-items:center;gap:5px;min-width:0"><span>${icon}</span>${label}</div>
+        <span style="font-size:10px;color:var(--gray-400);flex-shrink:0">${escapeHtml(p.data||'')}</span>
+      </div>${thumb}</div>`;
+  }).join('') + '</div>';
+}
+
 function renderAtivacaoMarca(p, entregas) {
   const host = document.getElementById('mdm-entregas');
   if (!host) return;
   if (!entregas.length) { host.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>'; return; }
   const validadas = entregas.filter(c => c.validado).length;
-  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length === 1 ? 'entrega validada' : 'entregas validadas'}</div>`;
+  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length===1?'entrega validada':'entregas validadas'}</div>`;
   html += entregas.map(cp => {
     const desc = _cpDescM(cp.descricao);
+    const provas = Array.isArray(cp.provas) ? cp.provas : [];
     let estado, acao = '';
     if (cp.validado) {
       estado = '<span style="color:var(--green);font-weight:600">✓ Você validou</span>';
     } else if (cp.entregue) {
       estado = '<span style="color:#D97706;font-weight:600">Organizador marcou como entregue</span>';
-      acao = `<button class="ativ-btn primary" onclick="validarEntregaMarca('${cp.id}')">Validar</button>`;
+      acao = `<button class="ativ-btn primary" onclick="validarEntregaMarca('${escapeHtml(String(cp.id))}')">Validar</button>`;
     } else {
       estado = '<span style="color:var(--gray-400)">Aguardando o organizador entregar</span>';
     }
     const checked = cp.validado || cp.entregue;
-    return `<div class="ativ-row">
-      <span class="ativ-check ${cp.validado ? 'done' : cp.entregue ? 'mid' : ''}">${checked ? '✓' : ''}</span>
-      <div class="ativ-main"><div class="ativ-desc">${escapeHtml(desc)}</div><div class="ativ-state">${estado}</div></div>
-      ${acao}
+    return `<div class="ativ-row" style="flex-direction:column;align-items:stretch;gap:0">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span class="ativ-check ${cp.validado?'done':cp.entregue?'mid':''}">${checked?'✓':''}</span>
+        <div class="ativ-main" style="flex:1"><div class="ativ-desc">${escapeHtml(desc)}</div><div class="ativ-state">${estado}</div></div>
+        ${acao}
+      </div>
+      ${provas.length ? _provasRowsMarca(provas) : (cp.entregue ? '<div style="margin-top:6px;margin-left:28px;font-size:11px;color:var(--gray-400)">Sem comprovante anexado pelo organizador.</div>' : '')}
     </div>`;
   }).join('');
-  if (validadas === entregas.length) {
+  if (validadas === entregas.length && entregas.length > 0) {
     html += `<div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-weight:600;text-align:center">🎉 Todas as entregas validadas — parceria concluída</div>`;
   }
   host.innerHTML = html;
+}
+
+/* ── Materiais para o organizador (marca sobe, detentor lê) ── */
+function renderMateriaisMarca(p) {
+  const host = document.getElementById('mdm-materiais');
+  if (!host) return;
+  const mats = Array.isArray(p.materiais) ? p.materiais : [];
+  const icons = { logo: '🎨', briefing: '📄', video: '🎬', link: '🔗' };
+  const listaHtml = mats.length
+    ? mats.map((m, i) => `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:8px;margin-bottom:6px">
+        <span style="font-size:16px">${icons[m.tipo]||'📎'}</span>
+        <div style="flex:1;min-width:0">
+          <a href="${escapeHtml(m.url)}" target="_blank" style="color:#2563EB;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block">${escapeHtml(m.nome||m.tipo)}</a>
+          <span style="font-size:10px;color:var(--gray-400)">${escapeHtml(m.tipo)} · ${escapeHtml(m.data||'')}</span>
+        </div>
+        <button onclick="removeMaterialMarca(${i})" style="font-size:11px;color:var(--gray-400);background:none;border:none;cursor:pointer;padding:4px">✕</button>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:var(--gray-400);margin-bottom:10px">Nenhum material enviado ainda.</div>';
+
+  host.innerHTML = listaHtml + `
+    <input type="file" id="mdm-mat-file" accept="image/*,video/*,application/pdf" style="display:none" onchange="onMaterialFileChange(this)">
+    <div id="mdm-mat-form" style="display:none;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:10px;padding:12px;margin-bottom:8px">
+      <div style="font-size:11px;font-weight:700;color:var(--gray-400);margin-bottom:8px">Adicionar material</div>
+      <select id="mdm-mat-tipo" style="width:100%;border:1.5px solid var(--gray-200);border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;margin-bottom:8px;background:#fff">
+        <option value="logo">🎨 Logo / identidade visual</option>
+        <option value="briefing">📄 Briefing / guidelines (PDF)</option>
+        <option value="video">🎬 Vídeo de ativação</option>
+        <option value="link">🔗 Link externo</option>
+      </select>
+      <div id="mdm-mat-file-area" style="margin-bottom:8px">
+        <div onclick="document.getElementById('mdm-mat-file').click()" style="border:1.5px dashed var(--gray-200);border-radius:8px;padding:12px;text-align:center;cursor:pointer">
+          <div style="font-size:12px;color:var(--gray-400)">📎 Clique para anexar arquivo</div>
+        </div>
+        <div id="mdm-mat-file-preview" style="display:none;font-size:12px;font-weight:600;color:var(--text);padding:6px 0"></div>
+      </div>
+      <div id="mdm-mat-link-area" style="display:none;margin-bottom:8px">
+        <input type="url" id="mdm-mat-link-input" placeholder="Cole o link…" style="width:100%;border:1.5px solid var(--gray-200);border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box">
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="cancelarMaterialMarca()" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--gray-200);background:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Cancelar</button>
+        <button onclick="salvarMaterialMarca()" style="flex:2;padding:8px;border-radius:8px;border:none;background:var(--black);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">Enviar para o organizador</button>
+      </div>
+    </div>
+    <button onclick="abrirFormMaterialMarca()" id="mdm-mat-add-btn" style="width:100%;padding:9px;border-radius:8px;border:1.5px dashed var(--gray-200);background:#fff;font-size:12px;font-weight:700;color:var(--gray-400);cursor:pointer;font-family:inherit">+ Adicionar material</button>`;
+}
+
+function abrirFormMaterialMarca() {
+  document.getElementById('mdm-mat-form').style.display = '';
+  document.getElementById('mdm-mat-add-btn').style.display = 'none';
+  _mdmMatFile = null;
+  onMdmTipoChange();
+  document.getElementById('mdm-mat-tipo').onchange = onMdmTipoChange;
+}
+function cancelarMaterialMarca() {
+  document.getElementById('mdm-mat-form').style.display = 'none';
+  document.getElementById('mdm-mat-add-btn').style.display = '';
+  _mdmMatFile = null;
+}
+function onMdmTipoChange() {
+  const tipo = document.getElementById('mdm-mat-tipo')?.value;
+  document.getElementById('mdm-mat-file-area').style.display = tipo === 'link' ? 'none' : '';
+  document.getElementById('mdm-mat-link-area').style.display = tipo === 'link' ? '' : 'none';
+}
+var _mdmMatFile = null;
+function onMaterialFileChange(input) {
+  const file = input.files[0]; if (!file) return;
+  _mdmMatFile = file;
+  const prev = document.getElementById('mdm-mat-file-preview');
+  prev.textContent = '📎 ' + file.name;
+  prev.style.display = '';
+}
+async function salvarMaterialMarca() {
+  const propId = window._ddmCurrentProp;
+  const p = PROPOSTAS.find(x => x.id === propId);
+  if (!p) return;
+  const tipo = document.getElementById('mdm-mat-tipo').value;
+  const now = new Date();
+  const data = now.getDate().toString().padStart(2,'0') + '/' + (now.getMonth()+1).toString().padStart(2,'0') + ' · ' + now.getHours().toString().padStart(2,'0') + 'h' + now.getMinutes().toString().padStart(2,'0');
+  let url = null, nome = '';
+  if (tipo === 'link') {
+    url = (document.getElementById('mdm-mat-link-input')?.value||'').trim();
+    if (!url) { showToast('Cole um link válido.', 'error'); return; }
+    nome = url.length > 40 ? url.substring(0,40)+'…' : url;
+  } else {
+    if (!_mdmMatFile) { showToast('Selecione um arquivo.', 'error'); return; }
+    showToast('Enviando…', 'info');
+    if (!isDemoMode() && p._supaId) {
+      const ext = _mdmMatFile.name.split('.').pop();
+      url = await _uploadToStorage('ativacao', 'materiais/' + p._supaId + '/' + Date.now() + '.' + ext, _mdmMatFile);
+    }
+    if (!url) url = URL.createObjectURL(_mdmMatFile);
+    nome = _mdmMatFile.name;
+  }
+  if (!Array.isArray(p.materiais)) p.materiais = [];
+  p.materiais.push({ tipo, url, nome, data });
+  if (!isDemoMode() && p._supaId) await updateNegociacao(p._supaId, { materiais: p.materiais });
+  renderMateriaisMarca(p);
+  showToast('Material enviado!', 'success');
+}
+async function removeMaterialMarca(idx) {
+  const p = PROPOSTAS.find(x => x.id === window._ddmCurrentProp);
+  if (!p || !p.materiais) return;
+  p.materiais.splice(idx, 1);
+  if (!isDemoMode() && p._supaId) await updateNegociacao(p._supaId, { materiais: p.materiais });
+  renderMateriaisMarca(p);
 }
 async function validarEntregaMarca(cpId) {
   const p = PROPOSTAS.find(x => x.id === _ddmCurrentProp);
@@ -7207,6 +7333,12 @@ async function removerMembro(userId) {
       <div>
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Pagamento</div>
         <div id="mdm-pagamento-area"></div>
+      </div>
+
+      <!-- Materiais para o organizador -->
+      <div id="mdm-materiais-section">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:10px">Materiais para o organizador</div>
+        <div id="mdm-materiais"></div>
       </div>
 
     </div>

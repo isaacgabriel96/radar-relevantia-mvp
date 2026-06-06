@@ -6472,6 +6472,7 @@ function openDealDetModal(negId) {
   document.getElementById('ddet-sub').textContent   = n.opp + ' · ' + n.cota;
 
   renderAtivacaoDet(n, entregas);
+  renderMateriaisDet(n);
 
   document.getElementById('ddet-financeiro').innerHTML = `
     <div class="modal-deal-det-financeiro-row"><span class="lbl">Valor do deal</span><span>${fmt(totalBruto)}</span></div>
@@ -6528,34 +6529,160 @@ function _cpDesc(raw) {
   if (d.startsWith('{')) { try { const o = JSON.parse(d); d = (o.titulo||'') + (o.descricao && o.descricao!==o.titulo ? ': '+o.descricao : ''); } catch(e){} }
   return d;
 }
+
+function _provasListHtml(provas, cpId, canDelete) {
+  if (!provas.length) return '';
+  return provas.map((p, i) => {
+    const icon = p.tipo === 'foto' ? '🖼️' : p.tipo === 'video' ? '🎬' : '🔗';
+    const label = p.tipo === 'link'
+      ? `<a href="${escapeHtml(p.url)}" target="_blank" style="color:#2563EB;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(p.url.length>36?p.url.substring(0,36)+'…':p.url)}</a>`
+      : `<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(p.nome||p.tipo)}</span>`;
+    const thumb = p.tipo === 'foto' ? `<img src="${escapeHtml(p.url)}" style="display:block;width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:5px">` : '';
+    return `<div style="padding:6px 8px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:7px;margin-bottom:4px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+        <div style="display:flex;align-items:center;gap:5px;min-width:0"><span>${icon}</span>${label}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <span style="font-size:10px;color:var(--gray-400)">${escapeHtml(p.data||'')}</span>
+          ${canDelete ? `<button onclick="removeProvaDet('${escapeHtml(cpId)}',${i})" style="font-size:10px;color:var(--gray-400);background:none;border:none;cursor:pointer;padding:2px">✕</button>` : ''}
+        </div>
+      </div>${thumb}</div>`;
+  }).join('');
+}
+
 function renderAtivacaoDet(n, entregas) {
   const host = document.getElementById('ddet-entregas');
   if (!host) return;
   if (!entregas.length) { host.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>'; return; }
   const validadas = entregas.filter(c => c.validado).length;
-  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length === 1 ? 'entrega validada' : 'entregas validadas'} pela marca</div>`;
+  const negSupaId = n._supaId || 'demo';
+  const btnSt = 'font-size:11px;font-weight:700;padding:6px 10px;border-radius:7px;border:1.5px solid var(--gray-200);background:#fff;color:var(--text);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px';
+  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length===1?'entrega validada':'entregas validadas'} pela marca</div>`;
   html += entregas.map(cp => {
     const desc = _cpDesc(cp.descricao);
-    let estado, acao = '';
+    const provas = Array.isArray(cp.provas) ? cp.provas : [];
+    const checked = cp.validado || cp.entregue;
+    let estado, acao = '', provaSection = '';
+
     if (cp.validado) {
       estado = '<span style="color:var(--green);font-weight:600">✓ Validada pela marca</span>';
+      provaSection = provas.length ? `<div style="margin-top:8px">${_provasListHtml(provas, cp.id, false)}</div>` : '';
     } else if (cp.entregue) {
       estado = '<span style="color:#D97706;font-weight:600">Aguardando validação da marca</span>';
+      provaSection = provas.length ? `<div style="margin-top:8px">${_provasListHtml(provas, cp.id, false)}</div>` : '';
     } else {
       estado = '<span style="color:var(--gray-400)">Pendente</span>';
-      acao = `<button class="ativ-btn" onclick="marcarEntregueDet('${cp.id}')">Marcar como entregue</button>`;
+      const canMark = provas.length > 0;
+      acao = canMark
+        ? `<button class="ativ-btn" onclick="marcarEntregueDet('${escapeHtml(String(cp.id))}')">Marcar como entregue</button>`
+        : `<button class="ativ-btn" disabled style="opacity:0.4;cursor:not-allowed" title="Adicione um comprovante antes">Marcar como entregue</button>`;
+      provaSection = `<div style="margin-top:8px;margin-left:28px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:6px">Comprovante</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${provas.length?'8px':'0'}">
+          <button style="${btnSt}" onclick="document.getElementById('pdet-foto-${escapeHtml(String(cp.id))}').click()">📷 Foto</button>
+          <button style="${btnSt}" onclick="document.getElementById('pdet-video-${escapeHtml(String(cp.id))}').click()">🎬 Vídeo</button>
+          <button style="${btnSt}" onclick="toggleProvaLinkDet('${escapeHtml(String(cp.id))}')">🔗 Link</button>
+        </div>
+        <input type="file" id="pdet-foto-${escapeHtml(String(cp.id))}" accept="image/*" style="display:none" onchange="onProvaFileDet('${escapeHtml(String(cp.id))}','${negSupaId}','foto',this)">
+        <input type="file" id="pdet-video-${escapeHtml(String(cp.id))}" accept="video/*" style="display:none" onchange="onProvaFileDet('${escapeHtml(String(cp.id))}','${negSupaId}','video',this)">
+        <div id="pdet-link-wrap-${escapeHtml(String(cp.id))}" style="display:none;flex-gap:6px;margin-bottom:6px">
+          <div style="display:flex;gap:6px">
+            <input type="url" id="pdet-link-${escapeHtml(String(cp.id))}" placeholder="Cole o link…" style="flex:1;min-width:0;border:1.5px solid var(--gray-200);border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box">
+            <button onclick="saveProvaLinkDet('${escapeHtml(String(cp.id))}')" style="padding:7px 10px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">OK</button>
+          </div>
+        </div>
+        ${_provasListHtml(provas, cp.id, true)}
+      </div>`;
     }
-    const checked = cp.validado || cp.entregue;
-    return `<div class="ativ-row">
-      <span class="ativ-check ${cp.validado ? 'done' : cp.entregue ? 'mid' : ''}">${checked ? '✓' : ''}</span>
-      <div class="ativ-main"><div class="ativ-desc">${escapeHtml(desc)}</div><div class="ativ-state">${estado}</div></div>
-      ${acao}
+
+    return `<div class="ativ-row" style="flex-direction:column;align-items:stretch;gap:0">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <span class="ativ-check ${cp.validado?'done':cp.entregue?'mid':''}">${checked?'✓':''}</span>
+        <div class="ativ-main" style="flex:1"><div class="ativ-desc">${escapeHtml(desc)}</div><div class="ativ-state">${estado}</div></div>
+        ${acao}
+      </div>
+      ${provaSection}
     </div>`;
   }).join('');
-  if (validadas === entregas.length) {
+  if (validadas === entregas.length && entregas.length > 0) {
     html += `<div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-weight:600;text-align:center">🎉 Todas as entregas validadas — repasse será liberado pela Relevantia</div>`;
   }
   host.innerHTML = html;
+}
+
+async function onProvaFileDet(cpId, negSupaId, tipo, input) {
+  const file = input.files[0]; if (!file) return;
+  showToast('Enviando…', 'info');
+  let url = null;
+  if (!isDemoMode() && negSupaId !== 'demo') {
+    const ext = file.name.split('.').pop();
+    url = await _uploadToStorage('ativacao', negSupaId + '/' + cpId + '/' + Date.now() + '.' + ext, file);
+  }
+  if (!url) url = URL.createObjectURL(file);
+  const n = NEGOCIACOES.find(x => x.id === window._ddetCurrentNeg);
+  const cp = (n?.contrapartidas||[]).find(c => String(c.id) === String(cpId));
+  if (!cp) return;
+  if (!Array.isArray(cp.provas)) cp.provas = [];
+  const now = new Date();
+  const data = now.getDate().toString().padStart(2,'0') + '/' + (now.getMonth()+1).toString().padStart(2,'0') + ' · ' + now.getHours().toString().padStart(2,'0') + 'h' + now.getMinutes().toString().padStart(2,'0');
+  cp.provas.push({ tipo, url, nome: file.name, data });
+  if (!isDemoMode()) await updateContrapartida(cpId, { provas: cp.provas });
+  renderAtivacaoDet(n, (n.contrapartidas||[]).filter(c => c.status === 'aceita'));
+  showToast('Comprovante adicionado!', 'success');
+}
+
+function toggleProvaLinkDet(cpId) {
+  const wrap = document.getElementById('pdet-link-wrap-' + cpId);
+  if (!wrap) return;
+  const open = wrap.style.display !== 'none' && wrap.style.display !== '';
+  wrap.style.display = open ? 'none' : '';
+  if (!open) document.getElementById('pdet-link-' + cpId)?.focus();
+}
+
+async function saveProvaLinkDet(cpId) {
+  const input = document.getElementById('pdet-link-' + cpId);
+  const val = (input?.value||'').trim();
+  if (!val) { showToast('Cole um link válido.', 'error'); return; }
+  const n = NEGOCIACOES.find(x => x.id === window._ddetCurrentNeg);
+  const cp = (n?.contrapartidas||[]).find(c => String(c.id) === String(cpId));
+  if (!cp) return;
+  if (!Array.isArray(cp.provas)) cp.provas = [];
+  const now = new Date();
+  const data = now.getDate().toString().padStart(2,'0') + '/' + (now.getMonth()+1).toString().padStart(2,'0') + ' · ' + now.getHours().toString().padStart(2,'0') + 'h' + now.getMinutes().toString().padStart(2,'0');
+  cp.provas.push({ tipo: 'link', url: val, nome: val, data });
+  if (!isDemoMode()) await updateContrapartida(cpId, { provas: cp.provas });
+  renderAtivacaoDet(n, (n.contrapartidas||[]).filter(c => c.status === 'aceita'));
+  showToast('Link adicionado!', 'success');
+}
+
+async function removeProvaDet(cpId, idx) {
+  const n = NEGOCIACOES.find(x => x.id === window._ddetCurrentNeg);
+  const cp = (n?.contrapartidas||[]).find(c => String(c.id) === String(cpId));
+  if (!cp || !cp.provas) return;
+  cp.provas.splice(idx, 1);
+  if (!isDemoMode()) await updateContrapartida(cpId, { provas: cp.provas });
+  renderAtivacaoDet(n, (n.contrapartidas||[]).filter(c => c.status === 'aceita'));
+}
+
+/* ── Materiais da marca (detentor lê) ── */
+function renderMateriaisDet(n) {
+  const host = document.getElementById('ddet-materiais');
+  if (!host) return;
+  const mats = Array.isArray(n.materiais) ? n.materiais : [];
+  if (!mats.length) {
+    host.innerHTML = '<div style="font-size:12px;color:var(--gray-400)">A marca ainda não enviou materiais de ativação.</div>';
+    return;
+  }
+  const icons = { logo: '🎨', briefing: '📄', video: '🎬', link: '🔗' };
+  host.innerHTML = mats.map(m => {
+    const icon = icons[m.tipo] || '📎';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:8px;margin-bottom:6px">
+      <span style="font-size:16px">${icon}</span>
+      <div style="flex:1;min-width:0">
+        <a href="${escapeHtml(m.url)}" target="_blank" style="color:#2563EB;font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block">${escapeHtml(m.nome||m.tipo)}</a>
+        <span style="font-size:10px;color:var(--gray-400)">${escapeHtml(m.tipo)} · ${escapeHtml(m.data||'')}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 async function marcarEntregueDet(cpId) {
   const n = NEGOCIACOES.find(x => x.id === window._ddetCurrentNeg);
@@ -7398,6 +7525,11 @@ async function removerMembro(userId) {
       <button class="modal-deal-det-close" onclick="closeDealDetModal()">✕</button>
     </div>
     <div class="modal-deal-det-body">
+      <!-- Materiais enviados pela marca -->
+      <div class="modal-deal-det-section" id="ddet-materiais-section">
+        <div class="modal-deal-det-section-title">Materiais da marca</div>
+        <div id="ddet-materiais"><span style="font-size:12px;color:var(--gray-400)">—</span></div>
+      </div>
       <!-- Ativação: entregas acordadas + validação -->
       <div class="modal-deal-det-section">
         <div class="modal-deal-det-section-title">Ativação — entregas</div>

@@ -14,12 +14,11 @@
 
 // ─── DADOS DE PAGAMENTO DA RELEVANTIA ───────────────────────
 // Conta para onde a marca envia o pagamento (custódia/escrow).
-// ⚠️ SUBSTITUIR pelos dados reais da Relevantia antes do lançamento.
 const PAGAMENTO_RELEVANTIA = {
-  pixTipo:    'CNPJ',
-  pixChave:   '00.000.000/0001-00',
-  favorecido: 'Relevantia Tecnologia LTDA',
-  banco:      'Banco XYZ (000) · Ag. 0000 · CC 00000-0'
+  pixTipo:    'E-mail',
+  pixChave:   'hello@relevantia.com.br',
+  favorecido: 'Relevantia Academy Ltda',
+  banco:      'Nubank (260) · Ag. 0001 · CC 503403133-6'
 };
 
 const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
@@ -399,7 +398,8 @@ function rowToNegociacao(row) {
     prazo: cp.prazo || '',
     status: cp.status || 'proposta', propostoPor: cp.proposto_por || 'marca',
     entregue: cp.entregue === true, entregueEm: cp.entregue_em || null,
-    validado: cp.validado === true, validadoEm: cp.validado_em || null
+    validado: cp.validado === true, validadoEm: cp.validado_em || null,
+    provas: Array.isArray(cp.provas) ? cp.provas : []
   }));
   const thread = (row.mensagens || []).map(m => ({
     autor: m.autor_role || 'marca', nome: m.autor_nome || '',
@@ -430,6 +430,7 @@ function rowToNegociacao(row) {
     contrato_validado_em: row.contrato_validado_em || null,
     admin_comentario: row.admin_comentario || null,
     campanha_id: row.campanha_id || null,
+    materiais: Array.isArray(row.materiais) ? row.materiais : [],
     _supaId: row.id
   };
 }
@@ -439,10 +440,10 @@ var _negSelectQuery = 'id,oportunidade_id,marca_id,detentor_id,cota,assunto,valo
   'valor_deal_proposto_por,valor_deal_status,' +
   'contrato_enviado_por,contrato_enviado_em,' +
   'contrato_validado,contrato_validado_em,contrato_validado_por,admin_comentario,' +
-  'status,status_label,status_hint,aceita_novas_propostas,created_at,campanha_id,' +
+  'status,status_label,status_hint,aceita_novas_propostas,created_at,campanha_id,materiais,' +
   'marca:marca_id(nome,empresa),' +
   'oportunidade:oportunidade_id(titulo,categoria),' +
-  'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por,entregue,entregue_em,validado,validado_em),' +
+  'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por,entregue,entregue_em,validado,validado_em,provas),' +
   'contratos(id,documento_url,status,completo_em),' +
   'mensagens(id,autor_role,autor_nome,texto,created_at)';
 
@@ -614,6 +615,23 @@ async function updateContrapartida(cpId, fields) {
     if (!res.ok && typeof showToast === 'function') showToast('Erro ao atualizar contrapartida.', 'error');
     return res.ok;
   } catch (err) { console.error('[updateContrapartida] Failed:', err); if (typeof showToast === 'function') showToast('Erro de conexão.', 'error'); return false; }
+}
+
+/**
+ * Upload a file to Supabase Storage. Returns the public URL or null on failure.
+ */
+async function _uploadToStorage(bucket, path, file) {
+  try {
+    const token = await getValidToken();
+    if (!token) return null;
+    const res = await fetch(SUPABASE_URL + '/storage/v1/object/' + bucket + '/' + path, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': file.type, 'x-upsert': 'false' },
+      body: file
+    });
+    if (!res.ok) { console.error('[_uploadToStorage]', await res.text()); return null; }
+    return SUPABASE_URL + '/storage/v1/object/public/' + bucket + '/' + path;
+  } catch(e) { console.error('[_uploadToStorage]', e); return null; }
 }
 
 /**
