@@ -388,6 +388,48 @@ function _fmtDate(iso, withTime) {
   return dd + '/' + mm + ' · ' + hh + ':' + min;
 }
 
+/**
+ * Normaliza uma entrega/contrapartida em { titulo, descricao }.
+ * Aceita os dois formatos usados na base:
+ *   • JSON: '{"titulo":"...","descricao":"..."}'
+ *   • String combinada: 'Título: descrição'  (ou só 'Título')
+ * Robusto para texto livre sem dois-pontos (vira só título).
+ */
+function _entregaParts(raw) {
+  let s = (typeof raw === 'string' ? raw : (raw && raw.descricao) || '').trim();
+  if (!s) return { titulo: '', descricao: '' };
+  if (s.charAt(0) === '{') {
+    try {
+      const o = JSON.parse(s);
+      const t = (o.titulo || '').trim();
+      const d = (o.descricao || '').trim();
+      return { titulo: t || d, descricao: (d && d !== t) ? d : '' };
+    } catch (e) { /* não era JSON — segue para split */ }
+  }
+  const idx = s.indexOf(': ');
+  if (idx > 0 && idx <= 48) return { titulo: s.slice(0, idx).trim(), descricao: s.slice(idx + 2).trim() };
+  return { titulo: s, descricao: '' };
+}
+
+/** Texto inline "Título: descrição" (ou só título) a partir de qualquer formato. */
+function _entregaInline(raw) {
+  const p = _entregaParts(raw);
+  return p.titulo + (p.descricao ? ': ' + p.descricao : '');
+}
+
+/**
+ * HTML de uma entrega com título em destaque + descrição abaixo.
+ * Usa escapeHtml global. dotColor opcional (ex: '#059669').
+ */
+function _entregaTituloDescHtml(raw, opts) {
+  opts = opts || {};
+  const p = _entregaParts(raw);
+  const esc = (typeof escapeHtml === 'function') ? escapeHtml : (x => x);
+  const titulo = esc(p.titulo || '—');
+  const desc = p.descricao ? `<div style="font-size:12px;color:var(--gray-400);line-height:1.45;margin-top:2px">${esc(p.descricao)}</div>` : '';
+  return `<div style="min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4">${titulo}</div>${desc}</div>`;
+}
+
 function rowToNegociacao(row) {
   const marcaNome = (row.marca && row.marca.empresa) ? row.marca.empresa : '';
   const oppTitulo = (row.oportunidade && row.oportunidade.titulo) ? row.oportunidade.titulo : '';

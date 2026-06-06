@@ -6004,13 +6004,12 @@ function _renderPropostaEnviadaDet(n) {
   let html = '<div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;margin-bottom:8px">';
   if (cps.length > 0) {
     html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>';
-    html += '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px">';
+    html += '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">';
     cps.forEach(function(cp) {
-      let desc = (typeof cp === 'string') ? cp : (cp.descricao || '');
-      if (desc.startsWith('{')) { try { const o = JSON.parse(desc); desc = o.titulo || o.descricao || desc; } catch(e) {} }
-      html += `<li style="font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px">
-        <span style="width:6px;height:6px;border-radius:50%;background:var(--gray-300);flex-shrink:0"></span>
-        ${escapeHtml(desc)}</li>`;
+      const raw = (typeof cp === 'string') ? cp : (cp.descricao || '');
+      html += `<li style="display:flex;align-items:flex-start;gap:8px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--gray-300);flex-shrink:0;margin-top:5px"></span>
+        ${_entregaTituloDescHtml(raw)}</li>`;
     });
     html += '</ul>';
   }
@@ -6638,17 +6637,15 @@ function _renderEntregasMinDet(cps) {
   el.innerHTML = _entregasCardHtmlDet(cps);
 }
 
-// Lista de entregas formatada (card com linhas, dot + descrição + badge) — estilo protótipo
+// Lista de entregas formatada (card com linhas, título + descrição + badge) — estilo protótipo
 function _entregasCardHtmlDet(cps) {
   const aceitas = (cps || []).filter(c => c.status === 'aceita');
   if (!aceitas.length) return '<div style="font-size:12px;color:var(--gray-400)">Nenhuma entrega acordada.</div>';
   return '<div style="border:1px solid var(--gray-200);border-radius:10px;overflow:hidden">' + aceitas.map((c, i) => {
-    let d = c.descricao || '';
-    if (d.startsWith('{')) { try { const o = JSON.parse(d); d = o.titulo || o.descricao || d; } catch(e){} }
-    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;${i > 0 ? 'border-top:1px solid var(--gray-100);' : ''}">
-      <div style="display:flex;align-items:center;gap:9px;min-width:0">
-        <span style="width:7px;height:7px;border-radius:50%;background:#059669;flex-shrink:0"></span>
-        <span style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(d)}</span>
+    return `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:11px 14px;${i > 0 ? 'border-top:1px solid var(--gray-100);' : ''}">
+      <div style="display:flex;align-items:flex-start;gap:9px;min-width:0">
+        <span style="width:7px;height:7px;border-radius:50%;background:#059669;flex-shrink:0;margin-top:5px"></span>
+        ${_entregaTituloDescHtml(c.descricao)}
       </div>
       <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;background:#ECFDF5;color:#059669;flex-shrink:0">Aceita</span>
     </div>`;
@@ -6690,7 +6687,7 @@ function renderAtivacaoDet(n, entregas) {
   const btnSt = 'font-size:11px;font-weight:700;padding:6px 10px;border-radius:7px;border:1.5px solid var(--gray-200);background:#fff;color:var(--text);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px';
   let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length===1?'entrega validada':'entregas validadas'} pela marca</div>`;
   html += entregas.map(cp => {
-    const desc = _cpDesc(cp.descricao);
+    const parts = _entregaParts(cp.descricao);
     const provas = Array.isArray(cp.provas) ? cp.provas : [];
     const checked = cp.validado || cp.entregue;
     let estado, acao = '', provaSection = '';
@@ -6729,7 +6726,7 @@ function renderAtivacaoDet(n, entregas) {
     return `<div class="ativ-row" style="flex-direction:column;align-items:stretch;gap:0">
       <div style="display:flex;align-items:flex-start;gap:8px">
         <span class="ativ-check ${cp.validado?'done':cp.entregue?'mid':''}">${checked?'✓':''}</span>
-        <div class="ativ-main" style="flex:1"><div class="ativ-desc">${escapeHtml(desc)}</div><div class="ativ-state">${estado}</div></div>
+        <div class="ativ-main" style="flex:1"><div class="ativ-desc">${escapeHtml(parts.titulo)}</div>${parts.descricao ? `<div style="font-size:12px;color:var(--gray-400);line-height:1.45;margin-top:2px">${escapeHtml(parts.descricao)}</div>` : ''}<div class="ativ-state">${estado}</div></div>
         ${acao}
       </div>
       ${provaSection}
