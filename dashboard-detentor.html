@@ -5494,8 +5494,25 @@ async function openNegModal(id) {
   _modoContraproposta = false;
 
   document.getElementById('mn-marca').textContent = n.marca;
-  // Brand header compacto
-  document.getElementById('mn-brand-avatar').textContent = (n.marca || '?').charAt(0).toUpperCase();
+  // Brand header compacto — usa logo real da marca (logo_url → brandfetch domínio → nome → inicial)
+  const brandAvatar = document.getElementById('mn-brand-avatar');
+  if (brandAvatar) {
+    const ini = _initials(n.marca || '?');
+    brandAvatar.removeAttribute('data-bf-domain');
+    brandAvatar.removeAttribute('data-bf-name');
+    if (n.marca_logo_url) {
+      brandAvatar.classList.remove('gold');
+      brandAvatar.innerHTML = `<img src="${escapeHtml(n.marca_logo_url)}" alt=""><span style="display:none">${ini}</span>`;
+    } else if (n.marca_domain || n.marca) {
+      brandAvatar.classList.remove('gold');
+      brandAvatar.setAttribute(n.marca_domain ? 'data-bf-domain' : 'data-bf-name', n.marca_domain || n.marca);
+      brandAvatar.innerHTML = `<img alt="" style="display:none"><span>${ini}</span>`;
+    } else {
+      brandAvatar.classList.add('gold');
+      brandAvatar.innerHTML = `<span>${ini}</span>`;
+    }
+    if (typeof applyBrandfetchLogos === 'function') applyBrandfetchLogos(brandAvatar.parentElement || brandAvatar);
+  }
   document.getElementById('mn-brand-name').textContent = n.marca || 'Marca';
   var brandSub = '';
   if (n.cota) { brandSub += n.cota; if (n.enviadaEm) brandSub += '  ·  '; }
@@ -6618,13 +6635,24 @@ function renderPosDealDet(n) {
 function _renderEntregasMinDet(cps) {
   const el = document.getElementById('mn-entregas-min');
   if (!el) return;
+  el.innerHTML = _entregasCardHtmlDet(cps);
+}
+
+// Lista de entregas formatada (card com linhas, dot + descrição + badge) — estilo protótipo
+function _entregasCardHtmlDet(cps) {
   const aceitas = (cps || []).filter(c => c.status === 'aceita');
-  if (!aceitas.length) { el.innerHTML = '<div style="font-size:12px;color:var(--gray-400)">Nenhuma entrega acordada.</div>'; return; }
-  el.innerHTML = '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">' + aceitas.map(c => {
+  if (!aceitas.length) return '<div style="font-size:12px;color:var(--gray-400)">Nenhuma entrega acordada.</div>';
+  return '<div style="border:1px solid var(--gray-200);border-radius:10px;overflow:hidden">' + aceitas.map((c, i) => {
     let d = c.descricao || '';
     if (d.startsWith('{')) { try { const o = JSON.parse(d); d = o.titulo || o.descricao || d; } catch(e){} }
-    return `<li style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><span style="width:5px;height:5px;border-radius:50%;background:var(--gray-300);flex-shrink:0"></span>${escapeHtml(d)}</li>`;
-  }).join('') + '</ul>';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;${i > 0 ? 'border-top:1px solid var(--gray-100);' : ''}">
+      <div style="display:flex;align-items:center;gap:9px;min-width:0">
+        <span style="width:7px;height:7px;border-radius:50%;background:#059669;flex-shrink:0"></span>
+        <span style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(d)}</span>
+      </div>
+      <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;background:#ECFDF5;color:#059669;flex-shrink:0">Aceita</span>
+    </div>`;
+  }).join('') + '</div>';
 }
 
 /* ── Ativação: checklist de entregas (detentor marca como entregue) ── */

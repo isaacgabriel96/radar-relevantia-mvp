@@ -4743,9 +4743,20 @@ async function openPropostaModal(id) {
   document.getElementById('mp-status-wrap').className = 'modal-prop-status ' + p.status;
   document.getElementById('mp-status-label').textContent = p.statusLabel;
   document.getElementById('mp-status-hint').textContent = p.statusHint;
-  // Header: avatar (inicial da oportunidade) + nome
+  // Header: avatar com a foto de capa da oportunidade (contraparte) + nome
   const oppAvatar = document.getElementById('mp-opp-avatar');
-  if (oppAvatar) oppAvatar.textContent = (p.opp || '?').charAt(0).toUpperCase();
+  if (oppAvatar) {
+    const ini = (p.opp || '?').charAt(0).toUpperCase();
+    const catItem = (typeof MOCK_OPPORTUNITIES !== 'undefined' ? MOCK_OPPORTUNITIES : []).find(o => o.id === p.opp_id);
+    const cover = catItem && (catItem._imagemCapa || (catItem.images && catItem.images[0]));
+    if (cover) {
+      oppAvatar.classList.remove('gold');
+      oppAvatar.innerHTML = `<img src="${escapeHtml(cover)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+    } else {
+      oppAvatar.classList.add('gold');
+      oppAvatar.innerHTML = `<span>${ini}</span>`;
+    }
+  }
   document.getElementById('mp-opp-name').textContent = p.opp || 'Oportunidade';
   var oppSub = '';
   if (p.cota) { oppSub += p.cota; if (p.enviadaEm) oppSub += '  ·  '; }
@@ -5546,11 +5557,32 @@ function renderPosDealMarca(p) {
           </div>
         </div>
 
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:6px">Comprovante de pagamento</div>
+          <input id="mdm-comp-file" type="file" accept="image/*,.pdf" style="display:none" onchange="onComprovanteMarcaChange(this)">
+          <div id="mdm-comp-empty" onclick="document.getElementById('mdm-comp-file').click()" style="border:1.5px dashed var(--gray-200);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--gray-400)'" onmouseout="this.style.borderColor='var(--gray-200)'">
+            <div style="font-size:20px;margin-bottom:4px">📎</div>
+            <div style="font-size:12px;font-weight:600;color:var(--gray-500)">Anexar foto ou PDF</div>
+            <div style="font-size:11px;color:var(--gray-400);margin-top:2px">JPG, PNG ou PDF</div>
+          </div>
+          <div id="mdm-comp-preview" style="display:none;padding:10px 12px;background:var(--gray-1);border:1.5px solid var(--gray-200);border-radius:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                <span id="mdm-comp-icon">🖼️</span>
+                <span id="mdm-comp-name" style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+              </div>
+              <button onclick="removerComprovanteMarca()" style="font-size:11px;color:var(--gray-400);background:none;border:none;cursor:pointer;flex-shrink:0">✕</button>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:4px">Opcional — facilita a confirmação pela Relevantia</div>
+        </div>
+
         <button onclick="_marcarPagamentoFeito('${propId}')" style="width:100%;padding:11px;border-radius:10px;background:var(--black);color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font-body)">
           Já realizei o pagamento
         </button>
         <div style="font-size:11px;color:var(--gray-400);text-align:center;margin-top:8px">A Relevantia confirma o recebimento e o status atualiza aqui.</div>
       </div>`;
+    _mdmComprovanteFile = null;   // reset ao renderizar
   }
 
   window._ddmCurrentProp = propId;
@@ -5573,13 +5605,24 @@ function renderPosDealMarca(p) {
 function _renderEntregasMinMarca(cps) {
   const el = document.getElementById('mp-entregas-min');
   if (!el) return;
+  el.innerHTML = _entregasCardHtml(cps);
+}
+
+// Lista de entregas formatada (card com linhas, dot + descrição + badge) — estilo protótipo
+function _entregasCardHtml(cps) {
   const aceitas = (cps || []).filter(c => c.status === 'aceita');
-  if (!aceitas.length) { el.innerHTML = '<div style="font-size:12px;color:var(--gray-400)">Nenhuma entrega acordada.</div>'; return; }
-  el.innerHTML = '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">' + aceitas.map(c => {
+  if (!aceitas.length) return '<div style="font-size:12px;color:var(--gray-400)">Nenhuma entrega acordada.</div>';
+  return '<div style="border:1px solid var(--gray-200);border-radius:10px;overflow:hidden">' + aceitas.map((c, i) => {
     let d = c.descricao || '';
     if (d.startsWith('{')) { try { const o = JSON.parse(d); d = o.titulo || o.descricao || d; } catch(e){} }
-    return `<li style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)"><span style="width:5px;height:5px;border-radius:50%;background:var(--gray-300);flex-shrink:0"></span>${escapeHtml(d)}</li>`;
-  }).join('') + '</ul>';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;${i > 0 ? 'border-top:1px solid var(--gray-100);' : ''}">
+      <div style="display:flex;align-items:center;gap:9px;min-width:0">
+        <span style="width:7px;height:7px;border-radius:50%;background:#059669;flex-shrink:0"></span>
+        <span style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(d)}</span>
+      </div>
+      <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;background:#ECFDF5;color:#059669;flex-shrink:0">Aceita</span>
+    </div>`;
+  }).join('') + '</div>';
 }
 
 /* ── Ativação: checklist de entregas (marca valida) ── */
@@ -5784,21 +5827,55 @@ function _copiarPix(chave, btn) {
   }
 }
 
+let _mdmComprovanteFile = null;
+function onComprovanteMarcaChange(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  _mdmComprovanteFile = f;
+  const nameEl = document.getElementById('mdm-comp-name');
+  const iconEl = document.getElementById('mdm-comp-icon');
+  if (nameEl) nameEl.textContent = f.name;
+  if (iconEl) iconEl.textContent = f.type === 'application/pdf' ? '📄' : '🖼️';
+  const empty = document.getElementById('mdm-comp-empty');
+  const prev  = document.getElementById('mdm-comp-preview');
+  if (empty) empty.style.display = 'none';
+  if (prev)  prev.style.display = '';
+}
+function removerComprovanteMarca() {
+  _mdmComprovanteFile = null;
+  const fi = document.getElementById('mdm-comp-file');
+  if (fi) fi.value = '';
+  const empty = document.getElementById('mdm-comp-empty');
+  const prev  = document.getElementById('mdm-comp-preview');
+  if (empty) empty.style.display = '';
+  if (prev)  prev.style.display = 'none';
+}
+
 async function _marcarPagamentoFeito(propId) {
   const p = PROPOSTAS.find(x => x.id === propId);
   if (!p) return;
+  // Sobe o comprovante (se anexado) para o storage
+  let compUrl = null;
+  if (_mdmComprovanteFile && typeof _uploadToStorage === 'function' && !isDemoMode()) {
+    try {
+      const ext = (_mdmComprovanteFile.name.split('.').pop() || 'bin').toLowerCase();
+      compUrl = await _uploadToStorage('ativacao', 'comprovantes/' + (p._supaId || p.id) + '/' + Date.now() + '.' + ext, _mdmComprovanteFile);
+    } catch (e) { console.warn('[comprovante] upload falhou:', e); }
+  }
   // Registra um aviso na thread (rastro para o organizador e a Relevantia)
   const now = new Date();
   const data = now.getDate().toString().padStart(2,'0') + '/' + (now.getMonth()+1).toString().padStart(2,'0') + ' · ' +
                now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
   const nome = (document.getElementById('sidebarName')?.textContent||'').trim() || 'Marca';
-  const texto = '💳 Informei que realizei o pagamento à Relevantia. Aguardando confirmação do recebimento.';
+  let texto = '💳 Informei que realizei o pagamento à Relevantia. Aguardando confirmação do recebimento.';
+  if (compUrl) texto += '\nComprovante: ' + compUrl;
   if (p.thread) { p.thread.push({ autor: 'marca', nome, texto, data }); if (typeof renderMsgThread === 'function') renderMsgThread(p.thread); }
   if (p._supaId && !isDemoMode()) {
     const userId = await getAuthUserId();
     await sendMensagem({ negociacao_id: p._supaId, autor_id: userId || p.marca_id, autor_role: 'marca', autor_nome: nome, texto });
   }
-  showToast('Pagamento informado! A Relevantia confirma o recebimento e o status atualiza aqui.', 'success');
+  removerComprovanteMarca();
+  showToast(compUrl ? 'Pagamento informado com comprovante!' : 'Pagamento informado! A Relevantia confirma o recebimento.', 'success');
 }
 
 function contraproporValorDealMarca() {
