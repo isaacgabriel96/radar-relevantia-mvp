@@ -6573,7 +6573,7 @@ function renderPosDealDet(n) {
 
   document.getElementById('ddet-financeiro').innerHTML = `
     <div class="modal-deal-det-financeiro-row"><span class="lbl">Valor do deal</span><span>${fmt(totalBruto)}</span></div>
-    <div class="modal-deal-det-financeiro-row"><span class="lbl">Taxa Relevantia (${Math.round(PLATAFORMA_TAXA*100)}%)</span><span style="color:#DC2626">− ${fmt(taxa)}</span></div>
+    <div class="modal-deal-det-financeiro-row"><span class="lbl">Taxa Relevantia</span><span style="color:#DC2626">− ${fmt(taxa)}</span></div>
     <div class="modal-deal-det-financeiro-row total"><span class="lbl">Você recebe</span><span>${fmt(liquido)}</span></div>`;
 
   // ══ ACORDO CONFIRMADO + COMPROVANTE (modelo plataforma, sem contrato formal) ══
@@ -6600,7 +6600,7 @@ function renderPosDealDet(n) {
         <div class="ddet-pagamento-ready">
           <div style="color:#059669;font-weight:600;margin-bottom:4px">✓ Pagamento recebido</div>
           <div class="valor">${fmt(liquido)}</div>
-          <div style="font-size:12px;color:var(--gray-400);margin-bottom:14px">Valor líquido repassado pela Relevantia (após taxa de ${Math.round(PLATAFORMA_TAXA*100)}%)</div>
+          <div style="font-size:12px;color:var(--gray-400);margin-bottom:14px">Valor líquido repassado pela Relevantia (já descontada a taxa da plataforma)</div>
         </div>
       </div>`;
   } else {
@@ -8077,7 +8077,7 @@ async function removerMembro(userId) {
         <div class="how-num n3">3</div>
         <div>
           <div class="how-step-title">Ativação</div>
-          <div class="how-step-desc">Com o pagamento confirmado, você executa as entregas e registra os <strong>comprovantes</strong> (fotos, vídeos, links). Após a confirmação, a Relevantia repassa o <strong>valor líquido</strong> a você — já descontada a taxa da plataforma (20%).</div>
+          <div class="how-step-desc">Com o pagamento confirmado, você executa as entregas e registra os <strong>comprovantes</strong> (fotos, vídeos, links). Após a confirmação, a Relevantia repassa o <strong>valor líquido</strong> a você — já descontada a taxa da plataforma.</div>
           <div class="how-step-tag">✅ Repasse após confirmação</div>
         </div>
       </div>
