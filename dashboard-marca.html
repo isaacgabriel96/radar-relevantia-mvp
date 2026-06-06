@@ -4634,9 +4634,11 @@ function renderMsgThread(thread) {
 }
 
 /* ── Timeline do fluxo (marca) ── */
+/* ── Timeline do fluxo (Negociação → Formalização → Ativação) ── */
 function renderTimelineMarca(p) {
   const tl = document.getElementById('mp-timeline');
   if (!tl || !p) return;
+  // 1=Negociação, 2=Formalização (aceito + pagamento), 3=Ativação (Relevantia confirmou)
   let active = 1;
   if (p.status === 'aceita') {
     if (p.contrato_validado) active = 3;
@@ -7108,9 +7110,8 @@ async function removerMembro(userId) {
       <!-- Timeline do fluxo -->
       <div class="neg-timeline" id="mp-timeline">
         <div class="tl-step active" data-step="1"><div class="tl-dot">1</div><div class="tl-label">Negociação</div></div>
-        <div class="tl-step todo" data-step="2"><div class="tl-dot">2</div><div class="tl-label">Acordo</div></div>
-        <div class="tl-step todo" data-step="3"><div class="tl-dot">3</div><div class="tl-label">Pagamento</div></div>
-        <div class="tl-step todo" data-step="4"><div class="tl-dot">4</div><div class="tl-label">Ativação</div></div>
+        <div class="tl-step todo" data-step="2"><div class="tl-dot">2</div><div class="tl-label">Formalização</div></div>
+        <div class="tl-step todo" data-step="3"><div class="tl-dot">3</div><div class="tl-label">Ativação</div></div>
       </div>
 
       <hr class="modal-prop-divider">
