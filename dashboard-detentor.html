@@ -768,6 +768,7 @@ tbody tr:last-child td { border-bottom: none; }
 .neg-opp-chip.aceita   { background: #ECFDF5; color: #059669; border: 1px solid rgba(5,150,105,0.18); }
 .neg-opp-chip.recusada   { background: #FEF2F2; color: #DC2626; border: 1px solid rgba(220,38,38,0.15); }
 .neg-opp-chip.cancelada  { background: var(--gray-100); color: var(--gray-500); border: 1px solid var(--gray-200); }
+.neg-opp-chip.formalizacao { background: #FFF8E1; color: #D97706; border: 1px solid rgba(217,119,6,0.22); }
 .neg-opp-arrow { color: var(--gray-300); flex-shrink: 0; }
 
 /* ─── NEGOCIAÇÕES — DETALHE DA OPORTUNIDADE (view 2) ─── */
@@ -1063,6 +1064,7 @@ tbody tr:last-child td { border-bottom: none; }
 .neg-status-aceita    { background: #ECFDF5; color: #059669; border: 1px solid rgba(5,150,105,0.2); }
 .neg-status-analise   { background: #EFF6FF; color: #2563EB; border: 1px solid rgba(37,99,235,0.2); }
 .neg-status-recusada  { background: #FEF2F2; color: #DC2626; border: 1px solid rgba(220,38,38,0.2); }
+.neg-status-formalizacao { background: #FFF8E1; color: #D97706; border: 1px solid rgba(217,119,6,0.25); }
 
 /* ─── BTN SM OUTLINE ─── */
 .btn-sm-outline { background: transparent; border: 1.5px solid var(--gray-200); color: var(--text); padding: 5px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; }
@@ -1855,7 +1857,7 @@ tbody tr:last-child td { border-bottom: none; }
           <span class="sub-tab-badge" id="neg-badge-count">0</span>
         </button>
         <button class="sub-tab" id="subtab-deals" onclick="switchSubTab('deals')">
-          Acordos
+          Ativação
           <span class="sub-tab-badge" id="deals-badge-count">0</span>
         </button>
         <button class="sub-tab" id="subtab-solicitacoes" onclick="switchSubTab('solicitacoes');loadSolicitacoes()">
@@ -1920,6 +1922,7 @@ tbody tr:last-child td { border-bottom: none; }
             <button class="neg-pill active" id="detpill-todos"     onclick="filterDetailPill('todos')">Todos</button>
             <button class="neg-pill"        id="detpill-pendente"  onclick="filterDetailPill('pendente')">Pendente</button>
             <button class="neg-pill"        id="detpill-analise"   onclick="filterDetailPill('analise')">Em análise</button>
+            <button class="neg-pill"        id="detpill-formalizacao" onclick="filterDetailPill('formalizacao')">Formalização</button>
             <button class="neg-pill"        id="detpill-recusada"  onclick="filterDetailPill('recusada')">Recusada</button>
             <button class="neg-pill"        id="detpill-cancelada" onclick="filterDetailPill('cancelada')">Encerrada</button>
             <span class="neg-pills-count" id="det-pills-count"></span>
@@ -2846,7 +2849,7 @@ function showSectionTab(sectionId, subTab) {
   setTimeout(() => {
     if (typeof switchSubTab === 'function') switchSubTab(subTab);
     // Atualiza breadcrumb/topbar para refletir o sub-tab ativo
-    const subTitles = { negociacoes: 'Negociações', deals: 'Acordos', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
+    const subTitles = { negociacoes: 'Negociações', deals: 'Ativação', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
     const topbar = document.getElementById('topbarSection');
     if (topbar && subTitles[subTab] !== undefined) topbar.textContent = subTitles[subTab];
   }, 55);
@@ -5188,7 +5191,7 @@ function switchSubTab(tab) {
   document.getElementById('subtab-' + tab).classList.add('active');
   document.getElementById('subpanel-' + tab).classList.add('active');
   // Atualiza topbar/breadcrumb para refletir a sub-aba ativa
-  const subTitles = { negociacoes: 'Negociações', deals: 'Acordos', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
+  const subTitles = { negociacoes: 'Negociações', deals: 'Ativação', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
   const topbar = document.getElementById('topbarSection');
   if (topbar && subTitles[tab] !== undefined) topbar.textContent = subTitles[tab];
   if (tab === 'deals' && typeof renderDeals === 'function') renderDeals();
@@ -5225,8 +5228,9 @@ function renderNegOppCards() {
   const badge = document.getElementById('neg-badge-count');
   if (!container) return;
 
-  // "Negociações" = pré-aceite (aceitas vão para a aba Acordos)
-  const emNegociacao = NEGOCIACOES.filter(n => n.status !== 'aceita');
+  // "Negociações" = pré-aceite + formalização (aceito, aguardando pagamento).
+  // Só sai daqui quando o pagamento é confirmado (vai para "Ativação").
+  const emNegociacao = NEGOCIACOES.filter(n => !(n.status === 'aceita' && n.contrato_validado));
   if (badge) badge.textContent = emNegociacao.length;
 
   // agrupa por oportunidade
@@ -5237,7 +5241,7 @@ function renderNegOppCards() {
   });
 
   if (Object.keys(groups).length === 0) {
-    container.innerHTML = emptyStateHtml('negociacoes', 'Nenhuma negociação em aberto', 'Propostas aceitas viram acordos na aba ao lado. Novas propostas de marcas aparecem aqui.');
+    container.innerHTML = emptyStateHtml('negociacoes', 'Nenhuma negociação em aberto', 'Deals com pagamento confirmado vão para a aba Ativação. Novas propostas de marcas aparecem aqui.');
     return;
   }
 
@@ -5254,11 +5258,13 @@ function renderNegOppCards() {
     // conta por status
     const counts = { pendente:0, analise:0, aceita:0, recusada:0, cancelada:0 };
     g.items.forEach(n => { if (counts[n.status] !== undefined) counts[n.status]++; });
-    const chips = ['pendente','analise','recusada','cancelada']
+    // aceitas aqui são sempre não-pagas (formalização) — pagas já saíram para Ativação
+    const chips = ['pendente','analise','aceita','recusada','cancelada']
       .filter(s => counts[s] > 0)
       .map(s => {
-        const labels = { pendente:'Pendente', analise:'Em análise', aceita:'Aceita', recusada:'Recusada', cancelada:'Encerrada' };
-        return `<span class="neg-opp-chip ${s}">${counts[s]} ${labels[s]}</span>`;
+        const labels = { pendente:'Pendente', analise:'Em análise', aceita:'Formalização', recusada:'Recusada', cancelada:'Encerrada' };
+        const cls = s === 'aceita' ? 'formalizacao' : s;
+        return `<span class="neg-opp-chip ${cls}">${counts[s]} ${labels[s]}</span>`;
       }).join('');
     return `<div class="neg-opp-card" onclick="openNegOppDetail(${g.opp_id})">
       <div class="neg-opp-cover" style="${coverStyle}">${coverContent}</div>
@@ -5280,8 +5286,8 @@ function openNegOppDetail(oppId) {
   document.querySelectorAll('[id^="detpill-"]').forEach(b => b.classList.remove('active'));
   const todosBtn = document.getElementById('detpill-todos');
   if (todosBtn) todosBtn.classList.add('active');
-  // popula header (exclui aceitas — vivem na aba Acordos)
-  const negs = NEGOCIACOES.filter(n => n.opp_id === oppId && n.status !== 'aceita');
+  // popula header (exclui só aceitas-pagas — vivem na aba Ativação)
+  const negs = NEGOCIACOES.filter(n => n.opp_id === oppId && !(n.status === 'aceita' && n.contrato_validado));
   const cfg  = _oppCfg(oppId);
   const opp  = negs[0]?.opp || '';
   const cover = document.getElementById('neg-detail-cover');
@@ -5329,9 +5335,10 @@ function renderNegCards() {
   const countEl   = document.getElementById('det-pills-count');
   if (!container) return;
 
-  const statusOrder = { pendente:0, analise:1, recusada:2 };
-  let list = NEGOCIACOES.filter(n => n.opp_id === _negOppAtiva && n.status !== 'aceita');
-  if (_detFilterAtivo !== 'todos') list = list.filter(n => n.status === _detFilterAtivo);
+  const statusOrder = { pendente:0, analise:1, aceita:2, recusada:3 };
+  let list = NEGOCIACOES.filter(n => n.opp_id === _negOppAtiva && !(n.status === 'aceita' && n.contrato_validado));
+  if (_detFilterAtivo === 'formalizacao') list = list.filter(n => n.status === 'aceita' && !n.contrato_validado);
+  else if (_detFilterAtivo !== 'todos') list = list.filter(n => n.status === _detFilterAtivo);
   list = [...list].sort((a,b) => (statusOrder[a.status]??9) - (statusOrder[b.status]??9));
 
   const statusClass = { pendente:'neg-status-pendente', aceita:'neg-status-aceita', analise:'neg-status-analise', recusada:'neg-status-recusada' };
@@ -5357,7 +5364,9 @@ function renderNegCards() {
         <div class="neg-card-hint${cta.urgente ? ' urgente' : ''}">${cta.hint}</div>
       </div>
       <div class="neg-card-right">
-        <span class="neg-status ${statusClass[n.status] || ''}">${n.statusLabel}</span>
+        ${(n.status === 'aceita' && !n.contrato_validado)
+          ? '<span class="neg-status neg-status-formalizacao">Formalização</span>'
+          : `<span class="neg-status ${statusClass[n.status] || ''}">${n.statusLabel}</span>`}
         <button class="neg-cta ${cta.cls}" onclick="event.stopPropagation();openNegModal('${n.id}')">${cta.label}</button>
       </div>
     </div>`;
@@ -6395,7 +6404,8 @@ function _dealEtapaDet(n) {
 
 function renderDeals() {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
-  const deals = NEGOCIACOES.filter(n => n.status === 'aceita');
+  // "Ativação" = deals com pagamento confirmado (em execução das entregas)
+  const deals = NEGOCIACOES.filter(n => n.status === 'aceita' && n.contrato_validado);
 
   // Atualizar badge
   const badge = document.getElementById('deals-badge-count');
@@ -6405,7 +6415,7 @@ function renderDeals() {
   if (!container) return;
 
   if (deals.length === 0) {
-    container.innerHTML = emptyStateHtml('deals', 'Nenhum acordo ainda', 'Quando uma negociação for aceita, ela vira um acordo aqui — com formalização, pagamento e ativação.');
+    container.innerHTML = emptyStateHtml('deals', 'Nenhuma ativação em andamento', 'Assim que o pagamento de um deal for confirmado, ele entra aqui para você subir os comprovantes das entregas.');
     return;
   }
 

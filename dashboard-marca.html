@@ -1607,11 +1607,11 @@ tbody tr:last-child td { border-bottom: none; }
       <!-- Sub-abas (pipeline) -->
       <div class="sub-tabs">
         <button class="sub-tab active" id="subtab-prop-propostas" onclick="switchPropostasTab('propostas')">
-          Em negociação
+          Negociação
           <span class="sub-tab-badge">0</span>
         </button>
         <button class="sub-tab" id="subtab-prop-deals" onclick="switchPropostasTab('deals')">
-          Acordos
+          Ativação
           <span class="sub-tab-badge" id="prop-deals-badge">0</span>
         </button>
       </div>
@@ -1631,6 +1631,9 @@ tbody tr:last-child td { border-bottom: none; }
           </button>
           <button class="prop-pill" data-filter="analise" onclick="filterPropostas('analise')">
             Em análise <span class="prop-pill-count" id="ppill-analise">0</span>
+          </button>
+          <button class="prop-pill" data-filter="formalizacao" onclick="filterPropostas('formalizacao')">
+            Formalização <span class="prop-pill-count" id="ppill-formalizacao">0</span>
           </button>
           <button class="prop-pill" data-filter="recusada" onclick="filterPropostas('recusada')">
             Recusada <span class="prop-pill-count" id="ppill-recusada">0</span>
@@ -6128,7 +6131,9 @@ function filterPropostas(filter) {
 }
 
 function _buildPropostaCard(p, catalogMap) {
-  const cfg = PROP_STATUS_CONFIG[p.status] || { label: p.statusLabel, cls: 'badge' };
+  let cfg = PROP_STATUS_CONFIG[p.status] || { label: p.statusLabel, cls: 'badge' };
+  // Aceito mas ainda não pago = etapa Formalização
+  if (p.status === 'aceita' && !p.contrato_validado) cfg = { label: 'Formalização', cls: 'badge badge-orange' };
   const catalogItem = catalogMap[p.opp_id];
   const img = catalogItem && catalogItem.images && catalogItem.images[0];
   const cat = getOppCatMarca(p.opp);
@@ -6177,14 +6182,16 @@ function renderPropostasTable() {
   const grid = document.getElementById('prop-cards-grid');
   if (!grid) return;
 
-  // "Em negociação" mostra só pré-aceite (aceitas vão para a aba Acordos)
-  const emNegociacao = PROPOSTAS.filter(p => p.status !== 'aceita');
-  const list = _propFilter === 'todos'
-    ? emNegociacao
-    : emNegociacao.filter(p => p.status === _propFilter);
+  // "Negociação" = pré-aceite + formalização (aceito mas ainda não pago).
+  // Só sai daqui quando o pagamento é confirmado (vai para "Ativação").
+  const emNegociacao = PROPOSTAS.filter(p => !(p.status === 'aceita' && p.contrato_validado));
+  let list;
+  if (_propFilter === 'todos') list = emNegociacao;
+  else if (_propFilter === 'formalizacao') list = emNegociacao.filter(p => p.status === 'aceita' && !p.contrato_validado);
+  else list = emNegociacao.filter(p => p.status === _propFilter);
 
   if (list.length === 0) {
-    grid.innerHTML = `<div style="grid-column:1/-1">${emptyStateHtml('propostas', 'Nenhuma proposta em negociação', 'Propostas aceitas viram acordos na aba ao lado. Envie novas propostas em Explorar Oportunidades.')}</div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1">${emptyStateHtml('propostas', 'Nada em negociação', 'Deals com pagamento confirmado aparecem na aba Ativação. Envie novas propostas em Explorar Oportunidades.')}</div>`;
     return;
   }
 
@@ -6195,11 +6202,16 @@ function renderPropostasTable() {
 
 function initPropostasSection() {
   // Contar por status
-  const counts = { todos: PROPOSTAS.length, pendente: 0, analise: 0, aceita: 0, recusada: 0 };
-  PROPOSTAS.forEach(p => { if (counts[p.status] !== undefined) counts[p.status]++; });
+  const counts = { todos: 0, pendente: 0, analise: 0, aceita: 0, recusada: 0, formalizacao: 0 };
+  PROPOSTAS.forEach(p => {
+    if (counts[p.status] !== undefined) counts[p.status]++;
+    if (p.status === 'aceita' && !p.contrato_validado) counts.formalizacao++;
+  });
+  // "Todos" da aba Negociação = tudo que ainda não foi pago
+  counts.todos = PROPOSTAS.filter(p => !(p.status === 'aceita' && p.contrato_validado)).length;
 
   // Atualizar pills
-  Object.keys(counts).forEach(k => {
+  ['todos','pendente','analise','formalizacao','recusada'].forEach(k => {
     const el = document.getElementById('ppill-' + k);
     if (el) el.textContent = counts[k];
   });
@@ -6212,9 +6224,9 @@ function initPropostasSection() {
   set('prop-summary-analise',  counts.analise);
   set('prop-summary-recusadas',counts.recusada);
 
-  // Badge "Em negociação" = pré-aceite (pendente + análise + recusada)
+  // Badge "Negociação" = tudo que ainda não foi pago (pré-aceite + formalização)
   const subBadge = document.querySelector('#subtab-prop-propostas .sub-tab-badge');
-  if (subBadge) subBadge.textContent = counts.pendente + counts.analise + counts.recusada;
+  if (subBadge) subBadge.textContent = counts.todos;
 
   renderPropostasTable();
 }
@@ -6644,7 +6656,8 @@ function _dealEtapaMarca(p) {
 
 function renderDealsPropostas() {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
-  const deals = PROPOSTAS.filter(p => p.status === 'aceita');
+  // "Ativação" = deals com pagamento confirmado (em execução das entregas)
+  const deals = PROPOSTAS.filter(p => p.status === 'aceita' && p.contrato_validado);
 
   // Atualizar badge
   const badge = document.getElementById('prop-deals-badge');
@@ -6654,7 +6667,7 @@ function renderDealsPropostas() {
   if (!container) return;
 
   if (deals.length === 0) {
-    container.innerHTML = emptyStateHtml('deals', 'Nenhum acordo ainda', 'Quando uma proposta for aceita, ela vira um acordo aqui — com formalização, pagamento e ativação.');
+    container.innerHTML = emptyStateHtml('deals', 'Nenhuma ativação em andamento', 'Assim que o pagamento de um deal for confirmado pela Relevantia, ele entra aqui para acompanhamento das entregas.');
     return;
   }
 
