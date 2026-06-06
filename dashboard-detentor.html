@@ -5493,13 +5493,12 @@ async function openNegModal(id) {
   renderHistoricoRodadas();
   renderTimelineDet(n);
 
-  // Mensagens começam colapsadas (abre só se houver conversa)
+  // Mensagens sempre começam colapsadas
   const msgBody = document.getElementById('mn-msg-body');
   const msgChev = document.getElementById('mn-msg-chevron');
-  const temMsg = n.thread && n.thread.length > 0;
-  if (msgBody) msgBody.classList.toggle('open', temMsg);
-  if (msgChev) msgChev.classList.toggle('open', temMsg);
-  _setMsgHintDet(temMsg);
+  if (msgBody) msgBody.classList.remove('open');
+  if (msgChev) msgChev.classList.remove('open');
+  _setMsgHintDet(false);
 
   // Realtime: mensagens da marca chegam sem precisar recarregar
   if (n._supaId && sb && !isDemoMode()) {
@@ -7797,7 +7796,7 @@ async function removerMembro(userId) {
           </div>
 
           <!-- BLOCO B: Edição / Nova proposta -->
-          <div id="mn-proposta-edit">
+          <div id="mn-proposta-edit" style="display:none">
 
             <!-- Banner modo contraproposta -->
             <div id="mn-contra-banner" style="display:none;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#1D4ED8;line-height:1.5">
