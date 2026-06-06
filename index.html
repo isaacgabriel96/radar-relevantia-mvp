@@ -4307,8 +4307,11 @@ br.mobile-only { display: none; }
   }));
 
   Promise.all(waits).then(() => {
-    // 2 frames extras para o hero/radar pintarem antes de revelar
-    requestAnimationFrame(() => requestAnimationFrame(hide));
+    // Espera a main thread ficar OCIOSA (todo o trabalho de medição/layout do
+    // load já rodou) e então revela — assim o radar já está girando liso.
+    const reveal = () => requestAnimationFrame(() => requestAnimationFrame(hide));
+    if ('requestIdleCallback' in window) requestIdleCallback(reveal, { timeout: 1200 });
+    else setTimeout(reveal, 200);
   });
   // Failsafe: nunca prende o usuário mais que 4s
   setTimeout(hide, 4000);
@@ -4798,9 +4801,13 @@ if (reduceMotion || !('IntersectionObserver' in window)) {
   }, { rootMargin: '200px 0px 200px 0px' });
   loopIO.observe(section);
 
-  // remeasure once images / fonts settle
-  window.addEventListener('load', applyMode);
-  setTimeout(applyMode, 400);
+  // remeasure quando imagens/fontes assentarem — mas em IDLE, para não competir
+  // com o paint do hero nem travar o radar (SMIL roda na main thread).
+  function idleApplyMode() {
+    if ('requestIdleCallback' in window) requestIdleCallback(() => applyMode(), { timeout: 1500 });
+    else setTimeout(applyMode, 600);
+  }
+  window.addEventListener('load', idleApplyMode);
 })();
 
 /* ═══════════════════════════════════════════════
