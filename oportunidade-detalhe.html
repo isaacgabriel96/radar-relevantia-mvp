@@ -3852,6 +3852,18 @@ async function submitModal() {
   };
   if (campanhaId) neg.campanha_id = campanhaId;
 
+  // Extrai valor da cota selecionada (ex: "Ouro — R$ 500.000") e salva como valor_proposto
+  if (cota) {
+    var cotaPriceMatch = cota.match(/R\$\s*([0-9.]+(?:,[0-9]+)?)/);
+    if (cotaPriceMatch) {
+      var rawCotaPrice = cotaPriceMatch[1].replace(/\./g, '').replace(',', '.');
+      var parsedCotaPrice = parseFloat(rawCotaPrice);
+      if (!isNaN(parsedCotaPrice) && parsedCotaPrice > 0) {
+        neg.valor_proposto = parsedCotaPrice;
+      }
+    }
+  }
+
   console.log('[submitModal] Creating negociacao:', JSON.stringify(neg));
 
   try {
@@ -3865,22 +3877,42 @@ async function submitModal() {
       return;
     }
 
+    // Atualiza botão imediatamente — ANTES de qualquer operação que possa falhar
+    window._MARCA_JA_MANIFESTOU = true;
+    console.log('[submitModal] Atualizando botão de interesse...');
+    var btnHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Ver negociação';
+    ['btn-interest-sidebar', 'btn-interest-mobile'].forEach(function(btnId) {
+      var interestBtn = document.getElementById(btnId);
+      console.log('[submitModal] btn', btnId, '→', interestBtn ? 'encontrado' : 'NÃO ENCONTRADO');
+      if (!interestBtn) return;
+      interestBtn.innerHTML = btnHtml;
+      interestBtn.setAttribute('onclick', 'window.location.href="dashboard-marca.html#propostas"');
+      interestBtn.style.background = 'var(--gray-1, #F5F0E8)';
+      interestBtn.style.color = 'var(--gray-500, #7A6A58)';
+      interestBtn.style.border = '1.5px solid var(--gray-200, #E0D8CC)';
+      console.log('[submitModal] btn', btnId, 'atualizado ✓');
+    });
+
     if (result.id && mensagem.trim()) {
-      // Create initial message in the thread
-      var userName = (brandSession.user.user_metadata || {}).nome || brandSession.user.email || '';
-      var msgPayload = {
-        negociacao_id: result.id,
-        autor_id: marcaId,
-        autor_role: 'marca',
-        autor_nome: userName,
-        texto: mensagem.trim()
-      };
-      var token = typeof _getWriteToken === 'function' ? await _getWriteToken('brand') : null;
-      if (token) {
-        await fetch(SUPABASE_URL + '/rest/v1/mensagens', {
-          method: 'POST', body: JSON.stringify(msgPayload),
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
-        });
+      // Create initial message in the thread (falha silenciosa — negociação já foi criada)
+      try {
+        var userName = (brandSession.user.user_metadata || {}).nome || brandSession.user.email || '';
+        var msgPayload = {
+          negociacao_id: result.id,
+          autor_id: marcaId,
+          autor_role: 'marca',
+          autor_nome: userName,
+          texto: mensagem.trim()
+        };
+        var token = typeof _getWriteToken === 'function' ? await _getWriteToken('brand') : null;
+        if (token) {
+          await fetch(SUPABASE_URL + '/rest/v1/mensagens', {
+            method: 'POST', body: JSON.stringify(msgPayload),
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+          });
+        }
+      } catch(msgErr) {
+        console.warn('[submitModal] Mensagem inicial falhou (negociação criada com sucesso):', msgErr);
       }
     }
 

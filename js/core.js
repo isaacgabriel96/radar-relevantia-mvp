@@ -409,8 +409,11 @@ function rowToNegociacao(row) {
   return {
     id: row.id, opp_id: row.oportunidade_id, opp: oppTitulo, categoria: oppCat,
     marca: marcaNome, marca_id: row.marca_id, detentor_id: row.detentor_id,
+    marca_logo_url: (row.marca && row.marca.logo_url) || null,
+    marca_domain: (row.marca && row.marca.empresa_domain) || null,
     cota: row.cota || '', assunto: row.assunto || '',
     valor: row.valor_proposto ? 'R$ ' + parseFloat(row.valor_proposto).toLocaleString('pt-BR') : '',
+    valor_proposto_num: row.valor_proposto ? parseFloat(row.valor_proposto) : null,
     enviadaEm: _fmtDate(row.created_at, false),
     status: row.status || 'pendente',
     statusLabel: row.status_label || statusLabels[row.status] || 'Pendente',
@@ -441,7 +444,7 @@ var _negSelectQuery = 'id,oportunidade_id,marca_id,detentor_id,cota,assunto,valo
   'contrato_enviado_por,contrato_enviado_em,' +
   'contrato_validado,contrato_validado_em,contrato_validado_por,admin_comentario,' +
   'status,status_label,status_hint,aceita_novas_propostas,created_at,campanha_id,materiais,' +
-  'marca:marca_id(nome,empresa),' +
+  'marca:marca_id(nome,empresa,logo_url,empresa_domain),' +
   'oportunidade:oportunidade_id(titulo,categoria),' +
   'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por,entregue,entregue_em,validado,validado_em,provas),' +
   'contratos(id,documento_url,status,completo_em),' +
