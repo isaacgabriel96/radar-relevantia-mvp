@@ -973,6 +973,22 @@ tbody tr:last-child td { border-bottom: none; }
 .deals-item-cota { font-size: 11px; color: var(--gray-400); }
 .deals-item-valor { font-family: var(--font-heading); font-size: 13px; font-weight: 700; color: #059669; white-space: nowrap; }
 .deals-item-cp-count { font-size: 11px; color: var(--gray-400); white-space: nowrap; }
+/* ─── DEAL FLAT CARD (pipeline, sem accordion) ─── */
+.deal-flat-card { display: flex; align-items: center; gap: 14px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 14px 18px; cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+.deal-flat-card:hover { box-shadow: 0 4px 20px rgba(30,22,0,0.08); border-color: var(--gray-300); }
+.deal-flat-avatar { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.deal-flat-body { flex: 1; min-width: 0; }
+.deal-flat-name { font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deal-flat-meta { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.deal-flat-stage { font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; }
+.deal-flat-right { text-align: right; flex-shrink: 0; }
+.deal-flat-value { font-family: var(--font-heading); font-size: 15px; font-weight: 800; color: var(--black); white-space: nowrap; }
+.deal-flat-cta { font-size: 11px; color: var(--gold); font-weight: 600; margin-top: 2px; white-space: nowrap; }
+@media (max-width: 640px) {
+  .deal-flat-stage { display: none; }
+  .deal-flat-card { gap: 10px; padding: 12px 14px; }
+}
+
 .deal-empty { text-align: center; padding: 48px 24px; color: var(--gray-400); }
 .deal-empty-icon { font-size: 32px; margin-bottom: 12px; }
 .deal-empty-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); margin-bottom: 6px; }
@@ -1577,14 +1593,14 @@ tbody tr:last-child td { border-bottom: none; }
         </div>
       </div>
 
-      <!-- Sub-abas -->
+      <!-- Sub-abas (pipeline) -->
       <div class="sub-tabs">
         <button class="sub-tab active" id="subtab-prop-propostas" onclick="switchPropostasTab('propostas')">
-          Propostas
+          Em negociação
           <span class="sub-tab-badge">0</span>
         </button>
         <button class="sub-tab" id="subtab-prop-deals" onclick="switchPropostasTab('deals')">
-          Deals Fechados
+          Acordos
           <span class="sub-tab-badge" id="prop-deals-badge">0</span>
         </button>
       </div>
@@ -1604,9 +1620,6 @@ tbody tr:last-child td { border-bottom: none; }
           </button>
           <button class="prop-pill" data-filter="analise" onclick="filterPropostas('analise')">
             Em análise <span class="prop-pill-count" id="ppill-analise">0</span>
-          </button>
-          <button class="prop-pill" data-filter="aceita" onclick="filterPropostas('aceita')">
-            Aceita <span class="prop-pill-count" id="ppill-aceita">0</span>
           </button>
           <button class="prop-pill" data-filter="recusada" onclick="filterPropostas('recusada')">
             Recusada <span class="prop-pill-count" id="ppill-recusada">0</span>
@@ -6137,9 +6150,6 @@ function _buildPropostaCard(p, catalogMap) {
           Ver negociação
           ${unreadDot}
         </button>
-        ${p.status === 'aceita'
-          ? `<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();switchPropostasTab('deals')">Ver deal →</button>`
-          : ''}
       </div>
     </div>
   </div>`;
@@ -6159,12 +6169,14 @@ function renderPropostasTable() {
   const grid = document.getElementById('prop-cards-grid');
   if (!grid) return;
 
+  // "Em negociação" mostra só pré-aceite (aceitas vão para a aba Acordos)
+  const emNegociacao = PROPOSTAS.filter(p => p.status !== 'aceita');
   const list = _propFilter === 'todos'
-    ? PROPOSTAS
-    : PROPOSTAS.filter(p => p.status === _propFilter);
+    ? emNegociacao
+    : emNegociacao.filter(p => p.status === _propFilter);
 
   if (list.length === 0) {
-    grid.innerHTML = `<div style="grid-column:1/-1">${emptyStateHtml('propostas', 'Nenhuma proposta encontrada', 'Tente outro filtro ou envie uma nova proposta em Explorar Oportunidades.')}</div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1">${emptyStateHtml('propostas', 'Nenhuma proposta em negociação', 'Propostas aceitas viram acordos na aba ao lado. Envie novas propostas em Explorar Oportunidades.')}</div>`;
     return;
   }
 
@@ -6192,9 +6204,9 @@ function initPropostasSection() {
   set('prop-summary-analise',  counts.analise);
   set('prop-summary-recusadas',counts.recusada);
 
-  // Atualizar badge da sub-tab
+  // Badge "Em negociação" = pré-aceite (pendente + análise + recusada)
   const subBadge = document.querySelector('#subtab-prop-propostas .sub-tab-badge');
-  if (subBadge) subBadge.textContent = counts.todos;
+  if (subBadge) subBadge.textContent = counts.pendente + counts.analise + counts.recusada;
 
   renderPropostasTable();
 }
@@ -6205,6 +6217,8 @@ function switchPropostasTab(tab) {
   document.querySelectorAll('#sec-propostas .sub-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('subtab-prop-' + tab).classList.add('active');
   document.getElementById('subpanel-prop-' + tab).classList.add('active');
+  if (tab === 'deals' && typeof renderDealsPropostas === 'function') renderDealsPropostas();
+  if (tab === 'propostas' && typeof renderPropostasTable === 'function') renderPropostasTable();
 }
 
 // ─── CAMPANHAS ───
@@ -6611,6 +6625,15 @@ function _dealBrutoMarca(p) {
   return 0;
 }
 
+// Etapa do pipeline pós-aceite (visão marca)
+function _dealEtapaMarca(p) {
+  const aceitos = (p.contrapartidas || []).filter(c => c.status === 'aceita');
+  const todasValidadas = aceitos.length > 0 && aceitos.every(c => c.validado);
+  if (!p.contrato_validado) return { label: 'Formalização', bg: '#FFF8E1', color: '#D97706' };
+  if (!todasValidadas)      return { label: 'Ativação',     bg: '#F5F3FF', color: '#7C3AED' };
+  return { label: 'Concluído', bg: '#ECFDF5', color: '#059669' };
+}
+
 function renderDealsPropostas() {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
   const deals = PROPOSTAS.filter(p => p.status === 'aceita');
@@ -6623,66 +6646,39 @@ function renderDealsPropostas() {
   if (!container) return;
 
   if (deals.length === 0) {
-    container.innerHTML = emptyStateHtml('deals', 'Nenhum deal fechado ainda', 'Quando uma proposta for aceita e as contrapartidas confirmadas, ela aparecerá aqui como base para o contrato.');
+    container.innerHTML = emptyStateHtml('deals', 'Nenhum acordo ainda', 'Quando uma proposta for aceita, ela vira um acordo aqui — com formalização, pagamento e ativação.');
     return;
   }
-
-  // Agrupar por opp_id
-  const byOpp = {};
-  deals.forEach(p => {
-    if (!byOpp[p.opp_id]) byOpp[p.opp_id] = { opp: p.opp, items: [] };
-    byOpp[p.opp_id].items.push(p);
-  });
 
   const catalogMap = {};
   (MOCK_OPPORTUNITIES || []).forEach(o => { catalogMap[o.id] = o; });
 
-  container.innerHTML = Object.values(byOpp).map((group, gi) => {
-    const cat = getOppCatMarca(group.opp);
-    const oppId = group.items[0] && group.items[0].opp_id;
-    const catalogItem = oppId && catalogMap[oppId];
+  // Lista plana de cards (sem accordion, foco na contraparte e na etapa)
+  container.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px">' + deals.map(p => {
+    const cat = getOppCatMarca(p.opp);
+    const catalogItem = catalogMap[p.opp_id];
     const imgCapa = catalogItem && (catalogItem._imagemCapa || (catalogItem.images && catalogItem.images[0]));
     const focalData = (catalogItem && catalogItem._imagensFocal && imgCapa) ? (catalogItem._imagensFocal[imgCapa] || {x:50,y:20}) : {x:50,y:20};
-    const coverStyle = imgCapa ? `background:url(${imgCapa}) ${focalData.x}% ${focalData.y}% / cover no-repeat` : `background:${cat.bg}`;
-    const coverContent = imgCapa ? '' : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
-    const totalGrupo = group.items.reduce((s, p) => s + _dealBrutoMarca(p), 0);
-    const accId = 'deals-acc-' + gi;
-
-    const rows = group.items.map(p => {
-      const aceitos = (p.contrapartidas || []).filter(c => c.status === 'aceita');
-      const totalP  = _dealBrutoMarca(p);
-      const cotaNome = (p.cota || '').split('—')[0].trim() || p.cota || 'Cota';
-      return `<div class="deals-opp-list-item" style="cursor:pointer" onclick="openPropostaModal('${p.id}')">
-        <div class="deals-item-avatar" style="background:${cat.bg}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px;color:rgba(255,255,255,0.7)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="deals-item-name">${cotaNome}</div>
-          <div class="deals-item-cota">${aceitos.length} contrapartida${aceitos.length !== 1 ? 's' : ''} aceita${aceitos.length !== 1 ? 's' : ''}</div>
-        </div>
-        <div style="text-align:right">
-          <div class="deals-item-valor">${fmt(totalP)}</div>
-          <div class="deals-item-cp-count">Ver detalhes →</div>
-        </div>
-      </div>`;
-    }).join('');
-
-    return `<div class="deals-opp-accordion open" id="${accId}">
-      <div class="deals-opp-header" onclick="toggleDealAcc(this)">
-        <div class="deals-opp-cover" style="${coverStyle}">${coverContent}</div>
-        <div class="deals-opp-info">
-          <div class="deals-opp-title">${group.opp}</div>
-          <div class="deals-opp-subtitle">${group.items.length} deal${group.items.length !== 1 ? 's' : ''} fechado${group.items.length !== 1 ? 's' : ''}</div>
-        </div>
-        <div class="deals-opp-total">
-          <div class="deals-opp-total-label">Total aceito</div>
-          <div class="deals-opp-total-num">${fmt(totalGrupo)}</div>
-        </div>
-        ${chevronSvgDeal}
+    const avatarStyle = imgCapa
+      ? `background:url(${imgCapa}) ${focalData.x}% ${focalData.y}% / cover no-repeat`
+      : `background:${cat.bg}`;
+    const avatarContent = imgCapa ? '' : `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" style="width:20px;height:20px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
+    const aceitos = (p.contrapartidas || []).filter(c => c.status === 'aceita');
+    const et = _dealEtapaMarca(p);
+    const bruto = _dealBrutoMarca(p);
+    return `<div class="deal-flat-card" onclick="openPropostaModal('${p.id}')">
+      <div class="deal-flat-avatar" style="${avatarStyle}">${avatarContent}</div>
+      <div class="deal-flat-body">
+        <div class="deal-flat-name">${escapeHtml(p.opp || 'Oportunidade')}</div>
+        <div class="deal-flat-meta">${aceitos.length} entrega${aceitos.length !== 1 ? 's' : ''} acordada${aceitos.length !== 1 ? 's' : ''}</div>
       </div>
-      <div class="deals-opp-list">${rows}</div>
+      <span class="deal-flat-stage" style="background:${et.bg};color:${et.color}">${et.label}</span>
+      <div class="deal-flat-right">
+        <div class="deal-flat-value">${fmt(bruto)}</div>
+        <div class="deal-flat-cta">Ver detalhes →</div>
+      </div>
     </div>`;
-  }).join('');
+  }).join('') + '</div>';
 }
 
 // Contador de caracteres textarea

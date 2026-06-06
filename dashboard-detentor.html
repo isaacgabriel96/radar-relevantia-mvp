@@ -863,6 +863,22 @@ tbody tr:last-child td { border-bottom: none; }
 .deals-detail-total-num { font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: #059669; letter-spacing: -0.02em; }
 /* Card individual de deal (VIEW 2) */
 .deals-card-list { display: flex; flex-direction: column; gap: 8px; }
+/* ─── DEAL FLAT CARD (pipeline, sem drill) ─── */
+.deal-flat-card { display: flex; align-items: center; gap: 14px; background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; padding: 14px 18px; cursor: pointer; transition: box-shadow .15s, border-color .15s; }
+.deal-flat-card:hover { box-shadow: 0 4px 20px rgba(30,22,0,0.08); border-color: var(--gray-300); }
+.deal-flat-avatar { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.deal-flat-body { flex: 1; min-width: 0; }
+.deal-flat-name { font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deal-flat-meta { font-size: 12px; color: var(--gray-400); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deal-flat-stage { font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; }
+.deal-flat-right { text-align: right; flex-shrink: 0; }
+.deal-flat-value { font-family: var(--font-heading); font-size: 15px; font-weight: 800; color: #059669; white-space: nowrap; }
+.deal-flat-cta { font-size: 11px; color: var(--gray-400); font-weight: 600; margin-top: 2px; white-space: nowrap; }
+@media (max-width: 640px) {
+  .deal-flat-stage { display: none; }
+  .deal-flat-card { gap: 10px; padding: 12px 14px; }
+}
+
 .deal-item-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; transition: box-shadow 0.15s; }
 .deal-item-card:hover { box-shadow: 0 2px 12px rgba(30,22,0,0.07); }
 .deal-item-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--gold-gradient); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--black); flex-shrink: 0; }
@@ -1839,7 +1855,7 @@ tbody tr:last-child td { border-bottom: none; }
           <span class="sub-tab-badge" id="neg-badge-count">0</span>
         </button>
         <button class="sub-tab" id="subtab-deals" onclick="switchSubTab('deals')">
-          Deals Fechados
+          Acordos
           <span class="sub-tab-badge" id="deals-badge-count">0</span>
         </button>
         <button class="sub-tab" id="subtab-solicitacoes" onclick="switchSubTab('solicitacoes');loadSolicitacoes()">
@@ -1904,7 +1920,6 @@ tbody tr:last-child td { border-bottom: none; }
             <button class="neg-pill active" id="detpill-todos"     onclick="filterDetailPill('todos')">Todos</button>
             <button class="neg-pill"        id="detpill-pendente"  onclick="filterDetailPill('pendente')">Pendente</button>
             <button class="neg-pill"        id="detpill-analise"   onclick="filterDetailPill('analise')">Em análise</button>
-            <button class="neg-pill"        id="detpill-aceita"    onclick="filterDetailPill('aceita')">Aceita</button>
             <button class="neg-pill"        id="detpill-recusada"  onclick="filterDetailPill('recusada')">Recusada</button>
             <button class="neg-pill"        id="detpill-cancelada" onclick="filterDetailPill('cancelada')">Encerrada</button>
             <span class="neg-pills-count" id="det-pills-count"></span>
@@ -2831,7 +2846,7 @@ function showSectionTab(sectionId, subTab) {
   setTimeout(() => {
     if (typeof switchSubTab === 'function') switchSubTab(subTab);
     // Atualiza breadcrumb/topbar para refletir o sub-tab ativo
-    const subTitles = { negociacoes: 'Negociações', deals: 'Deals Fechados', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
+    const subTitles = { negociacoes: 'Negociações', deals: 'Acordos', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
     const topbar = document.getElementById('topbarSection');
     if (topbar && subTitles[subTab] !== undefined) topbar.textContent = subTitles[subTab];
   }, 55);
@@ -5173,9 +5188,11 @@ function switchSubTab(tab) {
   document.getElementById('subtab-' + tab).classList.add('active');
   document.getElementById('subpanel-' + tab).classList.add('active');
   // Atualiza topbar/breadcrumb para refletir a sub-aba ativa
-  const subTitles = { negociacoes: 'Negociações', deals: 'Deals Fechados', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
+  const subTitles = { negociacoes: 'Negociações', deals: 'Acordos', solicitacoes: 'Solicitações', publicadas: 'Minhas Oportunidades' };
   const topbar = document.getElementById('topbarSection');
   if (topbar && subTitles[tab] !== undefined) topbar.textContent = subTitles[tab];
+  if (tab === 'deals' && typeof renderDeals === 'function') renderDeals();
+  if (tab === 'negociacoes' && typeof renderNegOppCards === 'function') renderNegOppCards();
 }
 
 const chevronSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="neg-opp-chevron"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -5207,17 +5224,20 @@ function renderNegOppCards() {
   const container = document.getElementById('neg-opp-cards-container');
   const badge = document.getElementById('neg-badge-count');
   if (!container) return;
-  if (badge) badge.textContent = NEGOCIACOES.length;
 
-  // agrupa todas as negociações por oportunidade
+  // "Negociações" = pré-aceite (aceitas vão para a aba Acordos)
+  const emNegociacao = NEGOCIACOES.filter(n => n.status !== 'aceita');
+  if (badge) badge.textContent = emNegociacao.length;
+
+  // agrupa por oportunidade
   const groups = {};
-  NEGOCIACOES.forEach(n => {
+  emNegociacao.forEach(n => {
     if (!groups[n.opp_id]) groups[n.opp_id] = { opp_id: n.opp_id, opp: n.opp, items: [] };
     groups[n.opp_id].items.push(n);
   });
 
   if (Object.keys(groups).length === 0) {
-    container.innerHTML = emptyStateHtml('negociacoes', 'Nenhuma negociação', 'Quando marcas enviarem propostas, elas aparecerão aqui.');
+    container.innerHTML = emptyStateHtml('negociacoes', 'Nenhuma negociação em aberto', 'Propostas aceitas viram acordos na aba ao lado. Novas propostas de marcas aparecem aqui.');
     return;
   }
 
@@ -5234,7 +5254,7 @@ function renderNegOppCards() {
     // conta por status
     const counts = { pendente:0, analise:0, aceita:0, recusada:0, cancelada:0 };
     g.items.forEach(n => { if (counts[n.status] !== undefined) counts[n.status]++; });
-    const chips = ['pendente','analise','aceita','recusada','cancelada']
+    const chips = ['pendente','analise','recusada','cancelada']
       .filter(s => counts[s] > 0)
       .map(s => {
         const labels = { pendente:'Pendente', analise:'Em análise', aceita:'Aceita', recusada:'Recusada', cancelada:'Encerrada' };
@@ -5260,8 +5280,8 @@ function openNegOppDetail(oppId) {
   document.querySelectorAll('[id^="detpill-"]').forEach(b => b.classList.remove('active'));
   const todosBtn = document.getElementById('detpill-todos');
   if (todosBtn) todosBtn.classList.add('active');
-  // popula header
-  const negs = NEGOCIACOES.filter(n => n.opp_id === oppId);
+  // popula header (exclui aceitas — vivem na aba Acordos)
+  const negs = NEGOCIACOES.filter(n => n.opp_id === oppId && n.status !== 'aceita');
   const cfg  = _oppCfg(oppId);
   const opp  = negs[0]?.opp || '';
   const cover = document.getElementById('neg-detail-cover');
@@ -5309,8 +5329,8 @@ function renderNegCards() {
   const countEl   = document.getElementById('det-pills-count');
   if (!container) return;
 
-  const statusOrder = { pendente:0, analise:1, aceita:2, recusada:3 };
-  let list = NEGOCIACOES.filter(n => n.opp_id === _negOppAtiva);
+  const statusOrder = { pendente:0, analise:1, recusada:2 };
+  let list = NEGOCIACOES.filter(n => n.opp_id === _negOppAtiva && n.status !== 'aceita');
   if (_detFilterAtivo !== 'todos') list = list.filter(n => n.status === _detFilterAtivo);
   list = [...list].sort((a,b) => (statusOrder[a.status]??9) - (statusOrder[b.status]??9));
 
@@ -6364,6 +6384,15 @@ function _dealBrutoDet(n) {
   return 0;
 }
 
+// Etapa do pipeline pós-aceite (visão detentor)
+function _dealEtapaDet(n) {
+  const aceitos = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+  const todasValidadas = aceitos.length > 0 && aceitos.every(c => c.validado);
+  if (!n.contrato_validado) return { label: 'Formalização', bg: '#FFF8E1', color: '#D97706' };
+  if (!todasValidadas)      return { label: 'Ativação',     bg: '#F5F3FF', color: '#7C3AED' };
+  return { label: 'Concluído', bg: '#ECFDF5', color: '#059669' };
+}
+
 function renderDeals() {
   const fmt = v => 'R$ ' + v.toLocaleString('pt-BR');
   const deals = NEGOCIACOES.filter(n => n.status === 'aceita');
@@ -6376,45 +6405,29 @@ function renderDeals() {
   if (!container) return;
 
   if (deals.length === 0) {
-    container.innerHTML = emptyStateHtml('deals', 'Nenhum deal fechado ainda', 'Quando uma negociação for concluída com sucesso, ela aparecerá aqui como base para o contrato.');
+    container.innerHTML = emptyStateHtml('deals', 'Nenhum acordo ainda', 'Quando uma negociação for aceita, ela vira um acordo aqui — com formalização, pagamento e ativação.');
     return;
   }
 
-  // Agrupa por oportunidade
-  const groups = {};
-  deals.forEach(n => {
-    if (!groups[n.opp_id]) groups[n.opp_id] = { opp_id: n.opp_id, opp: n.opp, items: [] };
-    groups[n.opp_id].items.push(n);
-  });
-
-  container.innerHTML = Object.values(groups).map(g => {
-    const cfg = _oppCfg(g.opp_id);
-    const oppData = MINHAS_OPPS.find(o => o.id === g.opp_id);
-    const imgCapa = oppData && oppData.imagem_capa;
-    const focalData = (oppData && oppData.imagens_focal && imgCapa) ? (oppData.imagens_focal[imgCapa] || {x:50,y:20}) : {x:50,y:20};
-    const coverStyle = imgCapa ? `background:url(${imgCapa}) ${focalData.x}% ${focalData.y}% / cover no-repeat` : `background:${cfg.gradient}`;
-    const coverContent = imgCapa ? '' : cfg.icon;
-    // total líquido do grupo (valor_deal é o valor total do pacote)
-    const totalLiquido = g.items.reduce((sum, n) => {
-      const bruto = _dealBrutoDet(n);
-      return sum + (bruto - Math.round(bruto * PLATAFORMA_TAXA));
-    }, 0);
-
-    const arrowSvg = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="neg-opp-arrow" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>';
-
-    return `<div class="deals-opp-card-v2" onclick="openDealOppDetail(${g.opp_id})">
-      <div class="neg-opp-cover" style="${coverStyle}">${coverContent}</div>
-      <div class="neg-opp-info">
-        <div class="neg-opp-title">${g.opp}</div>
-        <div class="neg-opp-subtitle">${g.items.length} deal${g.items.length !== 1 ? 's' : ''} fechado${g.items.length !== 1 ? 's' : ''}</div>
+  // Lista plana de cards (contraparte = marca, valor líquido que você recebe, etapa atual)
+  container.innerHTML = '<div style="display:flex;flex-direction:column;gap:10px">' + deals.map(n => {
+    const bruto = _dealBrutoDet(n);
+    const liquido = bruto - Math.round(bruto * PLATAFORMA_TAXA);
+    const aceitos = (n.contrapartidas || []).filter(c => c.status === 'aceita');
+    const et = _dealEtapaDet(n);
+    return `<div class="deal-flat-card" onclick="openNegModal('${n.id}')">
+      <div class="deal-flat-avatar" style="background:var(--gold-gradient,#B8860B);color:#fff;font-weight:800;font-size:16px">${_initials(n.marca)}</div>
+      <div class="deal-flat-body">
+        <div class="deal-flat-name">${escapeHtml(n.marca || 'Marca')}</div>
+        <div class="deal-flat-meta">${aceitos.length} entrega${aceitos.length !== 1 ? 's' : ''} acordada${aceitos.length !== 1 ? 's' : ''} · ${escapeHtml((n.opp || ''))}</div>
       </div>
-      <div class="deals-opp-card-v2-total">
-        <div class="deals-opp-card-v2-total-label">Você recebe</div>
-        <div class="deals-opp-card-v2-total-num">${fmt(totalLiquido)}</div>
+      <span class="deal-flat-stage" style="background:${et.bg};color:${et.color}">${et.label}</span>
+      <div class="deal-flat-right">
+        <div class="deal-flat-value">${fmt(liquido)}</div>
+        <div class="deal-flat-cta">Você recebe · ver →</div>
       </div>
-      ${arrowSvg}
     </div>`;
-  }).join('');
+  }).join('') + '</div>';
 }
 
 // Navega VIEW 1 → VIEW 2
