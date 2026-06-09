@@ -1623,7 +1623,7 @@ tbody tr:last-child td { border-bottom: none; }
     </a>
     <a class="nav-item" data-section="voz" onclick="showSection('voz')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      Fale com o Radar
+      Mensagens
       <span class="nav-badge" id="navBadgeVoz" style="display:none;background:#EF4444;color:#fff">0</span>
     </a>
   </nav>
@@ -2394,7 +2394,7 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="section" id="sec-voz">
   <div class="page-header">
     <div>
-      <h1 class="page-title">Fale com o Radar</h1>
+      <h1 class="page-title">Mensagens</h1>
       <p class="page-subtitle">Suas conversas com o Radar e suas negociações, num só lugar.</p>
     </div>
   </div>
@@ -2832,7 +2832,7 @@ const SECTION_TITLES = {
   oportunidades: 'Minhas Oportunidades',
   negociacoes: 'Negociações',
   configuracoes: 'Configurações',
-  voz: 'Fale com o Radar',
+  voz: 'Mensagens',
   equipe: 'Equipe'
 };
 
@@ -5682,6 +5682,14 @@ async function openNegModal(id) {
   document.getElementById('modal-neg').classList.add('open');
   document.body.style.overflow = 'hidden';
 
+  // Primeira negociação: abre o "Como funciona" automaticamente (uma vez)
+  try {
+    if (!localStorage.getItem('rr_how_neg_det')) {
+      localStorage.setItem('rr_how_neg_det', '1');
+      setTimeout(function() { if (typeof openHowDet === 'function') openHowDet(); }, 450);
+    }
+  } catch (e) {}
+
   // ── Background: dados lentos carregam após o modal já estar visível ──
   if (!isDemoMode() && n._supaId) {
     const _sid = n._supaId;
@@ -6505,6 +6513,7 @@ function fecharDeal() {
   if (posdealDet) { posdealDet.style.display = ''; renderPosDealDet(_negAtiva); }
 }
 
+function abrirConversaNeg(){ if(window.RadarInbox && _negAtiva) RadarInbox.openNeg(_negAtiva.id); }
 async function sendNegMsg() {
   const ta = document.getElementById('mn-compose-input');
   const text = ta ? ta.value.trim() : '';
@@ -8337,17 +8346,17 @@ async function removerMembro(userId) {
 
         <!-- ── Mensagens (colapsável) ── -->
         <div style="border-top:1px solid var(--gray-200);margin:16px -20px 0;padding:0 20px">
-          <div class="neg-msg-toggle" onclick="toggleNegMsg()">
+          <div class="neg-msg-toggle" style="cursor:pointer" onclick="abrirConversaNeg()">
             <div class="neg-msg-left">
               <span class="neg-msg-title">Mensagens</span>
               <span class="neg-msg-count" id="mn-msg-count" style="display:none">0</span>
             </div>
             <div style="display:flex;align-items:center;gap:7px">
-              <span class="neg-msg-hint" id="mn-msg-hint">Ver conversa</span>
-              <svg class="neg-msg-chevron" id="mn-msg-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+              <span class="neg-msg-hint" id="mn-msg-hint">Abrir conversa</span>
+              <svg class="neg-msg-chevron" id="mn-msg-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
             </div>
           </div>
-          <div class="neg-msg-body" id="mn-msg-body">
+          <div class="neg-msg-body" id="mn-msg-body" style="display:none">
           <span id="mn-msg-label" style="display:none"></span>
           <div class="msg-thread" id="mn-thread" style="max-height:200px"></div>
           <div class="msg-compose-det" style="margin-top:10px">

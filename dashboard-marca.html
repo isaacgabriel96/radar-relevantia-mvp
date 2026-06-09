@@ -1249,6 +1249,7 @@ tbody tr:last-child td { border-bottom: none; }
 <script src="js/sanitize.js"></script>
 <script src="js/core.js?v=20260513b"></script>
 <script src="js/radar-chat-widget.js"></script>
+<script src="js/radar-inbox.js"></script>
 <script src="js/ff-filter.js"></script>
 <script>if(new URLSearchParams(location.search).get('demo')==='true'){document.write('<script src="js\/demo-data.js"><\/script>');document.write('<script src="js\/demo-mode.js"><\/script>');}</script>
 
@@ -1364,7 +1365,7 @@ tbody tr:last-child td { border-bottom: none; }
     </a>
     <a class="nav-item" data-section="voz" onclick="showSection('voz')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-      Fale com o Radar
+      Mensagens
       <span class="nav-badge" id="navBadgeVoz" style="display:none;background:#EF4444;color:#fff">0</span>
     </a>
   </nav>
@@ -2168,12 +2169,13 @@ tbody tr:last-child td { border-bottom: none; }
     <div class="section" id="sec-voz">
   <div class="page-header">
     <div>
-      <h1 class="page-title">Fale com o Radar</h1>
-      <p class="page-subtitle">Cada mensagem é lida pelo time e alimenta o roadmap.</p>
+      <h1 class="page-title">Mensagens</h1>
+      <p class="page-subtitle">Suas conversas com o Radar e suas negociações, num só lugar.</p>
     </div>
   </div>
 
-  <div style="max-width:680px">
+  <div id="vozInboxRoot"></div>
+  <div id="vozOldUi" style="display:none">
 
     <!-- Tabs -->
     <div class="sub-tabs">
@@ -2660,7 +2662,7 @@ const SECTION_TITLES = {
   propostas: 'Minhas Propostas',
   campanhas: 'Campanhas',
   configuracoes: 'Configurações',
-  voz: 'Fale com o Radar',
+  voz: 'Mensagens',
   equipe: 'Equipe'
 };
 
@@ -3168,7 +3170,7 @@ function showSection(sectionId) {
 
   // Lazy load section data
   if (sectionId === 'configuracoes') loadEquipe();
-  if (sectionId === 'voz') { _vozOpenId = null; vozLoadTickets(); }
+  if (sectionId === 'voz') { if (window.RadarInbox) RadarInbox.refresh(); }
 
   // Recarrega oportunidades sempre que o usuário abre a seção — garante dados frescos
   if (sectionId === 'oportunidades') {
@@ -4942,6 +4944,14 @@ async function openPropostaModal(id) {
 
   document.getElementById('modal-proposta').classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Primeira negociação: abre o "Como funciona" automaticamente (uma vez)
+  try {
+    if (!localStorage.getItem('rr_how_neg_marca')) {
+      localStorage.setItem('rr_how_neg_marca', '1');
+      setTimeout(function() { if (typeof openHowMarca === 'function') openHowMarca(); }, 450);
+    }
+  } catch (e) {}
 }
 
 function switchModalTab(tab) {
@@ -6124,6 +6134,7 @@ function toggleHistoricoRodadasM() {
   if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
 }
 
+function abrirConversaNeg(){ if(window.RadarInbox && _propostaAtiva) RadarInbox.openNeg(_propostaAtiva.id); }
 async function sendPropostaMsg() {
   const ta = document.getElementById('mp-compose-input');
   const text = ta ? ta.value.trim() : '';
@@ -7162,7 +7173,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (len > 800) ta.value = ta.value.substring(0, 800);
     });
   }
-  vozBootstrap();
+  /* inbox (radar-inbox.js) cuida do suporte na página sec-voz */
   loadNotifs();
 });
 
@@ -7747,17 +7758,17 @@ async function removerMembro(userId) {
 
         <!-- ── Mensagens (colapsável) ── -->
         <div style="border-top:1px solid var(--gray-200);margin:16px -20px 0;padding:0 20px">
-          <div class="neg-msg-toggle" onclick="toggleMarcaMsg()">
+          <div class="neg-msg-toggle" style="cursor:pointer" onclick="abrirConversaNeg()">
             <div class="neg-msg-left">
               <span class="neg-msg-title">Mensagens</span>
               <span class="neg-msg-count" id="mp-msg-count" style="display:none">0</span>
             </div>
             <div style="display:flex;align-items:center;gap:7px">
-              <span class="neg-msg-hint" id="mp-msg-hint">Ver conversa</span>
-              <svg class="neg-msg-chevron" id="mp-msg-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+              <span class="neg-msg-hint" id="mp-msg-hint">Abrir conversa</span>
+              <svg class="neg-msg-chevron" id="mp-msg-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
             </div>
           </div>
-          <div class="neg-msg-body" id="mp-msg-body">
+          <div class="neg-msg-body" id="mp-msg-body" style="display:none">
           <span id="mp-msg-label" style="display:none"></span>
           <div class="msg-thread" id="mp-thread" style="max-height:200px"></div>
           <div class="msg-compose" style="margin-top:10px">
