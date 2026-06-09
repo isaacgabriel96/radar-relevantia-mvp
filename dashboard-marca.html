@@ -4675,13 +4675,35 @@ function renderTimelineMarca(p) {
     if (p.contrato_validado) active = 3;
     else active = 2;
   }
+  const aceito = p.status === 'aceita';
   tl.querySelectorAll('.tl-step').forEach(function(st) {
     const num = parseInt(st.getAttribute('data-step'), 10);
     const dot = st.querySelector('.tl-dot');
     if (num < active) { st.className = 'tl-step done'; if (dot) dot.textContent = '✓'; }
     else if (num === active) { st.className = 'tl-step active'; if (dot) dot.textContent = num; }
     else { st.className = 'tl-step todo'; if (dot) dot.textContent = num; }
+    // Pós-deal: a timeline navega entre Negociação (só leitura) e Formalização/Ativação
+    if (aceito) {
+      st.style.cursor = 'pointer';
+      st.onclick = function() { _setNegViewMarca(num === 1 ? 'negociacao' : 'posdeal'); };
+    } else {
+      st.style.cursor = '';
+      st.onclick = null;
+    }
   });
+}
+
+// Alterna entre a negociação concluída (só leitura/overlay) e a página atual (formalização/ativação)
+function _setNegViewMarca(view) {
+  const sec = document.getElementById('mp-valor-deal-section');
+  const pos = document.getElementById('mp-posdeal');
+  const showNeg = view === 'negociacao';
+  if (sec) { sec.classList.add('neg-readonly'); sec.style.display = showNeg ? '' : 'none'; }
+  if (pos) pos.style.display = showNeg ? 'none' : '';
+  if (showNeg) {
+    const list = document.getElementById('mp-rodadas-list'); if (list) list.style.display = '';
+    const rChev = document.getElementById('mp-rodadas-chevron'); if (rChev) rChev.style.transform = 'rotate(180deg)';
+  }
 }
 
 /* ── Badge "organizador aceita contrapropostas" ── */
@@ -5382,12 +5404,10 @@ function _renderValorDealM(p) {
   // A negociação fica acessível só para leitura via "Ver negociação realizada".
   const sectAceita = p.status === 'aceita';
   const vdSection = document.getElementById('mp-valor-deal-section');
-  const verNegToggle = document.getElementById('mp-ver-neg-toggle');
   if (vdSection) {
     vdSection.classList.toggle('neg-readonly', sectAceita);
-    vdSection.style.display = sectAceita ? 'none' : '';   // começa colapsada no pós-deal
+    vdSection.style.display = sectAceita ? 'none' : '';   // pós-deal mostra formalização; clica em "Negociação" na timeline p/ rever
   }
-  if (verNegToggle) verNegToggle.style.display = sectAceita ? 'flex' : 'none';
   const statusWrap = document.getElementById('mp-status-wrap');
   if (statusWrap) statusWrap.style.display = sectAceita ? 'none' : '';
 
@@ -6038,23 +6058,6 @@ function _pontoPartidaHtmlM(ci) {
     '<div class="rodada-card-valor">' + val + '</div>' +
     bensHtml +
   '</div>';
-}
-
-// Mostra/oculta a negociação concluída (só leitura, esmaecida) no pós-deal
-function toggleNegRealizadaM() {
-  const sec = document.getElementById('mp-valor-deal-section');
-  const chev = document.getElementById('mp-ver-neg-chevron');
-  if (!sec) return;
-  const open = sec.style.display !== 'none';
-  sec.style.display = open ? 'none' : '';
-  if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
-  // Como os botões ficam desabilitados, abre o histórico para ver tudo
-  if (!open) {
-    const list = document.getElementById('mp-rodadas-list');
-    const rChev = document.getElementById('mp-rodadas-chevron');
-    if (list) list.style.display = '';
-    if (rChev) rChev.style.transform = 'rotate(180deg)';
-  }
 }
 
 function toggleHistoricoRodadasM() {
@@ -7372,12 +7375,6 @@ async function removerMembro(userId) {
 
       <!-- PAINEL ÚNICO: Proposta + Mensagens -->
       <div data-panel="proposta">
-
-        <!-- Toggle "Ver negociação realizada" (só no pós-deal) -->
-        <button id="mp-ver-neg-toggle" onclick="toggleNegRealizadaM()" style="display:none;width:100%;align-items:center;justify-content:space-between;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-500);font-family:var(--font-body);margin-bottom:6px">
-          <span>Ver negociação realizada</span>
-          <svg id="mp-ver-neg-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
 
         <!-- Seção unificada: Sua proposta (entregas primeiro, valor depois) -->
         <div class="valor-deal-section-m" id="mp-valor-deal-section">

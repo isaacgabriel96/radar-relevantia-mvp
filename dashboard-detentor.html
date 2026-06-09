@@ -5431,6 +5431,7 @@ function renderTimelineDet(n) {
     if (n.contrato_validado) active = 3;
     else active = 2;
   }
+  const aceito = n.status === 'aceita';
   const steps = tl.querySelectorAll('.tl-step');
   steps.forEach(function(st) {
     const num = parseInt(st.getAttribute('data-step'), 10);
@@ -5438,7 +5439,28 @@ function renderTimelineDet(n) {
     if (num < active) { st.className = 'tl-step done'; if (dot) dot.textContent = '✓'; }
     else if (num === active) { st.className = 'tl-step active'; if (dot) dot.textContent = num; }
     else { st.className = 'tl-step todo'; if (dot) dot.textContent = num; }
+    // Pós-deal: a timeline navega entre Negociação (só leitura) e Formalização/Ativação
+    if (aceito) {
+      st.style.cursor = 'pointer';
+      st.onclick = function() { _setNegViewDet(num === 1 ? 'negociacao' : 'posdeal'); };
+    } else {
+      st.style.cursor = '';
+      st.onclick = null;
+    }
   });
+}
+
+// Alterna entre a negociação concluída (só leitura/overlay) e a página atual (formalização/ativação)
+function _setNegViewDet(view) {
+  const sec = document.getElementById('mn-valor-deal-section');
+  const pos = document.getElementById('mn-posdeal');
+  const showNeg = view === 'negociacao';
+  if (sec) { sec.classList.add('neg-readonly'); sec.style.display = showNeg ? '' : 'none'; }
+  if (pos) pos.style.display = showNeg ? 'none' : '';
+  if (showNeg) {
+    const list = document.getElementById('mn-rodadas-list'); if (list) list.style.display = '';
+    const rChev = document.getElementById('mn-rodadas-chevron'); if (rChev) rChev.style.transform = 'rotate(180deg)';
+  }
 }
 
 /* ── Badge "aceita contrapropostas" ──
@@ -5986,12 +6008,10 @@ function renderValorDeal() {
   const toggleRow = document.getElementById('mn-toggle-row');
   if (toggleRow) toggleRow.style.display = aceito ? 'none' : '';
   const vdSection = document.getElementById('mn-valor-deal-section');
-  const verNegToggle = document.getElementById('mn-ver-neg-toggle');
   if (vdSection) {
     vdSection.classList.toggle('neg-readonly', aceito);
-    vdSection.style.display = aceito ? 'none' : '';   // começa colapsada no pós-deal
+    vdSection.style.display = aceito ? 'none' : '';   // pós-deal mostra formalização; clica em "Negociação" na timeline p/ rever
   }
-  if (verNegToggle) verNegToggle.style.display = aceito ? 'flex' : 'none';
   const statusWrap = document.getElementById('mn-status-wrap');
   if (statusWrap) statusWrap.style.display = aceito ? 'none' : '';
 
@@ -6311,22 +6331,6 @@ function _pontoPartidaHtml(ci) {
     '<div class="rodada-card-valor">' + val + '</div>' +
     bensHtml +
   '</div>';
-}
-
-// Mostra/oculta a negociação concluída (só leitura, esmaecida) no pós-deal
-function toggleNegRealizadaDet() {
-  const sec = document.getElementById('mn-valor-deal-section');
-  const chev = document.getElementById('mn-ver-neg-chevron');
-  if (!sec) return;
-  const open = sec.style.display !== 'none';
-  sec.style.display = open ? 'none' : '';
-  if (chev) chev.style.transform = open ? '' : 'rotate(180deg)';
-  if (!open) {
-    const list = document.getElementById('mn-rodadas-list');
-    const rChev = document.getElementById('mn-rodadas-chevron');
-    if (list) list.style.display = '';
-    if (rChev) rChev.style.transform = 'rotate(180deg)';
-  }
 }
 
 function toggleHistoricoRodadas() {
@@ -7953,12 +7957,6 @@ async function removerMembro(userId) {
             <span class="toggle-sw-knob"></span>
           </label>
         </div>
-
-        <!-- Toggle "Ver negociação realizada" (só no pós-deal) -->
-        <button id="mn-ver-neg-toggle" onclick="toggleNegRealizadaDet()" style="display:none;width:100%;align-items:center;justify-content:space-between;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:9px 12px;cursor:pointer;font-size:12px;font-weight:600;color:var(--gray-500);font-family:var(--font-body);margin-bottom:6px">
-          <span>Ver negociação realizada</span>
-          <svg id="mn-ver-neg-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition:transform .2s"><path d="m6 9 6 6 6-6"/></svg>
-        </button>
 
         <!-- Seção unificada: Proposta (entregas primeiro, valor depois) -->
         <div class="valor-deal-section" id="mn-valor-deal-section">
