@@ -5472,24 +5472,9 @@ function _setNegViewDet(view) {
   document.querySelectorAll('#mn-timeline .tl-step').forEach(function(st) {
     st.classList.toggle('viewing', parseInt(st.getAttribute('data-step'), 10) === viewedStep);
   });
-  // Indicador "você está vendo: X" — sutil, sem caixa (a barra na timeline é o sinal principal)
+  // Sinal de aba: só a barra dourada na timeline (sem texto)
   const ind = document.getElementById('mn-view-indicator');
-  if (ind) {
-    ind.style.display = 'flex';
-    ind.style.justifyContent = 'center';
-    ind.style.background = 'transparent';
-    ind.style.border = 'none';
-    ind.style.padding = '0';
-    ind.style.fontSize = '11px';
-    ind.style.fontWeight = '600';
-    if (showNeg) {
-      ind.style.color = '#B45309';
-      ind.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Negociação concluída · somente leitura';
-    } else {
-      ind.style.color = 'var(--gray-400)';
-      ind.innerHTML = (n && n.contrato_validado) ? 'Ativação' : 'Formalização';
-    }
-  }
+  if (ind) ind.style.display = 'none';
 }
 
 /* ── Badge "aceita contrapropostas" ──
