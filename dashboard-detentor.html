@@ -6665,23 +6665,19 @@ function _cpDesc(raw) {
   return d;
 }
 
-function _provasListHtml(provas, cpId, canDelete) {
-  if (!provas.length) return '';
-  return provas.map((p, i) => {
-    const icon = p.tipo === 'foto' ? '🖼️' : p.tipo === 'video' ? '🎬' : '🔗';
-    const label = p.tipo === 'link'
-      ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="color:#2563EB;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(p.url.length>36?p.url.substring(0,36)+'…':p.url)}</a>`
-      : `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" title="Abrir" style="font-size:11px;font-weight:600;color:var(--text);text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">${escapeHtml(p.nome||p.tipo)}</a>`;
-    const thumb = p.tipo === 'foto' ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" title="Abrir imagem"><img src="${escapeHtml(p.url)}" style="display:block;width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:5px;cursor:zoom-in"></a>` : '';
-    return `<div style="padding:6px 8px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:7px;margin-bottom:4px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-        <div style="display:flex;align-items:center;gap:5px;min-width:0"><span>${icon}</span>${label}</div>
-        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-          <span style="font-size:10px;color:var(--gray-400)">${escapeHtml(p.data||'')}</span>
-          ${canDelete ? `<button onclick="removeProvaDet('${escapeHtml(cpId)}',${i})" style="font-size:10px;color:var(--gray-400);background:none;border:none;cursor:pointer;padding:2px">✕</button>` : ''}
-        </div>
-      </div>${thumb}</div>`;
-  }).join('');
+// Tira compacta de comprovantes (thumbnails clicáveis); canDelete mostra o ✕ (detentor)
+function _provasStripDet(provas, cpId, canDelete) {
+  if (!provas || !provas.length) return '';
+  const cid = escapeHtml(String(cpId));
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + provas.map((p, i) => {
+    const url = escapeHtml(p.url || '');
+    let inner;
+    if (p.tipo === 'foto') inner = `<a href="${url}" target="_blank" rel="noopener" title="${escapeHtml(p.nome||'foto')}"><img src="${url}" style="width:42px;height:42px;object-fit:cover;border-radius:7px;border:1px solid var(--gray-200);display:block;cursor:zoom-in"></a>`;
+    else if (p.tipo === 'video') inner = `<a href="${url}" target="_blank" rel="noopener" title="${escapeHtml(p.nome||'vídeo')}" style="width:42px;height:42px;border-radius:7px;border:1px solid var(--gray-200);display:flex;align-items:center;justify-content:center;background:var(--gray-1);font-size:18px;text-decoration:none">🎬</a>`;
+    else inner = `<a href="${url}" target="_blank" rel="noopener" title="${url}" style="height:42px;border-radius:7px;border:1px solid var(--gray-200);display:inline-flex;align-items:center;gap:5px;padding:0 10px;background:var(--gray-1);font-size:11px;font-weight:600;color:#2563EB;text-decoration:none;max-width:170px"><span>🔗</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml((p.url||'').replace(/^https?:\/\//,''))}</span></a>`;
+    const del = canDelete ? `<button onclick="removeProvaDet('${cid}',${i})" title="Remover" style="position:absolute;top:-7px;right:-7px;width:17px;height:17px;border-radius:50%;background:#fff;border:1px solid var(--gray-200);font-size:9px;line-height:1;color:var(--gray-400);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">✕</button>` : '';
+    return `<div style="position:relative">${inner}${del}</div>`;
+  }).join('') + '</div>';
 }
 
 function renderAtivacaoDet(n, entregas) {
@@ -6690,53 +6686,51 @@ function renderAtivacaoDet(n, entregas) {
   if (!entregas.length) { host.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>'; return; }
   const validadas = entregas.filter(c => c.validado).length;
   const negSupaId = n._supaId || 'demo';
-  const btnSt = 'font-size:11px;font-weight:700;padding:6px 10px;border-radius:7px;border:1.5px solid var(--gray-200);background:#fff;color:var(--text);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px';
-  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length===1?'entrega validada':'entregas validadas'} pela marca</div>`;
+  const mini = 'width:34px;height:34px;border-radius:8px;border:1.5px solid var(--gray-200);background:#fff;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;line-height:1;font-family:inherit';
+  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:6px">${validadas} de ${entregas.length} ${entregas.length===1?'entrega validada':'entregas validadas'} pela marca</div>`;
   html += entregas.map(cp => {
     const parts = _entregaParts(cp.descricao);
     const provas = Array.isArray(cp.provas) ? cp.provas : [];
-    const checked = cp.validado || cp.entregue;
-    let estado, acao = '', provaSection = '';
-
-    if (cp.validado) {
-      estado = '<span style="color:var(--green);font-weight:600">✓ Validada pela marca</span>';
-      provaSection = provas.length ? `<div style="margin-top:8px">${_provasListHtml(provas, cp.id, false)}</div>` : '';
-    } else if (cp.entregue) {
-      estado = '<span style="color:#D97706;font-weight:600">Aguardando validação da marca</span>';
-      provaSection = provas.length ? `<div style="margin-top:8px">${_provasListHtml(provas, cp.id, false)}</div>` : '';
-    } else {
-      estado = '<span style="color:var(--gray-400)">Pendente</span>';
-      const canMark = provas.length > 0;
-      acao = canMark
-        ? `<button class="ativ-btn" onclick="marcarEntregueDet('${escapeHtml(String(cp.id))}')">Marcar como entregue</button>`
+    const cid = escapeHtml(String(cp.id));
+    const dot = cp.validado ? '#059669' : cp.entregue ? '#D97706' : 'var(--gray-300)';
+    const stTxt = cp.validado ? 'Validada pela marca' : cp.entregue ? 'Aguardando validação da marca' : (provas.length ? 'Pronta para enviar' : 'Pendente — adicione um comprovante');
+    const stCol = cp.validado ? '#059669' : cp.entregue ? '#D97706' : 'var(--gray-400)';
+    let acao = '';
+    if (!cp.validado && !cp.entregue) {
+      acao = provas.length
+        ? `<button class="ativ-btn" onclick="marcarEntregueDet('${cid}')">Marcar como entregue</button>`
         : `<button class="ativ-btn" disabled style="opacity:0.4;cursor:not-allowed" title="Adicione um comprovante antes">Marcar como entregue</button>`;
-      provaSection = `<div style="margin-top:8px;margin-left:28px">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);margin-bottom:6px">Comprovante</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${provas.length?'8px':'0'}">
-          <button style="${btnSt}" onclick="document.getElementById('pdet-foto-${escapeHtml(String(cp.id))}').click()">📷 Foto</button>
-          <button style="${btnSt}" onclick="document.getElementById('pdet-video-${escapeHtml(String(cp.id))}').click()">🎬 Vídeo</button>
-          <button style="${btnSt}" onclick="toggleProvaLinkDet('${escapeHtml(String(cp.id))}')">🔗 Link</button>
+    }
+    // Detentor ainda pode anexar comprovantes enquanto não validado
+    const addBtns = !cp.validado ? `
+      <div style="margin-top:8px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <button style="${mini}" title="Adicionar foto" onclick="document.getElementById('pdet-foto-${cid}').click()">📷</button>
+          <button style="${mini}" title="Adicionar vídeo" onclick="document.getElementById('pdet-video-${cid}').click()">🎬</button>
+          <button style="${mini}" title="Adicionar link" onclick="toggleProvaLinkDet('${cid}')">🔗</button>
+          <span style="font-size:11px;color:var(--gray-400)">+ comprovante</span>
         </div>
-        <input type="file" id="pdet-foto-${escapeHtml(String(cp.id))}" accept="image/*" style="display:none" onchange="onProvaFileDet('${escapeHtml(String(cp.id))}','${negSupaId}','foto',this)">
-        <input type="file" id="pdet-video-${escapeHtml(String(cp.id))}" accept="video/*" style="display:none" onchange="onProvaFileDet('${escapeHtml(String(cp.id))}','${negSupaId}','video',this)">
-        <div id="pdet-link-wrap-${escapeHtml(String(cp.id))}" style="display:none;flex-gap:6px;margin-bottom:6px">
+        <input type="file" id="pdet-foto-${cid}" accept="image/*" style="display:none" onchange="onProvaFileDet('${cid}','${negSupaId}','foto',this)">
+        <input type="file" id="pdet-video-${cid}" accept="video/*" style="display:none" onchange="onProvaFileDet('${cid}','${negSupaId}','video',this)">
+        <div id="pdet-link-wrap-${cid}" style="display:none;margin-top:6px">
           <div style="display:flex;gap:6px">
-            <input type="url" id="pdet-link-${escapeHtml(String(cp.id))}" placeholder="Cole o link…" style="flex:1;min-width:0;border:1.5px solid var(--gray-200);border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box">
-            <button onclick="saveProvaLinkDet('${escapeHtml(String(cp.id))}')" style="padding:7px 10px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">OK</button>
+            <input type="url" id="pdet-link-${cid}" placeholder="Cole o link…" style="flex:1;min-width:0;border:1.5px solid var(--gray-200);border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;box-sizing:border-box">
+            <button onclick="saveProvaLinkDet('${cid}')" style="padding:7px 10px;background:var(--black);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">OK</button>
           </div>
         </div>
-        ${_provasListHtml(provas, cp.id, true)}
+      </div>` : '';
+    return `
+      <div style="padding:12px 0;border-top:1px solid var(--gray-100);display:flex;align-items:flex-start;gap:10px">
+        <span style="width:9px;height:9px;border-radius:50%;background:${dot};flex-shrink:0;margin-top:5px"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(parts.titulo)}</div>
+          ${parts.descricao ? `<div style="font-size:12px;color:var(--gray-400);margin-top:1px">${escapeHtml(parts.descricao)}</div>` : ''}
+          <div style="font-size:11px;color:${stCol};margin-top:3px">${stTxt}</div>
+          ${_provasStripDet(provas, cp.id, !cp.validado)}
+          ${addBtns}
+        </div>
+        ${acao ? `<div style="flex-shrink:0">${acao}</div>` : ''}
       </div>`;
-    }
-
-    return `<div class="ativ-row" style="flex-direction:column;align-items:stretch;gap:0">
-      <div style="display:flex;align-items:flex-start;gap:8px">
-        <span class="ativ-check ${cp.validado?'done':cp.entregue?'mid':''}">${checked?'✓':''}</span>
-        <div class="ativ-main" style="flex:1"><div class="ativ-desc">${escapeHtml(parts.titulo)}</div>${parts.descricao ? `<div style="font-size:12px;color:var(--gray-400);line-height:1.45;margin-top:2px">${escapeHtml(parts.descricao)}</div>` : ''}<div class="ativ-state">${estado}</div></div>
-        ${acao}
-      </div>
-      ${provaSection}
-    </div>`;
   }).join('');
   if (validadas === entregas.length && entregas.length > 0) {
     html += `<div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-weight:600;text-align:center">🎉 Todas as entregas validadas — repasse será liberado pela Relevantia</div>`;

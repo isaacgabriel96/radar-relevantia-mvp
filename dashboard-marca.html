@@ -5640,19 +5640,14 @@ function _cpDescM(raw) {
   if (d.startsWith('{')) { try { const o = JSON.parse(d); d = (o.titulo||'') + (o.descricao && o.descricao!==o.titulo ? ': '+o.descricao : ''); } catch(e){} }
   return d;
 }
-function _provasRowsMarca(provas) {
+// Tira compacta de comprovantes (thumbnails clicáveis) — somente leitura (marca)
+function _provasStripM(provas) {
   if (!provas || !provas.length) return '';
-  return '<div style="margin-top:8px">' + provas.map(p => {
-    const icon = p.tipo === 'foto' ? '🖼️' : p.tipo === 'video' ? '🎬' : '🔗';
-    const label = p.tipo === 'link'
-      ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="color:#2563EB;font-size:11px;font-weight:600;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.url.length>36?p.url.substring(0,36)+'…':p.url)}</a>`
-      : `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" title="Abrir" style="font-size:11px;font-weight:600;color:var(--text);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">${escapeHtml(p.nome||p.tipo)}</a>`;
-    const thumb = p.tipo === 'foto' ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" title="Abrir imagem"><img src="${escapeHtml(p.url)}" style="display:block;width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:5px;cursor:zoom-in"></a>` : '';
-    return `<div style="padding:6px 8px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:7px;margin-bottom:4px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
-        <div style="display:flex;align-items:center;gap:5px;min-width:0"><span>${icon}</span>${label}</div>
-        <span style="font-size:10px;color:var(--gray-400);flex-shrink:0">${escapeHtml(p.data||'')}</span>
-      </div>${thumb}</div>`;
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">' + provas.map(p => {
+    const url = escapeHtml(p.url || '');
+    if (p.tipo === 'foto') return `<a href="${url}" target="_blank" rel="noopener" title="${escapeHtml(p.nome||'foto')}"><img src="${url}" style="width:42px;height:42px;object-fit:cover;border-radius:7px;border:1px solid var(--gray-200);display:block;cursor:zoom-in"></a>`;
+    if (p.tipo === 'video') return `<a href="${url}" target="_blank" rel="noopener" title="${escapeHtml(p.nome||'vídeo')}" style="width:42px;height:42px;border-radius:7px;border:1px solid var(--gray-200);display:flex;align-items:center;justify-content:center;background:var(--gray-1);font-size:18px;text-decoration:none">🎬</a>`;
+    return `<a href="${url}" target="_blank" rel="noopener" title="${url}" style="height:42px;border-radius:7px;border:1px solid var(--gray-200);display:inline-flex;align-items:center;gap:5px;padding:0 10px;background:var(--gray-1);font-size:11px;font-weight:600;color:#2563EB;text-decoration:none;max-width:170px"><span>🔗</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml((p.url||'').replace(/^https?:\/\//,''))}</span></a>`;
   }).join('') + '</div>';
 }
 
@@ -5661,28 +5656,26 @@ function renderAtivacaoMarca(p, entregas) {
   if (!host) return;
   if (!entregas.length) { host.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:8px 0">Nenhuma entrega registrada.</div>'; return; }
   const validadas = entregas.filter(c => c.validado).length;
-  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:10px">${validadas} de ${entregas.length} ${entregas.length===1?'entrega validada':'entregas validadas'}</div>`;
+  let html = `<div style="font-size:11px;color:var(--gray-400);margin-bottom:6px">${validadas} de ${entregas.length} ${entregas.length===1?'entrega validada':'entregas validadas'}</div>`;
   html += entregas.map(cp => {
     const parts = _entregaParts(cp.descricao);
     const provas = Array.isArray(cp.provas) ? cp.provas : [];
-    let estado, acao = '';
-    if (cp.validado) {
-      estado = '<span style="color:var(--green);font-weight:600">✓ Você validou</span>';
-    } else if (cp.entregue) {
-      estado = '<span style="color:#D97706;font-weight:600">Organizador marcou como entregue</span>';
-      acao = `<button class="ativ-btn primary" onclick="validarEntregaMarca('${escapeHtml(String(cp.id))}')">Validar</button>`;
-    } else {
-      estado = '<span style="color:var(--gray-400)">Aguardando o organizador entregar</span>';
-    }
-    const checked = cp.validado || cp.entregue;
-    return `<div class="ativ-row" style="flex-direction:column;align-items:stretch;gap:0">
-      <div style="display:flex;align-items:flex-start;gap:8px">
-        <span class="ativ-check ${cp.validado?'done':cp.entregue?'mid':''}">${checked?'✓':''}</span>
-        <div class="ativ-main" style="flex:1"><div class="ativ-desc">${escapeHtml(parts.titulo)}</div>${parts.descricao ? `<div style="font-size:12px;color:var(--gray-400);line-height:1.45;margin-top:2px">${escapeHtml(parts.descricao)}</div>` : ''}<div class="ativ-state">${estado}</div></div>
-        ${acao}
-      </div>
-      ${provas.length ? _provasRowsMarca(provas) : (cp.entregue ? '<div style="margin-top:6px;margin-left:28px;font-size:11px;color:var(--gray-400)">Sem comprovante anexado pelo organizador.</div>' : '')}
-    </div>`;
+    const dot = cp.validado ? '#059669' : cp.entregue ? '#D97706' : 'var(--gray-300)';
+    const stTxt = cp.validado ? 'Você validou' : cp.entregue ? 'Organizador marcou como entregue' : 'Aguardando o organizador entregar';
+    const stCol = cp.validado ? '#059669' : cp.entregue ? '#D97706' : 'var(--gray-400)';
+    const acao = (!cp.validado && cp.entregue) ? `<button class="ativ-btn primary" onclick="validarEntregaMarca('${escapeHtml(String(cp.id))}')">Validar</button>` : '';
+    const provasHtml = provas.length ? _provasStripM(provas) : (cp.entregue ? '<div style="font-size:11px;color:var(--gray-400);margin-top:6px">Sem comprovante anexado pelo organizador.</div>' : '');
+    return `
+      <div style="padding:12px 0;border-top:1px solid var(--gray-100);display:flex;align-items:flex-start;gap:10px">
+        <span style="width:9px;height:9px;border-radius:50%;background:${dot};flex-shrink:0;margin-top:5px"></span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(parts.titulo)}</div>
+          ${parts.descricao ? `<div style="font-size:12px;color:var(--gray-400);margin-top:1px">${escapeHtml(parts.descricao)}</div>` : ''}
+          <div style="font-size:11px;color:${stCol};margin-top:3px">${stTxt}</div>
+          ${provasHtml}
+        </div>
+        ${acao ? `<div style="flex-shrink:0">${acao}</div>` : ''}
+      </div>`;
   }).join('');
   if (validadas === entregas.length && entregas.length > 0) {
     html += `<div style="margin-top:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--green);font-weight:600;text-align:center">🎉 Todas as entregas validadas — parceria concluída</div>`;
