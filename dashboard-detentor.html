@@ -3731,6 +3731,10 @@ function _initNegRealtime(session) {
         loadNegociacoes().then(() => renderNegociacoes(NEGOCIACOES));
         return;
       }
+      // Se o modal desta negociação estiver aberto, re-sincroniza tudo (turno, valor, etapa…)
+      if (_negAtiva && _negAtiva.id === r.id && typeof _refreshNegDet === 'function') {
+        _refreshNegDet(r.id);
+      }
       if (_negOppAtiva !== null) renderNegCards();
       else renderNegOppCards();
     })
@@ -5389,7 +5393,6 @@ function filterNegociacoes() { renderNegOppCards(); }
 
 let _negAtiva = null;
 let _msgDetChannel = null;
-let _negDetChannel = null;        // realtime do estado da negociação
 let _modoContraproposta = false;  // flag: detentor está editando entregas na contraproposta
 
 // Re-sincroniza o modal quando a marca muda o estado da negociação (proposta/valor/aceite/pagamento)
@@ -5644,17 +5647,9 @@ async function openNegModal(id) {
         renderNegThread(_negAtiva.thread);
       })
       .subscribe();
-
-    // Realtime: estado da negociação (proposta/valor/aceite/pagamento) muda sem recarregar
-    if (_negDetChannel) { sb.removeChannel(_negDetChannel); _negDetChannel = null; }
-    _negDetChannel = sb
-      .channel('neg-det-' + n._supaId)
-      .on('postgres_changes', {
-        event: 'UPDATE', schema: 'public', table: 'negociacoes',
-        filter: 'id=eq.' + n._supaId
-      }, () => { _refreshNegDet(n.id); })
-      .subscribe();
   }
+  // O estado da negociação (turno/valor/aceite/pagamento) é sincronizado pelo
+  // canal global _initNegRealtime, que chama _refreshNegDet no modal aberto.
 
   // reset compose
   const ta = document.getElementById('mn-compose-input');
@@ -6392,7 +6387,7 @@ function closeNegModal() {
   document.getElementById('modal-neg').classList.remove('open');
   document.body.style.overflow = '';
   if (_msgDetChannel && sb) { sb.removeChannel(_msgDetChannel); _msgDetChannel = null; }
-  if (_negDetChannel && sb) { sb.removeChannel(_negDetChannel); _negDetChannel = null; }
+  // O realtime de negociações é global (_initNegRealtime) — não removido ao fechar o modal.
   _negAtiva = null;
   // Atualiza a view que estiver ativa
   if (_negOppAtiva !== null) {

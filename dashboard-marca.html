@@ -3219,7 +3219,6 @@ let _notifs = [];
 let _notifChannel   = null;
 let _negMarcaChannel = null;
 let _msgMarcaChannel = null;
-let _negMarcaChannel = null;   // realtime do estado da negociação
 
 // Re-sincroniza o modal quando o organizador muda o estado da negociação
 async function _refreshNegMarca(propId) {
@@ -3341,14 +3340,9 @@ function _initNegMarcaRealtime(session) {
         p.status      = r.status       || p.status;
         p.statusLabel = r.status_label || p.statusLabel;
         p.statusHint  = r.status_hint  || p.statusHint;
-        // Se o modal desta proposta estiver aberto, atualiza o cabeçalho
+        // Se o modal desta proposta estiver aberto, re-sincroniza tudo (turno, valor, etapa…)
         if (_propostaAtiva && _propostaAtiva._supaId === r.id) {
-          const wrap = document.getElementById('mp-status-wrap');
-          const lbl  = document.getElementById('mp-status-label');
-          const hint = document.getElementById('mp-status-hint');
-          if (wrap) wrap.className = 'modal-prop-status ' + p.status;
-          if (lbl)  lbl.textContent  = p.statusLabel;
-          if (hint) hint.textContent = p.statusHint;
+          _refreshNegMarca(_propostaAtiva.id);
         }
         renderDealsPropostas();
       } else {
@@ -4898,17 +4892,9 @@ async function openPropostaModal(id) {
         renderMsgThread(_propostaAtiva.thread);
       })
       .subscribe();
-
-    // Realtime: estado da negociação (proposta/valor/aceite/pagamento) muda sem recarregar
-    if (_negMarcaChannel) { sb.removeChannel(_negMarcaChannel); _negMarcaChannel = null; }
-    _negMarcaChannel = sb
-      .channel('neg-marca-' + p._supaId)
-      .on('postgres_changes', {
-        event: 'UPDATE', schema: 'public', table: 'negociacoes',
-        filter: 'id=eq.' + p._supaId
-      }, () => { _refreshNegMarca(p.id); })
-      .subscribe();
   }
+  // O estado da negociação (turno/valor/aceite/pagamento) é sincronizado pelo
+  // canal global _initNegMarcaRealtime, que chama _refreshNegMarca no modal aberto.
 
   // reset compose — desabilitar se recusada
   const ta = document.getElementById('mp-compose-input');
@@ -5227,7 +5213,7 @@ function closePropostaModal() {
   document.getElementById('modal-proposta').classList.remove('open');
   document.body.style.overflow = '';
   if (_msgMarcaChannel && sb) { sb.removeChannel(_msgMarcaChannel); _msgMarcaChannel = null; }
-  if (_negMarcaChannel && sb) { sb.removeChannel(_negMarcaChannel); _negMarcaChannel = null; }
+  // _negMarcaChannel é global (lista) — não removido ao fechar o modal.
   _propostaAtiva = null;
 }
 
