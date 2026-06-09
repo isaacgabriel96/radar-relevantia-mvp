@@ -5011,13 +5011,19 @@ function _updatePropostaDealFooter() {
     html = '<button class="btn-encerrar-neg" onclick="cancelarContraofertaMarca()">Cancelar</button>' + spacer + '<button class="btn-enviar-neg" onclick="confirmarContraofertaMarca()">Enviar contraoferta</button>';
     if (btnAddCp) btnAddCp.style.display = '';
   } else if (vd.status === 'aguardando_marca') {
-    // Organizador enviou proposta → marca responde
-    html = cancelInteresse + spacer + '<button class="btn-contrapropor-neg" onclick="contraproporValorDealMarca()">Contrapropor</button><button class="btn-aceitar-neg" onclick="aceitarValorDealMarca()">✓ Aceitar proposta</button>';
-    if (btnAddCp) btnAddCp.style.display = '';
+    // Organizador enviou proposta → marca responde.
+    // Contrapropor só se o organizador aceita novas propostas (toggle dele).
+    const podeContra = p.aceitaNovasPropostas !== false;
+    const contraBtn = podeContra ? '<button class="btn-contrapropor-neg" onclick="contraproporValorDealMarca()">Contrapropor</button>' : '';
+    html = cancelInteresse + spacer + contraBtn + '<button class="btn-aceitar-neg" onclick="aceitarValorDealMarca()">✓ Aceitar proposta</button>';
+    if (btnAddCp) btnAddCp.style.display = podeContra ? '' : 'none';
   } else if (vd.status === 'aguardando_detentor') {
-    // Marca enviou → aguarda organizador
-    html = '<button class="btn-encerrar-neg" onclick="cancelarPropostaMarca()">Cancelar proposta</button>' + spacer + '<span class="footer-wait">Aguardando organizador…</span>';
-    if (btnAddCp) btnAddCp.style.display = '';
+    // Marca enviou → aguarda organizador. Pode revisar/contrapropor a própria
+    // proposta enquanto espera, se o organizador aceita novas propostas.
+    const podeRevisar = p.aceitaNovasPropostas !== false;
+    const revisarBtn = podeRevisar ? '<button class="btn-contrapropor-neg" onclick="contraproporValorDealMarca()">Revisar proposta</button>' : '';
+    html = '<button class="btn-encerrar-neg" onclick="cancelarPropostaMarca()">Cancelar proposta</button>' + spacer + '<span class="footer-wait" style="margin-right:8px">Aguardando organizador…</span>' + revisarBtn;
+    if (btnAddCp) btnAddCp.style.display = podeRevisar ? '' : 'none';
   } else {
     // Sem proposta: marca compõe
     html = cancelInteresse + spacer + '<button class="btn-enviar-neg" onclick="enviarPropostaMarca()">Enviar proposta</button>';
