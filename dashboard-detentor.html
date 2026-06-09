@@ -5215,6 +5215,21 @@ function _initials(name) {
   return name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
 }
 
+// Avatar da marca (logo real → Brandfetch por domínio/nome → iniciais).
+// Retorna { bfAttr, inner } para montar dentro de um container .*-avatar.
+// O container deve chamar applyBrandfetchLogos() após inserir no DOM.
+function _marcaAvatarMarkup(n) {
+  const ini = _initials(n.marca || '');
+  const bfAttr = n.marca_logo_url ? '' : (n.marca_domain
+    ? `data-bf-domain="${escapeHtml(n.marca_domain)}"`
+    : (n.marca ? `data-bf-name="${escapeHtml(n.marca)}"` : ''));
+  const imgStyle = 'width:100%;height:100%;object-fit:contain;background:#fff';
+  const inner = n.marca_logo_url
+    ? `<img src="${escapeHtml(n.marca_logo_url)}" alt="" style="${imgStyle}" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span style="display:none">${ini}</span>`
+    : `<img alt="" style="${imgStyle};display:none"><span>${ini}</span>`;
+  return { bfAttr, inner };
+}
+
 let _negFilterAtivo = 'todos'; // legado — mantido para evitar erros
 
 // ─── NEGOCIAÇÕES: estado da navegação ───
@@ -6518,7 +6533,14 @@ function fecharDeal() {
   if (posdealDet) { posdealDet.style.display = ''; renderPosDealDet(_negAtiva); }
 }
 
-function abrirConversaNeg(){ if(window.RadarInbox && _negAtiva) RadarInbox.openNeg(_negAtiva.id); }
+function abrirConversaNeg(){
+  if(!window.RadarInbox || !_negAtiva) return;
+  var id = _negAtiva.id;
+  var sv = document.getElementById('sec-voz');
+  // Já está na página de Mensagens: fecha o modal e volta pra conversa no inbox.
+  if(sv && sv.classList.contains('active') && RadarInbox.openInbox){ closeNegModal(); RadarInbox.openInbox('neg', id); }
+  else { RadarInbox.openNeg(id); }
+}
 async function sendNegMsg() {
   const ta = document.getElementById('mn-compose-input');
   const text = ta ? ta.value.trim() : '';

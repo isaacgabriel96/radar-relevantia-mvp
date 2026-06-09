@@ -475,8 +475,12 @@
     var st = document.createElement('style'); st.id = 'ibStyle'; st.textContent = css; document.head.appendChild(st);
   }
 
+  // Abre uma conversa DENTRO do inbox (sem popup) — usado quando o usuário já
+  // está na página de Mensagens e clica no atalho do modal de negociação.
+  function openInbox(kind, id) { if (!S.mounted) render(); openConvo(kind, id); }
+
   // expõe API cedo (o atalho do modal pode chamar antes do inbox montar)
-  window.RadarInbox = { refresh: refresh, openNeg: openNegPopup };
+  window.RadarInbox = { refresh: refresh, openNeg: openNegPopup, openInbox: openInbox };
 
   ready(function () {
     if (typeof SUPABASE_URL === 'undefined') return;

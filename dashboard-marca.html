@@ -6137,7 +6137,14 @@ function toggleHistoricoRodadasM() {
   if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
 }
 
-function abrirConversaNeg(){ if(window.RadarInbox && _propostaAtiva) RadarInbox.openNeg(_propostaAtiva.id); }
+function abrirConversaNeg(){
+  if(!window.RadarInbox || !_propostaAtiva) return;
+  var id = _propostaAtiva.id;
+  var sv = document.getElementById('sec-voz');
+  // Já está na página de Mensagens: fecha o modal e volta pra conversa no inbox.
+  if(sv && sv.classList.contains('active') && RadarInbox.openInbox){ closePropostaModal(); RadarInbox.openInbox('neg', id); }
+  else { RadarInbox.openNeg(id); }
+}
 async function sendPropostaMsg() {
   const ta = document.getElementById('mp-compose-input');
   const text = ta ? ta.value.trim() : '';
