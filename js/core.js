@@ -705,6 +705,34 @@ async function fetchCotaBeneficios(oportunidadeId, cotaNome) {
   } catch (err) { console.error('[fetchCotaBeneficios] Failed:', err); return []; }
 }
 
+/**
+ * Info da cota (ponto de partida da negociação): nome, valor e benefícios.
+ * @returns {Object|null} { nome, valor:number|null, beneficios:[{titulo,descricao}] }
+ */
+async function fetchCotaInfo(oportunidadeId, cotaNome) {
+  if (!oportunidadeId || !cotaNome) return null;
+  try {
+    const res = await sbPublicFetch('/rest/v1/oportunidades?select=cotas_data&id=eq.' + oportunidadeId);
+    if (!res.ok) return null;
+    const rows = await res.json();
+    if (!rows || !rows[0] || !rows[0].cotas_data) return null;
+    var cotaLower = cotaNome.toLowerCase().trim();
+    const cota = rows[0].cotas_data.find(function(c) {
+      var nome = (c.nome || '').toLowerCase().trim();
+      return cotaLower === nome || cotaLower.indexOf(nome) === 0;
+    });
+    if (!cota) return null;
+    var valor = Number(cota.valor || cota.preco || 0) || null;
+    // fallback: extrai o valor do nome da cota ("Ouro — R$ 20.000")
+    if (!valor) { var m = String(cotaNome).match(/R\$\s*([0-9.]+(?:,[0-9]+)?)/); if (m) { var v = parseFloat(m[1].replace(/\./g,'').replace(',','.')); if (!isNaN(v) && v > 0) valor = v; } }
+    var beneficios = Array.isArray(cota.beneficios) ? cota.beneficios.filter(Boolean).map(function(b) {
+      if (typeof b === 'string') return { titulo: b, descricao: '' };
+      return { titulo: b.titulo || b.descricao || '', descricao: (b.descricao && b.descricao !== b.titulo) ? b.descricao : '' };
+    }) : [];
+    return { nome: cota.nome || cotaNome, valor: valor, beneficios: beneficios };
+  } catch (err) { console.error('[fetchCotaInfo] Failed:', err); return null; }
+}
+
 // ─── RODADAS DE NEGOCIAÇÃO (histórico imutável) ────────────
 
 /**

@@ -4814,6 +4814,10 @@ async function openPropostaModal(id) {
   if (p._supaId && !isDemoMode()) {
     try { p._rodadas = await fetchRodadas(p._supaId); } catch(e) { console.error('[openPropostaModal] fetchRodadas failed:', e); }
   }
+  // Ponto de partida: cota pela qual a marca se interessou (valor + benefícios)
+  if (!isDemoMode() && p.cota && p.opp_id) {
+    try { p._cotaInfo = await fetchCotaInfo(p.opp_id, p.cota); } catch(e) {}
+  }
 
   renderMsgThread(p.thread);
   renderContrapartidas(p.contrapartidas || []);
@@ -5947,17 +5951,20 @@ function renderHistoricoRodadasM() {
   var p = _propostaAtiva;
   var wrap = document.getElementById('mp-rodadas-wrap');
   if (!wrap) return;
-  if (!p || !p._rodadas || p._rodadas.length === 0) {
+  var rodadas = (p && p._rodadas) ? p._rodadas : [];
+  var ci = p && p._cotaInfo;
+  if (!p || (rodadas.length === 0 && !ci)) {
     wrap.style.display = 'none';
     return;
   }
   wrap.style.display = '';
-  var count = p._rodadas.length;
-  document.getElementById('mp-rodadas-label').textContent =
-    'Ver histórico (' + count + ' rodada' + (count > 1 ? 's' : '') + ')';
+  var count = rodadas.length;
+  document.getElementById('mp-rodadas-label').textContent = count > 0
+    ? 'Ver histórico (' + count + ' rodada' + (count > 1 ? 's' : '') + ')'
+    : 'Ver ponto de partida';
 
   var list = document.getElementById('mp-rodadas-list');
-  list.innerHTML = p._rodadas.map(function(r) {
+  var html = rodadas.map(function(r) {
     var quem = r.proposto_por === 'marca' ? 'Você' : 'Organizador';
     var val = r.valor ? 'R$ ' + Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—';
     var cps = (r.contrapartidas || []);
@@ -5971,6 +5978,22 @@ function renderHistoricoRodadasM() {
       cpHtml +
     '</div>';
   }).join('');
+  if (ci) html += _pontoPartidaHtmlM(ci);
+  list.innerHTML = html;
+}
+
+// Card do ponto de partida (marca): a cota pela qual você se interessou
+function _pontoPartidaHtmlM(ci) {
+  var val = ci.valor ? 'R$ ' + Number(ci.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : 'Valor a combinar';
+  var bens = (ci.beneficios || []);
+  var bensHtml = bens.length > 0
+    ? '<ul class="rodada-card-cps">' + bens.map(function(b) { return '<li>' + escapeHtml(b.titulo) + (b.descricao ? ' <small style="color:var(--gray-400)">' + escapeHtml(b.descricao) + '</small>' : '') + '</li>'; }).join('') + '</ul>'
+    : '<span style="font-size:11px;color:var(--gray-400)">Sem itens listados na cota</span>';
+  return '<div class="rodada-card" style="border-style:dashed">' +
+    '<div class="rodada-card-header"><span class="rodada-card-title">Ponto de partida — Cota ' + escapeHtml(ci.nome || '') + '</span><span class="rodada-card-date">interesse inicial</span></div>' +
+    '<div class="rodada-card-valor">' + val + '</div>' +
+    bensHtml +
+  '</div>';
 }
 
 function toggleHistoricoRodadasM() {

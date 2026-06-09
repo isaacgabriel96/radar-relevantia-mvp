@@ -5631,6 +5631,13 @@ async function openNegModal(id) {
       })
       .catch(e => { console.error('[openNegModal] fetchRodadas failed:', e); renderHistoricoRodadas(); });
 
+    // 1b. Ponto de partida: cota pela qual a marca se interessou (valor + benefícios)
+    if (n.cota && n.opp_id) {
+      fetchCotaInfo(n.opp_id, n.cota)
+        .then(ci => { if (_negAtiva && _negAtiva._supaId === _sid) { n._cotaInfo = ci; renderHistoricoRodadas(); } })
+        .catch(() => {});
+    }
+
     // 2. Benefícios da cota → cria contrapartidas se ainda não existem
     if (loadingCota) {
       (async () => {
@@ -6221,17 +6228,20 @@ function renderHistoricoRodadas() {
   const n = _negAtiva;
   const wrap = document.getElementById('mn-rodadas-wrap');
   if (!wrap) return;
-  if (!n || !n._rodadas || n._rodadas.length === 0) {
+  var rodadas = (n && n._rodadas) ? n._rodadas : [];
+  var ci = n && n._cotaInfo;
+  if (!n || (rodadas.length === 0 && !ci)) {
     wrap.style.display = 'none';
     return;
   }
   wrap.style.display = '';
-  var count = n._rodadas.length;
-  document.getElementById('mn-rodadas-label').textContent =
-    'Ver histórico (' + count + ' rodada' + (count > 1 ? 's' : '') + ')';
+  var count = rodadas.length;
+  document.getElementById('mn-rodadas-label').textContent = count > 0
+    ? 'Ver histórico (' + count + ' rodada' + (count > 1 ? 's' : '') + ')'
+    : 'Ver ponto de partida';
 
   var list = document.getElementById('mn-rodadas-list');
-  list.innerHTML = n._rodadas.map(function(r) {
+  var html = rodadas.map(function(r) {
     var quem = r.proposto_por === 'detentor' ? 'Organizador' : 'Marca';
     var val = r.valor ? 'R$ ' + Number(r.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—';
     var cps = (r.contrapartidas || []);
@@ -6245,6 +6255,23 @@ function renderHistoricoRodadas() {
       cpHtml +
     '</div>';
   }).join('');
+  // Ponto de partida (cota original) — sempre por último (cronologicamente primeiro)
+  if (ci) html += _pontoPartidaHtml(ci);
+  list.innerHTML = html;
+}
+
+// Card do ponto de partida: a cota pela qual a marca se interessou
+function _pontoPartidaHtml(ci) {
+  var val = ci.valor ? 'R$ ' + Number(ci.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : 'Valor a combinar';
+  var bens = (ci.beneficios || []);
+  var bensHtml = bens.length > 0
+    ? '<ul class="rodada-card-cps">' + bens.map(function(b) { return '<li>' + escapeHtml(b.titulo) + (b.descricao ? ' <small style="color:var(--gray-400)">' + escapeHtml(b.descricao) + '</small>' : '') + '</li>'; }).join('') + '</ul>'
+    : '<span style="font-size:11px;color:var(--gray-400)">Sem itens listados na cota</span>';
+  return '<div class="rodada-card" style="border-style:dashed">' +
+    '<div class="rodada-card-header"><span class="rodada-card-title">Ponto de partida — Cota ' + escapeHtml(ci.nome || '') + '</span><span class="rodada-card-date">interesse inicial</span></div>' +
+    '<div class="rodada-card-valor">' + val + '</div>' +
+    bensHtml +
+  '</div>';
 }
 
 function toggleHistoricoRodadas() {
