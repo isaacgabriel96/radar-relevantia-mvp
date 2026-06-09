@@ -6672,7 +6672,7 @@ function _provasListHtml(provas, cpId, canDelete) {
     const label = p.tipo === 'link'
       ? `<a href="${escapeHtml(p.url)}" target="_blank" style="color:#2563EB;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(p.url.length>36?p.url.substring(0,36)+'…':p.url)}</a>`
       : `<span style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(p.nome||p.tipo)}</span>`;
-    const thumb = p.tipo === 'foto' ? `<img src="${escapeHtml(p.url)}" style="display:block;width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:5px">` : '';
+    const thumb = p.tipo === 'foto' ? `<a href="${escapeHtml(p.url)}" target="_blank" rel="noopener" title="Abrir imagem"><img src="${escapeHtml(p.url)}" style="display:block;width:100%;max-height:80px;object-fit:cover;border-radius:5px;margin-top:5px;cursor:zoom-in"></a>` : '';
     return `<div style="padding:6px 8px;background:var(--gray-1);border:1px solid var(--gray-200);border-radius:7px;margin-bottom:4px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
         <div style="display:flex;align-items:center;gap:5px;min-width:0"><span>${icon}</span>${label}</div>
