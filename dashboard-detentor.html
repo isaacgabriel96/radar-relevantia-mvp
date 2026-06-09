@@ -5446,20 +5446,41 @@ function renderTimelineDet(n) {
     } else {
       st.style.cursor = '';
       st.onclick = null;
+      st.classList.remove('viewing');
     }
   });
+  if (!aceito) { const ind = document.getElementById('mn-view-indicator'); if (ind) ind.style.display = 'none'; }
 }
 
 // Alterna entre a negociação concluída (só leitura/overlay) e a página atual (formalização/ativação)
 function _setNegViewDet(view) {
   const sec = document.getElementById('mn-valor-deal-section');
   const pos = document.getElementById('mn-posdeal');
+  const n = _negAtiva;
   const showNeg = view === 'negociacao';
   if (sec) { sec.classList.add('neg-readonly'); sec.style.display = showNeg ? '' : 'none'; }
   if (pos) pos.style.display = showNeg ? 'none' : '';
   if (showNeg) {
     const list = document.getElementById('mn-rodadas-list'); if (list) list.style.display = '';
     const rChev = document.getElementById('mn-rodadas-chevron'); if (rChev) rChev.style.transform = 'rotate(180deg)';
+  }
+  // Marca a etapa que está sendo vista na timeline
+  const viewedStep = showNeg ? 1 : ((n && n.contrato_validado) ? 3 : 2);
+  document.querySelectorAll('#mn-timeline .tl-step').forEach(function(st) {
+    st.classList.toggle('viewing', parseInt(st.getAttribute('data-step'), 10) === viewedStep);
+  });
+  // Indicador "você está vendo: X"
+  const ind = document.getElementById('mn-view-indicator');
+  if (ind) {
+    ind.style.display = 'flex';
+    if (showNeg) {
+      ind.style.background = '#FFF8E1'; ind.style.color = '#92400E'; ind.style.border = '1px solid #FDE68A';
+      ind.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="flex-shrink:0"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Vendo a <strong style="font-weight:800">Negociação</strong> concluída — somente leitura.';
+    } else {
+      const etapa = (n && n.contrato_validado) ? 'Ativação' : 'Formalização';
+      ind.style.background = 'var(--gold-pale,#FBF5E6)'; ind.style.color = 'var(--gold)'; ind.style.border = '1px solid rgba(184,134,11,.2)';
+      ind.innerHTML = 'Você está na etapa <strong style="font-weight:800">' + etapa + '</strong>.';
+    }
   }
 }
 
@@ -6721,6 +6742,9 @@ function renderPosDealDet(n) {
   setDisp('mn-posdeal-financeiro', false);   // redundante — sempre oculto
   setDisp('mn-posdeal-acordo',     pago);     // baixar comprovante só após pago
   setDisp('mn-posdeal-entregas',   !pago);    // referência só na formalização
+
+  // Define a vista padrão (Formalização/Ativação) + indicador da aba
+  if (typeof _setNegViewDet === 'function') _setNegViewDet('posdeal');
 }
 
 function _renderEntregasMinDet(cps) {
@@ -7781,6 +7805,9 @@ async function removerMembro(userId) {
 }
 .tl-step.active .tl-label { color:var(--gold); font-weight:800; }
 .tl-step.done .tl-label { color:var(--gray-500); }
+/* Etapa sendo VISTA no pós-deal (barra sob o rótulo) */
+.tl-step.viewing .tl-label { color:var(--gold); font-weight:800; }
+.tl-step.viewing::before { content:''; position:absolute; bottom:-7px; left:50%; transform:translateX(-50%); width:34px; height:2.5px; background:var(--gold); border-radius:2px; z-index:2; }
 
 /* Entregas — lista limpa (estilo protótipo) */
 .dl-list { border:1.5px solid var(--gray-200); border-radius:8px; overflow:hidden; margin-bottom:8px; }
@@ -7931,6 +7958,9 @@ async function removerMembro(userId) {
         <div class="tl-step todo" data-step="2"><div class="tl-dot">2</div><div class="tl-label">Formalização</div></div>
         <div class="tl-step todo" data-step="3"><div class="tl-dot">3</div><div class="tl-label">Ativação</div></div>
       </div>
+
+      <!-- Indicador da aba que está sendo vista (só no pós-deal) -->
+      <div id="mn-view-indicator" style="display:none;align-items:center;gap:7px;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;margin:2px 0 4px"></div>
 
       <hr class="modal-neg-divider">
 
