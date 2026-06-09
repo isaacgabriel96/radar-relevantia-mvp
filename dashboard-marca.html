@@ -4736,7 +4736,16 @@ function closeHowMarca() {
 }
 
 async function openPropostaModal(id) {
-  const p = PROPOSTAS.find(x => x.id === id);
+  let p = PROPOSTAS.find(x => x.id === id);
+  // Sempre recarrega o estado mais recente do servidor — evita ver uma proposta
+  // obsoleta (ex: o organizador já respondeu enquanto o modal estava fechado).
+  if (!isDemoMode()) {
+    try {
+      await loadPropostas();
+      const fresh = PROPOSTAS.find(x => x.id === id);
+      if (fresh) p = fresh;
+    } catch(e) {}
+  }
   if (!p) return;
   _propostaAtiva = p;
   _modoContrapropostaMarca = false;
@@ -5435,6 +5444,7 @@ async function enviarPropostaMarca() {
 
   // Criar rodada snapshot
   if (p._supaId && !isDemoMode()) {
+    try { p._rodadas = await fetchRodadas(p._supaId); } catch(e) {}   // rodadas frescas p/ numerar certo
     const rodNum = getNextRodadaNumero(p._rodadas || []);
     const snap = buildContrapartidasSnapshot(p.contrapartidas || []);
     const rodada = await createRodada({
@@ -5924,6 +5934,7 @@ async function confirmarContraofertaMarca() {
   p.valorDeal.status      = 'aguardando_detentor';
   _persistProp(p, { valor_deal: num || null, valor_deal_proposto_por: 'marca', valor_deal_status: 'aguardando_detentor' });
   if (p._supaId && !isDemoMode()) {
+    try { p._rodadas = await fetchRodadas(p._supaId); } catch(e) {}   // rodadas frescas p/ numerar certo
     const rodNum = getNextRodadaNumero(p._rodadas || []);
     const snap = buildContrapartidasSnapshot(p.contrapartidas || []);
     const rodada = await createRodada({

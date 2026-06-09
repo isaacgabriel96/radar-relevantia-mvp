@@ -5481,16 +5481,18 @@ function closeHowDet() {
 
 async function openNegModal(id) {
   let n = NEGOCIACOES.find(x => x.id === id);
-  if (!n) {
-    // Array stale — tenta recarregar e tentar novamente
+  // Sempre recarrega o estado mais recente do servidor — evita ver uma proposta
+  // obsoleta (ex: o outro lado já respondeu enquanto o modal estava fechado).
+  if (!isDemoMode()) {
     try {
       await loadNegociacoes();
-      n = NEGOCIACOES.find(x => x.id === id);
+      const fresh = NEGOCIACOES.find(x => x.id === id);
+      if (fresh) n = fresh;
     } catch(e) {}
-    if (!n) {
-      showToast('Não foi possível abrir a negociação. Recarregue a página.', 'error');
-      return;
-    }
+  }
+  if (!n) {
+    showToast('Não foi possível abrir a negociação. Recarregue a página.', 'error');
+    return;
   }
   _negAtiva = n;
   _modoContraproposta = false;
@@ -6100,6 +6102,7 @@ async function enviarPropostaDet() {
   _autoStatus(n);
   _persistNeg(n, { valor_deal: val || null, valor_deal_proposto_por: 'detentor', valor_deal_status: 'aguardando_marca' });
   if (n._supaId && !isDemoMode()) {
+    try { n._rodadas = await fetchRodadas(n._supaId); } catch(e) {}   // rodadas frescas p/ numerar certo
     const num = getNextRodadaNumero(n._rodadas || []);
     const snap = buildContrapartidasSnapshot(n.contrapartidas || []);
     const rodada = await createRodada({
@@ -6196,6 +6199,7 @@ async function confirmarContraoferta() {
   _persistNeg(n, { valor_deal: val, valor_deal_proposto_por: 'detentor', valor_deal_status: 'aguardando_marca' });
   // Criar rodada snapshot (contraoferta)
   if (n._supaId && !isDemoMode()) {
+    try { n._rodadas = await fetchRodadas(n._supaId); } catch(e) {}   // rodadas frescas p/ numerar certo
     const num = getNextRodadaNumero(n._rodadas || []);
     const snap = buildContrapartidasSnapshot(n.contrapartidas || []);
     const rodada = await createRodada({
