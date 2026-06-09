@@ -5973,7 +5973,7 @@ function renderNegFooterDet() {
 
   if (st === 'aceita' || vd.status === 'aceito') {
     // Deal fechado: ativação/pagamento aparecem inline no próprio modal (sem "Ver deal")
-    html = '<span class="footer-wait">✓ Deal fechado</span><div class="footer-spacer"></div><button class="btn-aceitar-neg" onclick="closeNegModal()">Fechar</button>';
+    html = '<span class="footer-wait">✓ Deal fechado</span><div class="footer-spacer"></div><button class="btn-encerrar-neg" onclick="closeNegModal()">Fechar</button>';
   } else if (st === 'recusada') {
     html = '<span class="footer-wait">Negociação encerrada</span>';
   } else if (_modoContraproposta) {

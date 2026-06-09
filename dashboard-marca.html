@@ -4981,7 +4981,7 @@ function _updatePropostaDealFooter() {
 
   if (st === 'aceita' || vd.status === 'aceito') {
     // Deal fechado: ativação/pagamento aparecem inline no próprio modal (sem "Ver deal")
-    html = '<span class="footer-wait">✓ Deal fechado</span>' + spacer + '<button class="btn-aceitar-neg" onclick="closePropostaModal()">Fechar</button>';
+    html = '<span class="footer-wait">✓ Deal fechado</span>' + spacer + '<button class="btn-encerrar-neg" onclick="closePropostaModal()">Fechar</button>';
     if (btnAddCp) btnAddCp.style.display = 'none';
   } else if (st === 'recusada') {
     html = cancelInteresse + spacer + '<button class="btn-enviar-neg" onclick="reenviarPropostaMarca()">Reenviar proposta</button>';
