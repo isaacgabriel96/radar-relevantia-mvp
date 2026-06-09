@@ -575,7 +575,7 @@ async function fetchNegociacoesMarca() {
         const userId = sdkData.session.user?.id;
         // Explicit marca_id filter guards against misconfigured RLS
         const marcaFilter = userId ? '&marca_id=eq.' + userId : '';
-        const marcaSelect = _negSelectQuery.replace('marca:marca_id(nome,empresa),', 'detentor:detentor_id(nome,empresa),');
+        const marcaSelect = _negSelectQuery.replace('marca:marca_id(nome,empresa,logo_url,empresa_domain),', 'detentor:detentor_id(nome,empresa,logo_url,empresa_domain),');
         const res = await fetch(SUPABASE_URL + '/rest/v1/negociacoes?select=' + marcaSelect +
           marcaFilter + '&order=created_at.desc&mensagens.order=created_at.asc', {
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
@@ -591,7 +591,7 @@ async function fetchNegociacoesMarca() {
     if (session?.access_token && session.access_token !== 'DEMO_TOKEN') {
       const userId = session?.user?.id;
       const marcaFilter = userId ? '&marca_id=eq.' + userId : '';
-      const marcaSelect = _negSelectQuery.replace('marca:marca_id(nome,empresa),', 'detentor:detentor_id(nome,empresa),');
+      const marcaSelect = _negSelectQuery.replace('marca:marca_id(nome,empresa,logo_url,empresa_domain),', 'detentor:detentor_id(nome,empresa,logo_url,empresa_domain),');
       const res = await sbFetch('/rest/v1/negociacoes?select=' + marcaSelect +
         marcaFilter + '&order=created_at.desc&mensagens.order=created_at.asc', session.access_token);
       if (!res.ok) throw new Error('HTTP ' + res.status);
