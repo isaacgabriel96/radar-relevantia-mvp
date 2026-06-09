@@ -2088,7 +2088,7 @@ function renderPage(oppOverride) {
   // Set main photo
   if (mainUrl) {
     var fp = focalMap[mainUrl] || { x: 50, y: 20 };
-    mainEl.style.background = 'url(' + mainUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+    mainEl.style.background = 'url(' + mainUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat, ' + (opp.gradient || '#1a1a2e');
   } else {
     mainEl.style.background = opp.gradient || '#1a1a2e';
   }
@@ -2114,7 +2114,7 @@ function renderPage(oppOverride) {
       if (_gallerySlideIdx >= imgs.length) _gallerySlideIdx = 0;
       var url = imgs[_gallerySlideIdx];
       var fp = focalMap[url] || { x: 50, y: 20 };
-      mainEl.style.background = 'url(' + url + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+      mainEl.style.background = 'url(' + url + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat, ' + (opp.gradient || '#1a1a2e');
       mainEl.querySelectorAll('.gallery-dot').forEach(function(d, i) { d.classList.toggle('active', i === _gallerySlideIdx); });
     };
 
@@ -2131,7 +2131,7 @@ function renderPage(oppOverride) {
       var imgUrl = imgs[thumbMapping4[ti].imgIdx];
       if (imgUrl) {
         var fp = focalMap[imgUrl] || { x: 50, y: 20 };
-        thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+        thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat, ' + fallbacks[ti];
       }
     }
     document.getElementById('galleryMore').style.display = 'none';
@@ -2149,7 +2149,7 @@ function renderPage(oppOverride) {
       var imgUrl = imgs[thumbMapping[ti].imgIdx];
       if (imgUrl) {
         var fp = focalMap[imgUrl] || { x: 50, y: 20 };
-        thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+        thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat, ' + fallbacks[ti];
       } else {
         thumbEl.style.background = fallbacks[ti];
       }
@@ -2170,7 +2170,7 @@ function renderPage(oppOverride) {
   if (imgs.length > 0) {
     imgs.forEach(function(url, i) {
       var fp = focalMap[url] || { x: 50, y: 20 };
-      mobileSlides.push({ bg: 'url(' + url + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat', label: i === 0 ? opp.category : null });
+      mobileSlides.push({ bg: 'url(' + url + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat, ' + (opp.gradient || '#1a1a2e'), label: i === 0 ? opp.category : null });
     });
   } else {
     mobileSlides.push({ bg: opp.gradient || '#1a1a2e', label: opp.category });
@@ -2746,8 +2746,8 @@ function renderPage(oppOverride) {
       var cardImgs = c.imagens || [];
 
       cotasHtml += '<div class="opp-card-h" onclick="openOppModal(' + i + ')">';
-      // Foto area com carousel
-      cotasHtml += '<div class="opp-card-h-img" data-carousel="' + i + '">';
+      // Foto area com carousel — gradiente atrás garante fallback se a foto falhar
+      cotasHtml += '<div class="opp-card-h-img" data-carousel="' + i + '" style="background:' + fallbackGrad + '">';
       if (cardImgs.length > 0) {
         cotasHtml += '<img src="' + cardImgs[0] + '" alt="' + escapeHtml(c.name) + '" />';
         if (cardImgs.length > 1) {
@@ -2845,10 +2845,8 @@ function renderPage(oppOverride) {
 
     var h = '<div class="opp-modal-inner">';
 
-    // ── LEFT: Photo area ──
-    h += '<div class="opp-modal-photo"';
-    if (modalImgs.length === 0) h += ' style="background:' + fallbackGrad + '"';
-    h += '>';
+    // ── LEFT: Photo area ── (gradiente sempre atrás: fallback se a foto falhar)
+    h += '<div class="opp-modal-photo" style="background:' + fallbackGrad + '">';
     if (modalImgs.length > 0) {
       h += '<img src="' + modalImgs[0] + '" alt="' + escapeHtml(c.name) + '" />';
       if (modalImgs.length > 1) {

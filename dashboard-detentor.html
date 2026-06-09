@@ -4022,8 +4022,10 @@ async function dashSelectBrandfetchBrand(brand) {
   const results    = document.getElementById('dashBrandfetchResults');
   if (searchWrap) searchWrap.style.display = 'none';
   results.style.display = 'none';
-  document.getElementById('dashBrandIcon').src = brand.icon || '';
-  document.getElementById('dashBrandIcon').style.display = brand.icon ? '' : 'none';
+  const _dashBrandIcon = document.getElementById('dashBrandIcon');
+  _dashBrandIcon.onerror = function () { this.style.display = 'none'; };
+  _dashBrandIcon.src = brand.icon || '';
+  _dashBrandIcon.style.display = brand.icon ? '' : 'none';
   document.getElementById('dashBrandName').textContent = brand.name || brand.domain || '';
   document.getElementById('dashBrandDomain').textContent = brand.domain || '';
   card.style.display = 'flex';
@@ -4126,8 +4128,10 @@ document.addEventListener('click', function(e) {
 
 function abrirModalMudancaEmpresa() {
   if (!_dashSelectedBrand) return;
-  document.getElementById('modalBrandIcon').src = _dashSelectedBrand.icon || '';
-  document.getElementById('modalBrandIcon').style.display = _dashSelectedBrand.icon ? '' : 'none';
+  const _modalBrandIcon = document.getElementById('modalBrandIcon');
+  _modalBrandIcon.onerror = function () { this.style.display = 'none'; };
+  _modalBrandIcon.src = _dashSelectedBrand.icon || '';
+  _modalBrandIcon.style.display = _dashSelectedBrand.icon ? '' : 'none';
   document.getElementById('modalBrandName').textContent = _dashSelectedBrand.name || _dashSelectedBrand.domain || '';
   document.getElementById('modalBrandDomain').textContent = _dashSelectedBrand.domain || '';
   document.getElementById('modalMudancaEmpresa').style.display = 'flex';
@@ -4183,6 +4187,7 @@ async function confirmarSolicitacaoMudancaEmpresa() {
     const logoSrc = _dashSelectedBrand.icon || _dashSelectedBrand.logoDataUrl || '';
     if (logoImg) {
       if (logoSrc) {
+        logoImg.onerror = function () { this.style.display = 'none'; if (logoFb) logoFb.style.display = ''; };
         logoImg.src = logoSrc;
         logoImg.style.display = '';
         if (logoFb) logoFb.style.display = 'none';
@@ -5011,7 +5016,7 @@ function renderPublicadas() {
 
     const cardStyle = isFinalizada ? 'opacity:0.65;' : '';
     return `<div class="pub-opp-card" style="${cardStyle}" ${cardOnclick}>
-      <div class="pub-card-image" style="background:${o.imagem_capa ? (function(){ var fp = (o.imagens_focal || {})[o.imagem_capa] || {x:50,y:20}; return 'url(' + o.imagem_capa + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat'; })() : (o.bg_gradient || cfg.gradient)}${isFinalizada ? ';filter:grayscale(0.5)' : ''}">
+      <div class="pub-card-image" style="background:${o.imagem_capa ? (function(){ var fp = (o.imagens_focal || {})[o.imagem_capa] || {x:50,y:20}; return 'url(' + o.imagem_capa + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat, ' + (o.bg_gradient || cfg.gradient); })() : (o.bg_gradient || cfg.gradient)}${isFinalizada ? ';filter:grayscale(0.5)' : ''}">
         ${o.imagem_capa ? '' : cfg.icon}
         <div style="position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start">
           <span class="pub-card-status-badge ${o.status}" style="position:static">${statusLabel[o.status] || o.status}</span>
@@ -5303,7 +5308,7 @@ function openNegOppDetail(oppId) {
     const imgCapa = oppData && oppData.imagem_capa;
     if (imgCapa) {
       const fp = (oppData.imagens_focal && oppData.imagens_focal[imgCapa]) || {x:50,y:20};
-      cover.style.background = `url(${imgCapa}) ${fp.x}% ${fp.y}% / cover no-repeat`;
+      cover.style.background = `url(${imgCapa}) ${fp.x}% ${fp.y}% / cover no-repeat, ${cfg.gradient}`;
       cover.innerHTML = '';
     } else {
       cover.style.background = cfg.gradient;
@@ -5359,7 +5364,7 @@ function renderNegCards() {
     const cta  = _negCtaConfig(n);
     const bfAttr = n.marca_logo_url ? '' : (n.marca_domain ? `data-bf-domain="${escapeHtml(n.marca_domain)}"` : `data-bf-name="${escapeHtml(n.marca)}"`);
     const imgHtml = n.marca_logo_url
-      ? `<img src="${escapeHtml(n.marca_logo_url)}" alt=""><span style="display:none">${_initials(n.marca)}</span>`
+      ? `<img src="${escapeHtml(n.marca_logo_url)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span style="display:none">${_initials(n.marca)}</span>`
       : `<img alt="" style="display:none"><span>${_initials(n.marca)}</span>`;
     return `<div class="neg-card${n.status === 'recusada' ? ' recusada-card' : ''}" style="cursor:pointer" onclick="openNegModal('${n.id}')">
       <div class="neg-card-avatar" ${bfAttr}>${imgHtml}</div>
@@ -5591,7 +5596,7 @@ async function openNegModal(id) {
     brandAvatar.removeAttribute('data-bf-name');
     if (n.marca_logo_url) {
       brandAvatar.classList.remove('gold');
-      brandAvatar.innerHTML = `<img src="${escapeHtml(n.marca_logo_url)}" alt=""><span style="display:none">${ini}</span>`;
+      brandAvatar.innerHTML = `<img src="${escapeHtml(n.marca_logo_url)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span style="display:none">${ini}</span>`;
     } else if (n.marca_domain || n.marca) {
       brandAvatar.classList.remove('gold');
       brandAvatar.setAttribute(n.marca_domain ? 'data-bf-domain' : 'data-bf-name', n.marca_domain || n.marca);
@@ -6629,7 +6634,7 @@ function openDealOppDetail(oppId) {
     const imgCapa = oppData && oppData.imagem_capa;
     if (imgCapa) {
       const fp = (oppData.imagens_focal && oppData.imagens_focal[imgCapa]) || {x:50,y:20};
-      coverEl.style.background = `url(${imgCapa}) ${fp.x}% ${fp.y}% / cover no-repeat`;
+      coverEl.style.background = `url(${imgCapa}) ${fp.x}% ${fp.y}% / cover no-repeat, ${cfg.gradient}`;
       coverEl.innerHTML = '';
     } else {
       coverEl.style.background = cfg.gradient;
@@ -8779,9 +8784,10 @@ function renderSolicitacoes() {
 
     const rowsHtml = g.items.map(function(s) {
       const initials = (s.marca_empresa || s.marca_nome || 'M').split(' ').slice(0,2).map(function(w) { return w[0] || ''; }).join('').toUpperCase() || 'M';
-      const avatarHtml = s.avatar_url
-        ? '<img src="' + s.avatar_url + '" style="width:36px;height:36px;border-radius:8px;object-fit:contain;background:#f5f5f5;padding:2px;flex-shrink:0" alt="">'
-        : '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-heading);font-size:12px;font-weight:700;color:#fff">' + initials + '</div>';
+      const fallbackAvatar = '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);display:' + (s.avatar_url ? 'none' : 'flex') + ';align-items:center;justify-content:center;flex-shrink:0;font-family:var(--font-heading);font-size:12px;font-weight:700;color:#fff">' + initials + '</div>';
+      const avatarHtml = (s.avatar_url
+        ? '<img src="' + s.avatar_url + '" style="width:36px;height:36px;border-radius:8px;object-fit:contain;background:#f5f5f5;padding:2px;flex-shrink:0" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
+        : '') + fallbackAvatar;
 
       const dataRelativa = typeof formatRelTime === 'function' ? formatRelTime(s.criado_em) : '';
       var statusBadge, actionsHtml;

@@ -4150,8 +4150,10 @@ async function marcaSelectBrandfetchBrand(brand) {
   const results    = document.getElementById('marcaBrandfetchResults');
   if (searchWrap) searchWrap.style.display = 'none';
   if (results) results.style.display = 'none';
-  document.getElementById('marcaBrandIcon').src = brand.icon || '';
-  document.getElementById('marcaBrandIcon').style.display = brand.icon ? '' : 'none';
+  const _marcaBrandIcon = document.getElementById('marcaBrandIcon');
+  _marcaBrandIcon.onerror = function () { this.style.display = 'none'; };
+  _marcaBrandIcon.src = brand.icon || '';
+  _marcaBrandIcon.style.display = brand.icon ? '' : 'none';
   document.getElementById('marcaBrandName').textContent = brand.name || brand.domain || '';
   document.getElementById('marcaBrandDomain').textContent = brand.domain || '';
   card.style.display = 'flex';
@@ -4342,6 +4344,7 @@ function abrirModalMudancaMarca() {
   const domain = document.getElementById('modalMarcaBrandDomain');
   if (icon) {
     const src = _marcaSelectedBrand.logoDataUrl || _marcaSelectedBrand.icon || '';
+    icon.onerror = function () { this.style.display = 'none'; };
     icon.src = src;
     icon.style.display = src ? '' : 'none';
   }
@@ -4812,7 +4815,7 @@ async function openPropostaModal(id) {
     const cover = catItem && (catItem._imagemCapa || (catItem.images && catItem.images[0]));
     if (cover) {
       oppAvatar.classList.remove('gold');
-      oppAvatar.innerHTML = `<img src="${escapeHtml(cover)}" alt="" style="width:100%;height:100%;object-fit:cover">`;
+      oppAvatar.innerHTML = `<img src="${escapeHtml(cover)}" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.nextElementSibling.style.display='';this.parentElement.classList.add('gold')"><span style="display:none">${ini}</span>`;
     } else {
       oppAvatar.classList.add('gold');
       oppAvatar.innerHTML = `<span>${ini}</span>`;
@@ -7121,7 +7124,7 @@ function renderDealsPropostas() {
     const imgCapa = catalogItem && (catalogItem._imagemCapa || (catalogItem.images && catalogItem.images[0]));
     const focalData = (catalogItem && catalogItem._imagensFocal && imgCapa) ? (catalogItem._imagensFocal[imgCapa] || {x:50,y:20}) : {x:50,y:20};
     const avatarStyle = imgCapa
-      ? `background:url(${imgCapa}) ${focalData.x}% ${focalData.y}% / cover no-repeat`
+      ? `background:url(${imgCapa}) ${focalData.x}% ${focalData.y}% / cover no-repeat, ${cat.bg}`
       : `background:${cat.bg}`;
     const avatarContent = imgCapa ? '' : `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.5" style="width:20px;height:20px"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
     const aceitos = (p.contrapartidas || []).filter(c => c.status === 'aceita');

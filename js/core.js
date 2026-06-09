@@ -375,6 +375,31 @@ function applyBrandfetchLogos(container) {
   });
 }
 
+// ─── REDE DE SEGURANÇA: FOTOS DE PERFIL/LOGO QUEBRADAS ──────
+// Backstop global (todas as páginas que carregam core.js). Se um <img> de
+// avatar/logo de marca ou detentor falhar ao carregar e NÃO tiver tratamento
+// próprio (onerror), revela o fallback de iniciais (irmão escondido) ou esconde
+// a imagem — para nunca exibir o ícone de "imagem quebrada".
+// Usa a fase de captura para rodar cedo, mas respeita qualquer img que já tenha
+// seu próprio onerror (ex.: retry via Brandfetch), nunca interferindo nele.
+document.addEventListener('error', function (e) {
+  const img = e.target;
+  if (!img || img.tagName !== 'IMG') return;
+  if (img.onerror) return;                 // tem handler próprio → deixa ele cuidar
+  if (img.dataset.rrImgHandled) return;     // evita reprocessar
+  if (!img.getAttribute('src')) return;     // sem src real (placeholder/lazy) → ignora
+  // Nunca exibe o ícone de "imagem quebrada": esconde a <img> que falhou. Onde
+  // houver gradiente/placeholder atrás (avatar, capa de oportunidade, cota), ele
+  // aparece naturalmente; onde houver fallback de iniciais (irmão escondido),
+  // revela-o.
+  img.dataset.rrImgHandled = '1';
+  img.style.display = 'none';
+  const sib = img.nextElementSibling;
+  if (sib && (sib.tagName === 'SPAN' || sib.tagName === 'DIV') && sib.style.display === 'none') {
+    sib.style.display = '';
+  }
+}, true);
+
 // ─── NEGOTIATIONS API (SDK-powered) ─────────────────────────
 
 function _fmtDate(iso, withTime) {

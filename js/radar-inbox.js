@@ -70,6 +70,19 @@
   function nome() { var el = document.getElementById('sidebarName'); return el && el.textContent ? el.textContent.trim() : 'Usuário'; }
   function fmtNow() { var n = new Date(); function p(x) { return ('' + x).padStart(2, '0'); } return p(n.getDate()) + '/' + p(n.getMonth() + 1) + ' · ' + p(n.getHours()) + ':' + p(n.getMinutes()); }
   function fmtMsg(iso) { try { return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
+  function initials(name) { return (typeof makeInitials === 'function') ? makeInitials(name || '') : (name || '?').substring(0, 2).toUpperCase(); }
+  // Avatar no padrão do projeto: logo_url direto (com onerror→iniciais) ou
+  // data-bf-domain/name para o applyBrandfetchLogos() do core.js buscar a logo.
+  function avatarHtml(c) {
+    if (c.kind === 'sup') return '<span class="ib-av" style="background:' + c.avatarColor + '">R</span>';
+    var n = c.raw || {};
+    var init = initials(c.title);
+    var bf = n.marca_logo_url ? '' : (n.marca_domain ? ' data-bf-domain="' + esc(n.marca_domain) + '"' : (c.title ? ' data-bf-name="' + esc(c.title) + '"' : ''));
+    var inner = n.marca_logo_url
+      ? '<img src="' + esc(n.marca_logo_url) + '" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'"><span style="display:none">' + esc(init) + '</span>'
+      : '<img alt="" style="display:none"><span>' + esc(init) + '</span>';
+    return '<span class="ib-av ib-av-logo"' + bf + '>' + inner + '</span>';
+  }
 
   // ── Conversas normalizadas ──────────────────────────────────
   function conversations() {
@@ -150,7 +163,7 @@
       var active = S.open && S.open.kind === c.kind && S.open.id === c.id;
       var dt = c.ts ? new Date(c.ts).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
       return '<button class="ib-item' + (active ? ' ib-item-on' : '') + '" data-kind="' + c.kind + '" data-id="' + esc(c.id) + '">' +
-        '<span class="ib-av" style="background:' + c.avatarColor + '">' + esc(c.avatarText) + '</span>' +
+        avatarHtml(c) +
         '<span class="ib-item-main">' +
           '<span class="ib-item-top"><span class="ib-item-title">' + esc(c.title) + '</span><span class="ib-item-date">' + dt + '</span></span>' +
           '<span class="ib-item-sub">' + esc(c.sub) + '</span>' +
@@ -158,6 +171,7 @@
         '</span>' +
       '</button>';
     }).join('');
+    if (typeof applyBrandfetchLogos === 'function') applyBrandfetchLogos(el);
   }
 
   function renderThread() {
@@ -177,14 +191,15 @@
     if (S.open && S.open.kind === 'neg') {
       var n = negList().find(function (x) { return x.id === S.open.id; }) || {};
       ctx.innerHTML = '<div class="ib-ctx-card">' +
+        '<div class="ib-ctx-head">' + avatarHtml({ kind: 'neg', title: n.marca, raw: n }) + '<div class="ib-ctx-name">' + esc(n.marca || '—') + '</div></div>' +
         '<div class="ib-ctx-label">Oportunidade</div>' +
         '<div class="ib-ctx-title">' + esc(n.opp || 'Negociação') + '</div>' +
-        '<div class="ib-ctx-row"><span>Contraparte</span><b>' + esc(n.marca || '—') + '</b></div>' +
         '<div class="ib-ctx-row"><span>Status</span><b>' + esc(n.statusLabel || n.status || '—') + '</b></div>' +
         (n.valor ? '<div class="ib-ctx-row"><span>Valor</span><b>' + esc(n.valor) + '</b></div>' : '') +
         '<button class="ib-ctx-btn" data-act="openfull">Abrir negociação completa</button>' +
       '</div>';
       wrap.classList.add('ib-has-context');
+      if (typeof applyBrandfetchLogos === 'function') applyBrandfetchLogos(ctx);
     } else { ctx.innerHTML = ''; wrap.classList.remove('ib-has-context'); }
   }
 
@@ -334,7 +349,7 @@
     if (document.getElementById('ibPop')) return;
     var ov = document.createElement('div'); ov.id = 'ibPop'; ov.className = 'ibpop-ov';
     ov.innerHTML = '<div class="ibpop" role="dialog" aria-modal="true">' +
-      '<div class="ibpop-head"><div class="ibpop-h-main"><div class="ibpop-h-title" id="ibpTitle"></div><div class="ibpop-h-sub" id="ibpSub"></div></div>' +
+      '<div class="ibpop-head"><span id="ibpAvWrap" class="ibpop-avwrap"></span><div class="ibpop-h-main"><div class="ibpop-h-title" id="ibpTitle"></div><div class="ibpop-h-sub" id="ibpSub"></div></div>' +
         '<button class="ibpop-openfull" id="ibpOpenFull">Ver negociação</button>' +
         '<button class="ibpop-close" id="ibpClose" aria-label="Fechar">&times;</button></div>' +
       '<div class="ib-scroll ibpop-scroll" id="ibpScroll"></div>' +
@@ -360,6 +375,7 @@
     P.neg = n; P.open = true;
     document.getElementById('ibpTitle').textContent = n.marca || 'Negociação';
     document.getElementById('ibpSub').textContent = n.opp || '';
+    var aw = document.getElementById('ibpAvWrap'); if (aw) { aw.innerHTML = avatarHtml({ kind: 'neg', title: n.marca, raw: n }); if (typeof applyBrandfetchLogos === 'function') applyBrandfetchLogos(aw); }
     document.getElementById('ibPop').classList.add('ibpop-show');
     renderPopupThread();
     if (n._supaId) { await refetchNegThread(n); renderPopupThread(); }
@@ -398,6 +414,11 @@
       '.ib-item{width:100%;text-align:left;display:flex;gap:10px;padding:11px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:inherit;margin-bottom:2px}' +
       '.ib-item:hover,.ib-item-on{background:var(--gray-100,#faf8f4)}' +
       '.ib-av{width:38px;height:38px;border-radius:50%;flex-shrink:0;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}' +
+      '.ib-av-logo{background:var(--white,#fff);border:1px solid var(--gray-200,#ece7dd);color:var(--gray-500,#7a6a58);overflow:hidden}' +
+      '.ib-av-logo img{width:100%;height:100%;object-fit:contain;border-radius:50%}' +
+      '.ib-ctx-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}.ib-ctx-head .ib-av{width:42px;height:42px}' +
+      '.ib-ctx-name{font-weight:700;font-size:14px;color:var(--text,#221c14);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+      '.ibpop-avwrap{flex-shrink:0;display:flex}' +
       '.ib-item-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}' +
       '.ib-item-top{display:flex;align-items:center;gap:8px}' +
       '.ib-item-title{font-weight:700;font-size:13px;color:var(--text,#221c14);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
@@ -448,6 +469,7 @@
       '.ibpop-h-main{flex:1;min-width:0}.ibpop-h-title{font-weight:700;font-size:15px;color:var(--text,#221c14);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ibpop-h-sub{font-size:12px;color:var(--gray-500,#7a6a58);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       '.ibpop-openfull{padding:7px 12px;border-radius:100px;border:1.5px solid var(--gray-200,#ece7dd);background:var(--white,#fff);font-family:inherit;font-size:12px;font-weight:600;color:var(--text,#221c14);cursor:pointer;flex-shrink:0}' +
       '.ibpop-close{background:none;border:none;font-size:22px;line-height:1;color:var(--gray-400,#9b8f7e);cursor:pointer;width:28px;height:28px;flex-shrink:0}' +
+      '@media(max-width:560px){.ibpop-ov{padding:10px}.ibpop{width:100%;max-width:calc(100vw - 20px);height:calc(100vh - 28px);max-height:none;border-radius:14px}.ibpop-openfull{padding:6px 10px;font-size:11px}}' +
       '@media(max-width:1100px){.ib-wrap.ib-has-context{grid-template-columns:320px 1fr}.ib-wrap.ib-has-context .ib-contextcol{display:none}}' +
       '@media(max-width:820px){.ib-wrap,.ib-wrap.ib-has-context{grid-template-columns:1fr;height:auto;min-height:0}.ib-threadcol{display:none;min-height:70vh}.ib-wrap.ib-show-thread .ib-listcol{display:none}.ib-wrap.ib-show-thread .ib-threadcol{display:flex}.ib-back{display:flex}}';
     var st = document.createElement('style'); st.id = 'ibStyle'; st.textContent = css; document.head.appendChild(st);

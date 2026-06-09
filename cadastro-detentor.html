@@ -705,8 +705,10 @@ function detSelectBrandfetchBrand(brand) {
   if (searchIcon) searchIcon.classList.add('hidden');
   results.classList.remove('show');
   // Preenche card
-  document.getElementById('detBrandIcon').src = brand.icon || '';
-  document.getElementById('detBrandIcon').style.display = brand.icon ? '' : 'none';
+  const _detBrandIcon = document.getElementById('detBrandIcon');
+  _detBrandIcon.onerror = function () { this.style.display = 'none'; };
+  _detBrandIcon.src = brand.icon || '';
+  _detBrandIcon.style.display = brand.icon ? '' : 'none';
   document.getElementById('detBrandName').textContent = brand.name || brand.domain || '';
   document.getElementById('detBrandDomain').textContent = brand.domain || '';
   card.style.display = 'flex';

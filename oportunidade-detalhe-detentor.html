@@ -1611,7 +1611,7 @@ function renderPage(oppOverride) {
   var mainEl = document.getElementById('galleryMain');
   if (mainUrl) {
     var fp = focalMap[mainUrl] || { x: 50, y: 20 };
-    mainEl.style.background = 'url(' + mainUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+    mainEl.style.background = 'url(' + mainUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat, ' + (opp.gradient || '#1a1a2e');
   } else {
     mainEl.style.background = opp.gradient || '#1a1a2e';
   }
@@ -1629,7 +1629,7 @@ function renderPage(oppOverride) {
     var imgUrl = imgs[thumbMapping[ti].imgIdx];
     if (imgUrl) {
       var fp = focalMap[imgUrl] || { x: 50, y: 20 };
-      thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat';
+      thumbEl.style.background = 'url(' + imgUrl + ') ' + fp.x + '% ' + fp.y + '% / cover no-repeat, ' + fallbacks[ti];
     } else {
       thumbEl.style.background = fallbacks[ti];
     }
