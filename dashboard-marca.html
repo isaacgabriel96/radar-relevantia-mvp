@@ -5861,6 +5861,13 @@ async function _marcarPagamentoFeito(propId) {
       compUrl = await _uploadToStorage('ativacao', 'comprovantes/' + (p._supaId || p.id) + '/' + Date.now() + '.' + ext, _mdmComprovanteFile);
     } catch (e) { console.warn('[comprovante] upload falhou:', e); }
   }
+  // Persiste o aviso de pagamento + comprovante na própria negociação (fonte confiável p/ admin)
+  await _persistProp(p, {
+    pagamento_informado_em: new Date().toISOString(),
+    comprovante_pagamento_url: compUrl || null
+  });
+  p.comprovante_pagamento_url = compUrl || null;
+
   // Registra um aviso na thread (rastro para o organizador e a Relevantia)
   const now = new Date();
   const data = now.getDate().toString().padStart(2,'0') + '/' + (now.getMonth()+1).toString().padStart(2,'0') + ' · ' +

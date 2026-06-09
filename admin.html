@@ -2976,6 +2976,7 @@ async function loadDeals() {
     const res = await sbFetch(
       '/rest/v1/negociacoes?select=' +
       'id,oportunidade_id,marca_id,detentor_id,cota,valor_deal,valor_proposto,status,' +
+      'comprovante_pagamento_url,pagamento_informado_em,' +
       'contrato_enviado_por,contrato_enviado_em,' +
       'contrato_validado,contrato_validado_em,contrato_validado_por,admin_comentario,' +
       'created_at,' +
@@ -3090,8 +3091,14 @@ function _provasAdminHtml(provas) {
   }).join('') + '</div>';
 }
 
-// Detecta se a marca já informou o pagamento (via mensagem) e extrai o comprovante
+// Detecta se a marca já informou o pagamento e extrai o comprovante.
+// Fonte preferida: colunas da negociação; fallback: mensagem na thread.
 function _pagamentoMarcaAdmin(d) {
+  // 1) Coluna dedicada (fonte confiável)
+  if (d.pagamento_informado_em || d.comprovante_pagamento_url) {
+    return { informado: true, data: d.pagamento_informado_em || null, comprovante: d.comprovante_pagamento_url || null };
+  }
+  // 2) Fallback: mensagem da marca informando pagamento
   const msgs = (d.mensagens || []).filter(m => m.autor_role === 'marca' && /realizei o pagamento|informei.*pagamento|💳/i.test(m.texto || ''));
   if (!msgs.length) return { informado: false };
   msgs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -3131,8 +3138,7 @@ function _parteInfoHtml(titulo, perfil, jur) {
   const row = (label, val) => `<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--gray-1)"><span style="font-size:11px;color:var(--gray-3)">${label}</span><span style="font-size:12px;color:var(--text);font-weight:600;text-align:right;min-width:0;word-break:break-word">${val ? escapeHtml(val) : '<span style=\"color:var(--gray-3);font-weight:400\">—</span>'}</span></div>`;
   const endereco = jur ? [jur.logradouro, jur.numero_endereco, jur.complemento, jur.cidade, jur.estado, jur.cep].filter(Boolean).join(', ') : '';
   return `
-    <div style="flex:1;min-width:220px;background:var(--gray-1);border-radius:10px;padding:14px">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-3);margin-bottom:4px">${titulo}</div>
+    <div style="background:var(--gray-1);border-radius:10px;padding:14px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px">${escapeHtml(p.empresa || p.nome || '—')}</div>
       <div style="background:var(--white);border-radius:8px;padding:8px 12px">
         ${row('Razão social', jur && jur.razao_social)}
@@ -3147,6 +3153,20 @@ function _parteInfoHtml(titulo, perfil, jur) {
     </div>`;
 }
 
+function _switchParteTab(which) {
+  const isMarca = which === 'marca';
+  const cm = document.getElementById('parte-content-marca');
+  const cd = document.getElementById('parte-content-detentor');
+  const tm = document.getElementById('parte-tab-marca');
+  const td = document.getElementById('parte-tab-detentor');
+  if (cm) cm.style.display = isMarca ? '' : 'none';
+  if (cd) cd.style.display = isMarca ? 'none' : '';
+  const on  = 'flex:1;padding:8px 12px;border-radius:8px;border:none;background:var(--black);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit';
+  const off = 'flex:1;padding:8px 12px;border-radius:8px;border:1px solid var(--gray-2);background:var(--white);color:var(--gray-5);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit';
+  if (tm) tm.style.cssText = isMarca ? on : off;
+  if (td) td.style.cssText = isMarca ? off : on;
+}
+
 async function _renderPartesInfo(d) {
   const host = document.getElementById('dealPartesInfo');
   if (!host) return;
@@ -3154,10 +3174,14 @@ async function _renderPartesInfo(d) {
     _fetchJuridicoAdmin(d.marca_id),
     _fetchJuridicoAdmin(d.detentor_id)
   ]);
-  host.innerHTML = `<div style="display:flex;gap:12px;flex-wrap:wrap">
-    ${_parteInfoHtml('Marca', d.marca, jurMarca)}
-    ${_parteInfoHtml('Detentor', d.detentor, jurDet)}
-  </div>`;
+  host.innerHTML = `
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button id="parte-tab-marca" onclick="_switchParteTab('marca')">Marca</button>
+      <button id="parte-tab-detentor" onclick="_switchParteTab('detentor')">Detentor</button>
+    </div>
+    <div id="parte-content-marca">${_parteInfoHtml('Marca', d.marca, jurMarca)}</div>
+    <div id="parte-content-detentor" style="display:none">${_parteInfoHtml('Detentor', d.detentor, jurDet)}</div>`;
+  _switchParteTab('marca');
 }
 
 function openDealModal(negId) {
