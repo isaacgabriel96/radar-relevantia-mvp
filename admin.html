@@ -2982,7 +2982,7 @@ async function loadDeals() {
       'marca:marca_id(nome,empresa),' +
       'detentor:detentor_id(nome,empresa),' +
       'oportunidade:oportunidade_id(titulo,categoria),' +
-      'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por),' +
+      'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por,entregue,entregue_em,validado,validado_em,provas),' +
       'mensagens(id,autor_role,autor_nome,texto,created_at),' +
       'contratos(id,documento_url,status,completo_em,enviado_em)' +
       '&status=in.(aceita,fechada)&order=updated_at.desc'
@@ -3062,6 +3062,34 @@ function _valorCotaAdmin(cota) {
   const n = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
   return isNaN(n) ? 0 : n;
 }
+// Normaliza entrega em { titulo, descricao } (JSON ou "Título: descrição")
+function _entregaPartsAdmin(raw) {
+  let s = (typeof raw === 'string' ? raw : (raw && raw.descricao) || '').trim();
+  if (!s) return { titulo: '—', descricao: '' };
+  if (s.charAt(0) === '{') {
+    try { const o = JSON.parse(s); const t = (o.titulo||'').trim(), dd = (o.descricao||'').trim(); return { titulo: t || dd || '—', descricao: (dd && dd !== t) ? dd : '' }; } catch (e) {}
+  }
+  const idx = s.indexOf(': ');
+  if (idx > 0 && idx <= 48) return { titulo: s.slice(0, idx).trim(), descricao: s.slice(idx + 2).trim() };
+  return { titulo: s, descricao: '' };
+}
+// Badge de estado da entrega na ativação
+function _ativStatusAdmin(c) {
+  if (c.validado) return { label: 'Validada', bg: '#ECFDF5', color: '#059669' };
+  if (c.entregue) return { label: 'Entregue · aguarda marca', bg: '#FFF8E1', color: '#D97706' };
+  return { label: 'Pendente', bg: 'var(--gray-1)', color: 'var(--gray-3)' };
+}
+// HTML dos comprovantes (provas) de uma entrega
+function _provasAdminHtml(provas) {
+  if (!Array.isArray(provas) || !provas.length) return '';
+  return '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">' + provas.map(p => {
+    const icon = p.tipo === 'foto' ? '🖼️' : p.tipo === 'video' ? '🎬' : '🔗';
+    const nome = p.tipo === 'link' ? (p.url || 'link') : (p.nome || p.tipo || 'arquivo');
+    const short = String(nome).length > 28 ? String(nome).slice(0, 28) + '…' : nome;
+    return `<a href="${escapeHtml(p.url||'#')}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:var(--white);border:1px solid var(--gray-2);border-radius:7px;padding:4px 9px;font-size:11px;font-weight:600;color:var(--text);text-decoration:none">${icon} ${escapeHtml(short)}</a>`;
+  }).join('') + '</div>';
+}
+
 // Detecta se a marca já informou o pagamento (via mensagem) e extrai o comprovante
 function _pagamentoMarcaAdmin(d) {
   const msgs = (d.mensagens || []).filter(m => m.autor_role === 'marca' && /realizei o pagamento|informei.*pagamento|💳/i.test(m.texto || ''));
@@ -3116,13 +3144,30 @@ function openDealModal(negId) {
 
     ${cps.length ? `
     <div style="margin-bottom:20px">
-      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)">Entregas acordadas (${cps.length})</div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text);display:flex;justify-content:space-between;align-items:center">
+        <span>Entregas acordadas (${cps.length})</span>
+        ${d.contrato_validado ? `<span style="font-size:11px;font-weight:600;color:var(--gray-3)">${cps.filter(c=>c.validado).length} de ${cps.length} validadas</span>` : ''}
+      </div>
       <div style="display:flex;flex-direction:column;gap:6px">
-        ${cps.map(c => `
-          <div style="background:var(--gray-1);border-radius:8px;padding:8px 12px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:10px">
-            <span style="min-width:0">${escapeHtml(c.descricao || c.categoria || '—')}</span>
-            <span style="font-weight:600;flex-shrink:0">${c.valor ? fmt(c.valor) : '—'}</span>
-          </div>`).join('')}
+        ${cps.map(c => {
+          const parts = _entregaPartsAdmin(c.descricao);
+          const st = _ativStatusAdmin(c);
+          const provas = Array.isArray(c.provas) ? c.provas : [];
+          return `
+          <div style="background:var(--gray-1);border-radius:8px;padding:10px 12px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+              <div style="min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(parts.titulo)}</div>
+                ${parts.descricao ? `<div style="font-size:12px;color:var(--gray-3);margin-top:2px">${escapeHtml(parts.descricao)}</div>` : ''}
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+                ${d.contrato_validado ? `<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;background:${st.bg};color:${st.color};white-space:nowrap">${st.label}</span>` : ''}
+                <span style="font-weight:600;font-size:12px">${c.valor ? fmt(c.valor) : ''}</span>
+              </div>
+            </div>
+            ${d.contrato_validado ? _provasAdminHtml(provas) : ''}
+          </div>`;
+        }).join('')}
       </div>
     </div>` : ''}
 
@@ -3130,7 +3175,7 @@ function openDealModal(negId) {
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-3);margin-bottom:10px">Pagamento da marca (PIX em custódia)</div>
       ${d.contrato_validado
         ? `<div style="font-size:13px;color:#059669;font-weight:700">✓ Pagamento confirmado em ${fmtDate(d.contrato_validado_em)}</div>
-           <div style="font-size:12px;color:var(--gray-3);margin-top:4px">Deal liberado para a Ativação.</div>`
+           <div style="font-size:12px;color:var(--gray-3);margin-top:4px">${(cps.length && cps.every(c => c.validado)) ? 'Todas as entregas validadas — parceria concluída.' : 'Deal em Ativação — acompanhe as entregas acima.'}</div>`
         : pag.informado
           ? `<div style="font-size:13px;color:#1D4ED8;font-weight:700">💳 A marca informou que pagou em ${fmtDate(pag.data)}</div>
              <div style="font-size:12px;color:var(--gray-3);margin-top:6px">Confira o recebimento de <strong>${fmt(val)}</strong> na conta da Relevantia e confirme abaixo para liberar a Ativação.</div>
