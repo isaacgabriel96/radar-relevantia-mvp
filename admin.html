@@ -1182,7 +1182,7 @@ tr.row-selected td { background: #FEF2F2; }
       <div id="section-deals" class="section">
         <div class="page-header">
           <h1 class="page-title">Deals</h1>
-          <p class="page-sub">Negociações com contrato enviado — valide para liberar o pagamento</p>
+          <p class="page-sub">Deals aceitos — confirme o pagamento da marca (PIX em custódia) para liberar a Ativação</p>
         </div>
 
         <div class="filter-bar" style="margin-bottom:16px;display:flex;gap:8px">
@@ -1203,7 +1203,7 @@ tr.row-selected td { background: #FEF2F2; }
                   <th>Marca</th>
                   <th>Detentor</th>
                   <th>Valor Deal</th>
-                  <th>Contrato</th>
+                  <th>Pagamento</th>
                   <th>Status</th>
                   <th>Ações</th>
                 </tr>
@@ -2975,7 +2975,7 @@ async function loadDeals() {
     // Fetch negociacoes that have a contrato_url (contract uploaded)
     const res = await sbFetch(
       '/rest/v1/negociacoes?select=' +
-      'id,oportunidade_id,marca_id,detentor_id,valor_deal,valor_proposto,status,' +
+      'id,oportunidade_id,marca_id,detentor_id,cota,valor_deal,valor_proposto,status,' +
       'contrato_enviado_por,contrato_enviado_em,' +
       'contrato_validado,contrato_validado_em,contrato_validado_por,admin_comentario,' +
       'created_at,' +
@@ -2983,6 +2983,7 @@ async function loadDeals() {
       'detentor:detentor_id(nome,empresa),' +
       'oportunidade:oportunidade_id(titulo,categoria),' +
       'contrapartidas(id,descricao,categoria,valor,prazo,status,proposto_por),' +
+      'mensagens(id,autor_role,autor_nome,texto,created_at),' +
       'contratos(id,documento_url,status,completo_em,enviado_em)' +
       '&status=in.(aceita,fechada)&order=updated_at.desc'
     );
@@ -3023,8 +3024,15 @@ function renderDeals(filter, btnEl) {
     const opp = d.oportunidade || {};
     const marca = d.marca || {};
     const det = d.detentor || {};
-    const val = d.valor_deal || d.valor_proposto || 0;
+    const val = d.valor_deal || d.valor_proposto || _valorCotaAdmin(d.cota) || 0;
     const validated = d.contrato_validado;
+    const pagInfo = _pagamentoMarcaAdmin(d);
+
+    const pagCell = validated
+      ? '<span class="badge badge-green" style="font-size:11px">✓ Recebido</span>'
+      : pagInfo.informado
+        ? '<span class="badge badge-blue" style="font-size:11px">💳 Marca informou</span>'
+        : '<span class="badge badge-orange" style="font-size:11px">⏳ Aguardando</span>';
 
     return `
       <tr style="cursor:pointer" onclick="openDealModal('${d.id}')">
@@ -3032,18 +3040,36 @@ function renderDeals(filter, btnEl) {
         <td class="td-muted">${escapeHtml(marca.empresa || marca.nome || '—')}</td>
         <td class="td-muted">${escapeHtml(det.empresa || det.nome || '—')}</td>
         <td><strong>${fmt(val)}</strong></td>
-        <td>${(d.contratos && d.contratos[0] && d.contratos[0].documento_url) ? `<a href="${escapeHtml(d.contratos[0].documento_url)}" target="_blank" onclick="event.stopPropagation()" style="color:var(--gold);font-weight:600;text-decoration:underline">📄 Ver</a>` : '<span style="color:var(--gray-3);font-size:12px">—</span>'}</td>
+        <td>${pagCell}</td>
         <td>${validated
-          ? '<span class="badge badge-green" style="font-size:11px">✓ Validado</span>'
-          : '<span class="badge badge-orange" style="font-size:11px">⏳ Pendente</span>'}</td>
+          ? '<span class="badge badge-green" style="font-size:11px">Ativação</span>'
+          : '<span class="badge badge-orange" style="font-size:11px">Formalização</span>'}</td>
         <td style="display:flex;gap:4px;align-items:center">
           ${!validated
-            ? `<button class="btn btn-sm btn-approve" onclick="event.stopPropagation();aprovarContrato('${d.id}')">Aprovar</button><button class="btn btn-sm btn-reject" onclick="event.stopPropagation();openDealModal('${d.id}')">Rejeitar</button>`
+            ? `<button class="btn btn-sm btn-approve" onclick="event.stopPropagation();openDealModal('${d.id}')">Revisar</button>`
             : '<span style="color:var(--gray-3);font-size:12px">—</span>'}
           ${d.admin_comentario ? '<span title="Tem comentário admin" style="font-size:14px;cursor:help">💬</span>' : ''}
         </td>
       </tr>`;
   }).join('');
+}
+
+// Valor do deal: valor_deal → valor_proposto → preço da cota (fallback)
+function _valorCotaAdmin(cota) {
+  if (!cota) return 0;
+  const m = String(cota).match(/R\$\s*([0-9.]+(?:,[0-9]+)?)/);
+  if (!m) return 0;
+  const n = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+}
+// Detecta se a marca já informou o pagamento (via mensagem) e extrai o comprovante
+function _pagamentoMarcaAdmin(d) {
+  const msgs = (d.mensagens || []).filter(m => m.autor_role === 'marca' && /realizei o pagamento|informei.*pagamento|💳/i.test(m.texto || ''));
+  if (!msgs.length) return { informado: false };
+  msgs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const pag = msgs[0];
+  const mm = (pag.texto || '').match(/Comprovante:\s*(\S+)/i);
+  return { informado: true, data: pag.created_at, comprovante: mm ? mm[1] : null };
 }
 
 function openDealModal(negId) {
@@ -3053,8 +3079,9 @@ function openDealModal(negId) {
   const opp = d.oportunidade || {};
   const marca = d.marca || {};
   const det = d.detentor || {};
-  const cps = d.contrapartidas || [];
-  const val = d.valor_deal || d.valor_proposto || 0;
+  const cps = (d.contrapartidas || []).filter(c => c.status === 'aceita');
+  const val = d.valor_deal || d.valor_proposto || _valorCotaAdmin(d.cota) || 0;
+  const pag = _pagamentoMarcaAdmin(d);
   const fmt = v => v != null ? 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
 
   document.getElementById('dealModalTitle').textContent = opp.titulo || 'Deal';
@@ -3082,31 +3109,36 @@ function openDealModal(negId) {
         <div>${escapeHtml(opp.categoria || '—')}</div>
       </div>
       <div>
-        <div style="font-size:11px;color:var(--gray-3);margin-bottom:2px">Contrato enviado em</div>
-        <div>${d.contrato_enviado_em ? fmtDate(d.contrato_enviado_em) : '—'}</div>
+        <div style="font-size:11px;color:var(--gray-3);margin-bottom:2px">Cota</div>
+        <div>${escapeHtml(d.cota || '—')}</div>
       </div>
     </div>
 
     ${cps.length ? `
     <div style="margin-bottom:20px">
-      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)">Contrapartidas (${cps.length})</div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text)">Entregas acordadas (${cps.length})</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         ${cps.map(c => `
-          <div style="background:var(--gray-1);border-radius:8px;padding:8px 12px;font-size:12px;display:flex;justify-content:space-between;align-items:center">
-            <span>${escapeHtml(c.descricao || c.categoria || '—')}</span>
-            <span style="font-weight:600">${c.valor ? fmt(c.valor) : '—'}</span>
+          <div style="background:var(--gray-1);border-radius:8px;padding:8px 12px;font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <span style="min-width:0">${escapeHtml(c.descricao || c.categoria || '—')}</span>
+            <span style="font-weight:600;flex-shrink:0">${c.valor ? fmt(c.valor) : '—'}</span>
           </div>`).join('')}
       </div>
     </div>` : ''}
 
-    <div style="background:var(--gray-1);border-radius:12px;padding:16px;text-align:center">
-      <div style="font-size:12px;color:var(--gray-3);margin-bottom:8px">Contrato</div>
-      ${(d.contratos && d.contratos[0] && d.contratos[0].documento_url)
-        ? `<a href="${escapeHtml(d.contratos[0].documento_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--gray-2);border-radius:100px;padding:8px 20px;font-size:13px;font-weight:600;color:var(--text);text-decoration:none">📄 Abrir contrato</a>`
-        : `<span style="color:var(--gray-3);font-size:13px">Nenhum contrato enviado</span>`}
+    <div style="background:${d.contrato_validado ? '#ECFDF5' : (pag.informado ? '#EFF6FF' : 'var(--gray-1)')};border:1px solid ${d.contrato_validado ? '#A7F3D0' : (pag.informado ? '#BFDBFE' : 'var(--gray-2)')};border-radius:12px;padding:16px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-3);margin-bottom:10px">Pagamento da marca (PIX em custódia)</div>
       ${d.contrato_validado
-        ? `<div style="margin-top:10px;font-size:12px;color:#059669;font-weight:600">✓ Validado em ${fmtDate(d.contrato_validado_em)}</div>`
-        : `<div style="margin-top:10px;font-size:12px;color:#D97706;font-weight:600">⏳ Aguardando validação</div>`}
+        ? `<div style="font-size:13px;color:#059669;font-weight:700">✓ Pagamento confirmado em ${fmtDate(d.contrato_validado_em)}</div>
+           <div style="font-size:12px;color:var(--gray-3);margin-top:4px">Deal liberado para a Ativação.</div>`
+        : pag.informado
+          ? `<div style="font-size:13px;color:#1D4ED8;font-weight:700">💳 A marca informou que pagou em ${fmtDate(pag.data)}</div>
+             <div style="font-size:12px;color:var(--gray-3);margin-top:6px">Confira o recebimento de <strong>${fmt(val)}</strong> na conta da Relevantia e confirme abaixo para liberar a Ativação.</div>
+             ${pag.comprovante
+               ? `<a href="${escapeHtml(pag.comprovante)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:var(--white);border:1px solid var(--gray-2);border-radius:100px;padding:7px 16px;font-size:12px;font-weight:600;color:var(--text);text-decoration:none">📎 Abrir comprovante</a>`
+               : `<div style="margin-top:8px;font-size:12px;color:var(--gray-3)">Sem comprovante anexado (opcional).</div>`}`
+          : `<div style="font-size:13px;color:#D97706;font-weight:700">⏳ Aguardando o pagamento da marca</div>
+             <div style="font-size:12px;color:var(--gray-3);margin-top:4px">A marca ainda não informou o pagamento via PIX. Valor a receber: <strong>${fmt(val)}</strong>.</div>`}
     </div>
 
     <div style="margin-top:20px">
@@ -3120,12 +3152,12 @@ function openDealModal(negId) {
   if (!d.contrato_validado) {
     actionsEl.innerHTML = `
       <button class="btn btn-outline" onclick="closeDealModal()">Fechar</button>
-      <button class="btn btn-reject" onclick="rejeitarContrato('${d.id}')">Rejeitar Contrato</button>
-      <button class="btn btn-approve" onclick="aprovarContrato('${d.id}')">Aprovar Contrato</button>`;
+      <button class="btn btn-reject" onclick="rejeitarContrato('${d.id}')">Pagamento não recebido</button>
+      <button class="btn btn-approve" onclick="aprovarContrato('${d.id}')">Confirmar pagamento → liberar Ativação</button>`;
   } else {
     actionsEl.innerHTML = `
       <button class="btn btn-outline" onclick="closeDealModal()">Fechar</button>
-      <span style="font-size:12px;color:#059669;font-weight:600;padding:8px 0">✓ Contrato já validado</span>`;
+      <span style="font-size:12px;color:#059669;font-weight:600;padding:8px 0">✓ Pagamento confirmado — em Ativação</span>`;
   }
 
   document.getElementById('modalDeal').classList.add('show');
@@ -3136,7 +3168,7 @@ function closeDealModal() {
 }
 
 async function aprovarContrato(negId) {
-  if (!confirm('Aprovar este contrato e liberar o pagamento?')) return;
+  if (!confirm('Confirmar que o pagamento da marca foi recebido? Isso libera o deal para a Ativação.')) return;
 
   try {
     const session = await getSession();
@@ -3161,7 +3193,7 @@ async function aprovarContrato(negId) {
       throw new Error(errText);
     }
 
-    alert('Contrato aprovado! Pagamento liberado para a marca.');
+    alert('Pagamento confirmado! Deal liberado para a Ativação.');
     closeDealModal();
     await Promise.all([loadDeals(), loadStats()]);
   } catch (err) {
