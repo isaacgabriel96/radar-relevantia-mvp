@@ -5733,9 +5733,15 @@ function renderContrapartidasDet(list) {
         </div>`;
       }
     }
+    // Entregas sugeridas por você podem ser removidas a qualquer momento (mesmo aceitas)
+    if (ehVoce) {
+      right = `<div class="dl-acts"><span class="dl-badge ${cp.status}">${statusLabel}</span><button class="dl-act-btn reject" onclick="removeCpDet('${cp.id}')" title="Remover entrega">✕</button></div>`;
+    }
+    const parts = _entregaParts(cp.descricao);
     return `<div class="dl-row ${ehVoce ? 'mine' : 'theirs'}">
       <div class="dl-main">
-        <span class="dl-desc">${escapeHtml(desc)}</span>
+        <span class="dl-desc">${escapeHtml(parts.titulo)}</span>
+        ${parts.descricao ? `<span style="font-size:12px;color:var(--gray-400);line-height:1.4">${escapeHtml(parts.descricao)}</span>` : ''}
         ${autorHtml}
       </div>
       ${right}
@@ -5782,8 +5788,10 @@ function toggleCpFormDet() {
 async function addContrapartidaDet() {
   const n = _negAtiva;
   if (!n) return;
-  const desc  = document.getElementById('mn-cp-desc').value.trim();
-  if (!desc) { showToast('Preencha a descrição da contrapartida.', 'error'); return; }
+  const titulo = document.getElementById('mn-cp-titulo').value.trim();
+  const detalhe = document.getElementById('mn-cp-desc').value.trim();
+  if (!titulo) { showToast('Preencha o título da entrega.', 'error'); return; }
+  const desc = titulo + (detalhe ? ': ' + detalhe : '');
 
   // Optimistic: add locally and render immediately
   const tempId = 'temp-' + Date.now();
@@ -5792,6 +5800,7 @@ async function addContrapartidaDet() {
   _autoStatus(n);
   renderContrapartidasDet(n.contrapartidas);
 
+  document.getElementById('mn-cp-titulo').value = '';
   document.getElementById('mn-cp-desc').value = '';
   document.getElementById('mn-cp-form').classList.remove('open');
   // Esconder aviso de "sem entregas" ao adicionar
@@ -5820,6 +5829,17 @@ async function acceptCpDet(cpId) {
   if (n._supaId && !isDemoMode()) { await updateContrapartida(cpId, { status: 'aceita' }); }
   else { SharedNeg.save(); }
   showToast('Contrapartida aceita!', 'success');
+}
+
+async function removeCpDet(cpId) {
+  const n = _negAtiva;
+  if (!n) return;
+  n.contrapartidas = (n.contrapartidas || []).filter(c => String(c.id) !== String(cpId));
+  _autoStatus(n);
+  renderContrapartidasDet(n.contrapartidas);
+  if (n._supaId && !isDemoMode() && !String(cpId).startsWith('temp-')) { await deleteContrapartida(cpId); }
+  else { SharedNeg.save(); }
+  showToast('Entrega removida.', 'success');
 }
 
 async function rejectCpDet(cpId) {
@@ -7951,8 +7971,12 @@ async function removerMembro(userId) {
             <!-- Form adicionar -->
             <div class="cp-form-det" id="mn-cp-form">
               <div>
-                <label class="cp-form-label-det">Descrição da contrapartida</label>
-                <input class="cp-form-input-det" id="mn-cp-desc" type="text" placeholder="Ex: Estande 6m² no evento, logo na camiseta…">
+                <label class="cp-form-label-det">Título da entrega</label>
+                <input class="cp-form-input-det" id="mn-cp-titulo" type="text" placeholder="Ex: Logo na camiseta">
+              </div>
+              <div style="margin-top:8px">
+                <label class="cp-form-label-det">Descrição <span style="font-weight:400;color:var(--gray-400);text-transform:none;letter-spacing:0">(opcional)</span></label>
+                <textarea class="cp-form-input-det" id="mn-cp-desc" rows="2" placeholder="Detalhe a entrega…" style="resize:vertical"></textarea>
               </div>
               <input type="hidden" id="mn-cp-valor" value="0">
               <input type="hidden" id="mn-cp-prazo" value="">
