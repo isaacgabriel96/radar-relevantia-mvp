@@ -1248,6 +1248,7 @@ tbody tr:last-child td { border-bottom: none; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/sanitize.js"></script>
 <script src="js/core.js?v=20260513b"></script>
+<script src="js/radar-chat-widget.js"></script>
 <script src="js/ff-filter.js"></script>
 <script>if(new URLSearchParams(location.search).get('demo')==='true'){document.write('<script src="js\/demo-data.js"><\/script>');document.write('<script src="js\/demo-mode.js"><\/script>');}</script>
 
@@ -2220,15 +2221,6 @@ tbody tr:last-child td { border-bottom: none; }
                     <svg id="vozCatCheck-outro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;margin-left:auto;color:var(--black);display:none"><polyline points="20 6 9 17 4 12"/></svg>
                   </button>
                 </div>
-              </div>
-            </div>
-            <span style="width:1px; height:18px; background:var(--gray-200); flex-shrink:0"></span>
-            <div style="display:flex; align-items:center; gap:8px">
-              <span style="font-size:12px; color:var(--gray-400); white-space:nowrap">Urgência</span>
-              <div id="vozPriority" style="display:flex; gap:6px">
-                <button type="button" class="voz-prio-btn" data-prio="alta" onclick="selectVozPrio(this)">Alta</button>
-                <button type="button" class="voz-prio-btn active" data-prio="media" onclick="selectVozPrio(this)">Média</button>
-                <button type="button" class="voz-prio-btn" data-prio="baixa" onclick="selectVozPrio(this)">Baixa</button>
               </div>
             </div>
           </div>
@@ -3227,6 +3219,30 @@ let _notifs = [];
 let _notifChannel   = null;
 let _negMarcaChannel = null;
 let _msgMarcaChannel = null;
+let _negMarcaChannel = null;   // realtime do estado da negociação
+
+// Re-sincroniza o modal quando o organizador muda o estado da negociação
+async function _refreshNegMarca(propId) {
+  if (!_propostaAtiva || _propostaAtiva.id !== propId) return;
+  if (_modoContrapropostaMarca) return;  // não atropela a edição em andamento
+  try {
+    await loadPropostas();
+    const fresh = PROPOSTAS.find(x => x.id === propId);
+    if (!fresh || !_propostaAtiva || _propostaAtiva.id !== propId) return;
+    fresh._rodadas = _propostaAtiva._rodadas; fresh._cotaInfo = _propostaAtiva._cotaInfo;
+    _propostaAtiva = fresh;
+    renderContrapartidas(fresh.contrapartidas || []);
+    _renderValorDealM(fresh);
+    renderHistoricoRodadasM();
+    const pd = document.getElementById('mp-posdeal');
+    if (pd) {
+      if (fresh.status === 'aceita') { pd.style.display = ''; renderPosDealMarca(fresh); }
+      else pd.style.display = 'none';
+    }
+    _updatePropostaDealFooter();
+    if (fresh._supaId) { try { fresh._rodadas = await fetchRodadas(fresh._supaId); } catch(e) {} renderHistoricoRodadasM(); }
+  } catch (e) { console.warn('[refreshNegMarca]', e); }
+}
 
 async function loadNotifs() {
   try {
@@ -4738,7 +4754,9 @@ function renderAceitaBadgeMarca() {
   if (svg) svg.setAttribute('stroke', aberto ? 'var(--green)' : '#92400E');
   if (label) {
     label.style.color = aberto ? 'var(--green)' : '#92400E';
-    label.textContent = aberto ? 'O organizador aceita contrapropostas' : 'O organizador não aceita novas propostas';
+    label.textContent = aberto
+      ? 'O organizador aceita contrapropostas'
+      : 'O organizador fechou para novas propostas — você pode apenas aceitar ou recusar.';
   }
 }
 
@@ -4789,9 +4807,7 @@ async function openPropostaModal(id) {
   _modoContrapropostaMarca = false;
 
   document.getElementById('mp-opp').textContent = p.opp;
-  document.getElementById('mp-status-wrap').className = 'modal-prop-status ' + p.status;
-  document.getElementById('mp-status-label').textContent = p.statusLabel;
-  document.getElementById('mp-status-hint').textContent = p.statusHint;
+  _renderStatusMarca(p);
   // Header: avatar com a foto de capa da oportunidade (contraparte) + nome
   const oppAvatar = document.getElementById('mp-opp-avatar');
   if (oppAvatar) {
@@ -4881,6 +4897,16 @@ async function openPropostaModal(id) {
         _propostaAtiva.thread.push({ autor: r.autor_role, nome: r.autor_nome, texto: r.texto, data });
         renderMsgThread(_propostaAtiva.thread);
       })
+      .subscribe();
+
+    // Realtime: estado da negociação (proposta/valor/aceite/pagamento) muda sem recarregar
+    if (_negMarcaChannel) { sb.removeChannel(_negMarcaChannel); _negMarcaChannel = null; }
+    _negMarcaChannel = sb
+      .channel('neg-marca-' + p._supaId)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'negociacoes',
+        filter: 'id=eq.' + p._supaId
+      }, () => { _refreshNegMarca(p.id); })
       .subscribe();
   }
 
@@ -5072,7 +5098,7 @@ function _updatePropostaDealFooter() {
 
 function cancelarPropostaMarca() {
   if (!_propostaAtiva) return;
-  if (!confirm('Tem certeza que deseja cancelar esta proposta para ' + _propostaAtiva.opp + '?')) return;
+  if (!confirm('Cancelar sua proposta para ' + _propostaAtiva.opp + '?\n\nA negociação será encerrada. Você poderá reenviar uma proposta depois.')) return;
   _propostaAtiva.status = 'recusada';
   _propostaAtiva.statusLabel = 'Recusada';
   _propostaAtiva.statusHint = 'Proposta cancelada pela marca';
@@ -5115,7 +5141,7 @@ async function reenviarPropostaMarca() {
 async function cancelarInteresseMarca() {
   const p = _propostaAtiva;
   if (!p) return;
-  if (!confirm('Tem certeza que deseja cancelar o interesse? Isso irá remover a proposta, mensagens e entregas permanentemente.')) return;
+  if (!confirm('Cancelar o interesse nesta oportunidade?\n\nIsso remove a proposta, as mensagens e as entregas PERMANENTEMENTE — não dá para desfazer. (Se quiser apenas pausar, use "Cancelar proposta".)')) return;
   if (p._supaId && !isDemoMode()) {
     const ok = await deleteNegociacao(p._supaId, 'brand');
     if (!ok) { showToast('Erro ao cancelar interesse. Tente novamente.', 'error'); return; }
@@ -5201,6 +5227,7 @@ function closePropostaModal() {
   document.getElementById('modal-proposta').classList.remove('open');
   document.body.style.overflow = '';
   if (_msgMarcaChannel && sb) { sb.removeChannel(_msgMarcaChannel); _msgMarcaChannel = null; }
+  if (_negMarcaChannel && sb) { sb.removeChannel(_negMarcaChannel); _negMarcaChannel = null; }
   _propostaAtiva = null;
 }
 
@@ -5353,7 +5380,32 @@ function _renderAceitaBanner(p) {
 // ─── VALOR DO DEAL (seção bilateral) ─────────────────────────────────────────
 // valorDeal: { proposto, propostoPor: 'marca'|'detentor', status: 'sem_proposta'|'aguardando_detentor'|'aguardando_marca'|'aceito' }
 
+/* ── Banner de turno (honesto, derivado de quem precisa agir) ── */
+function _turnoMarca(p) {
+  if (p.status === 'recusada' || p.status === 'cancelada')
+    return { cls:'recusada', label: p.statusLabel || 'Recusada', hint: p.statusHint || 'Esta negociação foi encerrada.' };
+  if (p.status === 'aceita')
+    return { cls:'aceita', label:'Deal fechado', hint:'Proposta aceita — siga para a formalização.' };
+  const vd = p.valorDeal || {};
+  if (vd.status === 'aguardando_marca')
+    return { cls:'pendente', label:'Sua vez', hint:'O organizador respondeu. Aceite, contraproponha ou recuse abaixo.', turn:true };
+  if (vd.status === 'aguardando_detentor')
+    return { cls:'analise', label:'Aguardando o organizador', hint:'Você enviou — aguardando o retorno do organizador.' };
+  return { cls:'pendente', label:'Monte sua proposta', hint:'Ajuste as entregas e o valor, depois clique em Enviar proposta.', turn:true };
+}
+function _renderStatusMarca(p) {
+  const wrap = document.getElementById('mp-status-wrap');
+  if (!wrap || !p) return;
+  const s = _turnoMarca(p);
+  wrap.className = 'modal-prop-status' + (s.cls ? ' ' + s.cls : '');
+  const lbl = document.getElementById('mp-status-label');
+  const hint = document.getElementById('mp-status-hint');
+  if (lbl) lbl.textContent = (s.turn ? '⚡ ' : '') + s.label;
+  if (hint) hint.textContent = s.hint;
+}
+
 function _renderValorDealM(p) {
+  _renderStatusMarca(p);
   const vd = p.valorDeal || { proposto: null, propostoPor: null, status: 'sem_proposta' };
   const badge        = document.getElementById('mp-vd-badge');
   const inputRow     = document.getElementById('mp-vd-input-row');
@@ -5566,7 +5618,7 @@ async function aceitarValorDealMarca() {
 function fecharDealMarca() {
   const p = _propostaAtiva;
   if (!p || p.status === 'aceita') return;
-  if (!confirm('Confirmar fechamento do deal com ' + p.opp + '?\n\nAo fechar, a Relevantia entrará em contato para formalizar o contrato.')) return;
+  if (!confirm('Fechar o deal com ' + p.opp + '?\n\nA proposta será aceita e segue para a Formalização: você paga via PIX para a Relevantia (em custódia) e o valor é repassado ao organizador após a confirmação das entregas. As entregas ficam travadas.')) return;
   p.status = 'aceita';
   p.statusLabel = 'Aceita';
   p.statusHint = 'Deal fechado. Aguardando formalização.';
