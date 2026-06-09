@@ -6003,6 +6003,25 @@ function renderNegFooterDet() {
   footer.innerHTML = html;
 }
 
+// Linha de entrega no snapshot (read-only) — mostra quem sugeriu + status
+function _propRowDet(cp) {
+  if (typeof cp === 'string') cp = { descricao: cp, status: 'proposta', proposto_por: 'marca' };
+  const parts = _entregaParts(cp.descricao);
+  const status = cp.status || 'proposta';
+  const statusLabel = status === 'aceita' ? 'Aceita' : status === 'recusada' ? 'Recusada' : 'Proposta';
+  const propPor = cp.propostoPor || cp.proposto_por || 'marca';
+  const ehVoce = propPor === 'detentor';
+  const autorLabel = ehVoce ? 'Você sugeriu' : 'Marca sugeriu';
+  return `<div class="dl-row ${ehVoce ? 'mine' : 'theirs'}">
+    <div class="dl-main">
+      <span class="dl-desc">${escapeHtml(parts.titulo)}</span>
+      ${parts.descricao ? `<span style="font-size:12px;color:var(--gray-400);line-height:1.4">${escapeHtml(parts.descricao)}</span>` : ''}
+      <span class="dl-author ${ehVoce ? 'eu' : 'eles'}"><span class="dl-author-dot"></span>${autorLabel}</span>
+    </div>
+    <span class="dl-badge ${status}">${statusLabel}</span>
+  </div>`;
+}
+
 function _renderPropostaEnviadaDet(n) {
   const el = document.getElementById('mn-proposta-enviada');
   if (!el) return;
@@ -6015,14 +6034,7 @@ function _renderPropostaEnviadaDet(n) {
   let html = '<div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:10px;padding:12px 14px;margin-bottom:8px">';
   if (cps.length > 0) {
     html += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-400);margin-bottom:8px">Entregas</div>';
-    html += '<ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">';
-    cps.forEach(function(cp) {
-      const raw = (typeof cp === 'string') ? cp : (cp.descricao || '');
-      html += `<li style="display:flex;align-items:flex-start;gap:8px">
-        <span style="width:6px;height:6px;border-radius:50%;background:var(--gray-300);flex-shrink:0;margin-top:5px"></span>
-        ${_entregaTituloDescHtml(raw)}</li>`;
-    });
-    html += '</ul>';
+    html += '<div class="dl-list">' + cps.map(_propRowDet).join('') + '</div>';
   }
   if (fmtVal) {
     if (cps.length > 0) html += '<div style="border-top:1px solid var(--gray-200);margin:10px 0 8px"></div>';
