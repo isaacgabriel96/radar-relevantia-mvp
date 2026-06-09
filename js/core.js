@@ -445,7 +445,7 @@ function rowToNegociacao(row) {
   }));
   const thread = (row.mensagens || []).map(m => ({
     autor: m.autor_role || 'marca', nome: m.autor_nome || '',
-    texto: m.texto || '', data: _fmtDate(m.created_at, true)
+    texto: m.texto || '', data: _fmtDate(m.created_at, true), ts: m.created_at || null
   }));
   const statusLabels = { 'pendente':'Pendente', 'analise':'Em análise', 'aceita':'Aceita', 'recusada':'Recusada', 'cancelada':'Cancelada' };
   return {
