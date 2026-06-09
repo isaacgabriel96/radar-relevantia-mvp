@@ -350,7 +350,6 @@
     var ov = document.createElement('div'); ov.id = 'ibPop'; ov.className = 'ibpop-ov';
     ov.innerHTML = '<div class="ibpop" role="dialog" aria-modal="true">' +
       '<div class="ibpop-head"><span id="ibpAvWrap" class="ibpop-avwrap"></span><div class="ibpop-h-main"><div class="ibpop-h-title" id="ibpTitle"></div><div class="ibpop-h-sub" id="ibpSub"></div></div>' +
-        '<button class="ibpop-openfull" id="ibpOpenFull">Ver negociação</button>' +
         '<button class="ibpop-close" id="ibpClose" aria-label="Fechar">&times;</button></div>' +
       '<div class="ib-scroll ibpop-scroll" id="ibpScroll"></div>' +
       '<div class="ib-composer"><textarea id="ibpReply" class="ib-ta" maxlength="800" placeholder="Escreva uma mensagem..."></textarea>' +
@@ -361,7 +360,6 @@
     ov.querySelector('#ibpClose').addEventListener('click', closePopup);
     ov.querySelector('#ibpSend').addEventListener('click', popupSend);
     ov.querySelector('#ibpReply').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); popupSend(); } });
-    ov.querySelector('#ibpOpenFull').addEventListener('click', function () { if (P.neg) { var id = P.neg.id; closePopup(); openNegFull(id); } });
     ov.querySelector('#ibpScroll').addEventListener('click', function (e) { var i = e.target.closest('[data-act="img"]'); if (i) window.open(i.src); });
   }
   function renderPopupThread() {
