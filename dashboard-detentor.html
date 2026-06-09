@@ -1527,6 +1527,7 @@ tbody tr:last-child td { border-bottom: none; }
 <script src="js/sanitize.js"></script>
 <script src="js/core.js?v=20260513b"></script>
 <script src="js/radar-chat-widget.js"></script>
+<script src="js/radar-inbox.js"></script>
 <script src="js/admin-view-banner.js"></script>
 <script>if(new URLSearchParams(location.search).get('demo')==='true'){document.write('<script src="js\/demo-data.js"><\/script>');document.write('<script src="js\/demo-mode.js"><\/script>');}</script>
 <script src="shared-state.js"></script>
@@ -2394,11 +2395,12 @@ tbody tr:last-child td { border-bottom: none; }
   <div class="page-header">
     <div>
       <h1 class="page-title">Fale com o Radar</h1>
-      <p class="page-subtitle">Cada mensagem é lida pelo time e alimenta o roadmap.</p>
+      <p class="page-subtitle">Suas conversas com o Radar e suas negociações, num só lugar.</p>
     </div>
   </div>
 
-  <div style="max-width:680px">
+  <div id="vozInboxRoot"></div>
+  <div id="vozOldUi" style="display:none">
 
     <!-- Tabs -->
     <div class="sub-tabs">
@@ -3569,7 +3571,7 @@ function showSection(sectionId) {
     // Focus jurídico: força aba Jurídico (fase 2a = preencher, fase 2b = revisar aguardando)
     if (_isJuridicoFocusModeActive()) setTimeout(() => switchConfigTab('juridico'), 60);
   }
-  if (sectionId === 'voz') { _vozOpenId = null; vozLoadTickets(); }
+  if (sectionId === 'voz') { if (window.RadarInbox) RadarInbox.refresh(); }
 }
 
 // ─── NOTIFICAÇÕES ───
@@ -5455,7 +5457,8 @@ function _turnoDet(n) {
     return { cls:'pendente', label:'Sua vez', hint:'A marca enviou uma proposta. Aceite, contraproponha ou recuse abaixo.', turn:true };
   if (vd.status === 'aguardando_marca')
     return { cls:'analise', label:'Aguardando a marca', hint:'Você respondeu — aguardando o retorno da marca.' };
-  return { cls:'pendente', label:'Aguardando proposta da marca', hint:'Quando a marca enviar a proposta, você responde por aqui.' };
+  // sem_proposta: qualquer lado pode iniciar (o rodapé mostra "Enviar proposta")
+  return { cls:'pendente', label:'Sua vez', hint:'Defina as entregas e o valor e envie a proposta para a marca.', turn:true };
 }
 function _renderStatusDet(n) {
   const wrap = document.getElementById('mn-status-wrap');
@@ -5955,6 +5958,7 @@ function renderValorDeal() {
 
   if (!n.valorDeal) n.valorDeal = { proposto: null, propostoPor: null, status: 'sem_proposta' };
   if (typeof n.aceitaNovasPropostas === 'undefined') n.aceitaNovasPropostas = true;
+  _renderStatusDet(n);  // banner de turno sempre sincronizado
 
   const vd        = n.valorDeal;
   const isBlocked = n.status === 'recusada' || n.status === 'aceita';
@@ -7127,7 +7131,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  vozBootstrap();
+  /* inbox (radar-inbox.js) cuida do suporte na página sec-voz */
   const ta = document.getElementById('vozMensagem');
   if (ta) {
     ta.addEventListener('input', () => {
