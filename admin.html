@@ -1982,7 +1982,7 @@ function suporteRenderThread() {
     '<div id="suporteBubbles" style="display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto;max-height:440px;padding:2px">' + bubbles + '</div>' +
     '<div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid #eee;padding-top:12px;margin-top:14px">' +
       '<button id="supAdminAttachBtn" title="Anexar foto" onclick="suporteAdminAttach()" style="width:42px;height:44px;border:none;background:none;color:#999;cursor:pointer;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="19" height="19"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>' +
-      '<textarea id="suporteReply" placeholder="Responder como Relevantia..." style="flex:1;min-height:48px;max-height:140px;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-family:inherit;font-size:13px;resize:vertical;outline:none"></textarea>' +
+      '<textarea id="suporteReply" placeholder="Responder como Relevantia..." onkeydown="if(event.key===\'Enter\'&&!event.shiftKey&&!event.ctrlKey&&!event.metaKey){event.preventDefault();suporteResponder();}" style="flex:1;min-height:48px;max-height:140px;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-family:inherit;font-size:13px;resize:vertical;outline:none"></textarea>' +
       '<button class="btn btn-sm" style="background:#B8860B;color:#fff" onclick="suporteResponder()">Enviar</button>' +
     '</div>';
   const b = document.getElementById('suporteBubbles');

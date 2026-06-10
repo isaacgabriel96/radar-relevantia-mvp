@@ -181,6 +181,7 @@
       root.querySelector('#ibNewBtn').addEventListener('click', function () { S.open = { kind: 'new' }; S.draft = ''; S.newShortcut = null; S.newCat = 'duvida'; S.newTag = ''; setMobileThread(true); renderThread(); });
       root.querySelector('#ibList').addEventListener('click', onListClick);
       root.querySelector('#ibThread').addEventListener('click', onThreadClick);
+      root.querySelector('#ibThread').addEventListener('keydown', onThreadKeydown);
       root.querySelector('#ibContext').addEventListener('click', function (e) { var b = e.target.closest('[data-act="openfull"]'); if (b && S.open && S.open.kind === 'neg') openNegFull(S.open.id); });
     }
     renderFilters();
@@ -366,6 +367,12 @@
   // ── Eventos ─────────────────────────────────────────────────
   function onFilterClick(e) { var b = e.target.closest('[data-filter]'); if (!b) return; S.filter = b.dataset.filter; renderFilters(); renderList(); }
   function onListClick(e) { var b = e.target.closest('[data-kind]'); if (!b) return; openConvo(b.dataset.kind, b.dataset.id); }
+  function onThreadKeydown(e) {
+    if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey) return; // Shift/Ctrl/Cmd+Enter = quebra de linha
+    var t = e.target; if (!t) return;
+    if (t.id === 'ibReply') { e.preventDefault(); if (S.open && S.open.kind === 'sup') sendSup(); else sendNeg(); }
+    else if (t.id === 'ibNewText') { e.preventDefault(); sendNew(); }
+  }
   function onThreadClick(e) {
     var el = e.target.closest('[data-act]'); if (!el) return;
     var act = el.dataset.act;
@@ -408,7 +415,7 @@
     ov.addEventListener('click', function (e) { if (e.target === ov) closePopup(); });
     ov.querySelector('#ibpClose').addEventListener('click', closePopup);
     ov.querySelector('#ibpSend').addEventListener('click', popupSend);
-    ov.querySelector('#ibpReply').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); popupSend(); } });
+    ov.querySelector('#ibpReply').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) { e.preventDefault(); popupSend(); } });
     ov.querySelector('#ibpScroll').addEventListener('click', function (e) { var i = e.target.closest('[data-act="img"]'); if (i) window.open(i.src); });
   }
   function renderPopupThread() {

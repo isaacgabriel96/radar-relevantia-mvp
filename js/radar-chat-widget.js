@@ -430,6 +430,13 @@
       if (act === 'img') { window.open(el.src); return; }
     });
 
+    panel.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey) return; // Shift/Ctrl/Cmd+Enter = quebra de linha
+      var id = e.target && e.target.id;
+      if (id === 'rcReply') { e.preventDefault(); sendReply(); }
+      else if (id === 'rcNewText') { e.preventDefault(); sendNew(); }
+    });
+
     var fileInput = panel.querySelector('#rcFile');
     if (fileInput) fileInput.addEventListener('change', function () { onImage(this); });
   }
