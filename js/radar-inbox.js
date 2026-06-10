@@ -73,8 +73,9 @@
   function initials(name) { return (typeof makeInitials === 'function') ? makeInitials(name || '') : (name || '?').substring(0, 2).toUpperCase(); }
   // Avatar no padrão do projeto: logo_url direto (com onerror→iniciais) ou
   // data-bf-domain/name para o applyBrandfetchLogos() do core.js buscar a logo.
+  var RADAR_MARK = '<span class="ib-av" style="background:#15110c;color:#C9A961"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="19.5" y2="6.5"/></svg></span>';
   function avatarHtml(c) {
-    if (c.kind === 'sup') return '<span class="ib-av" style="background:' + c.avatarColor + '">R</span>';
+    if (c.kind === 'sup') return RADAR_MARK;
     var n = c.raw || {};
     var init = initials(c.title);
     // Ignora lettermark/placeholder do Brandfetch (não é logo real, costuma expirar) —

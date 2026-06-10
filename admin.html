@@ -1304,6 +1304,10 @@ tr.row-selected td { background: #FEF2F2; }
                 </select>
               </div>
               <div>
+                <label style="font-size:12px;font-weight:600;color:#666;display:block;margin-bottom:6px">Título</label>
+                <input id="ncTitulo" maxlength="80" placeholder="Assunto da conversa (ex: Aviso de pagamento)" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-family:inherit;font-size:14px;box-sizing:border-box">
+              </div>
+              <div>
                 <label style="font-size:12px;font-weight:600;color:#666;display:block;margin-bottom:6px">Mensagem</label>
                 <textarea id="ncMensagem" rows="5" maxlength="800" placeholder="Escreva a mensagem para o cliente..." style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-family:inherit;font-size:14px;resize:vertical;box-sizing:border-box"></textarea>
               </div>
@@ -1579,6 +1583,7 @@ tr.row-selected td { background: #FEF2F2; }
      JAVASCRIPT
      ========================================================= -->
 <script src="js/demo-data.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/sanitize.js"></script>
 <script>
 const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
@@ -1955,6 +1960,7 @@ async function suporteNovaConversa() {
   const m = document.getElementById('modalNovaConversa');
   if (m) m.style.display = 'flex';
   const msg = document.getElementById('ncMensagem'); if (msg) msg.value = '';
+  const tit = document.getElementById('ncTitulo'); if (tit) tit.value = '';
   const sel = document.getElementById('ncCliente');
   if (sel && !_supClientes.length) {
     sel.innerHTML = '<option value="">Carregando clientes...</option>';
@@ -1986,6 +1992,7 @@ async function suporteEnviarNova() {
   const o = sel && sel.selectedIndex >= 0 ? sel.options[sel.selectedIndex] : null;
   const tipo = o ? o.getAttribute('data-tipo') : '';
   const texto = (document.getElementById('ncMensagem').value || '').trim();
+  const titulo = (document.getElementById('ncTitulo') ? document.getElementById('ncTitulo').value : '').trim();
   if (!clienteId || !tipo) { alert('Escolha um cliente.'); return; }
   if (!texto) { alert('Escreva a mensagem.'); return; }
   const meta = currentSession?.user?.user_metadata || {};
@@ -1995,7 +2002,7 @@ async function suporteEnviarNova() {
   try {
     const tRes = await sbFetch('/rest/v1/radar_tickets', {
       method: 'POST', headers: { 'Prefer': 'return=representation' },
-      body: JSON.stringify({ autor_id: clienteId, autor_tipo: tipo, categoria: 'outro', prioridade: 'media', status: 'recebido', assunto: texto.substring(0, 80) })
+      body: JSON.stringify({ autor_id: clienteId, autor_tipo: tipo, categoria: 'outro', prioridade: 'media', status: 'recebido', assunto: (titulo || texto).substring(0, 80) })
     });
     if (!tRes.ok) throw new Error('ticket');
     const ticket = (await tRes.json())[0];
@@ -2025,6 +2032,28 @@ async function loadAllData() {
     loadSuporte()      // tickets de suporte + badge
   ]);
   if (!_supPoll) _supPoll = setInterval(loadSuporte, 25000);
+  initSuporteRealtime();
+}
+
+// Realtime do suporte no admin (em cima do polling, como reforço).
+let _sbAdmin = null, _supRTOn = false;
+async function initSuporteRealtime() {
+  if (_supRTOn || typeof supabase === 'undefined' || !supabase.createClient) return;
+  const session = await getSession();
+  if (!session || !session.access_token) return;
+  _supRTOn = true;
+  try {
+    _sbAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    _sbAdmin.realtime.setAuth(session.access_token);
+    _sbAdmin.channel('admin-suporte')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'radar_tickets' }, () => { loadSuporte(); })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'radar_mensagens' }, (payload) => {
+        const m = payload.new;
+        if (_supOpenId && m.ticket_id === _supOpenId && !_supThread.find(x => x.id === m.id)) { _supThread.push(m); suporteRenderThread(); }
+        loadSuporte();
+      })
+      .subscribe();
+  } catch (e) { _supRTOn = false; }
 }
 
 // ── Stats ─────────────────────────────────────────────────────
