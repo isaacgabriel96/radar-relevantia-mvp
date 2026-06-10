@@ -109,7 +109,7 @@
   function initials(name) { return (typeof makeInitials === 'function') ? makeInitials(name || '') : (name || '?').substring(0, 2).toUpperCase(); }
   // Avatar no padrão do projeto: logo_url direto (com onerror→iniciais) ou
   // data-bf-domain/name para o applyBrandfetchLogos() do core.js buscar a logo.
-  var RADAR_MARK = '<span class="ib-av" style="background:#15110c;overflow:hidden"><img src="logos/relevantia-wordmark.png" alt="Radar Relevantia" style="width:118%;height:118%;object-fit:contain"></span>';
+  var RADAR_MARK = '<span class="ib-av" style="background:#2e1f12;overflow:hidden"><img src="logos/5.png" alt="Radar Relevantia" style="width:112%;height:112%;object-fit:contain"></span>';
   function avatarHtml(c) {
     if (c.kind === 'sup') return RADAR_MARK;
     var n = c.raw || {};
