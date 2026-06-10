@@ -94,7 +94,7 @@
       for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       var ext = (mime.split('/')[1] || 'png').replace('jpeg', 'jpg');
       var path = uid + '/' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '.' + ext;
-      var up = await fetch(SUPABASE_URL + '/storage/v1/object/radar-anexos/' + path, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': mime, 'x-upsert': 'true' }, body: bytes });
+      var up = await fetch(SUPABASE_URL + '/storage/v1/object/radar-anexos/' + path, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': mime }, body: bytes });
       if (!up.ok) return null;
       return SUPABASE_URL + '/storage/v1/object/public/radar-anexos/' + path;
     } catch (e) { return null; }
@@ -109,7 +109,7 @@
   function initials(name) { return (typeof makeInitials === 'function') ? makeInitials(name || '') : (name || '?').substring(0, 2).toUpperCase(); }
   // Avatar no padrão do projeto: logo_url direto (com onerror→iniciais) ou
   // data-bf-domain/name para o applyBrandfetchLogos() do core.js buscar a logo.
-  var RADAR_MARK = '<span class="ib-av" style="background:#15110c;color:#C9A961"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><line x1="12" y1="12" x2="19.5" y2="6.5"/></svg></span>';
+  var RADAR_MARK = '<span class="ib-av" style="background:#15110c;overflow:hidden"><img src="logos/relevantia-wordmark.png" alt="Radar Relevantia" style="width:118%;height:118%;object-fit:contain"></span>';
   function avatarHtml(c) {
     if (c.kind === 'sup') return RADAR_MARK;
     var n = c.raw || {};

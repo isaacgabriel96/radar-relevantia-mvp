@@ -157,7 +157,7 @@
       var ext = (mime.split('/')[1] || 'png').replace('jpeg', 'jpg');
       var path = uid + '/' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '.' + ext;
       var up = await fetch(SUPABASE_URL + '/storage/v1/object/radar-anexos/' + path, {
-        method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': mime, 'x-upsert': 'true' }, body: bytes
+        method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': mime }, body: bytes
       });
       if (!up.ok) return null;
       return SUPABASE_URL + '/storage/v1/object/public/radar-anexos/' + path;
