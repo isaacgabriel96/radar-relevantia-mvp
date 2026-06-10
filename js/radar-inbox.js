@@ -68,6 +68,42 @@
 
   function H(t, extra) { return Object.assign({ apikey: SUPABASE_KEY, Authorization: 'Bearer ' + t }, extra || {}); }
   function nome() { var el = document.getElementById('sidebarName'); return el && el.textContent ? el.textContent.trim() : 'Usuário'; }
+
+  // ── Anexos (só no suporte; gated por perfis.pode_anexar) ─────
+  var _ibAttach = null, _ibPodeAnexar = true;
+  function _ibFileInput() {
+    var f = document.getElementById('ibFileInput');
+    if (!f) {
+      f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*'; f.id = 'ibFileInput'; f.style.display = 'none';
+      f.addEventListener('change', function () {
+        var file = this.files[0]; this.value = '';
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { alert('Imagem muito grande (máx 5 MB).'); return; }
+        var r = new FileReader(); r.onload = function (e) { _ibAttach = e.target.result; _ibMarkAttach(true); }; r.readAsDataURL(file);
+      });
+      document.body.appendChild(f);
+    }
+    return f;
+  }
+  function _ibMarkAttach(on) { document.querySelectorAll('.ib-attach-btn').forEach(function (b) { b.classList.toggle('ib-attach-on', on); b.setAttribute('title', on ? 'Foto anexada (clique pra trocar)' : 'Anexar foto'); }); }
+  function attachBtn() { return _ibPodeAnexar === false ? '' : '<button type="button" class="ib-attach-btn" data-act="attach" title="Anexar foto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="18" height="18"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>'; }
+  async function _ibUpload(uid, token) {
+    try {
+      var m = /^data:(.+?);base64,(.*)$/.exec(_ibAttach || ''); if (!m) return null;
+      var mime = m[1], bin = atob(m[2]), bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      var ext = (mime.split('/')[1] || 'png').replace('jpeg', 'jpg');
+      var path = uid + '/' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '.' + ext;
+      var up = await fetch(SUPABASE_URL + '/storage/v1/object/radar-anexos/' + path, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': mime, 'x-upsert': 'true' }, body: bytes });
+      if (!up.ok) return null;
+      return SUPABASE_URL + '/storage/v1/object/public/radar-anexos/' + path;
+    } catch (e) { return null; }
+  }
+  async function loadPodeAnexar() {
+    var t = await getValidToken(); var uid = await getAuthUserId();
+    if (!t || !uid) return;
+    try { var r = await fetch(SUPABASE_URL + '/rest/v1/perfis?select=pode_anexar&id=eq.' + uid, { headers: H(t) }); if (r.ok) { var rows = await r.json(); if (rows[0] && typeof rows[0].pode_anexar === 'boolean') { _ibPodeAnexar = rows[0].pode_anexar; if (S.open) renderThread(); } } } catch (e) {}
+  }
   function fmtNow() { var n = new Date(); function p(x) { return ('' + x).padStart(2, '0'); } return p(n.getDate()) + '/' + p(n.getMonth() + 1) + ' · ' + p(n.getHours()) + ':' + p(n.getMinutes()); }
   function fmtMsg(iso) { try { return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } }
   function initials(name) { return (typeof makeInitials === 'function') ? makeInitials(name || '') : (name || '?').substring(0, 2).toUpperCase(); }
@@ -224,8 +260,9 @@
       '</div>';
     }).join('');
   }
-  function composer(id) {
+  function composer(id, attach) {
     return '<div class="ib-composer">' +
+      (attach ? attachBtn() : '') +
       '<textarea id="' + id + '" class="ib-ta" maxlength="800" placeholder="Escreva uma mensagem..."></textarea>' +
       '<button class="ib-send" data-act="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>' +
     '</div>';
@@ -236,7 +273,7 @@
     var c = CAT[t.categoria] || CAT['outro'];
     var rows = S.supThread.map(function (m) { return { _who: m.autor_papel === 'cliente' ? 'Você' : (m.autor_nome ? m.autor_nome + ' · Radar' : 'Equipe Radar'), _text: m.texto, _img: m.anexo_url || null, _time: fmtMsg(m.created_at), _mine: m.autor_papel === 'cliente' }; });
     host.innerHTML = threadHeader('Radar · ' + c.label, t.assunto || '', '<span class="ib-thead-st" style="color:' + c.color + '">' + (SUP_STATUS[t.status] || t.status || '') + '</span>') +
-      '<div class="ib-scroll" id="ibScroll">' + bubbles(rows) + '</div>' + composer('ibReply');
+      '<div class="ib-scroll" id="ibScroll">' + bubbles(rows) + '</div>' + composer('ibReply', true);
     scrollDown();
   }
   function renderNegThread(host) {
@@ -254,7 +291,7 @@
         '<div class="ib-greet">Como o Radar pode ajudar? Escolha um assunto ou escreva.</div>' +
         '<div class="ib-scs">' + pills + '</div>' +
         '<textarea id="ibNewText" class="ib-ta ib-ta-tall" maxlength="800" placeholder="Faça uma pergunta ou descreva..."></textarea>' +
-        '<div class="ib-new-foot"><button class="ib-sendbtn" data-act="send-new">Enviar</button></div>' +
+        '<div class="ib-new-foot"' + (attachBtn() ? ' style="justify-content:space-between"' : '') + '>' + attachBtn() + '<button class="ib-sendbtn" data-act="send-new">Enviar</button></div>' +
       '</div>';
     var ta = document.getElementById('ibNewText'); if (ta) { ta.value = S.draft || ''; ta.focus(); }
   }
@@ -294,11 +331,16 @@
   }
   async function sendSup() {
     var el = document.getElementById('ibReply'); var txt = el ? el.value.trim() : '';
-    if (!txt || !S.open || S.open.kind !== 'sup') return;
+    if ((!txt && !_ibAttach) || !S.open || S.open.kind !== 'sup') return;
     var t = await getValidToken(); var uid = await getAuthUserId();
     if (!t || !uid) { alert('Sessão expirada. Recarregue a página.'); return; }
     el.disabled = true;
-    try { var res = await fetch(SUPABASE_URL + '/rest/v1/radar_mensagens', { method: 'POST', headers: H(t, { 'Content-Type': 'application/json', Prefer: 'return=representation' }), body: JSON.stringify({ ticket_id: S.open.id, autor_id: uid, autor_papel: 'cliente', autor_nome: nome(), texto: txt }) }); if (!res.ok) throw new Error(); var m = (await res.json())[0]; if (!S.supThread.find(function (x) { return x.id === m.id; })) S.supThread.push(m); el.value = ''; renderThread(); } catch (e) { alert('Não foi possível enviar.'); } finally { if (el) el.disabled = false; }
+    try {
+      var anexo = _ibAttach ? await _ibUpload(uid, t) : null;
+      var res = await fetch(SUPABASE_URL + '/rest/v1/radar_mensagens', { method: 'POST', headers: H(t, { 'Content-Type': 'application/json', Prefer: 'return=representation' }), body: JSON.stringify({ ticket_id: S.open.id, autor_id: uid, autor_papel: 'cliente', autor_nome: nome(), texto: txt, anexo_url: anexo }) });
+      if (!res.ok) throw new Error(); var m = (await res.json())[0]; if (!S.supThread.find(function (x) { return x.id === m.id; })) S.supThread.push(m);
+      el.value = ''; _ibAttach = null; _ibMarkAttach(false); renderThread();
+    } catch (e) { alert('Não foi possível enviar.'); } finally { if (el) el.disabled = false; }
   }
   async function sendNeg() {
     var el = document.getElementById('ibReply'); var txt = el ? el.value.trim() : '';
@@ -308,15 +350,16 @@
   }
   async function sendNew() {
     var ta = document.getElementById('ibNewText'); var txt = ta ? ta.value.trim() : '';
-    if (!txt) return;
+    if (!txt && !_ibAttach) return;
     var t = await getValidToken(); var uid = await getAuthUserId();
     if (!t || !uid) { alert('Sessão expirada. Recarregue a página.'); return; }
     try {
-      var tRes = await fetch(SUPABASE_URL + '/rest/v1/radar_tickets', { method: 'POST', headers: H(t, { 'Content-Type': 'application/json', Prefer: 'return=representation' }), body: JSON.stringify({ autor_id: uid, autor_tipo: ROLE, categoria: S.newCat, prioridade: 'media', status: 'recebido', assunto: ((S.newTag || '') + txt).substring(0, 80) }) });
+      var anexo = _ibAttach ? await _ibUpload(uid, t) : null;
+      var tRes = await fetch(SUPABASE_URL + '/rest/v1/radar_tickets', { method: 'POST', headers: H(t, { 'Content-Type': 'application/json', Prefer: 'return=representation' }), body: JSON.stringify({ autor_id: uid, autor_tipo: ROLE, categoria: S.newCat, prioridade: 'media', status: 'recebido', assunto: ((S.newTag || '') + (txt || 'Anexo')).substring(0, 80) }) });
       if (!tRes.ok) throw new Error(); var ticket = (await tRes.json())[0];
-      var mRes = await fetch(SUPABASE_URL + '/rest/v1/radar_mensagens', { method: 'POST', headers: H(t, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }), body: JSON.stringify({ ticket_id: ticket.id, autor_id: uid, autor_papel: 'cliente', autor_nome: nome(), texto: txt }) });
+      var mRes = await fetch(SUPABASE_URL + '/rest/v1/radar_mensagens', { method: 'POST', headers: H(t, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }), body: JSON.stringify({ ticket_id: ticket.id, autor_id: uid, autor_papel: 'cliente', autor_nome: nome(), texto: txt, anexo_url: anexo }) });
       if (!mRes.ok) throw new Error();
-      S.draft = ''; S.newShortcut = null; await loadSupport(); openConvo('sup', ticket.id);
+      S.draft = ''; S.newShortcut = null; _ibAttach = null; _ibMarkAttach(false); await loadSupport(); openConvo('sup', ticket.id);
     } catch (e) { alert('Não foi possível enviar.'); }
   }
 
@@ -329,6 +372,7 @@
     if (act === 'back') { S.open = null; teardownThreadRT(); setMobileThread(false); renderThread(); renderList(); return; }
     if (act === 'send') { return S.open && S.open.kind === 'sup' ? sendSup() : sendNeg(); }
     if (act === 'send-new') return sendNew();
+    if (act === 'attach') { _ibFileInput().click(); return; }
     if (act === 'sc') { var ta = document.getElementById('ibNewText'); if (ta) S.draft = ta.value; var i = +el.dataset.i; S.newShortcut = i; S.newCat = SHORTCUTS[i].cat; S.newTag = SHORTCUTS[i].tag || ''; return renderThread(); }
     if (act === 'openfull') { if (S.open && S.open.kind === 'neg') openNegFull(S.open.id); return; }
     if (act === 'img') { window.open(el.src); return; }
@@ -451,6 +495,7 @@
       '.ib-composer{display:flex;gap:8px;align-items:flex-end;padding:12px;border-top:1px solid var(--gray-200,#ece7dd);flex-shrink:0;background:var(--white,#fff)}' +
       '.ib-ta{flex:1;min-height:44px;max-height:120px;padding:10px 14px;border:1.5px solid var(--gray-200,#ece7dd);border-radius:12px;font-family:inherit;font-size:13px;color:var(--text,#221c14);resize:vertical;outline:none;box-sizing:border-box;line-height:1.5;background:var(--white,#fff)}.ib-ta:focus{border-color:var(--gold,#B8860B)}' +
       '.ib-send{width:44px;height:44px;border-radius:50%;border:none;background:var(--gold,#B8860B);color:#fff;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}.ib-send svg{width:17px;height:17px}' +
+      '.ib-attach-btn{width:40px;height:44px;border:none;background:none;color:var(--gray-400,#9b8f7e);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:10px}.ib-attach-btn:hover{background:var(--gray-100,#faf8f4);color:var(--gray-500,#7a6a58)}.ib-attach-on{color:var(--gold,#B8860B)}' +
       '.ib-new{flex:1;display:flex;flex-direction:column;gap:10px;padding:16px;overflow-y:auto}' +
       '.ib-greet{font-size:13px;color:var(--gray-500,#7a6a58)}' +
       '.ib-scs{display:flex;flex-direction:column;gap:8px}' +
@@ -489,7 +534,7 @@
     if (typeof SUPABASE_URL === 'undefined') return;
     injectCSS();
     if (document.getElementById('vozInboxRoot')) {
-      render(); ensureNegLoaded(); loadSupport().then(function () { render(); }); initSupListRealtime();
+      render(); ensureNegLoaded(); loadSupport().then(function () { render(); }); loadPodeAnexar(); initSupListRealtime();
       S.refreshTimer = setInterval(function () { var sec = document.getElementById('sec-voz'); if (sec && sec.classList.contains('active')) { renderList(); setSidebarBadge(); } }, 12000);
     }
   });

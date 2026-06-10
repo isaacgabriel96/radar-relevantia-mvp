@@ -1807,9 +1807,9 @@ async function _supLoadNomes() {
   const ids = [...new Set(_supTickets.map(t => t.autor_id))].filter(Boolean);
   if (!ids.length) return;
   try {
-    const res = await sbFetch('/rest/v1/perfis?select=id,nome,empresa,email&id=in.(' + ids.join(',') + ')');
+    const res = await sbFetch('/rest/v1/perfis?select=id,nome,empresa,email,pode_anexar&id=in.(' + ids.join(',') + ')');
     if (res.ok) {
-      (await res.json()).forEach(p => { _supNomes[p.id] = p.empresa || p.nome || p.email || '—'; });
+      (await res.json()).forEach(p => { _supNomes[p.id] = p.empresa || p.nome || p.email || '—'; _supPodeAnexar[p.id] = p.pode_anexar !== false; });
     }
   } catch (e) {}
 }
@@ -1905,10 +1905,12 @@ function suporteRenderThread() {
       '<span style="font-weight:700;font-size:15px;color:#222">' + escapeHtml(nome) + '</span>' +
       '<span style="font-size:11px;font-weight:700;color:' + cat.color + '">' + cat.label + '</span>' +
       '<span style="font-size:11px;color:#888">' + (t.autor_tipo === 'marca' ? 'Marca' : 'Detentor') + '</span>' +
-      '<select onchange="suporteMudarStatus(\'' + t.id + '\', this.value)" style="margin-left:auto;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:8px">' + statusOpts + '</select>' +
+      '<label style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#888;cursor:pointer" title="Permitir que este cliente envie anexos"><input type="checkbox" ' + (_supPodeAnexar[t.autor_id] !== false ? 'checked' : '') + ' onchange="suporteToggleAnexo(\'' + t.autor_id + '\', this.checked)"> permitir anexos</label>' +
+      '<select onchange="suporteMudarStatus(\'' + t.id + '\', this.value)" style="font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:8px">' + statusOpts + '</select>' +
     '</div>' +
     '<div id="suporteBubbles" style="display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto;max-height:440px;padding:2px">' + bubbles + '</div>' +
     '<div style="display:flex;gap:8px;align-items:flex-end;border-top:1px solid #eee;padding-top:12px;margin-top:14px">' +
+      '<button id="supAdminAttachBtn" title="Anexar foto" onclick="suporteAdminAttach()" style="width:42px;height:44px;border:none;background:none;color:#999;cursor:pointer;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" width="19" height="19"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></button>' +
       '<textarea id="suporteReply" placeholder="Responder como Relevantia..." style="flex:1;min-height:48px;max-height:140px;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-family:inherit;font-size:13px;resize:vertical;outline:none"></textarea>' +
       '<button class="btn btn-sm" style="background:#B8860B;color:#fff" onclick="suporteResponder()">Enviar</button>' +
     '</div>';
@@ -1916,27 +1918,60 @@ function suporteRenderThread() {
   if (b) b.scrollTop = b.scrollHeight;
 }
 
+let _supPodeAnexar = {}, _supAtAnexo = null;
 async function suporteResponder() {
   const el = document.getElementById('suporteReply');
   const texto = el ? el.value.trim() : '';
-  if (!texto || !_supOpenId) return;
+  if ((!texto && !_supAtAnexo) || !_supOpenId) return;
   const meta = currentSession?.user?.user_metadata || {};
   const adminNome = meta.nome || meta.name || currentSession?.user?.email?.split('@')[0] || 'Relevantia';
   const adminId = currentSession?.user?.id;
   if (!adminId) { alert('Sessão inválida. Entre novamente.'); return; }
   el.disabled = true;
   try {
+    const anexo = _supAtAnexo ? await _supUploadAnexo() : null;
     const res = await sbFetch('/rest/v1/radar_mensagens', {
       method: 'POST', headers: { 'Prefer': 'return=representation' },
-      body: JSON.stringify({ ticket_id: _supOpenId, autor_id: adminId, autor_papel: 'relevantia', autor_nome: adminNome, texto: texto })
+      body: JSON.stringify({ ticket_id: _supOpenId, autor_id: adminId, autor_papel: 'relevantia', autor_nome: adminNome, texto: texto, anexo_url: anexo })
     });
     if (!res.ok) throw new Error();
     const m = (await res.json())[0];
     _supThread.push(m);
-    el.value = '';
+    el.value = ''; _supAtAnexo = null;
     suporteRenderThread();
     loadSuporte();
   } catch (e) { alert('Não foi possível enviar a resposta.'); if (el) el.disabled = false; }
+}
+function suporteAdminAttach() {
+  let f = document.getElementById('supAdminFile');
+  if (!f) {
+    f = document.createElement('input'); f.type = 'file'; f.accept = 'image/*'; f.id = 'supAdminFile'; f.style.display = 'none';
+    f.addEventListener('change', function () {
+      const file = this.files[0]; this.value = '';
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Imagem muito grande (máx 5 MB).'); return; }
+      const r = new FileReader(); r.onload = e => { _supAtAnexo = e.target.result; const b = document.getElementById('supAdminAttachBtn'); if (b) b.style.color = '#B8860B'; }; r.readAsDataURL(file);
+    });
+    document.body.appendChild(f);
+  }
+  f.click();
+}
+async function _supUploadAnexo() {
+  try {
+    const mt = /^data:(.+?);base64,(.*)$/.exec(_supAtAnexo || ''); if (!mt) return null;
+    const session = await getSession(); const token = session && session.access_token; if (!token) return null;
+    const mime = mt[1], bin = atob(mt[2]), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const ext = (mime.split('/')[1] || 'png').replace('jpeg', 'jpg');
+    const path = 'admin/' + Date.now() + '-' + Math.floor(Math.random() * 1e6) + '.' + ext;
+    const up = await fetch(SUPABASE_URL + '/storage/v1/object/radar-anexos/' + path, { method: 'POST', headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + token, 'Content-Type': mime, 'x-upsert': 'true' }, body: bytes });
+    if (!up.ok) return null;
+    return SUPABASE_URL + '/storage/v1/object/public/radar-anexos/' + path;
+  } catch (e) { return null; }
+}
+async function suporteToggleAnexo(autorId, on) {
+  _supPodeAnexar[autorId] = on;
+  try { await sbFetch('/rest/v1/perfis?id=eq.' + autorId, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ pode_anexar: on }) }); } catch (e) {}
 }
 
 async function suporteMudarStatus(id, status) {
