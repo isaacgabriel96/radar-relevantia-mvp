@@ -2282,7 +2282,10 @@ tbody tr:last-child td { border-bottom: none; }
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Dados jurídicos</div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="card-title">Dados jurídicos</div>
+              <span id="jur-status-badge" style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;background:var(--gray-100);color:var(--gray-400)">Pendente</span>
+            </div>
             <button class="btn btn-ghost btn-sm" id="btnEditJuridico" onclick="toggleEditJuridico()">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
               Editar
@@ -2358,33 +2361,103 @@ tbody tr:last-child td { border-bottom: none; }
       <!-- Painel: Financeiro -->
       <div id="cfg-panel-financeiro" style="display:none">
 
+        <!-- Card: Dados de recebimento (com verificação) -->
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Cadastro financeiro</div>
-          </div>
-          <div style="padding:24px;display:flex;flex-direction:column;gap:20px">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--gray-50,#f9f9f9);border-radius:10px;border:1px solid var(--gray-200)">
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--text)">Status do cadastro</div>
-                <div style="font-size:12px;color:var(--gray-400);margin-top:3px">Integração com gateway de pagamentos</div>
-              </div>
-              <span id="fin-status-badge" style="font-size:12px;font-weight:600;padding:4px 12px;border-radius:100px;background:var(--gray-100);color:var(--gray-400)">Não iniciado</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="card-title">Dados de recebimento</div>
+              <span id="fin-rec-badge" style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;background:var(--gray-100);color:var(--gray-400)">Pendente</span>
             </div>
+            <button class="btn btn-ghost btn-sm" id="btnEditFinanceiro" onclick="toggleEditFinanceiro()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg>
+              Editar
+            </button>
+          </div>
+          <div style="padding:24px">
+            <div id="fin-rec-motivo" style="display:none;margin-bottom:16px;padding:12px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;font-size:13px;color:#b91c1c;line-height:1.5"></div>
+
+            <div style="font-size:13px;color:var(--gray-400);line-height:1.6;margin-bottom:20px">Informe a conta ou chave PIX onde você quer receber os repasses das parcerias. Esses dados passam por verificação da Relevantia antes de qualquer pagamento.</div>
+
+            <div style="font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin:0 0 12px">Titular da conta</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Nome do titular</label>
+                <input class="form-input financeiro-field" id="fin-titular-nome" type="text" placeholder="Nome completo / Razão social" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tipo de documento</label>
+                <select class="form-input financeiro-field" id="fin-titular-tipo" disabled style="appearance:auto" onchange="_finMaskDoc(document.getElementById('fin-titular-doc'))">
+                  <option value="cpf">CPF</option>
+                  <option value="cnpj">CNPJ</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">CPF / CNPJ do titular</label>
+                <input class="form-input financeiro-field" id="fin-titular-doc" type="text" placeholder="000.000.000-00" maxlength="18" disabled oninput="_finMaskDoc(this)">
+              </div>
+            </div>
+
+            <div style="font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin:20px 0 12px">Chave PIX (recebimento)</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Tipo de chave</label>
+                <select class="form-input financeiro-field" id="fin-pix-tipo" disabled style="appearance:auto">
+                  <option value="cpf">CPF</option>
+                  <option value="cnpj">CNPJ</option>
+                  <option value="email">E-mail</option>
+                  <option value="telefone">Telefone</option>
+                  <option value="aleatoria">Aleatória</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Chave PIX</label>
+                <input class="form-input financeiro-field" id="fin-pix-chave" type="text" placeholder="Sua chave PIX" disabled>
+              </div>
+            </div>
+
+            <div style="font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin:20px 0 12px">Dados bancários <span style="text-transform:none;font-weight:500;letter-spacing:0">(opcional)</span></div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Banco</label>
+                <input class="form-input financeiro-field" id="fin-banco" type="text" placeholder="260 - Nubank" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Agência</label>
+                <input class="form-input financeiro-field" id="fin-agencia" type="text" placeholder="0001" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Conta (com dígito)</label>
+                <input class="form-input financeiro-field" id="fin-conta" type="text" placeholder="000000-0" disabled>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tipo de conta</label>
+                <select class="form-input financeiro-field" id="fin-tipo-conta" disabled style="appearance:auto">
+                  <option value="corrente">Corrente</option>
+                  <option value="poupanca">Poupança</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions" id="financeiroActions" style="display:none">
+              <button class="btn btn-gold" id="btnSaveFinanceiro" onclick="saveDadosFinanceiros()">Salvar e enviar para análise</button>
+              <button class="btn btn-ghost" onclick="toggleEditFinanceiro()">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Taxa da plataforma (informativo) -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <div class="card-title">Taxa da plataforma</div>
+          </div>
+          <div style="padding:24px">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--gray-50,#f9f9f9);border-radius:10px;border:1px solid var(--gray-200)">
               <div>
-                <div style="font-size:13px;font-weight:600;color:var(--text)">Taxa da plataforma</div>
-                <div style="font-size:12px;color:var(--gray-400);margin-top:3px">Percentual retido pela Relevantia por negociação</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">Percentual retido por negociação</div>
+                <div style="font-size:12px;color:var(--gray-400);margin-top:3px">Descontado do valor bruto de cada parceria fechada</div>
               </div>
               <span id="fin-taxa" style="font-size:18px;font-weight:700;color:var(--gold)">—%</span>
             </div>
-            <div style="padding:16px;background:rgba(184,134,11,0.05);border:1px solid rgba(184,134,11,0.15);border-radius:10px">
-              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Como funciona</div>
-              <div style="font-size:13px;color:var(--gray-400);line-height:1.6">O cadastro financeiro é necessário para receber pagamentos de patrocínio via plataforma. Você será redirecionado para completar seus dados bancários de forma segura.</div>
-            </div>
-            <button class="btn btn-gold" id="btn-stripe-onboarding" onclick="iniciarOnboardingStripe()" style="align-self:flex-start">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
-              Completar cadastro financeiro
-            </button>
           </div>
         </div>
 
@@ -2929,6 +3002,7 @@ async function init() {
 
     // Load detentor's own opportunities from Supabase
     try { await loadMinhasOpps(); } catch (e) { console.error('[init] loadMinhasOpps failed:', e); }
+    _oppsLoaded = true; // agora sim é seguro avaliar focus mode
 
     // Onboarding: detentor sem nenhuma oportunidade → redireciona direto para criar
     // (loading screen ainda visível — sem flash de conteúdo)
@@ -3077,8 +3151,13 @@ function _applyJuridicoFocusMode(active) {
 const FOCUS_LOCKED      = new Set(['dashboard', 'voz']); // seções bloqueadas (configuracoes acessível para dados jurídicos)
 const FOCUS_LOCKED_TABS = new Set(['negociacoes', 'deals', 'solicitacoes']); // sub-tabs bloqueados
 
+// Flag: só avalia focus mode após loadMinhasOpps() ter concluído.
+// Evita falso positivo durante a janela de loading inicial (race condition).
+let _oppsLoaded = false;
+
 function _isFocusModeActive() {
   if (isDemoMode()) return false;
+  if (!_oppsLoaded) return false; // ainda carregando — não bloqueia
   return MINHAS_OPPS.length === 0;
 }
 
@@ -7364,6 +7443,7 @@ async function saveJuridico() {
     document.getElementById('btnEditJuridico').textContent = 'Editar';
     OB_DET.juridico = true;
     updateSetupGuide();
+    renderJuridicoBadge();
     _updateJuridicoBanner();
     // Atualiza banner para "em análise" (foco mantido até admin aprovar)
     _applyJuridicoFocusMode(true);
@@ -7416,9 +7496,24 @@ function populateJuridicoFields(p) {
   if (estadoEl && p.estado) estadoEl.value = p.estado;
 }
 
+function renderJuridicoBadge() {
+  const badge = document.getElementById('jur-status-badge');
+  if (!badge) return;
+  let s;
+  if (!OB_DET.juridico) {
+    s = { t: 'Pendente', bg: 'var(--gray-100)', c: 'var(--gray-400)' };
+  } else if (OB_DET.podePublicar) {
+    s = { t: '✓ Verificado', bg: '#dcfce7', c: '#16a34a' };
+  } else {
+    s = { t: 'Em análise', bg: '#FEF3C7', c: '#92400E' };
+  }
+  badge.textContent = s.t; badge.style.background = s.bg; badge.style.color = s.c;
+}
+
 async function loadJuridicoFromPerfil() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session?.user) return;
+  renderJuridicoBadge();
   const { data, error } = await sb.rpc('get_perfil_juridico', { p_perfil_id: session.user.id });
   if (!error && data && data[0]) populateJuridicoFields(data[0]);
 }
@@ -7439,55 +7534,141 @@ async function buscarCep(input) {
   } catch (_) {}
 }
 
-// ─── ABA FINANCEIRO ───
+// ─── ABA FINANCEIRO (dados de recebimento + verificação) ───
+let editingFinanceiro = false;
+
+function _finMaskDoc(el) {
+  if (!el) return;
+  const tipo = document.getElementById('fin-titular-tipo')?.value || 'cpf';
+  if (tipo === 'cnpj') { el.maxLength = 18; _djpmMaskCnpj(el); }
+  else { el.maxLength = 14; _djpmMaskCpf(el); }
+}
+
+function renderFinanceiroBadge(status, motivo) {
+  const badge = document.getElementById('fin-rec-badge');
+  const motivoEl = document.getElementById('fin-rec-motivo');
+  const map = {
+    pendente:   { t: 'Pendente',     bg: 'var(--gray-100)', c: 'var(--gray-400)' },
+    em_analise: { t: 'Em análise',   bg: '#FEF3C7',         c: '#92400E' },
+    verificado: { t: '✓ Verificado', bg: '#dcfce7',         c: '#16a34a' },
+    negado:     { t: 'Negado',       bg: '#fee2e2',         c: '#dc2626' },
+  };
+  const s = map[status] || map.pendente;
+  if (badge) { badge.textContent = s.t; badge.style.background = s.bg; badge.style.color = s.c; }
+  if (motivoEl) {
+    if (status === 'negado' && motivo) {
+      motivoEl.textContent = 'Motivo da recusa: ' + motivo;
+      motivoEl.style.display = '';
+    } else {
+      motivoEl.style.display = 'none';
+    }
+  }
+}
+
+function populateFinanceiroFields(d) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('fin-titular-nome', d.titular_nome);
+  const tipoEl = document.getElementById('fin-titular-tipo');
+  if (tipoEl && d.titular_tipo) tipoEl.value = d.titular_tipo;
+  set('fin-titular-doc', d.titular_documento);
+  const pixTipoEl = document.getElementById('fin-pix-tipo');
+  if (pixTipoEl && d.pix_tipo) pixTipoEl.value = d.pix_tipo;
+  set('fin-pix-chave', d.pix_chave);
+  set('fin-banco', d.banco);
+  set('fin-agencia', d.agencia);
+  set('fin-conta', d.conta);
+  const tcEl = document.getElementById('fin-tipo-conta');
+  if (tcEl && d.tipo_conta) tcEl.value = d.tipo_conta;
+}
+
+function toggleEditFinanceiro() {
+  editingFinanceiro = !editingFinanceiro;
+  document.querySelectorAll('.financeiro-field').forEach(el => el.disabled = !editingFinanceiro);
+  document.getElementById('financeiroActions').style.display = editingFinanceiro ? '' : 'none';
+  document.getElementById('btnEditFinanceiro').textContent = editingFinanceiro ? 'Cancelar' : 'Editar';
+  if (!editingFinanceiro) loadFinanceiro();
+}
+
 async function loadFinanceiro() {
-  const token = await getValidToken();
-  if (!token) return;
   const { data: { session } } = await sb.auth.getSession();
   const userId = session?.user?.id;
   if (!userId) return;
-  const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=stripe_onboarding_status,taxa_plataforma_percent,cadastro_financeiro_completo&limit=1', {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
-  });
-  if (!res.ok) return;
-  const rows = await res.json();
-  const p = rows[0] || {};
 
-  const badge = document.getElementById('fin-status-badge');
-  const btn = document.getElementById('btn-stripe-onboarding');
-  const status = p.stripe_onboarding_status;
-  if (badge) {
-    if (status === 'complete' || p.cadastro_financeiro_completo) {
-      badge.textContent = 'Completo';
-      badge.style.background = '#dcfce7'; badge.style.color = '#16a34a';
-      if (btn) { btn.textContent = 'Gerenciar conta financeira'; }
-    } else if (status === 'pending') {
-      badge.textContent = 'Pendente';
-      badge.style.background = '#fef9c3'; badge.style.color = '#854d0e';
-    } else {
-      badge.textContent = 'Não iniciado';
-      badge.style.background = 'var(--gray-100)'; badge.style.color = 'var(--gray-400)';
-    }
-  }
-
-  const taxaEl = document.getElementById('fin-taxa');
-  if (taxaEl) taxaEl.textContent = p.taxa_plataforma_percent != null ? p.taxa_plataforma_percent + '%' : '—%';
-}
-
-async function iniciarOnboardingStripe() {
-  const btn = document.getElementById('btn-stripe-onboarding');
-  if (btn) { btn.disabled = true; btn.textContent = 'Aguarde...'; }
+  // Taxa da plataforma (informativo)
   try {
     const token = await getValidToken();
-    const res = await fetch(SUPABASE_URL + '/functions/v1/create-onboarding-link', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
+    const res = await fetch(SUPABASE_URL + '/rest/v1/perfis?id=eq.' + userId + '&select=taxa_plataforma_percent&limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
-    const data = await res.json();
-    if (data.url) { window.location.href = data.url; return; }
+    if (res.ok) {
+      const p = (await res.json())[0] || {};
+      const taxaEl = document.getElementById('fin-taxa');
+      if (taxaEl) taxaEl.textContent = p.taxa_plataforma_percent != null ? p.taxa_plataforma_percent + '%' : '—%';
+    }
   } catch (_) {}
-  if (btn) { btn.disabled = false; btn.textContent = 'Completar cadastro financeiro'; }
+
+  // Dados de recebimento + status de verificação
+  const { data, error } = await sb.rpc('get_dados_financeiros', { p_perfil_id: userId });
+  const d = (!error && data && data[0]) ? data[0] : null;
+  if (d) {
+    populateFinanceiroFields(d);
+    renderFinanceiroBadge(d.status, d.motivo_negacao);
+  } else {
+    renderFinanceiroBadge('pendente', null);
+  }
+}
+
+async function saveDadosFinanceiros() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session?.user) return;
+
+  const nome      = document.getElementById('fin-titular-nome')?.value.trim() || '';
+  const tipoDoc   = document.getElementById('fin-titular-tipo')?.value || 'cpf';
+  const doc       = document.getElementById('fin-titular-doc')?.value.trim() || '';
+  const pixTipo   = document.getElementById('fin-pix-tipo')?.value || '';
+  const pixChave  = document.getElementById('fin-pix-chave')?.value.trim() || '';
+  const banco     = document.getElementById('fin-banco')?.value.trim() || '';
+  const agencia   = document.getElementById('fin-agencia')?.value.trim() || '';
+  const conta     = document.getElementById('fin-conta')?.value.trim() || '';
+  const tipoConta = document.getElementById('fin-tipo-conta')?.value || 'corrente';
+
+  if (!nome) { showToast('Informe o nome do titular.', 'error'); document.getElementById('fin-titular-nome')?.focus(); return; }
+  if (!doc)  { showToast('Informe o CPF/CNPJ do titular.', 'error'); document.getElementById('fin-titular-doc')?.focus(); return; }
+  if (tipoDoc === 'cpf'  && !_djpmValidateCpf(doc))  { showToast('CPF do titular inválido. Verifique os dígitos.', 'error'); return; }
+  if (tipoDoc === 'cnpj' && !_djpmValidateCnpj(doc)) { showToast('CNPJ do titular inválido. Verifique os dígitos.', 'error'); return; }
+  if (!pixTipo)  { showToast('Selecione o tipo da chave PIX.', 'error'); return; }
+  if (!pixChave) { showToast('Informe a chave PIX para recebimento.', 'error'); document.getElementById('fin-pix-chave')?.focus(); return; }
+
+  const btn = document.getElementById('btnSaveFinanceiro');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+
+  const temBanco = !!(banco || agencia || conta);
+  const { error } = await sb.rpc('upsert_dados_financeiros', {
+    p_titular_nome:      nome,
+    p_titular_tipo:      tipoDoc,
+    p_titular_documento: doc,
+    p_banco:             banco || null,
+    p_agencia:           agencia || null,
+    p_conta:             conta || null,
+    p_tipo_conta:        temBanco ? tipoConta : null,
+    p_pix_chave:         pixChave,
+    p_pix_tipo:          pixTipo
+  });
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Salvar e enviar para análise'; }
+
+  if (error) {
+    console.error('[saveDadosFinanceiros]', error);
+    showToast('Erro ao salvar dados financeiros. Tente novamente.', 'error');
+    return;
+  }
+
+  editingFinanceiro = false;
+  document.querySelectorAll('.financeiro-field').forEach(el => el.disabled = true);
+  document.getElementById('financeiroActions').style.display = 'none';
+  document.getElementById('btnEditFinanceiro').textContent = 'Editar';
+  renderFinanceiroBadge('em_analise', null);
+  showToast('Dados enviados! Em análise pela Relevantia.', 'success');
 }
 
 function switchVozTab(tab) {
