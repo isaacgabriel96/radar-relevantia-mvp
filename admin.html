@@ -1271,7 +1271,11 @@ tr.row-selected td { background: #FEF2F2; }
           <h1 class="page-title">Suporte · Fale com o Radar</h1>
           <p class="page-sub">Converse com marcas e detentores: responda dúvidas, peça informações e acompanhe feedbacks.</p>
         </div>
-        <div class="filter-bar" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
+        <div class="filter-bar" style="margin-bottom:12px;display:flex;gap:8px">
+          <button class="btn btn-sm btn-filter active" id="supModoSuporte" onclick="suporteModo('suporte', this)">💬 Suporte</button>
+          <button class="btn btn-sm btn-filter" id="supModoNeg" onclick="suporteModo('negociacoes', this)">🤝 Conversas de negociação</button>
+        </div>
+        <div class="filter-bar" id="suporteFilterBar" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-sm btn-filter active" onclick="suporteFiltrar('nao_lidos', this)">🔴 Não lidos</button>
           <button class="btn btn-sm btn-filter" onclick="suporteFiltrar('abertos', this)">Abertos</button>
           <button class="btn btn-sm btn-filter" onclick="suporteFiltrar('marca', this)">Marcas</button>
@@ -1803,6 +1807,72 @@ async function loadSuporte() {
   if (!_supOpenId) suporteRenderThread();
 }
 
+// ── Modo: Suporte | Conversas de negociação (só-leitura) ─────
+let _supModo = 'suporte', _supNegs = [], _supNegOpenId = null;
+function suporteModo(modo) {
+  _supModo = modo;
+  const a = document.getElementById('supModoSuporte'), b = document.getElementById('supModoNeg');
+  if (a) a.classList.toggle('active', modo === 'suporte');
+  if (b) b.classList.toggle('active', modo === 'negociacoes');
+  const fb = document.getElementById('suporteFilterBar'); if (fb) fb.style.display = modo === 'suporte' ? '' : 'none';
+  _supOpenId = null; _supNegOpenId = null;
+  const th = document.getElementById('suporteThread'); if (th) th.innerHTML = '<div style="margin:auto;color:#9aa;text-align:center">Selecione uma conversa à esquerda.</div>';
+  if (modo === 'negociacoes') loadSupNeg(); else suporteRenderList();
+}
+async function loadSupNeg() {
+  const list = document.getElementById('suporteList'); if (list) list.innerHTML = '<div style="padding:30px;text-align:center;color:#9aa">Carregando...</div>';
+  try {
+    const res = await sbFetch('/rest/v1/negociacoes?select=id,status,status_label,created_at,marca:marca_id(nome,empresa),detentor:detentor_id(nome,empresa),oportunidade:oportunidade_id(titulo),mensagens(autor_role,autor_nome,texto,created_at,anexo_url)&order=created_at.desc');
+    _supNegs = res.ok ? await res.json() : [];
+  } catch (e) { _supNegs = []; }
+  if (_supModo === 'negociacoes') suporteRenderNegList();
+}
+function _supNegNome(n, side) { const p = n[side]; return p ? (p.empresa || p.nome || '—') : '—'; }
+function suporteRenderNegList() {
+  const list = document.getElementById('suporteList'); const count = document.getElementById('countSuporte');
+  if (!list) return;
+  if (count) count.textContent = _supNegs.length + ' negociaç' + (_supNegs.length === 1 ? 'ão' : 'ões');
+  if (!_supNegs.length) { list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:#9aa">Nenhuma negociação.</div>'; return; }
+  list.innerHTML = _supNegs.map(n => {
+    const marca = _supNegNome(n, 'marca'), det = _supNegNome(n, 'detentor');
+    const opp = n.oportunidade ? n.oportunidade.titulo : 'Negociação';
+    const nmsg = (n.mensagens || []).length;
+    const active = n.id === _supNegOpenId;
+    return '<div onclick="suporteAbrirNeg(\'' + n.id + '\')" style="padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer;' + (active ? 'background:#f5f3ee;' : '') + 'display:flex;flex-direction:column;gap:3px">' +
+      '<div style="font-weight:600;font-size:13px;color:#222;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(marca) + ' ↔ ' + escapeHtml(det) + '</div>' +
+      '<div style="font-size:12px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(opp) + '</div>' +
+      '<div style="font-size:10px;color:#888">' + escapeHtml(n.status_label || n.status || '') + ' · ' + nmsg + ' msg' + (nmsg === 1 ? '' : 's') + '</div>' +
+    '</div>';
+  }).join('');
+}
+function suporteAbrirNeg(id) {
+  _supNegOpenId = id; suporteRenderNegList();
+  const n = _supNegs.find(x => x.id === id) || {};
+  const el = document.getElementById('suporteThread'); if (!el) return;
+  const marca = _supNegNome(n, 'marca'), det = _supNegNome(n, 'detentor');
+  const opp = n.oportunidade ? n.oportunidade.titulo : 'Negociação';
+  const msgs = (n.mensagens || []).slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  const bubbles = msgs.map(m => {
+    const isMarca = m.autor_role === 'marca';
+    const who = (m.autor_nome || (isMarca ? marca : det)) + ' · ' + (isMarca ? 'Marca' : 'Detentor');
+    const dt = new Date(m.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    return '<div style="display:flex;flex-direction:column;align-items:' + (isMarca ? 'flex-end' : 'flex-start') + ';gap:3px">' +
+      '<div style="font-size:11px;color:#999;padding:0 4px">' + escapeHtml(who) + '</div>' +
+      '<div style="max-width:78%;padding:10px 14px;border-radius:14px;' + (isMarca ? 'background:#3B82F6;color:#fff;border-bottom-right-radius:4px' : 'background:#f0ede6;color:#222;border-bottom-left-radius:4px') + ';font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">' + escapeHtml(m.texto) +
+        (m.anexo_url ? '<img src="' + m.anexo_url + '" style="margin-top:8px;max-width:200px;border-radius:8px;display:block;cursor:pointer" onclick="window.open(this.src)">' : '') +
+      '</div>' +
+      '<div style="font-size:10px;color:#bbb;padding:0 4px">' + dt + '</div>' +
+    '</div>';
+  }).join('');
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid #eee;margin-bottom:14px;flex-wrap:wrap">' +
+      '<span style="font-weight:700;font-size:15px;color:#222">' + escapeHtml(marca) + ' ↔ ' + escapeHtml(det) + '</span>' +
+      '<span style="font-size:11px;color:#888">' + escapeHtml(opp) + '</span>' +
+      '<span style="margin-left:auto;font-size:11px;color:#aaa;font-style:italic">somente leitura</span>' +
+    '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto;max-height:520px;padding:2px">' + (bubbles || '<div style="color:#9aa;text-align:center;padding:30px">Sem mensagens nesta negociação.</div>') + '</div>';
+}
+
 async function _supLoadNomes() {
   const ids = [...new Set(_supTickets.map(t => t.autor_id))].filter(Boolean);
   if (!ids.length) return;
@@ -1832,6 +1902,7 @@ function _supFiltered() {
 }
 
 function suporteRenderList() {
+  if (_supModo === 'negociacoes') return;
   const list = document.getElementById('suporteList');
   const count = document.getElementById('countSuporte');
   if (!list) return;
