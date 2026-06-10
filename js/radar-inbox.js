@@ -109,7 +109,8 @@
   function initials(name) { return (typeof makeInitials === 'function') ? makeInitials(name || '') : (name || '?').substring(0, 2).toUpperCase(); }
   // Avatar no padrão do projeto: logo_url direto (com onerror→iniciais) ou
   // data-bf-domain/name para o applyBrandfetchLogos() do core.js buscar a logo.
-  var RADAR_MARK = '<span class="ib-av" style="background:#2e1f12;overflow:hidden"><img src="logos/5.png" alt="Radar Relevantia" style="width:112%;height:112%;object-fit:contain"></span>';
+  var RADAR_SVG = '<svg viewBox="0 0 24 24" width="62%" height="62%"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#C9A961" stroke-width="1.3" opacity="0.4"/><circle cx="12" cy="12" r="5" fill="none" stroke="#C9A961" stroke-width="1.3" opacity="0.4"/><path d="M12 12L12 3.5A8.5 8.5 0 0 1 19.6 7.8Z" fill="#C9A961" opacity="0.9"/><circle cx="12" cy="12" r="1.4" fill="#C9A961"/><circle cx="16.4" cy="8.2" r="1.15" fill="#fff"/></svg>';
+  var RADAR_MARK = '<span class="ib-av" style="background:#2e1f12">' + RADAR_SVG + '</span>';
   function avatarHtml(c) {
     if (c.kind === 'sup') return RADAR_MARK;
     var n = c.raw || {};
@@ -130,7 +131,7 @@
     var out = [];
     S.sup.forEach(function (t) {
       var c = CAT[t.categoria] || CAT['outro'];
-      out.push({ kind: 'sup', id: t.id, raw: t, title: 'Radar · ' + c.label, sub: t.assunto || 'Conversa com o time', avatarColor: c.color, avatarText: 'R', statusLabel: SUP_STATUS[t.status] || t.status, unread: t.cliente_viu === false, ts: Date.parse(t.last_message_at) || 0, pending: false });
+      out.push({ kind: 'sup', id: t.id, raw: t, title: 'Radar', sub: t.assunto || 'Conversa com o time', avatarColor: c.color, avatarText: 'R', statusLabel: SUP_STATUS[t.status] || t.status, unread: t.cliente_viu === false, ts: Date.parse(t.last_message_at) || 0, pending: false });
     });
     negList().forEach(function (n) {
       var thread = n.thread || [];
@@ -177,7 +178,7 @@
           '<div class="ib-contextcol" id="ibContext"></div>' +
         '</div>';
       S.mounted = true;
-      root.querySelector('#ibFilters').addEventListener('click', onFilterClick);
+      root.querySelector('#ibFilters').addEventListener('change', function (e) { if (e.target && e.target.id === 'ibFilterSel') { S.filter = e.target.value; renderList(); } });
       root.querySelector('#ibNewBtn').addEventListener('click', function () { S.open = { kind: 'new' }; S.draft = ''; S.newShortcut = null; S.newCat = 'duvida'; S.newTag = ''; setMobileThread(true); renderThread(); });
       root.querySelector('#ibList').addEventListener('click', onListClick);
       root.querySelector('#ibThread').addEventListener('click', onThreadClick);
@@ -193,7 +194,7 @@
   function renderFilters() {
     var el = document.getElementById('ibFilters');
     if (!el) return;
-    el.innerHTML = FILTERS.map(function (f) { return '<button class="ib-fpill' + (S.filter === f.key ? ' ib-fpill-on' : '') + '" data-filter="' + f.key + '">' + f.label + '</button>'; }).join('');
+    el.innerHTML = '<select class="ib-fselect" id="ibFilterSel" aria-label="Filtrar conversas">' + FILTERS.map(function (f) { return '<option value="' + f.key + '"' + (S.filter === f.key ? ' selected' : '') + '>' + f.label + '</option>'; }).join('') + '</select>';
   }
 
   function renderList() {
@@ -273,7 +274,7 @@
     var t = S.sup.find(function (x) { return x.id === S.open.id; }) || {};
     var c = CAT[t.categoria] || CAT['outro'];
     var rows = S.supThread.map(function (m) { return { _who: m.autor_papel === 'cliente' ? 'Você' : (m.autor_nome ? m.autor_nome + ' · Radar' : 'Equipe Radar'), _text: m.texto, _img: m.anexo_url || null, _time: fmtMsg(m.created_at), _mine: m.autor_papel === 'cliente' }; });
-    host.innerHTML = threadHeader('Radar · ' + c.label, t.assunto || '', '<span class="ib-thead-st" style="color:' + c.color + '">' + (SUP_STATUS[t.status] || t.status || '') + '</span>') +
+    host.innerHTML = threadHeader('Radar', t.assunto || '', '<span class="ib-thead-st" style="color:' + c.color + '">' + (SUP_STATUS[t.status] || t.status || '') + '</span>') +
       '<div class="ib-scroll" id="ibScroll">' + bubbles(rows) + '</div>' + composer('ibReply', true);
     scrollDown();
   }
@@ -461,6 +462,7 @@
       '.ib-filters{display:flex;gap:6px;flex-wrap:wrap;padding:12px;border-bottom:1px solid var(--gray-200,#ece7dd)}' +
       '.ib-fpill{padding:5px 11px;border-radius:100px;border:1.5px solid var(--gray-200,#ece7dd);background:var(--white,#fff);font-family:inherit;font-size:12px;color:var(--gray-500,#7a6a58);cursor:pointer;white-space:nowrap}' +
       '.ib-fpill-on{background:var(--black,#15110c);color:#fff;border-color:var(--black,#15110c);font-weight:600}' +
+      '.ib-fselect{width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid var(--gray-200,#ece7dd);background:var(--white,#fff);font-family:inherit;font-size:13px;color:var(--text,#221c14);cursor:pointer;font-weight:600}' +
       '.ib-newbtn{margin:12px;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;border-radius:12px;border:none;background:var(--gold,#B8860B);color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}' +
       '.ib-newbtn svg{width:15px;height:15px}' +
       '.ib-list{flex:1;overflow-y:auto;padding:0 8px 10px}' +

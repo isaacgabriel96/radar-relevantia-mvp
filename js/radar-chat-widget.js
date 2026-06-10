@@ -47,6 +47,8 @@
     { label: 'Quero dar uma sugestão',              cat: 'melhoria', tag: '' }
   ];
   var RADAR_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>';
+  var RADAR_SVG = '<svg viewBox="0 0 24 24" width="60%" height="60%"><circle cx="12" cy="12" r="8.5" fill="none" stroke="#C9A961" stroke-width="1.3" opacity="0.4"/><circle cx="12" cy="12" r="5" fill="none" stroke="#C9A961" stroke-width="1.3" opacity="0.4"/><path d="M12 12L12 3.5A8.5 8.5 0 0 1 19.6 7.8Z" fill="#C9A961" opacity="0.9"/><circle cx="12" cy="12" r="1.4" fill="#C9A961"/><circle cx="16.4" cy="8.2" r="1.15" fill="#fff"/></svg>';
+  var RADAR_AV = '<span class="rc-av">' + RADAR_SVG + '</span>';
 
   var S = {
     tickets: [], openId: null, msgs: [],
@@ -230,9 +232,9 @@
       var dt = new Date(t.last_message_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
       var un = t.cliente_viu === false;
       return '<button class="rc-item" data-act="open" data-id="' + t.id + '">' +
-        '<span class="rc-dot" style="background:' + c.color + '"></span>' +
+        RADAR_AV +
         '<span class="rc-item-main">' +
-          '<span class="rc-item-top"><span class="rc-cat" style="color:' + c.color + '">' + c.label + '</span>' +
+          '<span class="rc-item-top"><span class="rc-name">Radar</span>' +
             (un ? '<span class="rc-new-pill">nova resposta</span>' : '') +
             '<span class="rc-date">' + dt + '</span></span>' +
           '<span class="rc-assunto">' + esc(t.assunto || '(sem assunto)') + '</span>' +
@@ -270,7 +272,7 @@
     var t = S.tickets.find(function (x) { return x.id === S.openId; }) || {};
     var c = CAT[t.categoria] || CAT['outro'];
     var st = STATUS[t.status] || STATUS['recebido'];
-    setTitle((c.label) + ' · ' + st.label, true);
+    setTitle('Radar', true, st.label, true);
     var bubbles = S.msgs.map(function (m) {
       var mine = m.autor_papel === 'cliente';
       var dt = new Date(m.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -293,11 +295,15 @@
     if (sc) sc.scrollTop = sc.scrollHeight;
   }
 
-  function setTitle(txt, back) {
+  function setTitle(txt, back, sub, showAv) {
     var tt = document.getElementById('rcTitle');
     var bk = document.getElementById('rcBack');
+    var su = document.getElementById('rcSub');
+    var av = document.getElementById('rcHeadAv');
     if (tt) tt.textContent = txt;
     if (bk) bk.style.display = back ? 'flex' : 'none';
+    if (su) { su.textContent = sub || ''; su.style.display = sub ? 'block' : 'none'; }
+    if (av) { if (showAv) { av.innerHTML = RADAR_SVG; av.style.display = 'flex'; } else { av.style.display = 'none'; av.innerHTML = ''; } }
   }
 
   function onImage(input) {
@@ -329,7 +335,12 @@
       '.rc-head{display:flex;align-items:center;gap:10px;padding:16px 18px;background:var(--black,#15110c);color:#fff;flex-shrink:0}' +
       '.rc-head .rc-back{background:rgba(255,255,255,.12);border:none;color:#fff;width:28px;height:28px;border-radius:8px;cursor:pointer;display:none;align-items:center;justify-content:center;flex-shrink:0}' +
       '.rc-head .rc-back svg{width:15px;height:15px}' +
-      '.rc-head .rc-title{font-weight:700;font-size:14px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+      '.rc-head .rc-title{font-weight:700;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+      '.rc-head-main{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}' +
+      '.rc-sub{font-size:11px;color:rgba(255,255,255,.6)}' +
+      '.rc-head-av{width:34px;height:34px;border-radius:9px;background:#2e1f12;flex-shrink:0;display:none;align-items:center;justify-content:center}' +
+      '.rc-av{width:44px;height:44px;border-radius:11px;background:#2e1f12;flex-shrink:0;display:flex;align-items:center;justify-content:center}' +
+      '.rc-name{font-size:13px;font-weight:700;color:var(--text,#221c14)}' +
       '.rc-head .rc-close{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:20px;line-height:1;width:26px;height:26px;border-radius:8px}' +
       '.rc-head .rc-close:hover{background:rgba(255,255,255,.12);color:#fff}' +
       '#rcBody{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--gray-100,#faf8f4)}' +
@@ -406,7 +417,8 @@
     panel.innerHTML =
       '<div class="rc-head">' +
         '<button class="rc-back" id="rcBack" data-act="back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>' +
-        '<span class="rc-title" id="rcTitle">Fale com o Radar</span>' +
+        '<span class="rc-head-av" id="rcHeadAv"></span>' +
+        '<div class="rc-head-main"><span class="rc-title" id="rcTitle">Fale com o Radar</span><span class="rc-sub" id="rcSub" style="display:none"></span></div>' +
         '<button class="rc-close" data-act="close">&times;</button>' +
       '</div>' +
       '<div id="rcBody"></div>' +
