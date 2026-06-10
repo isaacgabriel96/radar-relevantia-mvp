@@ -1779,7 +1779,8 @@ function showSection(name, el) {
 
 // ── SUPORTE / FALE COM O RADAR ───────────────────────────────
 let _supTickets = [];
-let _supNomes = {};
+let _supNomes = {}, _supLogo = {}, _supDomain = {};
+const _supBfCache = {}, _SUP_BF_CLIENT = '1idE-ar9WXT49s6Qb2f';
 let _supOpenId = null;
 let _supThread = [];
 let _supFilter = 'nao_lidos';
@@ -1794,6 +1795,53 @@ const SUP_CAT = {
 };
 const SUP_STATUS = ['recebido', 'analise', 'respondido', 'planejado', 'resolvido'];
 const SUP_STATUS_LABEL = { recebido: 'Recebido', analise: 'Em análise', respondido: 'Respondido', planejado: 'Planejado', resolvido: 'Resolvido' };
+
+// ── UX igual ao inbox do cliente: avatares quadrados c/ logo + bolhas ──
+function _supInjectCss() {
+  if (document.getElementById('asupStyle')) return;
+  const css =
+    '.asup-list{padding:6px 8px}' +
+    '.asup-item{width:100%;text-align:left;display:flex;gap:11px;padding:11px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:inherit;margin-bottom:2px}' +
+    '.asup-item:hover,.asup-item.on{background:#faf8f4}' +
+    '.asup-av{width:48px;height:48px;border-radius:12px;flex-shrink:0;background:#2e1f12;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;overflow:hidden}' +
+    '.asup-av img{width:100%;height:100%;object-fit:contain}' +
+    '.asup-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}' +
+    '.asup-top{display:flex;align-items:center;gap:8px}' +
+    '.asup-name{font-weight:700;font-size:14px;color:#222;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+    '.asup-date{font-size:11px;color:#9b8f7e;flex-shrink:0}' +
+    '.asup-sub{font-size:12px;color:#7a6a58;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+    '.asup-foot{display:flex;align-items:center;gap:6px}' +
+    '.asup-tag{font-size:10px;font-weight:700;padding:1px 7px;border-radius:100px}' +
+    '.asup-st{font-size:10px;color:#9b8f7e}' +
+    '.asup-unread{width:9px;height:9px;border-radius:50%;background:#EF4444;margin-left:auto;flex-shrink:0}' +
+    '.asup-head{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid #eee;margin-bottom:14px;flex-wrap:wrap}' +
+    '.asup-row{display:flex;flex-direction:column;gap:3px}.asup-row.me{align-items:flex-end}.asup-row.them{align-items:flex-start}' +
+    '.asup-who{font-size:11px;color:#9b8f7e;padding:0 4px}' +
+    '.asup-bubble{max-width:80%;padding:10px 14px;border-radius:15px;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}' +
+    '.asup-b-me{background:#2e1f12;color:#fff;border-bottom-right-radius:5px}' +
+    '.asup-b-them{background:#fff;border:1px solid #ece7dd;color:#221c14;border-bottom-left-radius:5px}' +
+    '.asup-time{font-size:10px;color:#bbb;padding:0 4px}' +
+    '.asup-bubble img{display:block;margin-top:8px;max-width:200px;border-radius:8px;cursor:pointer}';
+  const st = document.createElement('style'); st.id = 'asupStyle'; st.textContent = css; document.head.appendChild(st);
+}
+function _supSetLogo(row, src) { const img = row.querySelector('img'), span = row.querySelector('span'); if (!img) return; img.src = src; img.style.display = 'block'; if (span) span.style.display = 'none'; img.onerror = () => { img.style.display = 'none'; if (span) span.style.display = ''; }; }
+function _supApplyLogos(container) {
+  if (!container) return;
+  container.querySelectorAll('[data-bf]').forEach(row => {
+    const q = row.getAttribute('data-bf'); if (!q) return;
+    if (q in _supBfCache) { if (_supBfCache[q]) _supSetLogo(row, _supBfCache[q]); return; }
+    _supBfCache[q] = null;
+    fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(q) + '?c=' + _SUP_BF_CLIENT).then(r => r.ok ? r.json() : null).then(d => { const ic = Array.isArray(d) && d[0] ? d[0].icon : null; _supBfCache[q] = ic || null; if (ic) _supSetLogo(row, ic); }).catch(() => {});
+  });
+}
+function _supAvatar(logo, dom, nome) {
+  const init = (nome || '?').substring(0, 2).toUpperCase();
+  const bf = logo ? '' : (dom ? ' data-bf="' + escapeHtml(dom) + '"' : (nome && nome !== '—' ? ' data-bf="' + escapeHtml(nome) + '"' : ''));
+  const inner = logo
+    ? '<img src="' + escapeHtml(logo) + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'"><span style="display:none">' + escapeHtml(init) + '</span>'
+    : '<img style="display:none"><span>' + escapeHtml(init) + '</span>';
+  return '<span class="asup-av"' + bf + '>' + inner + '</span>';
+}
 
 async function loadSuporte() {
   try {
@@ -1822,7 +1870,7 @@ function suporteModo(modo) {
 async function loadSupNeg() {
   const list = document.getElementById('suporteList'); if (list) list.innerHTML = '<div style="padding:30px;text-align:center;color:#9aa">Carregando...</div>';
   try {
-    const res = await sbFetch('/rest/v1/negociacoes?select=id,status,status_label,created_at,marca:marca_id(nome,empresa),detentor:detentor_id(nome,empresa),oportunidade:oportunidade_id(titulo),mensagens(autor_role,autor_nome,texto,created_at,anexo_url)&order=created_at.desc');
+    const res = await sbFetch('/rest/v1/negociacoes?select=id,status,status_label,created_at,marca:marca_id(nome,empresa,logo_url,empresa_domain),detentor:detentor_id(nome,empresa),oportunidade:oportunidade_id(titulo),mensagens(autor_role,autor_nome,texto,created_at,anexo_url)&order=created_at.desc');
     _supNegs = res.ok ? await res.json() : [];
   } catch (e) { _supNegs = []; }
   if (_supModo === 'negociacoes') suporteRenderNegList();
@@ -1832,18 +1880,24 @@ function suporteRenderNegList() {
   const list = document.getElementById('suporteList'); const count = document.getElementById('countSuporte');
   if (!list) return;
   if (count) count.textContent = _supNegs.length + ' negociaç' + (_supNegs.length === 1 ? 'ão' : 'ões');
+  _supInjectCss();
   if (!_supNegs.length) { list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:#9aa">Nenhuma negociação.</div>'; return; }
-  list.innerHTML = _supNegs.map(n => {
+  list.innerHTML = '<div class="asup-list">' + _supNegs.map(n => {
     const marca = _supNegNome(n, 'marca'), det = _supNegNome(n, 'detentor');
     const opp = n.oportunidade ? n.oportunidade.titulo : 'Negociação';
     const nmsg = (n.mensagens || []).length;
     const active = n.id === _supNegOpenId;
-    return '<div onclick="suporteAbrirNeg(\'' + n.id + '\')" style="padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer;' + (active ? 'background:#f5f3ee;' : '') + 'display:flex;flex-direction:column;gap:3px">' +
-      '<div style="font-weight:600;font-size:13px;color:#222;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(marca) + ' ↔ ' + escapeHtml(det) + '</div>' +
-      '<div style="font-size:12px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(opp) + '</div>' +
-      '<div style="font-size:10px;color:#888">' + escapeHtml(n.status_label || n.status || '') + ' · ' + nmsg + ' msg' + (nmsg === 1 ? '' : 's') + '</div>' +
-    '</div>';
-  }).join('');
+    const logo = n.marca && n.marca.logo_url, dom = n.marca && n.marca.empresa_domain;
+    return '<button class="asup-item' + (active ? ' on' : '') + '" onclick="suporteAbrirNeg(\'' + n.id + '\')">' +
+      _supAvatar(logo, dom, marca) +
+      '<span class="asup-main">' +
+        '<span class="asup-top"><span class="asup-name">' + escapeHtml(marca) + ' ↔ ' + escapeHtml(det) + '</span></span>' +
+        '<span class="asup-sub">' + escapeHtml(opp) + '</span>' +
+        '<span class="asup-foot"><span class="asup-tag" style="background:rgba(59,130,246,.12);color:#2563eb">Negociação</span><span class="asup-st">' + escapeHtml(n.status_label || n.status || '') + ' · ' + nmsg + ' msg' + (nmsg === 1 ? '' : 's') + '</span></span>' +
+      '</span>' +
+    '</button>';
+  }).join('') + '</div>';
+  _supApplyLogos(list);
 }
 function suporteAbrirNeg(id) {
   _supNegOpenId = id; suporteRenderNegList();
@@ -1856,30 +1910,33 @@ function suporteAbrirNeg(id) {
     const isMarca = m.autor_role === 'marca';
     const who = (m.autor_nome || (isMarca ? marca : det)) + ' · ' + (isMarca ? 'Marca' : 'Detentor');
     const dt = new Date(m.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-    return '<div style="display:flex;flex-direction:column;align-items:' + (isMarca ? 'flex-end' : 'flex-start') + ';gap:3px">' +
-      '<div style="font-size:11px;color:#999;padding:0 4px">' + escapeHtml(who) + '</div>' +
-      '<div style="max-width:78%;padding:10px 14px;border-radius:14px;' + (isMarca ? 'background:#3B82F6;color:#fff;border-bottom-right-radius:4px' : 'background:#f0ede6;color:#222;border-bottom-left-radius:4px') + ';font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">' + escapeHtml(m.texto) +
-        (m.anexo_url ? '<img src="' + m.anexo_url + '" style="margin-top:8px;max-width:200px;border-radius:8px;display:block;cursor:pointer" onclick="window.open(this.src)">' : '') +
+    return '<div class="asup-row ' + (isMarca ? 'me' : 'them') + '">' +
+      '<div class="asup-who">' + escapeHtml(who) + '</div>' +
+      '<div class="asup-bubble ' + (isMarca ? 'asup-b-me' : 'asup-b-them') + '">' + escapeHtml(m.texto) +
+        (m.anexo_url ? '<img src="' + m.anexo_url + '" onclick="window.open(this.src)">' : '') +
       '</div>' +
-      '<div style="font-size:10px;color:#bbb;padding:0 4px">' + dt + '</div>' +
+      '<div class="asup-time">' + dt + '</div>' +
     '</div>';
   }).join('');
+  const logo = n.marca && n.marca.logo_url, dom = n.marca && n.marca.empresa_domain;
   el.innerHTML =
-    '<div style="display:flex;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid #eee;margin-bottom:14px;flex-wrap:wrap">' +
+    '<div class="asup-head">' +
+      _supAvatar(logo, dom, marca) +
       '<span style="font-weight:700;font-size:15px;color:#222">' + escapeHtml(marca) + ' ↔ ' + escapeHtml(det) + '</span>' +
       '<span style="font-size:11px;color:#888">' + escapeHtml(opp) + '</span>' +
       '<span style="margin-left:auto;font-size:11px;color:#aaa;font-style:italic">somente leitura</span>' +
     '</div>' +
     '<div style="display:flex;flex-direction:column;gap:14px;flex:1;overflow-y:auto;max-height:520px;padding:2px">' + (bubbles || '<div style="color:#9aa;text-align:center;padding:30px">Sem mensagens nesta negociação.</div>') + '</div>';
+  _supApplyLogos(el);
 }
 
 async function _supLoadNomes() {
   const ids = [...new Set(_supTickets.map(t => t.autor_id))].filter(Boolean);
   if (!ids.length) return;
   try {
-    const res = await sbFetch('/rest/v1/perfis?select=id,nome,empresa,email,pode_anexar&id=in.(' + ids.join(',') + ')');
+    const res = await sbFetch('/rest/v1/perfis?select=id,nome,empresa,email,pode_anexar,logo_url,empresa_domain&id=in.(' + ids.join(',') + ')');
     if (res.ok) {
-      (await res.json()).forEach(p => { _supNomes[p.id] = p.empresa || p.nome || p.email || '—'; _supPodeAnexar[p.id] = p.pode_anexar !== false; });
+      (await res.json()).forEach(p => { _supNomes[p.id] = p.empresa || p.nome || p.email || '—'; _supPodeAnexar[p.id] = p.pode_anexar !== false; _supLogo[p.id] = p.logo_url || null; _supDomain[p.id] = p.empresa_domain || null; });
     }
   } catch (e) {}
 }
@@ -1903,34 +1960,29 @@ function _supFiltered() {
 
 function suporteRenderList() {
   if (_supModo === 'negociacoes') return;
+  _supInjectCss();
   const list = document.getElementById('suporteList');
   const count = document.getElementById('countSuporte');
   if (!list) return;
   const items = _supFiltered();
   if (count) count.textContent = items.length + ' conversa' + (items.length === 1 ? '' : 's');
   if (!items.length) { list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:#9aa">Nenhuma conversa.</div>'; return; }
-  list.innerHTML = items.map(t => {
+  list.innerHTML = '<div class="asup-list">' + items.map(t => {
     const cat = SUP_CAT[t.categoria] || SUP_CAT['outro'];
     const nome = _supNomes[t.autor_id] || (t.autor_tipo === 'marca' ? 'Marca' : 'Detentor');
     const unread = t.admin_viu === false;
     const active = t.id === _supOpenId;
     const dt = new Date(t.last_message_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-    return '<div onclick="suporteAbrir(\'' + t.id + '\')" style="padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer;' + (active ? 'background:#f5f3ee;' : '') + 'display:flex;flex-direction:column;gap:4px">' +
-      '<div style="display:flex;align-items:center;gap:8px">' +
-        (unread ? '<span style="width:8px;height:8px;border-radius:50%;background:#EF4444;flex-shrink:0"></span>' : '') +
-        '<span style="font-weight:' + (unread ? '700' : '600') + ';font-size:13px;color:#222;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(nome) + '</span>' +
-        '<span style="font-size:11px;color:#999">' + dt + '</span>' +
-      '</div>' +
-      '<div style="font-size:12px;color:#666;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHtml(t.assunto || '') + '</div>' +
-      '<div style="display:flex;gap:6px;align-items:center">' +
-        '<span style="font-size:10px;font-weight:700;color:' + cat.color + '">' + cat.label + '</span>' +
-        '<span style="font-size:10px;color:#aaa">·</span>' +
-        '<span style="font-size:10px;color:#888">' + (t.autor_tipo === 'marca' ? 'Marca' : 'Detentor') + '</span>' +
-        '<span style="font-size:10px;color:#aaa">·</span>' +
-        '<span style="font-size:10px;color:#888">' + (SUP_STATUS_LABEL[t.status] || t.status) + '</span>' +
-      '</div>' +
-    '</div>';
-  }).join('');
+    return '<button class="asup-item' + (active ? ' on' : '') + '" onclick="suporteAbrir(\'' + t.id + '\')">' +
+      _supAvatar(_supLogo[t.autor_id], _supDomain[t.autor_id], nome) +
+      '<span class="asup-main">' +
+        '<span class="asup-top"><span class="asup-name">' + escapeHtml(nome) + '</span><span class="asup-date">' + dt + '</span></span>' +
+        '<span class="asup-sub">' + escapeHtml(t.assunto || 'Conversa') + '</span>' +
+        '<span class="asup-foot"><span class="asup-tag" style="background:' + cat.color + '1f;color:' + cat.color + '">' + cat.label + '</span><span class="asup-st">' + (t.autor_tipo === 'marca' ? 'Marca' : 'Detentor') + ' · ' + (SUP_STATUS_LABEL[t.status] || t.status) + '</span>' + (unread ? '<span class="asup-unread"></span>' : '') + '</span>' +
+      '</span>' +
+    '</button>';
+  }).join('') + '</div>';
+  _supApplyLogos(list);
 }
 
 async function suporteAbrir(id) {
@@ -1962,17 +2014,18 @@ function suporteRenderThread() {
     const radar = m.autor_papel === 'relevantia';
     const dt = new Date(m.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     const who = radar ? (m.autor_nome ? m.autor_nome + ' · Relevantia' : 'Relevantia') : nome;
-    return '<div style="display:flex;flex-direction:column;align-items:' + (radar ? 'flex-end' : 'flex-start') + ';gap:3px">' +
-      '<div style="font-size:11px;color:#999;padding:0 4px">' + escapeHtml(who) + '</div>' +
-      '<div style="max-width:78%;padding:10px 14px;border-radius:14px;' + (radar ? 'background:#B8860B;color:#fff;border-bottom-right-radius:4px' : 'background:#f0ede6;color:#222;border-bottom-left-radius:4px') + ';font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word">' + escapeHtml(m.texto) +
-        (m.anexo_url ? '<img src="' + m.anexo_url + '" style="margin-top:8px;max-width:200px;border-radius:8px;display:block;cursor:pointer" onclick="window.open(this.src)">' : '') +
+    return '<div class="asup-row ' + (radar ? 'me' : 'them') + '">' +
+      '<div class="asup-who">' + escapeHtml(who) + '</div>' +
+      '<div class="asup-bubble ' + (radar ? 'asup-b-me' : 'asup-b-them') + '">' + escapeHtml(m.texto) +
+        (m.anexo_url ? '<img src="' + m.anexo_url + '" onclick="window.open(this.src)">' : '') +
       '</div>' +
-      '<div style="font-size:10px;color:#bbb;padding:0 4px">' + dt + '</div>' +
+      '<div class="asup-time">' + dt + '</div>' +
     '</div>';
   }).join('');
   const statusOpts = SUP_STATUS.map(s => '<option value="' + s + '"' + (t.status === s ? ' selected' : '') + '>' + SUP_STATUS_LABEL[s] + '</option>').join('');
   el.innerHTML =
-    '<div style="display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid #eee;margin-bottom:14px;flex-wrap:wrap">' +
+    '<div class="asup-head">' +
+      _supAvatar(_supLogo[t.autor_id], _supDomain[t.autor_id], nome) +
       '<span style="font-weight:700;font-size:15px;color:#222">' + escapeHtml(nome) + '</span>' +
       '<span style="font-size:11px;font-weight:700;color:' + cat.color + '">' + cat.label + '</span>' +
       '<span style="font-size:11px;color:#888">' + (t.autor_tipo === 'marca' ? 'Marca' : 'Detentor') + '</span>' +
@@ -1985,6 +2038,7 @@ function suporteRenderThread() {
       '<textarea id="suporteReply" placeholder="Responder como Relevantia..." onkeydown="if(event.key===\'Enter\'&&!event.shiftKey&&!event.ctrlKey&&!event.metaKey){event.preventDefault();suporteResponder();}" style="flex:1;min-height:48px;max-height:140px;padding:10px 14px;border:1px solid #ddd;border-radius:10px;font-family:inherit;font-size:13px;resize:vertical;outline:none"></textarea>' +
       '<button class="btn btn-sm" style="background:#B8860B;color:#fff" onclick="suporteResponder()">Enviar</button>' +
     '</div>';
+  _supApplyLogos(el);
   const b = document.getElementById('suporteBubbles');
   if (b) b.scrollTop = b.scrollHeight;
 }
