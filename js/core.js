@@ -364,7 +364,8 @@ function _rrApplyLogo(row, src) {
 }
 
 function _rrFetchBf(query, row) {
-  if (_rrBfCache[query]) { _rrApplyLogo(row, _rrBfCache[query]); return; }
+  if (query in _rrBfCache) { if (_rrBfCache[query]) _rrApplyLogo(row, _rrBfCache[query]); return; }
+  _rrBfCache[query] = null; // marca como "já tentado" ANTES do fetch → evita tempestade de retries (429 da Brandfetch)
   fetch('https://api.brandfetch.io/v2/search/' + encodeURIComponent(query) + '?c=' + _RR_BF_CLIENT)
     .then(r => r.ok ? r.json() : null)
     .then(data => {
