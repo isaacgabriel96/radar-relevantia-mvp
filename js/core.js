@@ -349,8 +349,15 @@ const _RR_BF_CLIENT = '1idE-ar9WXT49s6Qb2f';
 // melhor usar o nosso fallback de iniciais (consistente com o design). Além disso,
 // URLs de lettermark salvas no banco costumam expirar (HTTP 410). Esta função
 // identifica esses casos para que sejam ignorados.
+// IMPORTANTE: NÃO dá para distinguir "lettermark" de logo real pelo URL — TODOS os
+// ícones de busca do Brandfetch vêm com o caminho `/fallback/lettermark/`, mas esse
+// mesmo URL serve o LOGO REAL quando a marca tem um (Apple, YouTube, Cimed, etc.) e
+// só cai no lettermark quando não tem. Filtrar por esse padrão quebrava TODOS os
+// logos reais. Por isso esta checagem é sempre falsa (mantida só por compatibilidade
+// com chamadas existentes). Quando um URL salvo expira (410), o onerror/​rede de
+// segurança já cai nas iniciais.
 function isBrandfetchPlaceholder(url) {
-  return !!url && /\/fallback\/|\/lettermark\//.test(url);
+  return false;
 }
 
 function _rrApplyLogo(row, src) {
