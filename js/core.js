@@ -344,6 +344,15 @@ async function fetchCatalog() {
 const _rrBfCache = {};
 const _RR_BF_CLIENT = '1idE-ar9WXT49s6Qb2f';
 
+// Brandfetch devolve um "lettermark"/fallback (ícone gerado com a inicial) quando
+// NÃO tem o logo real da marca. Esses placeholders não são logo de verdade — é
+// melhor usar o nosso fallback de iniciais (consistente com o design). Além disso,
+// URLs de lettermark salvas no banco costumam expirar (HTTP 410). Esta função
+// identifica esses casos para que sejam ignorados.
+function isBrandfetchPlaceholder(url) {
+  return !!url && /\/fallback\/|\/lettermark\//.test(url);
+}
+
 function _rrApplyLogo(row, src) {
   const img  = row.querySelector('img');
   const span = row.querySelector('span');
@@ -360,7 +369,8 @@ function _rrFetchBf(query, row) {
     .then(r => r.ok ? r.json() : null)
     .then(data => {
       const icon = Array.isArray(data) && data.length > 0 ? data[0].icon : null;
-      if (icon) { _rrBfCache[query] = icon; _rrApplyLogo(row, icon); }
+      // Ignora lettermark/fallback: mantém o fallback de iniciais do app.
+      if (icon && !isBrandfetchPlaceholder(icon)) { _rrBfCache[query] = icon; _rrApplyLogo(row, icon); }
     })
     .catch(() => {});
 }

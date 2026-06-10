@@ -77,9 +77,13 @@
     if (c.kind === 'sup') return '<span class="ib-av" style="background:' + c.avatarColor + '">R</span>';
     var n = c.raw || {};
     var init = initials(c.title);
-    var bf = n.marca_logo_url ? '' : (n.marca_domain ? ' data-bf-domain="' + esc(n.marca_domain) + '"' : (c.title ? ' data-bf-name="' + esc(c.title) + '"' : ''));
-    var inner = n.marca_logo_url
-      ? '<img src="' + esc(n.marca_logo_url) + '" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'"><span style="display:none">' + esc(init) + '</span>'
+    // Ignora lettermark/placeholder do Brandfetch (não é logo real, costuma expirar) —
+    // prefere busca ao vivo por domínio/nome, com iniciais como fallback.
+    var isPh = (typeof isBrandfetchPlaceholder === 'function') && isBrandfetchPlaceholder(n.marca_logo_url);
+    var realLogo = (n.marca_logo_url && !isPh) ? n.marca_logo_url : '';
+    var bf = realLogo ? '' : (n.marca_domain ? ' data-bf-domain="' + esc(n.marca_domain) + '"' : (c.title ? ' data-bf-name="' + esc(c.title) + '"' : ''));
+    var inner = realLogo
+      ? '<img src="' + esc(realLogo) + '" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'\'"><span style="display:none">' + esc(init) + '</span>'
       : '<img alt="" style="display:none"><span>' + esc(init) + '</span>';
     return '<span class="ib-av ib-av-logo"' + bf + '>' + inner + '</span>';
   }

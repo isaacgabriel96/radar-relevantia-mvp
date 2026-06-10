@@ -5299,12 +5299,16 @@ function _initials(name) {
 // O container deve chamar applyBrandfetchLogos() após inserir no DOM.
 function _marcaAvatarMarkup(n) {
   const ini = _initials(n.marca || '');
-  const bfAttr = n.marca_logo_url ? '' : (n.marca_domain
+  // Ignora logo_url que seja placeholder/lettermark do Brandfetch (não é logo real
+  // e costuma estar morto/410) — nesse caso prefere a busca ao vivo por domínio/nome.
+  const isPlaceholder = typeof isBrandfetchPlaceholder === 'function' && isBrandfetchPlaceholder(n.marca_logo_url);
+  const realLogo = (n.marca_logo_url && !isPlaceholder) ? n.marca_logo_url : '';
+  const bfAttr = realLogo ? '' : (n.marca_domain
     ? `data-bf-domain="${escapeHtml(n.marca_domain)}"`
     : (n.marca ? `data-bf-name="${escapeHtml(n.marca)}"` : ''));
   const imgStyle = 'width:100%;height:100%;object-fit:contain;background:#fff';
-  const inner = n.marca_logo_url
-    ? `<img src="${escapeHtml(n.marca_logo_url)}" alt="" style="${imgStyle}" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span style="display:none">${ini}</span>`
+  const inner = realLogo
+    ? `<img src="${escapeHtml(realLogo)}" alt="" style="${imgStyle}" onerror="this.style.display='none';this.nextElementSibling.style.display=''"><span style="display:none">${ini}</span>`
     : `<img alt="" style="${imgStyle};display:none"><span>${ini}</span>`;
   return { bfAttr, inner };
 }

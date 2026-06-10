@@ -1043,7 +1043,9 @@ async function submitCadastro() {
   const email   = urlEmail || document.getElementById('f-email')?.value.trim() || '';
   const empresa        = (_detSelectedBrand && _detSelectedBrand.name) ? _detSelectedBrand.name : document.getElementById('f-empresa').value.trim();
   const empresa_domain = (_detSelectedBrand && _detSelectedBrand.domain) ? _detSelectedBrand.domain : null;
-  const logo_url       = (_detSelectedBrand && _detSelectedBrand.icon)   ? _detSelectedBrand.icon   : null;
+  // Não salva lettermark/placeholder do Brandfetch como logo (não é logo real e
+  // expira) — deixa null para a busca ao vivo cuidar do fallback.
+  const logo_url       = (_detSelectedBrand && _detSelectedBrand.icon && !(typeof isBrandfetchPlaceholder === 'function' && isBrandfetchPlaceholder(_detSelectedBrand.icon))) ? _detSelectedBrand.icon : null;
   const segmento = document.getElementById('f-segmento').value;
   const dialCode = document.getElementById('phoneDial').textContent.trim();
   const telNum   = document.getElementById('f-tel').value.trim();
