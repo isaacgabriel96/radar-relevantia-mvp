@@ -1175,6 +1175,15 @@ tr.row-selected td { background: #FEF2F2; }
             oninput="renderOportunidades(window._oppFilter||'todos')">
         </div>
 
+        <!-- Barra de ação em lote (visível só quando há seleção) -->
+        <div id="opp-bulk-bar" style="display:none;align-items:center;gap:12px;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:10px 16px;margin-bottom:12px">
+          <span id="opp-bulk-count" style="font-size:13px;font-weight:600;color:var(--red)">0 selecionadas</span>
+          <button class="btn btn-sm btn-delete" style="padding:5px 14px;font-size:13px"
+            onclick="deletarSelecionadas()">🗑 Apagar Selecionadas</button>
+          <button class="btn btn-sm" style="padding:5px 14px;font-size:13px;background:#fff;border:1px solid var(--gray-2);color:var(--gray-4)"
+            onclick="limparSelecaoOpps()">✕ Cancelar</button>
+        </div>
+
         <div class="table-card">
           <div class="table-header">
             <span class="table-title" id="countOportunidades">Carregando...</span>
@@ -1183,6 +1192,11 @@ tr.row-selected td { background: #FEF2F2; }
             <table>
               <thead>
                 <tr>
+                  <th style="width:36px;text-align:center">
+                    <input type="checkbox" id="opp-check-all" title="Selecionar todas"
+                      style="cursor:pointer;width:15px;height:15px;accent-color:var(--red)"
+                      onchange="toggleSelecionarTodasOpps(this.checked)">
+                  </th>
                   <th>Nome</th>
                   <th>Tipo</th>
                   <th>Detentor</th>
@@ -1192,7 +1206,7 @@ tr.row-selected td { background: #FEF2F2; }
                 </tr>
               </thead>
               <tbody id="tbodyOportunidades">
-                <tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+                <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
               </tbody>
             </table>
           </div>
@@ -2755,9 +2769,13 @@ function renderOportunidades(filter, btn) {
   const count = document.getElementById('countOportunidades');
   if (count) count.textContent = `${rows.length} oportunidade${rows.length !== 1 ? 's' : ''}`;
 
+  // Reset seleção ao re-renderizar
+  _oppSelecionadas = new Set();
+  _atualizarBulkBar();
+
   const tbody = document.getElementById('tbodyOportunidades');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state" style="padding:24px;text-align:center;color:var(--gray-5)">Nenhuma oportunidade encontrada</div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state" style="padding:24px;text-align:center;color:var(--gray-5)">Nenhuma oportunidade encontrada</div></td></tr>';
     return;
   }
 
@@ -2777,7 +2795,12 @@ function renderOportunidades(filter, btn) {
     const cor = statusColor[status] || '#6B7280';
     const sl  = statusLabel[status] || status;
     const tl  = tipoLabel[o.categoria] || o.categoria || '—';
-    return `<tr>
+    return `<tr id="opp-row-${o.id}">
+      <td style="text-align:center;width:36px">
+        <input type="checkbox" class="opp-check" data-id="${o.id}"
+          style="cursor:pointer;width:15px;height:15px;accent-color:var(--red)"
+          onchange="_onOppCheckChange(this)">
+      </td>
       <td style="font-weight:500;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escapeHtml(o.titulo||'')}">
         ${escapeHtml(o.titulo || '(sem título)')}
       </td>
@@ -2832,6 +2855,91 @@ async function deleteOportunidade(id, titulo) {
     console.error('[deleteOportunidade]', e);
     showToast('Erro ao apagar oportunidade.', 'error');
   }
+}
+
+/* ── Seleção múltipla de oportunidades ─────────────────────────── */
+let _oppSelecionadas = new Set();
+
+function _onOppCheckChange(checkbox) {
+  const id = checkbox.dataset.id;
+  if (checkbox.checked) {
+    _oppSelecionadas.add(id);
+    document.getElementById(`opp-row-${id}`)?.style.setProperty('background', '#FEF2F2');
+  } else {
+    _oppSelecionadas.delete(id);
+    document.getElementById(`opp-row-${id}`)?.style.removeProperty('background');
+  }
+  _atualizarBulkBar();
+}
+
+function toggleSelecionarTodasOpps(checked) {
+  document.querySelectorAll('.opp-check').forEach(cb => {
+    cb.checked = checked;
+    const id = cb.dataset.id;
+    if (checked) {
+      _oppSelecionadas.add(id);
+      document.getElementById(`opp-row-${id}`)?.style.setProperty('background', '#FEF2F2');
+    } else {
+      _oppSelecionadas.delete(id);
+      document.getElementById(`opp-row-${id}`)?.style.removeProperty('background');
+    }
+  });
+  _atualizarBulkBar();
+}
+
+function limparSelecaoOpps() {
+  _oppSelecionadas.clear();
+  document.querySelectorAll('.opp-check').forEach(cb => { cb.checked = false; });
+  const ca = document.getElementById('opp-check-all');
+  if (ca) ca.checked = false;
+  document.querySelectorAll('#tbodyOportunidades tr').forEach(tr => tr.style.removeProperty('background'));
+  _atualizarBulkBar();
+}
+
+function _atualizarBulkBar() {
+  const n = _oppSelecionadas.size;
+  const bar = document.getElementById('opp-bulk-bar');
+  const lbl = document.getElementById('opp-bulk-count');
+  if (bar) bar.style.display = n > 0 ? 'flex' : 'none';
+  if (lbl) lbl.textContent = `${n} selecionada${n !== 1 ? 's' : ''}`;
+  // Indeterminate no "selecionar todos" se só alguns marcados
+  const total = document.querySelectorAll('.opp-check').length;
+  const ca = document.getElementById('opp-check-all');
+  if (ca) {
+    ca.indeterminate = n > 0 && n < total;
+    ca.checked = total > 0 && n === total;
+  }
+}
+
+async function deletarSelecionadas() {
+  const ids = Array.from(_oppSelecionadas);
+  if (!ids.length) return;
+  const titulos = ids.map(id => {
+    const o = _allOportunidades.find(x => x.id === id);
+    return o?.titulo || '(sem título)';
+  });
+  const lista = titulos.slice(0, 5).map(t => `• ${t}`).join('\n') + (titulos.length > 5 ? `\n… e mais ${titulos.length - 5}` : '');
+  if (!confirm(`Apagar ${ids.length} oportunidade${ids.length !== 1 ? 's' : ''}?\n\n${lista}\n\nEssa ação não pode ser desfeita.`)) return;
+
+  let ok = 0, err = 0;
+  showToast(`Apagando ${ids.length} oportunidades…`, 'info');
+
+  for (const id of ids) {
+    try {
+      await adminAction('delete-oportunidade', { opp_id: id });
+      _allOportunidades = _allOportunidades.filter(o => o.id !== id);
+      ok++;
+    } catch (e) {
+      console.error('[deletarSelecionadas] id:', id, e);
+      err++;
+    }
+  }
+
+  _oppSelecionadas.clear();
+  renderOportunidades(window._oppFilter || 'todos');
+
+  if (err === 0) showToast(`${ok} oportunidade${ok !== 1 ? 's' : ''} apagada${ok !== 1 ? 's' : ''}.`, 'success');
+  else showToast(`${ok} apagada${ok !== 1 ? 's' : ''}, ${err} com erro.`, 'error');
 }
 
 /* ── Modal Dados Jurídicos do Detentor ─────────────────────────── */
