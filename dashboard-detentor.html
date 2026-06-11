@@ -2823,18 +2823,26 @@ tbody tr:last-child td { border-bottom: none; }
       return href + sep + '_imp=1' + n;
     };
 
-    // Devolve token admin fresco. Como nesta página getValidToken foi
-    // monkey-patchado para retornar admin_token (snapshot), buscamos a sessão
-    // direto pelo SDK (sb.auth.getSession() faz auto-refresh quando expirado).
-    // Fallback para o ctx.admin_token caso o SDK não esteja pronto.
+    // Devolve token de ADMIN para o admin-actions. Prioriza o ctx.admin_token
+    // (snapshot garantidamente de um admin) enquanto válido. sb.auth.getSession()
+    // lê a sessão COMPARTILHADA do SDK no localStorage — se o admin tem o Portal
+    // do Detentor/Marca aberto em outra aba, o SDK pode estar com a sessão DAQUELE
+    // usuário (não-admin) → 403 "not an admin". Só caímos para o SDK se o snapshot
+    // tiver expirado (~1h).
     window._freshAdminToken = async function() {
+      const _expired = function(t) {
+        try { const p = JSON.parse(atob(t.split('.')[1])); return !p.exp || (p.exp * 1000) < (Date.now() + 30000); }
+        catch (_) { return true; }
+      };
+      const ctxTok = window._adminViewCtx?.admin_token;
+      if (ctxTok && !_expired(ctxTok)) return ctxTok;
       try {
         if (typeof sb !== 'undefined' && sb && sb.auth) {
           const { data } = await sb.auth.getSession();
           if (data?.session?.access_token) return data.session.access_token;
         }
       } catch (_) {}
-      return window._adminViewCtx?.admin_token || null;
+      return ctxTok || null;
     };
 
     // Helper único: roteia chamadas de leitura/escrita de oportunidades via
