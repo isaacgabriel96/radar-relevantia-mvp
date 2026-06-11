@@ -4748,6 +4748,11 @@ init();
  * Load negotiations: Supabase real (SDK auto-refreshes token) → SharedNeg fallback.
  */
 async function loadNegociacoes() {
+  // Admin-view (impersonation): NÃO existe rota com escopo no detentor-alvo para
+  // negociações. A query direta (fetchNegociacoesDetentor) usa o token do ADMIN e
+  // a RLS devolveria as negociações DO ADMIN — vazamento para dentro da visão do
+  // cliente. Até existir um list-negociacoes-as no Edge Function, mostra vazio.
+  if (window._adminViewCtx) { NEGOCIACOES = []; return; }
   if (!isDemoMode()) {
     const real = await fetchNegociacoesDetentor();
     if (real !== null) {
@@ -8749,6 +8754,9 @@ function toggleSolGroup(oppId) {
  * por_aprovacao do detentor. Lazy — só executa uma vez.
  */
 async function loadSolicitacoes() {
+  // Admin-view (impersonation): mesma situação das negociações — a query usa o
+  // token do admin e a RLS devolveria as solicitações DO ADMIN. Mostra vazio.
+  if (window._adminViewCtx) { _SOLICITACOES = []; _SOLICITACOES_LOADED = true; renderSolicitacoes(); return; }
   if (_SOLICITACOES_LOADED) {
     renderSolicitacoes();
     return;
