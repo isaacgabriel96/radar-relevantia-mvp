@@ -1097,10 +1097,10 @@ body::after {
       <h1 class="panel-title" style="font-size:clamp(24px,4vw,32px);">
         Bem-vindo ao Radar, <em id="firstName">bem-vindo</em> !
       </h1>
-      <p class="panel-sub" style="margin:0 auto 36px;max-width:380px;">
+      <p class="panel-sub" id="successSub" style="margin:0 auto 36px;max-width:380px;">
         Sua conta está configurada. Agora vamos criar sua primeira oportunidade — é assim que as marcas vão encontrar você no Radar.
       </p>
-      <button class="btn-primary" onclick="goToPrimeiraOportunidade()" style="max-width:360px;margin:0 auto;">
+      <button class="btn-primary" id="btnPrimeiraOpp" onclick="goToPrimeiraOportunidade()" style="max-width:360px;margin:0 auto;">
         Criar minha primeira oportunidade →
       </button>
     </div>
@@ -1178,6 +1178,9 @@ function showSection(id) {
   const idx = ALL_SECTIONS.indexOf(id) + 1;
   const pct = Math.round((idx / ALL_SECTIONS.length) * 100);
   document.getElementById('progressFill').style.width = pct + '%';
+
+  // Na tela final, adapta copy/botão se a oportunidade já foi criada pela Relevantia
+  if (id === 'stepSuccess') _adaptSuccessScreen();
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1359,6 +1362,32 @@ function goToDashboard() {
 function goToPrimeiraOportunidade() {
   if (previewMode) { showToast('Preview: redirecionaria para criar oportunidade →', ''); return; }
   window.location.href = '/criar-oportunidade.html?onboarding=true';
+}
+
+/* ── Adapta a tela de sucesso ──
+   Se a Relevantia já criou a primeira oportunidade para este detentor (ex.: via
+   "Criar como Cliente"), não faz sentido mandar criar do zero — isso geraria uma
+   segunda oportunidade. Nesse caso, troca a copy e o botão para "revisar" e
+   direciona ao dashboard, onde ele edita o rascunho, completa o jurídico e envia
+   para análise pelo fluxo normal. */
+async function _adaptSuccessScreen() {
+  if (previewMode) return; // preview: mantém copy padrão
+  try {
+    const token  = currentSession?.access_token;
+    const userId = currentSession?.user?.id;
+    if (!token || !userId) return;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/oportunidades?select=id&detentor_id=eq.${userId}&limit=1`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      const sub = document.getElementById('successSub');
+      const btn = document.getElementById('btnPrimeiraOpp');
+      if (sub) sub.textContent = 'Sua conta está configurada. A Relevantia já preparou sua primeira oportunidade — revise, complete seu cadastro jurídico e envie para análise.';
+      if (btn) { btn.textContent = 'Revisar minha oportunidade →'; btn.onclick = goToDashboard; }
+    }
+  } catch (_) { /* erro de rede: mantém a copy padrão (criar do zero) */ }
 }
 
 function doLogout() {

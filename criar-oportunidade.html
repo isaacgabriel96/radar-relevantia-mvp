@@ -11604,6 +11604,16 @@ async function reativarOportunidade() {
 }
 
 async function publishOpportunity() {
+  // ── Modo admin (impersonation): o admin NUNCA publica nem envia para análise.
+  //    Ele apenas prepara o rascunho. O próprio detentor preenche o jurídico e
+  //    envia para análise pelo fluxo normal — preservando os dois portões
+  //    (cadastro jurídico + revisão admin). Defesa em profundidade: mesmo que o
+  //    botão "Enviar para análise" apareça por algum motivo, isto cai no rascunho.
+  if (window._impersonateCtx) {
+    console.log('[Impersonate] Publish bloqueado — salvando como rascunho para o cliente revisar.');
+    return saveDraft();
+  }
+
   const data = mergePreviewData(collectOppData());
   // Fluxo de revisão: oportunidades ficam em análise até aprovação admin
   data.status = 'em_revisao';
@@ -12478,6 +12488,48 @@ function loadMockData() {
 }
 
 /* ══════════════════════════════════════════════
+   TRAVA ANTI-DUPLICATA (onboarding)
+   Enquanto o detentor não tiver a primeira oportunidade APROVADA (publicada)
+   E o jurídico VALIDADO (pode_publicar = true), ele não pode criar uma segunda
+   oportunidade do zero — isso evita duplicatas durante o onboarding. Em vez de
+   abrir o formulário em branco, é mandado de volta ao painel para concluir a
+   oportunidade que já existe (editar → preencher jurídico → enviar para análise).
+   NÃO se aplica a: modo admin (impersonation), modo edição (?edit) e modo demo.
+   Retorna 'blocked' quando redireciona, para o init interromper o restante.
+══════════════════════════════════════════════ */
+async function _guardDuplicateOpp() {
+  if (window._impersonateCtx) return;                       // admin criando: liberado
+  if (formState.editId) return;                              // editando existente: ok
+  if (typeof isDemoMode === 'function' && isDemoMode()) return;
+  try {
+    const token  = await _getWriteToken();
+    const userId = await getAuthUserId();
+    if (!token || !userId) return;                           // sem sessão: requireAuth cuida
+    const [oppsRes, perfRes] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/oportunidades?select=id,status,ativo&detentor_id=eq.' + userId, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+      }),
+      fetch(SUPABASE_URL + '/rest/v1/perfis?select=pode_publicar&id=eq.' + userId + '&limit=1', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+      })
+    ]);
+    if (!oppsRes.ok) return;                                 // falha de rede: não bloqueia
+    const opps = await oppsRes.json();
+    if (!Array.isArray(opps) || opps.length === 0) return;   // 0 opps: é a primeira de verdade → liberado
+    const podePublicar = perfRes.ok ? !!((await perfRes.json())[0]?.pode_publicar) : false;
+    const temAprovada  = opps.some(o => o.ativo === true || o.status === 'publicada');
+    // Já passou do onboarding (tem aprovada E jurídico validado) → pode criar nova
+    if (temAprovada && podePublicar) return;
+    // Ainda no onboarding com uma oportunidade pendente → bloqueia a duplicata
+    if (typeof showToast === 'function') {
+      showToast('Você já tem uma oportunidade em andamento. Conclua-a antes de criar outra.', 'error');
+    }
+    setTimeout(() => { window.location.href = 'dashboard-detentor.html#oportunidades'; }, 1800);
+    return 'blocked';
+  } catch (_) { /* erro: não bloqueia */ }
+}
+
+/* ══════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════ */
 async function init() {
@@ -12493,6 +12545,7 @@ async function init() {
   window.applyTranslations?.();
   await initSession();
   await maybePreFillEdit();
+  if (await _guardDuplicateOpp() === 'blocked') return;
   loadMockData();
 
   // Fecha calendários do date picker ao clicar fora deles
@@ -14078,6 +14131,11 @@ function initImpersonateMode() {
     if (sidebarEmail)  sidebarEmail.textContent  = ctx.target_email || '';
     if (sidebarAvatar) sidebarAvatar.textContent = initials;
     console.log('[Impersonate] Modo ativo para:', ctx.target_nome, '(' + ctx.target_user_id + ')');
+
+    // No modo admin só criamos rascunho — quem envia para análise é o detentor.
+    // Esconde o botão "Enviar para análise" para o admin não publicar ao vivo
+    // pulando o cadastro jurídico e a revisão (preserva os dois portões).
+    document.querySelectorAll('.btn-publish').forEach(b => { b.style.display = 'none'; });
   } catch (e) {
     console.warn('[Impersonate] Erro ao inicializar modo:', e);
   }
