@@ -14174,23 +14174,36 @@ function goToDashboardPreservingCtx() {
   }
 }
 
+/** True se o JWT não tem exp ou já expirou (com 30s de folga). */
+function _jwtExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return !payload.exp || (payload.exp * 1000) < (Date.now() + 30000);
+  } catch (_) { return true; }
+}
+
 /**
- * Devolve um token de admin fresco (auto-refreshed pelo SDK), com fallback
- * para o ctx.admin_token se o SDK não estiver disponível.
+ * Devolve um token de ADMIN para chamar a Edge Function admin-actions.
  *
- * Por que isso importa: o ctx.admin_token foi snapshotado quando o admin
- * abriu "Criar como cliente" e pode ter expirado durante o flow (JWT do
- * Supabase dura ~1h). Em criar-oportunidade.html o admin continua logado
- * normalmente, então getValidToken() devolve a sessão atual dele.
+ * Por que a ordem importa: getValidToken() lê a sessão do SDK do Supabase, que
+ * é COMPARTILHADA no localStorage entre abas/portais do mesmo domínio. Se o
+ * admin tem o Portal do Detentor ou da Marca aberto em outra aba, o SDK pode
+ * estar com a sessão DAQUELE usuário (não-admin) → o Edge Function responde
+ * 403 "not an admin". Por isso priorizamos o ctx.admin_token, que foi
+ * snapshotado a partir da sessão do admin em admin.html e é garantidamente de
+ * um admin. Só caímos para o SDK se esse snapshot tiver expirado (~1h).
  */
 async function _freshAdminToken() {
+  const ctxTok = window._impersonateCtx?.admin_token;
+  if (ctxTok && !_jwtExpired(ctxTok)) return ctxTok;
+  // Snapshot expirou (sessão longa): tenta a sessão do SDK como melhor esforço.
   if (typeof getValidToken === 'function') {
     try {
       const t = await getValidToken();
       if (t) return t;
     } catch (_) { /* fallback abaixo */ }
   }
-  return window._impersonateCtx?.admin_token || null;
+  return ctxTok || null;
 }
 
 /**
