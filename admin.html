@@ -1691,6 +1691,10 @@ tr.row-selected td { background: #FEF2F2; }
               </div>
               <button onclick="clearImpersonateSelection()" class="btn-soft" style="margin-left:auto">Trocar</button>
             </div>
+            <div id="impersonate-status" style="display:none;margin-bottom:16px;background:#FBF6E9;border:1px solid rgba(184,134,11,.35);border-radius:10px;padding:12px 14px">
+              <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#9a7209;font-weight:700;margin-bottom:8px">Contexto do detentor</div>
+              <div id="impersonate-status-badges" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+            </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
               <button onclick="openFormAsClient()" class="btn-pill btn-pill-dark">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M15 9h.01M17.8 6.2L19 5M3 21l9-9M12.2 6.2L11 5"/></svg>
@@ -4860,13 +4864,61 @@ function selectImpersonate(id, nome, email) {
     c.classList.toggle('selected', c.dataset.id === id);
   });
 
+  // Carrega o contexto do detentor (oportunidades + validação) para o admin
+  _loadImpersonateStatus(id);
+
   // Scroll suave até o botão
   document.getElementById('impersonate-selected').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/** Busca oportunidades + status de validação do detentor e mostra os badges. */
+async function _loadImpersonateStatus(id) {
+  const wrap   = document.getElementById('impersonate-status');
+  const badges = document.getElementById('impersonate-status-badges');
+  if (!wrap || !badges) return;
+  wrap.style.display = 'block';
+  badges.innerHTML = '<span style="font-size:12px;color:#9a7209">Carregando contexto…</span>';
+  try {
+    const [oppsData, perfData] = await Promise.all([
+      adminAction('list-oportunidades-as', { target_user_id: id }).catch(() => null),
+      adminAction('get-perfil-pode-publicar', { perfil_id: id }).catch(() => null),
+    ]);
+    // Evita corrida: o admin pode ter trocado de detentor durante o fetch
+    if (!_impersonateSelected || _impersonateSelected.id !== id) return;
+    const opps   = (oppsData && oppsData.oportunidades) || [];
+    const perfil = (perfData && perfData.perfil) || {};
+    badges.innerHTML = _impersonateStatusBadges(opps, perfil);
+  } catch (e) {
+    badges.innerHTML = '<span style="font-size:12px;color:#9a7209">Não foi possível carregar o contexto.</span>';
+  }
+}
+
+function _impersonateStatusBadges(opps, perfil) {
+  const total      = Array.isArray(opps) ? opps.length : 0;
+  const ehPrimeira = total <= 1;
+  const pendente   = opps.find(o => o.status === 'rascunho') || opps.find(o => o.status === 'em_revisao');
+  const validado   = !!(perfil && perfil.pode_publicar);
+  const juridicoOk = !!(perfil && perfil.cadastro_juridico_completo);
+  const badge = (txt, ok) => '<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;background:' +
+    (ok ? 'rgba(34,139,34,.12)' : 'rgba(184,134,11,.16)') + ';color:' + (ok ? '#1f7a1f' : '#9a7209') + '">' + txt + '</span>';
+  let statusOpp;
+  if (total === 0) statusOpp = 'Sem oportunidade ainda';
+  else if (pendente && pendente.status === 'rascunho')   statusOpp = 'Rascunho em andamento';
+  else if (pendente && pendente.status === 'em_revisao') statusOpp = 'Em análise — aguardando você';
+  else statusOpp = 'Sem pendência';
+  return [
+    badge(ehPrimeira ? '1ª oportunidade' : (total + ' oportunidades'), false),
+    badge(statusOpp, false),
+    badge(validado ? 'Conta validada' : 'Conta não validada', validado),
+    badge(juridicoOk ? 'Jurídico completo' : 'Jurídico pendente', juridicoOk),
+  ].join('');
 }
 
 function clearImpersonateSelection() {
   _impersonateSelected = null;
   document.getElementById('impersonate-selected').style.display = 'none';
+  const st = document.getElementById('impersonate-status');
+  if (st) st.style.display = 'none';
   document.getElementById('impersonate-search').value = '';
   renderImpersonateCards(_impersonateDetentores);
 }
