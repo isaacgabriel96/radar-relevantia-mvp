@@ -607,7 +607,22 @@ tr.row-selected td { background: #FEF2F2; }
   .modal-fields-grid { grid-template-columns: 1fr; }
   .content-grid-2 { grid-template-columns: 1fr; }
   .page-title { font-size: 22px; }
+  /* Inbox de suporte: vira painel único (lista ↔ conversa) */
+  .sup-split { grid-template-columns: 1fr !important; }
+  .sup-split .sup-pane-thread { display: none !important; }
+  .sup-split.thread-open .sup-pane-list { display: none !important; }
+  .sup-split.thread-open .sup-pane-thread { display: flex !important; }
+  .sup-back { display: inline-flex !important; }
 }
+/* Botão "voltar" do inbox: só aparece no mobile */
+.sup-back {
+  display: none; align-items: center; gap: 6px; width: 100%; margin-bottom: 12px;
+  background: var(--gray-1); border: 1px solid var(--gray-2); border-radius: var(--radius-base);
+  padding: 9px 12px; font-size: 13px; font-weight: 600; color: var(--gray-4);
+  font-family: var(--font-body); cursor: pointer; transition: all 0.15s;
+}
+.sup-back:hover { border-color: var(--gold); color: var(--brown-warm); }
+.sup-back svg { width: 16px; height: 16px; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 .section.active { animation: fadeUp 0.3s ease; }
 </style>
@@ -1505,12 +1520,12 @@ tr.row-selected td { background: #FEF2F2; }
           <button class="btn btn-sm btn-filter" onclick="suporteFiltrar('todos', this)">Todos</button>
           <button class="btn btn-sm" style="margin-left:auto;background:#B8860B;color:#fff;border:none" onclick="suporteNovaConversa()">+ Nova conversa</button>
         </div>
-        <div style="display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start">
-          <div class="table-card" style="overflow:hidden">
+        <div class="sup-split" id="supSplit" style="display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start">
+          <div class="table-card sup-pane-list" style="overflow:hidden">
             <div class="table-header"><span class="table-title" id="countSuporte">Carregando...</span></div>
             <div id="suporteList" style="max-height:600px;overflow-y:auto"></div>
           </div>
-          <div class="table-card" style="min-height:440px;display:flex;flex-direction:column">
+          <div class="table-card sup-pane-thread" style="min-height:440px;display:flex;flex-direction:column">
             <div id="suporteThread" style="flex:1;display:flex;flex-direction:column;padding:18px"></div>
           </div>
         </div>
@@ -2164,6 +2179,7 @@ function suporteModo(modo) {
   if (b) b.classList.toggle('active', modo === 'negociacoes');
   const fb = document.getElementById('suporteFilterBar'); if (fb) fb.style.display = modo === 'suporte' ? '' : 'none';
   _supOpenId = null; _supNegOpenId = null;
+  document.getElementById('supSplit')?.classList.remove('thread-open');
   const th = document.getElementById('suporteThread'); if (th) th.innerHTML = '<div style="margin:auto;color:#9aa;text-align:center">Selecione uma conversa à esquerda.</div>';
   if (modo === 'negociacoes') loadSupNeg(); else suporteRenderList();
 }
@@ -2199,8 +2215,13 @@ function suporteRenderNegList() {
   }).join('') + '</div>';
   _supApplyLogos(list);
 }
+function suporteVoltarLista() {
+  document.getElementById('supSplit')?.classList.remove('thread-open');
+}
 function suporteAbrirNeg(id) {
-  _supNegOpenId = id; suporteRenderNegList();
+  _supNegOpenId = id;
+  document.getElementById('supSplit')?.classList.add('thread-open');
+  suporteRenderNegList();
   const n = _supNegs.find(x => x.id === id) || {};
   const el = document.getElementById('suporteThread'); if (!el) return;
   const marca = _supNegNome(n, 'marca'), det = _supNegNome(n, 'detentor');
@@ -2220,6 +2241,7 @@ function suporteAbrirNeg(id) {
   }).join('');
   const logo = n.marca && n.marca.logo_url, dom = n.marca && n.marca.empresa_domain;
   el.innerHTML =
+    '<button class="sup-back" onclick="suporteVoltarLista()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Voltar para a lista</button>' +
     '<div class="asup-head">' +
       _supAvatar(logo, dom, marca) +
       '<span style="font-weight:700;font-size:15px;color:#222">' + escapeHtml(marca) + ' ↔ ' + escapeHtml(det) + '</span>' +
@@ -2287,6 +2309,7 @@ function suporteRenderList() {
 
 async function suporteAbrir(id) {
   _supOpenId = id;
+  document.getElementById('supSplit')?.classList.add('thread-open');
   suporteRenderList();
   const thread = document.getElementById('suporteThread');
   if (thread) thread.innerHTML = '<div style="margin:auto;color:#9aa">Carregando...</div>';
@@ -2324,6 +2347,7 @@ function suporteRenderThread() {
   }).join('');
   const statusOpts = SUP_STATUS.map(s => '<option value="' + s + '"' + (t.status === s ? ' selected' : '') + '>' + SUP_STATUS_LABEL[s] + '</option>').join('');
   el.innerHTML =
+    '<button class="sup-back" onclick="suporteVoltarLista()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Voltar para a lista</button>' +
     '<div class="asup-head">' +
       _supAvatar(_supLogo[t.autor_id], _supDomain[t.autor_id], nome) +
       '<span style="font-weight:700;font-size:15px;color:#222">' + escapeHtml(nome) + '</span>' +
