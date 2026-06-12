@@ -4517,18 +4517,23 @@ async function loadAdmins() {
     listEl.innerHTML = admins.map(a => `
       <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--gray-2);border-radius:10px;background:var(--gray-1)">
         <div style="width:32px;height:32px;border-radius:50%;background:var(--gold-gradient);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🔐</div>
-        <div style="flex:1;min-width:0">
+        <div style="flex:1;min-width:0" id="admin-info-${a.id}">
           <div style="font-size:13px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(a.nome || a.email)}</div>
           <div style="font-size:11px;color:var(--gray-5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(a.email)}</div>
         </div>
-        ${a.id === myId
-          ? `<span style="font-size:11px;color:var(--gray-5);flex-shrink:0">(você)</span>`
-          : `<button onclick="adminRemove('${a.id}','${escHtml(a.email)}')"
-               style="flex-shrink:0;background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:#991B1B;cursor:pointer;font-family:var(--font-body);transition:background 0.15s"
-               onmouseover="this.style.background='rgba(239,68,68,0.07)'" onmouseout="this.style.background='transparent'">
-               ✕ Remover
-             </button>`
-        }
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <button onclick="adminEditNome('${a.id}','${escHtml(a.nome || '')}')"
+            style="background:transparent;border:1px solid var(--gray-2);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)"
+            title="Editar nome">✏️</button>
+          ${a.id === myId
+            ? `<span style="font-size:11px;color:var(--gray-5)">(você)</span>`
+            : `<button onclick="adminRemove('${a.id}','${escHtml(a.email)}')"
+                 style="background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:#991B1B;cursor:pointer;font-family:var(--font-body);transition:background 0.15s"
+                 onmouseover="this.style.background='rgba(239,68,68,0.07)'" onmouseout="this.style.background='transparent'">
+                 ✕ Remover
+               </button>`
+          }
+        </div>
       </div>
     `).join('');
     listEl.style.display = 'flex';
@@ -4547,6 +4552,57 @@ async function adminRemove(userId, email) {
     loadAdmins();
   } catch (err) {
     showToast('Erro ao remover: ' + err.message, 'error');
+  }
+}
+
+function adminEditNome(userId, nomeAtual) {
+  const infoEl = document.getElementById('admin-info-' + userId);
+  if (!infoEl) return;
+
+  infoEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px">
+      <input id="admin-nome-input-${userId}" type="text" value="${escHtml(nomeAtual)}"
+        placeholder="Nome do admin"
+        style="flex:1;padding:4px 8px;border:1px solid var(--gold);border-radius:6px;font-size:13px;font-family:var(--font-body);outline:none"
+        onkeydown="if(event.key==='Enter')adminSalvarNome('${userId}');if(event.key==='Escape')loadAdmins()">
+      <button onclick="adminSalvarNome('${userId}')"
+        style="padding:4px 10px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)">
+        Salvar
+      </button>
+      <button onclick="loadAdmins()"
+        style="padding:4px 8px;background:transparent;border:1px solid var(--gray-2);border-radius:6px;font-size:12px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)">
+        ✕
+      </button>
+    </div>
+  `;
+  document.getElementById('admin-nome-input-' + userId)?.focus();
+}
+
+async function adminSalvarNome(userId) {
+  const input = document.getElementById('admin-nome-input-' + userId);
+  if (!input) return;
+  const novoNome = input.value.trim();
+  if (!novoNome) { showToast('Nome não pode ser vazio.', 'error'); return; }
+
+  try {
+    const session = await getSession();
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_update_user_nome`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_user_id: userId, new_nome: novoNome }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Erro HTTP ${res.status}`);
+    }
+    showToast('Nome atualizado.', 'success');
+    loadAdmins();
+  } catch (err) {
+    showToast('Erro ao salvar: ' + err.message, 'error');
   }
 }
 
