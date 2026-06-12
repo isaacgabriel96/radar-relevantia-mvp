@@ -6578,6 +6578,25 @@ function _applyPendingDetalhes(tplKey) {
     if (tpl) {
       const allFields = [...(tpl.headerFields || []), ...(tpl.fields || [])];
       allFields.forEach(f => {
+        // Tipos sem label usam chaves especiais no objeto detalhes
+        if (f.type === 'transmissao-section') {
+          if (detalhes['transmissao-ativo']) {
+            const btn = document.getElementById('est-toggle-transmissao');
+            if (btn && !btn.classList.contains('is-real')) onTransmissaoToggle(btn);
+            const platforms = Array.isArray(detalhes['transmissao-plataformas']) ? detalhes['transmissao-plataformas'] : [];
+            document.querySelectorAll('#transmissao-platforms .pill-opt').forEach(pill => {
+              if (platforms.includes(pill.textContent.trim())) pill.classList.add('selected');
+            });
+          }
+          return;
+        }
+        if (f.type === 'artista-show-toggle') {
+          if (detalhes['artista-show-ativo']) {
+            const btn = document.getElementById('est-toggle-artista-show');
+            if (btn && !btn.classList.contains('is-real')) _onArtistaShowToggle(btn);
+          }
+          return;
+        }
         const val = detalhes[f.label];
         if (!val) return;
         if (f.type === 'select') {
@@ -6590,9 +6609,24 @@ function _applyPendingDetalhes(tplKey) {
             );
             if (opt) el.value = opt.value;
           }
-        } else if (f.type === 'text') {
+        } else if (f.type === 'text' || f.type === 'year-input') {
           const el = document.getElementById(f.id);
           if (el) el.value = val;
+        } else if (f.type === 'publico-group') {
+          const el = document.getElementById(f.id);
+          if (el) {
+            const opt = Array.from(el.options).find(o =>
+              o.text === val || o.value === val ||
+              o.text.toLowerCase() === String(val).toLowerCase()
+            );
+            if (opt) el.value = opt.value;
+          }
+          const countVal = detalhes['publico-contagem'];
+          if (countVal) {
+            const cEl = document.getElementById('publico-contagem');
+            if (cEl) cEl.value = countVal;
+            document.querySelectorAll('.pub-period-btn').forEach(b => b.classList.toggle('active', b.dataset.val === countVal));
+          }
         } else if (f.type === 'multiselect-pills') {
           const valArr = Array.isArray(val) ? val : (typeof val === 'string' ? val.split(',').map(s => s.trim()) : []);
           document.querySelectorAll('#' + f.id + ' .pill-opt').forEach(pill => {
@@ -6622,6 +6656,52 @@ function _applyPendingDetalhes(tplKey) {
         }
       });
     }
+
+    // Restaura público presencial (template evento)
+    const pp = detalhes['publico_presencial'];
+    if (pp) {
+      if (pp.tipo_dado === 'real') {
+        const tog = document.getElementById('est-toggle-presencial');
+        if (tog && !tog.classList.contains('is-real')) toggleEstimate('presencial');
+      }
+      const histEl = document.getElementById('historico-publico');
+      if (histEl && pp.historico) histEl.value = pp.historico;
+      const socioEl = document.getElementById('perfil-socioeconomico');
+      if (socioEl && pp.perfil_socioeconomico) {
+        const opt = Array.from(socioEl.options).find(o =>
+          o.text === pp.perfil_socioeconomico || o.value === pp.perfil_socioeconomico ||
+          o.text.toLowerCase() === String(pp.perfil_socioeconomico).toLowerCase()
+        );
+        if (opt) socioEl.value = opt.value;
+      }
+      if (pp.genero) {
+        const fEl = document.getElementById('presencial-genero-f');
+        const mEl = document.getElementById('presencial-genero-m');
+        if (fEl && pp.genero.f != null) fEl.value = pp.genero.f;
+        if (mEl && pp.genero.m != null) mEl.value = pp.genero.m;
+        const sum = (pp.genero.f || 0) + (pp.genero.m || 0);
+        const ind = document.getElementById('genero-sum-indicator');
+        if (ind) { ind.textContent = sum + '%'; ind.className = 'age-sum-indicator ' + (Math.round(sum) === 100 ? 'ok' : 'under'); }
+      }
+      if (pp.faixa_etaria) {
+        Object.entries(pp.faixa_etaria).forEach(([r, v]) => {
+          const sl = document.getElementById('slider-presencial-' + r);
+          const inp = document.getElementById('aud-presencial-age-' + r);
+          if (sl) sl.value = v;
+          if (inp) inp.value = v;
+        });
+        updateAgeBars('presencial');
+      }
+      const periodoEl = document.getElementById('presencial-periodo');
+      if (periodoEl && pp.periodo_referencia) {
+        const opt = Array.from(periodoEl.options).find(o =>
+          o.text === pp.periodo_referencia || o.value === pp.periodo_referencia ||
+          o.text.toLowerCase() === String(pp.periodo_referencia).toLowerCase()
+        );
+        if (opt) periodoEl.value = opt.value;
+      }
+    }
+
     formState._pendingDetalhes = null;
   }
 
@@ -10822,6 +10902,24 @@ function collectOppData() {
         val = document.getElementById(f.id)?.value?.trim() || '';
       } else if (f.type === 'event-dates') {
         val = _collectEventEntries();
+      } else if (f.type === 'publico-group') {
+        const el = document.getElementById(f.id);
+        if (el) { val = el.options[el.selectedIndex]?.text || ''; if (val === 'Selecione...') val = ''; }
+        const cEl = document.getElementById('publico-contagem');
+        if (cEl && cEl.value) detalhes['publico-contagem'] = cEl.value;
+      } else if (f.type === 'transmissao-section') {
+        const btn = document.getElementById('est-toggle-transmissao');
+        if (btn?.classList.contains('is-real')) {
+          detalhes['transmissao-ativo'] = true;
+          detalhes['transmissao-plataformas'] = Array.from(
+            document.querySelectorAll('#transmissao-platforms .pill-opt.selected')
+          ).map(p => p.textContent.trim());
+        }
+        return;
+      } else if (f.type === 'artista-show-toggle') {
+        const btn = document.getElementById('est-toggle-artista-show');
+        if (btn?.classList.contains('is-real')) detalhes['artista-show-ativo'] = true;
+        return;
       }
       if (val !== '' && val !== null && !(Array.isArray(val) && val.length === 0)) detalhes[f.label] = val;
     });
