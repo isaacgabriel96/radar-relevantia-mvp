@@ -4525,6 +4525,9 @@ async function loadAdmins() {
           <button onclick="adminEditNome('${a.id}','${escHtml(a.nome || '')}')"
             style="background:transparent;border:1px solid var(--gray-2);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)"
             title="Editar nome">✏️</button>
+          <button onclick="adminResetSenha('${a.id}','${escHtml(a.email)}')"
+            style="background:transparent;border:1px solid var(--gray-2);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)"
+            title="Redefinir senha">🔑</button>
           ${a.id === myId
             ? `<span style="font-size:11px;color:var(--gray-5)">(você)</span>`
             : `<button onclick="adminRemove('${a.id}','${escHtml(a.email)}')"
@@ -4576,6 +4579,69 @@ function adminEditNome(userId, nomeAtual) {
     </div>
   `;
   document.getElementById('admin-nome-input-' + userId)?.focus();
+}
+
+function adminResetSenha(userId, email) {
+  const infoEl = document.getElementById('admin-info-' + userId);
+  if (!infoEl) return;
+
+  // Gera senha automaticamente
+  const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!@#$';
+  let pwd = '';
+  const arr = new Uint8Array(12);
+  crypto.getRandomValues(arr);
+  arr.forEach(b => { pwd += chars[b % chars.length]; });
+
+  infoEl.innerHTML = `
+    <div style="font-size:13px;font-weight:600;color:var(--black);margin-bottom:4px">${escHtml(email)}</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--gray-5)">Nova senha:</span>
+      <code id="admin-pwd-display-${userId}" style="font-size:12px;background:var(--gray-1);border:1px solid var(--gray-2);border-radius:4px;padding:2px 8px;letter-spacing:0.5px">${escHtml(pwd)}</code>
+      <button onclick="adminCopiarSenha('${userId}')"
+        style="padding:2px 8px;background:transparent;border:1px solid var(--gray-2);border-radius:4px;font-size:11px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)">
+        📋 Copiar
+      </button>
+      <button onclick="adminConfirmarSenha('${userId}','${escHtml(pwd)}')"
+        style="padding:2px 10px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)">
+        ✓ Salvar
+      </button>
+      <button onclick="loadAdmins()"
+        style="padding:2px 8px;background:transparent;border:1px solid var(--gray-2);border-radius:6px;font-size:12px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)">
+        ✕
+      </button>
+    </div>
+  `;
+}
+
+function adminCopiarSenha(userId) {
+  const el = document.getElementById('admin-pwd-display-' + userId);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent)
+    .then(() => showToast('Senha copiada!', 'success'))
+    .catch(() => showToast('Não foi possível copiar.', 'error'));
+}
+
+async function adminConfirmarSenha(userId, novaSenha) {
+  try {
+    const session = await getSession();
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_reset_user_password`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_user_id: userId, new_password: novaSenha }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Erro HTTP ${res.status}`);
+    }
+    showToast('Senha redefinida. Compartilhe por canal seguro.', 'success');
+    loadAdmins();
+  } catch (err) {
+    showToast('Erro ao redefinir senha: ' + err.message, 'error');
+  }
 }
 
 async function adminSalvarNome(userId) {
