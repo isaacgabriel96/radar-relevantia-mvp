@@ -9584,7 +9584,16 @@ function addEventEntry(opts) {
   list.appendChild(div);
 
   if (opts?.cidade) div.querySelector('.event-cidade-input').value = opts.cidade;
-  if (opts?.venue) div.querySelector('.event-venue-input').value = opts.venue;
+  if (opts?.venue)  div.querySelector('.event-venue-input').value  = opts.venue;
+
+  if (opts?.cidadeTBC) {
+    const btn = div.querySelector('[data-field="cidade"] .btn-tbc');
+    if (btn) toggleEntryTBC(btn);
+  }
+  if (opts?.venueTBC) {
+    const btn = div.querySelector('[data-field="venue"] .btn-tbc');
+    if (btn) toggleEntryTBC(btn);
+  }
 
   _mdpNew(div.querySelector('.mdp-slot'), opts?.datas || []);
   _loadMapsScript(() => { _attachEntryCidade(div); _attachEntryVenue(div); });
@@ -9593,12 +9602,15 @@ function addEventEntry(opts) {
 function _collectEventEntries() {
   const result = [];
   document.querySelectorAll('#event-entries-list .event-entry').forEach(entry => {
-    const cidade = entry.querySelector('.event-cidade-input')?.value || '';
-    const venue = entry.querySelector('.event-venue-input')?.value || '';
+    const cidadeTBC = entry.querySelector('[data-field="cidade"] .btn-tbc')?.classList.contains('active') || false;
+    const venueTBC  = entry.querySelector('[data-field="venue"]  .btn-tbc')?.classList.contains('active') || false;
+    const cidade = cidadeTBC ? '' : (entry.querySelector('.event-cidade-input')?.value || '');
+    const venue  = venueTBC  ? '' : (entry.querySelector('.event-venue-input')?.value  || '');
     let datas = [];
     try { datas = JSON.parse(entry.querySelector('.event-datas-hidden')?.value || '[]'); } catch {}
     const pais = _getEntryPaisIso(entry) || '';
-    if (pais || cidade || venue || datas.length) result.push({ pais, cidade, venue, datas });
+    if (pais || cidade || venue || datas.length || cidadeTBC || venueTBC)
+      result.push({ pais, cidade, venue, datas, cidadeTBC, venueTBC });
   });
   return result;
 }
