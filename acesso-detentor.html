@@ -1236,12 +1236,9 @@ async function doLogin() {
 
     const meta = data.user?.user_metadata || {};
 
-    // Bloqueia contas que não sejam do tipo detentor
-    if (meta.tipo && meta.tipo !== 'detentor') {
-      document.getElementById('errLogin').textContent =
-        meta.tipo === 'marca' ? 'Esta conta é de marca. Use o portal correto.' :
-        meta.tipo === 'admin' ? 'Esta conta é de administrador. Use o painel admin.' :
-        'Esta conta não tem acesso a este portal.';
+    // Bloqueia apenas marca — admin pode acessar para testar
+    if (meta.tipo === 'marca') {
+      document.getElementById('errLogin').textContent = 'Esta conta é de marca. Use o portal correto.';
       document.getElementById('errLogin').style.display = 'block';
       document.getElementById('loginPassword').classList.add('error');
       return;

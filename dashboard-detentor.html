@@ -2961,16 +2961,17 @@ async function init() {
         window.location.href = '/index.html';
         return;
       }
-      // Guard: apenas usuários com tipo 'detentor' podem acessar este portal
-      if (user.user_metadata?.tipo !== 'detentor') {
+      const tipo = user.user_metadata?.tipo;
+      // Guard: tipo 'detentor' ou 'admin' (admin pode testar o portal)
+      if (tipo !== 'detentor' && tipo !== 'admin') {
         localStorage.removeItem('sb_marca_session');
         localStorage.removeItem('sb_detentor_session');
         window.location.href = '/index.html';
         return;
       }
-      // Guard: bloqueia acesso ao dashboard se ainda não passou pelo acesso-detentor
+      // Guard: senha provisória — admin vai para admin.html, detentor vai para acesso-detentor.html
       if (user.user_metadata?.senha_provisoria === true) {
-        window.location.href = 'acesso-detentor.html';
+        window.location.href = tipo === 'admin' ? 'admin.html' : 'acesso-detentor.html';
         return;
       }
     } catch (_) {

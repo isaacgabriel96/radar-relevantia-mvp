@@ -658,6 +658,38 @@ tr.row-selected td { background: #FEF2F2; }
 </div>
 
 <!-- =========================================================
+     TELA DE TROCA DE SENHA (primeiro acesso / redefinição)
+     ========================================================= -->
+<div id="changePwScreen" style="display:none;position:fixed;inset:0;background:#1A1200;z-index:9999;display:none;align-items:center;justify-content:center">
+  <div class="login-box" style="max-width:400px">
+    <div class="login-logo">
+      <img src="logos/5.png" alt="Relevantia" style="height:48px;width:auto;">
+    </div>
+    <div class="login-tag">
+      <span class="login-tag-dot"></span>
+      Primeiro acesso
+    </div>
+    <h1 class="login-title" style="font-size:22px">Defina sua senha</h1>
+    <p class="login-sub">Por segurança, crie uma senha definitiva antes de continuar.</p>
+    <div id="changePwError" class="login-error"></div>
+    <div class="login-group">
+      <label>Nova senha</label>
+      <input type="password" id="changePwNew" placeholder="Mínimo 8 caracteres" autocomplete="new-password"
+        oninput="changePwStrength(this.value)">
+      <div id="changePwBar" style="height:3px;border-radius:2px;margin-top:6px;background:var(--gray-2);transition:all .2s"></div>
+      <div id="changePwBarLabel" style="font-size:10px;margin-top:3px;color:var(--gray-5)"></div>
+    </div>
+    <div class="login-group">
+      <label>Confirmar senha</label>
+      <input type="password" id="changePwConfirm" placeholder="Repita a nova senha" autocomplete="new-password"
+        onkeydown="if(event.key==='Enter')doChangePw()">
+    </div>
+    <button class="btn-login" id="btnChangePw" onclick="doChangePw()">Salvar e entrar no painel →</button>
+    <button onclick="doLogout()" style="margin-top:12px;background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;width:100%;text-align:center">Cancelar e sair</button>
+  </div>
+</div>
+
+<!-- =========================================================
      DASHBOARD
      ========================================================= -->
 <div id="dashboard">
@@ -811,9 +843,16 @@ tr.row-selected td { background: #FEF2F2; }
           <div class="sidebar-user-name" id="navUserName">Admin</div>
           <div class="sidebar-user-role">Super Admin</div>
         </div>
-        <button class="btn-logout-sb" onclick="doLogout()" title="Sair">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
-        </button>
+        <div style="display:flex;gap:4px">
+          <button onclick="abrirTrocaSenha()" title="Alterar senha"
+            style="background:rgba(255,255,255,.08);border:none;border-radius:6px;padding:6px;cursor:pointer;color:rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;transition:.15s"
+            onmouseover="this.style.background='rgba(255,255,255,.14)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/></svg>
+          </button>
+          <button class="btn-logout-sb" onclick="doLogout()" title="Sair">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </aside>
@@ -1966,6 +2005,12 @@ async function doLogin() {
     }
     localStorage.setItem('sb_admin_session', JSON.stringify(data));
     currentSession = data;
+
+    // Primeiro acesso: força troca de senha antes de entrar no painel
+    if (data.user?.user_metadata?.senha_provisoria === true) {
+      showChangePwScreen();
+      return;
+    }
     showDashboard(data);
   } catch (err) {
     errEl.textContent = 'Erro de conexão. Tente novamente.';
@@ -1978,6 +2023,7 @@ async function doLogout() {
   localStorage.removeItem('sb_admin_session');
   currentSession = null;
   document.getElementById('dashboard').classList.remove('show');
+  document.getElementById('changePwScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPassword').value = '';
@@ -1995,6 +2041,94 @@ function showDashboard(session) {
   document.getElementById('navAvatar').textContent   = initials;
 
   loadAllData();
+}
+
+/* ── Troca de senha (primeiro acesso + voluntária) ────────────── */
+function showChangePwScreen() {
+  document.getElementById('loginScreen').style.display  = 'none';
+  document.getElementById('dashboard').classList.remove('show');
+  const el = document.getElementById('changePwScreen');
+  el.style.display = 'flex';
+  document.getElementById('changePwNew').value     = '';
+  document.getElementById('changePwConfirm').value = '';
+  document.getElementById('changePwError').classList.remove('show');
+  document.getElementById('changePwNew').focus();
+}
+
+function abrirTrocaSenha() {
+  showChangePwScreen();
+}
+
+function changePwStrength(val) {
+  const bar = document.getElementById('changePwBar');
+  const lbl = document.getElementById('changePwBarLabel');
+  if (!bar) return;
+  let score = 0;
+  if (val.length >= 8)  score++;
+  if (val.length >= 12) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const colors = ['#DC2626','#D97706','#D97706','#16A34A','#16A34A','#16A34A'];
+  const labels = ['','Fraca','Razoável','Boa','Forte','Muito forte'];
+  bar.style.background = val.length ? (colors[score] || '#16A34A') : 'var(--gray-2)';
+  bar.style.width = val.length ? Math.min(100, score * 22) + '%' : '100%';
+  lbl.textContent = val.length ? (labels[score] || 'Muito forte') : '';
+}
+
+async function doChangePw() {
+  const nova    = document.getElementById('changePwNew').value;
+  const confirm = document.getElementById('changePwConfirm').value;
+  const errEl   = document.getElementById('changePwError');
+  const btn     = document.getElementById('btnChangePw');
+
+  errEl.classList.remove('show');
+
+  if (!nova || nova.length < 8) {
+    errEl.textContent = 'A senha precisa ter no mínimo 8 caracteres.';
+    errEl.classList.add('show'); return;
+  }
+  if (nova !== confirm) {
+    errEl.textContent = 'As senhas não conferem.';
+    errEl.classList.add('show'); return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Salvando…';
+
+  try {
+    const token = currentSession?.access_token;
+    if (!token) throw new Error('Sessão expirada.');
+
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      method: 'PUT',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password: nova, data: { senha_provisoria: false } }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.msg || data.error_description || `Erro ${res.status}`);
+
+    // Atualiza sessão local
+    if (currentSession?.user?.user_metadata) {
+      currentSession.user.user_metadata.senha_provisoria = false;
+      localStorage.setItem('sb_admin_session', JSON.stringify(currentSession));
+    }
+
+    document.getElementById('changePwScreen').style.display = 'none';
+    showDashboard(currentSession);
+    showToast('Senha definida com sucesso!', 'success');
+  } catch (e) {
+    errEl.textContent = e.message || 'Erro ao salvar senha.';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar e entrar no painel →';
+  }
 }
 
 // Enter key on login
@@ -2020,7 +2154,11 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
         currentSession = session;
-        showDashboard(session);
+        if (session.user?.user_metadata?.senha_provisoria === true) {
+          showChangePwScreen();
+        } else {
+          showDashboard(session);
+        }
         return;
       }
     } catch {}

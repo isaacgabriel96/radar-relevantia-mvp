@@ -2684,20 +2684,21 @@ async function init() {
         window.location.href = '/index.html';
         return;
       }
-      // Guard: apenas usuários com tipo 'marca' podem acessar este portal
-      if (user.user_metadata?.tipo !== 'marca') {
+      const tipo = user.user_metadata?.tipo;
+      // Guard: tipo 'marca' ou 'admin' (admin pode testar o portal)
+      if (tipo !== 'marca' && tipo !== 'admin') {
         localStorage.removeItem('sb_marca_session');
         localStorage.removeItem('sb_detentor_session');
         window.location.href = '/index.html';
         return;
       }
-      // Guard: bloqueia acesso ao dashboard antes de completar o acesso-marca (senha provisória)
+      // Guard: senha provisória — admin vai para admin.html, marca vai para acesso-marca.html
       if (user.user_metadata?.senha_provisoria === true) {
-        window.location.href = 'acesso-marca.html';
+        window.location.href = tipo === 'admin' ? 'admin.html' : 'acesso-marca.html';
         return;
       }
-      // Guard: bloqueia acesso ao dashboard antes de completar o onboarding completo
-      if (user.user_metadata?.onboarding_completo === false) {
+      // Guard: onboarding incompleto (só para marcas, não para admins)
+      if (tipo === 'marca' && user.user_metadata?.onboarding_completo === false) {
         window.location.href = 'onboarding-marca.html';
         return;
       }
