@@ -12270,8 +12270,9 @@ async function maybePreFillEdit(forceRun = false) {
   _updateEditTopbar();
 
   // Em modo edição, abre diretamente nos Detalhes Específicos (panel-5).
-  // _pendingDetalhes já foi setado acima, então renderTemplateFields → _applyPendingDetalhes
-  // vai popular os campos corretamente.
+  // Força o caminho step-1 → step-2, que é o único que chama renderTemplateFields()
+  // e portanto _applyPendingDetalhes(). _pendingDetalhes já foi setado acima.
+  currentStep = 1;
   nextStep(2);
 }
 
