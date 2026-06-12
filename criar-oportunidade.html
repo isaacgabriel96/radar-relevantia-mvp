@@ -14243,6 +14243,11 @@ function initImpersonateMode() {
     // Esconde o botão "Enviar para análise" para o admin não publicar ao vivo
     // pulando o cadastro jurídico e a revisão (preserva os dois portões).
     document.querySelectorAll('.btn-publish').forEach(b => { b.style.display = 'none'; });
+
+    // Cobre o formulário enquanto buscamos o rascunho do detentor — evita o
+    // "flash" do passo 1 (escolher tipo) antes de pular pro rascunho carregado.
+    // _impersonateMaybeLoadDraft() esconde no fim (com ou sem rascunho).
+    _showImpersonateLoading(true);
   } catch (e) {
     console.warn('[Impersonate] Erro ao inicializar modo:', e);
   }
@@ -14271,9 +14276,12 @@ async function _impersonateMaybeLoadDraft() {
     return r.json().catch(() => null);
   };
   try {
-    const oppsData = await _call({ action: 'list-oportunidades-as', target_user_id: ctx.target_user_id });
-    const opps = (oppsData && oppsData.oportunidades) || [];
-    const perfData = await _call({ action: 'get-perfil-pode-publicar', perfil_id: ctx.target_user_id });
+    // Paraleliza as duas chamadas (rascunho + status) para reduzir a espera.
+    const [oppsData, perfData] = await Promise.all([
+      _call({ action: 'list-oportunidades-as', target_user_id: ctx.target_user_id }),
+      _call({ action: 'get-perfil-pode-publicar', perfil_id: ctx.target_user_id }),
+    ]);
+    const opps   = (oppsData && oppsData.oportunidades) || [];
     const perfil = (perfData && perfData.perfil) || {};
 
     // Continua o rascunho existente (ou a opp em análise) — só se ainda não
@@ -14288,6 +14296,26 @@ async function _impersonateMaybeLoadDraft() {
     _renderImpersonateInfoBar(opps, perfil);
   } catch (e) {
     console.warn('[Impersonate] carregar rascunho/status falhou:', e);
+  } finally {
+    // Revela o formulário (já no rascunho carregado, ou no passo 1 limpo).
+    _showImpersonateLoading(false);
+  }
+}
+
+/** Loading que cobre o formulário enquanto decide se carrega um rascunho. */
+function _showImpersonateLoading(show) {
+  let ov = document.getElementById('impersonateLoadingOverlay');
+  if (show) {
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'impersonateLoadingOverlay';
+      ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#F4F1EA;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:var(--font-body,sans-serif)';
+      ov.innerHTML = '<div style="width:42px;height:42px;border:3px solid rgba(184,134,11,.25);border-top-color:#B8860B;border-radius:50%;animation:impSpin .8s linear infinite"></div><div style="color:#7a5e10;font-size:14px;font-weight:600">Carregando dados do detentor…</div><style>@keyframes impSpin{to{transform:rotate(360deg)}}</style>';
+      document.body.appendChild(ov);
+    }
+    ov.style.display = 'flex';
+  } else if (ov) {
+    ov.remove();
   }
 }
 
