@@ -4899,18 +4899,24 @@ function _impersonateStatusBadges(opps, perfil) {
   const pendente   = opps.find(o => o.status === 'rascunho') || opps.find(o => o.status === 'em_revisao');
   const validado   = !!(perfil && perfil.pode_publicar);
   const juridicoOk = !!(perfil && perfil.cadastro_juridico_completo);
-  const badge = (txt, ok) => '<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;background:' +
-    (ok ? 'rgba(34,139,34,.12)' : 'rgba(184,134,11,.16)') + ';color:' + (ok ? '#1f7a1f' : '#9a7209') + '">' + txt + '</span>';
+  const badge = (txt, ok, hint) => '<span title="' + (hint || '').replace(/"/g, '&quot;') +
+    '" style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:12px;font-weight:600;cursor:help;background:' +
+    (ok ? 'rgba(34,139,34,.12)' : 'rgba(184,134,11,.16)') + ';color:' + (ok ? '#1f7a1f' : '#9a7209') + '">' + txt +
+    '<span style="display:inline-flex;width:13px;height:13px;border-radius:50%;border:1px solid currentColor;align-items:center;justify-content:center;font-size:9px;font-weight:700;opacity:.65;font-style:italic">i</span></span>';
   let statusOpp;
   if (total === 0) statusOpp = 'Sem oportunidade ainda';
   else if (pendente && pendente.status === 'rascunho')   statusOpp = 'Rascunho em andamento';
   else if (pendente && pendente.status === 'em_revisao') statusOpp = 'Em análise — aguardando você';
   else statusOpp = 'Sem pendência';
   return [
-    badge(ehPrimeira ? '1ª oportunidade' : (total + ' oportunidades'), false),
-    badge(statusOpp, false),
-    badge(validado ? 'Conta validada' : 'Conta não validada', validado),
-    badge(juridicoOk ? 'Jurídico completo' : 'Jurídico pendente', juridicoOk),
+    badge(ehPrimeira ? '1ª oportunidade' : (total + ' oportunidades'), false,
+      'Quantas oportunidades este detentor já tem. "1ª oportunidade" = ele ainda está na primeira (0 ou 1 criada).'),
+    badge(statusOpp, false,
+      'Situação da oportunidade em andamento: "Rascunho" = está sendo montada; "Em análise" = foi enviada e aguarda sua aprovação; "Sem pendência" = nada em aberto.'),
+    badge(validado ? 'Conta validada' : 'Conta não validada', validado,
+      'Se você já liberou a conta do detentor para publicar (campo pode_publicar). Enquanto NÃO validada, ele não consegue enviar oportunidade para análise. Não tem relação com dados financeiros.'),
+    badge(juridicoOk ? 'Jurídico completo' : 'Jurídico pendente', juridicoOk,
+      'Se o detentor preencheu os dados jurídicos (CNPJ, razão social, endereço, responsável legal) — necessários para formalizar contratos com as marcas.'),
   ].join('');
 }
 
