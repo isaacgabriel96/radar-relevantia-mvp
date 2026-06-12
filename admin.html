@@ -4588,10 +4588,11 @@ async function adminInvite() {
   btn.textContent = 'Criando…';
 
   try {
-    await _callManageAdmins({ action: 'create-admin', email, nome, tempPassword: password });
+    const result = await _callManageAdmins({ action: 'create-admin', email, nome, tempPassword: password });
 
+    const wasPromoted = result?.promoted === true;
     sucEl.innerHTML = `
-      ✅ <strong>${escHtml(email)}</strong> criado com sucesso!<br>
+      ✅ <strong>${escHtml(email)}</strong> ${wasPromoted ? 'promovido para admin' : 'criado'} com sucesso!<br>
       Compartilhe as credenciais por canal seguro:<br>
       <strong>Email:</strong> ${escHtml(email)}<br>
       <strong>Senha:</strong> ${escHtml(password)}
@@ -4605,7 +4606,19 @@ async function adminInvite() {
 
     loadAdmins();
   } catch (err) {
-    errEl.textContent = err.message;
+    const isAlreadyRegistered =
+      err.message?.toLowerCase().includes('already registered') ||
+      err.message?.toLowerCase().includes('already been registered');
+
+    if (isAlreadyRegistered) {
+      errEl.innerHTML = `
+        ⚠️ Este email já tem conta na plataforma.<br>
+        Para promovê-lo a admin, entre em contato com o suporte técnico
+        ou use o SQL: <code>UPDATE auth.users SET raw_user_meta_data = raw_user_meta_data || '{"tipo":"admin"}'::jsonb WHERE email = '${escHtml(email)}';</code>
+      `;
+    } else {
+      errEl.textContent = err.message;
+    }
     errEl.style.display = 'block';
   } finally {
     btn.disabled = false;
