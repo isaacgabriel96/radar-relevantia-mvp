@@ -1785,8 +1785,9 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'Tipo de evento':    _ic('<rect x="2" y="4" width="16" height="14" rx="2"/><path d="M2 9h16M6 2v4M14 2v4"/><path d="M7 13l1.5 1.5L13 11"/>'),
       'Edição ou Ano':     _ic('<path d="M2 10V3.5A1.5 1.5 0 013.5 2H10l8 8-8 8-8-8z"/><circle cx="5.5" cy="5.5" r="1.5" fill="currentColor" stroke="none"/>'),
       'Formato':           _ic('<rect x="2" y="3" width="16" height="14" rx="2"/><path d="M10 3v14M2 10h16"/>'),
-      'Transmissão prevista': _ic('<path d="M3 17a10 10 0 0114 0M6 13a6 6 0 018 0"/><path d="M10 9v.5"/><circle cx="10" cy="9.5" r="1.5" fill="currentColor" stroke="none"/>'),
-      'Transmissão':       _ic('<path d="M3 17a10 10 0 0114 0M6 13a6 6 0 018 0"/><path d="M10 9v.5"/><circle cx="10" cy="9.5" r="1.5" fill="currentColor" stroke="none"/>'),
+      'Transmissão prevista':   _ic('<path d="M3 17a10 10 0 0114 0M6 13a6 6 0 018 0"/><path d="M10 9v.5"/><circle cx="10" cy="9.5" r="1.5" fill="currentColor" stroke="none"/>'),
+      'Transmissão':            _ic('<path d="M3 17a10 10 0 0114 0M6 13a6 6 0 018 0"/><path d="M10 9v.5"/><circle cx="10" cy="9.5" r="1.5" fill="currentColor" stroke="none"/>'),
+      'transmissao-plataformas':_ic('<path d="M3 17a10 10 0 0114 0M6 13a6 6 0 018 0"/><path d="M10 9v.5"/><circle cx="10" cy="9.5" r="1.5" fill="currentColor" stroke="none"/>'),
       'Público esperado':  _ic('<circle cx="7" cy="6" r="3.5"/><path d="M1 19c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="15" cy="7" r="2.5"/><path d="M19 19c0-2.7-1.8-5-4-5.5"/>'),
       'Capacidade':        _ic('<path d="M3 18V4a1 1 0 011-1h12a1 1 0 011 1v14M1 18h18"/><path d="M8 18v-5h4v5M8 8h1M11 8h1M8 12h1M11 12h1"/>'),
       'Abrangência':       _ic('<circle cx="10" cy="10" r="8"/><path d="M10 2c-2.5 3-4 5.5-4 8s1.5 5 4 8M10 2c2.5 3 4 5.5 4 8s-1.5 5-4 8"/><path d="M2 10h16"/>'),
@@ -1807,7 +1808,7 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'Nicho editorial':        _ic('<path d="M4 2h8l4 4v12a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M12 2v4h4M6 10h8M6 14h5"/>'),
       'Frequência de publicação': _ic('<rect x="2" y="4" width="16" height="14" rx="2"/><path d="M2 9h16M6 2v4M14 2v4"/><path d="M10 12v3l2 1"/>'),
       // ── Personalidade ───────────────────────────────────
-      'Nicho principal':        _ic('<circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="4.5"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/>'),
+      'Nicho principal':         _ic('<circle cx="10" cy="10" r="8"/><circle cx="10" cy="10" r="4.5"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/>'),
       // ── Chaves técnicas ─────────────────────────────────
       'demografico':            _ic('<path d="M4 16V9M8 16V5M12 16V11M16 16V7"/><path d="M2 16h16"/>'),
       'entregas':               _ic('<path d="M5 12l3 3 7-8"/><rect x="2" y="2" width="16" height="16" rx="3"/>'),
@@ -1835,7 +1836,8 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
       'Tipo de veículo':          'Tipo de veículo',
       'Nicho editorial':          'Nicho editorial',
       'Frequência de publicação': 'Frequência',
-      'Nicho principal':          'Nicho principal',
+      'Nicho principal':           'Nicho principal',
+      'transmissao-plataformas':  'Transmissão ao vivo',
     };
     // Labels já presentes nos generalFacts da tabela (para evitar duplicata)
     const existingLabels = new Set(generalFacts.map(f => f.label));
@@ -1849,6 +1851,11 @@ async function fetchOppFromSupabase(idOrPerfilSlug, oppSlug) {
         if (key === 'publico_presencial') return; // dados de audiência presencial
         // Redes sociais — coberto pela seção "Canais" (canal-cards); não duplicar como fact
         if (key === 'Redes sociais com presença') return;
+        // Chaves de UI / estado interno — sem valor para a marca
+        if (key === 'publico-contagem') return;   // detalhe de período do público
+        if (key === 'artista-show-ativo') return; // redundante com "Média de shows por mês"
+        if (key === 'transmissao-ativo') return;  // resumido em transmissao-plataformas abaixo
+        if (key === 'undefined') return;          // artefato de coleta duplicada de datas
         const label = DETALHE_LABELS[key] || key;
         if (existingLabels.has(label)) return; // já tem na tabela
         const icon = DETALHE_ICONS[key] || DETALHE_ICONS[label] || '📋';
