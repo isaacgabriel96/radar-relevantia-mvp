@@ -9094,7 +9094,11 @@ const _MN = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agos
 function _mdpNew(slot, savedDates) {
   const id = ++_mdpC;
   const now = new Date();
-  _mdpS[id] = { y: now.getFullYear(), m: now.getMonth(), d: new Set(Array.isArray(savedDates) ? savedDates : []), open: false, mode: 'dates', mesRef: null, mesRefY: now.getFullYear() };
+  const _arr = Array.isArray(savedDates) ? savedDates : [];
+  const _mesrefEntry = _arr.find(d => typeof d === 'string' && d.startsWith('mesref:'));
+  const _mesRef = _mesrefEntry ? _mesrefEntry.slice(7) : null;
+  const _mesRefY = _mesRef ? (parseInt(_mesRef.split('-')[0], 10) || now.getFullYear()) : now.getFullYear();
+  _mdpS[id] = { y: now.getFullYear(), m: now.getMonth(), d: new Set(_arr.filter(d => typeof d !== 'string' || !d.startsWith('mesref:'))), open: false, mode: _mesRef ? 'month' : 'dates', mesRef: _mesRef, mesRefY: _mesRefY };
   const wrap = document.createElement('div');
   wrap.className = 'mdp';
   wrap.dataset.mid = id;
