@@ -12268,6 +12268,11 @@ async function maybePreFillEdit(forceRun = false) {
   enableClickableStepper();
   // Adapta topbar ao status da oportunidade (labels, botões extras)
   _updateEditTopbar();
+
+  // Em modo edição, abre diretamente nos Detalhes Específicos (panel-5).
+  // _pendingDetalhes já foi setado acima, então renderTemplateFields → _applyPendingDetalhes
+  // vai popular os campos corretamente.
+  nextStep(2);
 }
 
 /**
@@ -12276,8 +12281,10 @@ async function maybePreFillEdit(forceRun = false) {
  * e adiciona click handlers para ir a qualquer step.
  */
 function enableClickableStepper() {
-  // Mapeamento: fase → primeiro step da fase (para navegação)
-  const phaseFirstStep = { 1: 1, 2: 4, 3: 7 };
+  // Mapeamento: fase → primeiro step da fase (para navegação).
+  // Fase 1 vai para step 2 (Detalhes) em vez de step 1 (seleção de template),
+  // pois em modo edição o template já está fixo.
+  const phaseFirstStep = { 1: 2, 2: 4, 3: 7 };
   for (let p = 1; p <= 3; p++) {
     const dot = document.getElementById('phase-dot-' + p);
     if (!dot) continue;
