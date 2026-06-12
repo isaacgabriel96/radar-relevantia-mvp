@@ -481,6 +481,114 @@ tr.row-selected td { background: #FEF2F2; }
 .page-card-actions .btn[disabled],
 .page-card-actions span.btn { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
+/* =========================================================
+   CONTENT COMPONENTS (seções) — design system dos dashboards
+   ========================================================= */
+.content-narrow { max-width: 760px; }
+.content-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+/* Painel / card de conteúdo */
+.panel {
+  background: var(--white); border: 1px solid var(--gray-2); border-radius: var(--radius-lg);
+  padding: 24px; box-shadow: var(--shadow-sm);
+}
+.panel + .panel { margin-top: 20px; }
+.panel-head { margin-bottom: 18px; }
+.panel-title { font-family: var(--font-heading); font-size: 15px; font-weight: 600; color: var(--black); display: flex; align-items: center; }
+.panel-sub { font-size: 12.5px; color: var(--gray-5); margin-top: 4px; line-height: 1.5; }
+.panel-step {
+  display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px;
+  border-radius: 50%; background: var(--gold-pale); color: var(--brown-warm);
+  font-size: 12px; font-weight: 700; margin-right: 9px; flex-shrink: 0;
+}
+.panel-divider { border: none; border-top: 1px solid var(--gray-2); margin: 20px 0; }
+
+/* Banner informativo */
+.info-banner {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--gold-pale); border: 1px solid rgba(184,134,11,0.22);
+  border-radius: var(--radius-md); padding: 16px 18px; margin-bottom: 24px;
+}
+.info-banner.warn { background: var(--orange-bg); border-color: var(--orange-border); }
+.info-banner-icon {
+  width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(184,134,11,0.12); color: var(--gold);
+}
+.info-banner-icon svg { width: 20px; height: 20px; }
+.info-banner.warn .info-banner-icon { background: rgba(217,119,6,0.12); color: var(--orange); }
+.info-banner-title { font-size: 13px; font-weight: 600; color: var(--black); margin-bottom: 3px; }
+.info-banner-text { font-size: 13px; color: var(--gray-4); line-height: 1.6; }
+.info-banner-text strong { color: var(--black); }
+
+/* Campos de formulário (fora de modal) */
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field-label { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-5); }
+.field-label .req { color: var(--gold); }
+.field-input {
+  width: 100%; padding: 10px 13px; border: 1.5px solid var(--gray-2); border-radius: var(--radius-base);
+  font-size: 13.5px; font-family: var(--font-body); color: var(--text); background: var(--white);
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box;
+}
+.field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,134,11,0.1); }
+.field-input::placeholder { color: var(--gray-3); }
+.field-hint { font-size: 11.5px; color: var(--gray-5); margin-top: -2px; line-height: 1.5; }
+.field-row { display: flex; gap: 8px; align-items: stretch; }
+
+/* Busca com ícone */
+.search-field { position: relative; }
+.search-field .field-input { padding-left: 38px; }
+.search-field > svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--gray-3); pointer-events: none; }
+
+/* Botões pill */
+.btn-pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 22px; border-radius: var(--radius-pill);
+  font-size: 13.5px; font-weight: 600; font-family: var(--font-body);
+  cursor: pointer; border: none; transition: all 0.18s; white-space: nowrap;
+}
+.btn-pill svg { width: 16px; height: 16px; }
+.btn-pill-dark { background: var(--black); color: var(--white); }
+.btn-pill-dark:hover:not(:disabled) { background: var(--gold); color: var(--black); }
+.btn-pill-dark:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-pill-outline { background: var(--white); color: var(--text); border: 1.5px solid var(--gray-2); }
+.btn-pill-outline:hover { border-color: var(--gold); color: var(--brown-warm); }
+.btn-soft { background: var(--gray-1); border: 1px solid var(--gray-2); color: var(--gray-4); border-radius: var(--radius-sm); padding: 0 14px; font-size: 12.5px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-soft:hover { background: var(--gray-2); color: var(--text); }
+
+/* Linhas de lista selecionáveis (detentores / admins) */
+.row-list { display: flex; flex-direction: column; gap: 6px; }
+.row-item {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 11px 12px; border-radius: var(--radius-md); border: 1.5px solid transparent;
+  background: var(--gray-1); cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.row-item:hover { background: var(--white); border-color: var(--gray-2); }
+.row-item.selected { background: var(--gold-pale); border-color: rgba(184,134,11,0.4); }
+.row-item.static { cursor: default; }
+.row-item.static:hover { background: var(--gray-1); border-color: transparent; }
+.row-avatar {
+  width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+  background: var(--gold-gradient); color: var(--black); font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.row-avatar svg { width: 18px; height: 18px; color: var(--black); }
+.row-avatar img { width: 100%; height: 100%; object-fit: contain; }
+.row-main { flex: 1; min-width: 0; }
+.row-name { font-size: 13.5px; font-weight: 600; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row-meta { font-size: 12px; color: var(--gray-5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.row-cta { font-size: 11.5px; color: var(--gold); font-weight: 600; flex-shrink: 0; }
+.row-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.icon-btn {
+  background: transparent; border: 1px solid var(--gray-2); border-radius: var(--radius-sm);
+  width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  color: var(--gray-4); cursor: pointer; transition: all 0.15s; padding: 0;
+}
+.icon-btn:hover { border-color: var(--gold); color: var(--gold); }
+.icon-btn svg { width: 15px; height: 15px; }
+.icon-btn.danger { border-color: var(--red-border); color: var(--red); }
+.icon-btn.danger:hover { background: var(--red-bg); border-color: var(--red); }
+
 /* Responsive */
 @media (min-width: 769px) and (max-width: 1024px) {
   .stats-grid { grid-template-columns: repeat(2,1fr); }
@@ -497,6 +605,7 @@ tr.row-selected td { background: #FEF2F2; }
   .bottom-nav { display: flex; }
   .stats-grid { grid-template-columns: repeat(2,1fr); }
   .modal-fields-grid { grid-template-columns: 1fr; }
+  .content-grid-2 { grid-template-columns: 1fr; }
   .page-title { font-size: 22px; }
 }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -1461,8 +1570,14 @@ tr.row-selected td { background: #FEF2F2; }
           </div>
         </div>
 
-        <div style="margin-top:24px;padding:16px 20px;background:var(--gold-pale);border-radius:12px;max-width:680px;font-size:13px;color:var(--gray-5);line-height:1.6">
-          <strong style="color:var(--text)">Como funciona:</strong> O modo demo cria uma sessão fictícia com dados de exemplo. Todas as chamadas ao banco são bloqueadas — nenhum dado real é alterado. Um banner dourado no topo indica que o demo está ativo. Para sair, clique em "Sair do demo" no banner.
+        <div class="info-banner content-narrow" style="margin-top:8px">
+          <div class="info-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </div>
+          <div>
+            <div class="info-banner-title">Como funciona</div>
+            <div class="info-banner-text">O modo demo cria uma sessão fictícia com dados de exemplo. Todas as chamadas ao banco são bloqueadas — nenhum dado real é alterado. Um banner dourado no topo indica que o demo está ativo. Para sair, clique em "Sair do demo" no banner.</div>
+          </div>
         </div>
       </div><!-- /section-demo -->
 
@@ -1474,55 +1589,62 @@ tr.row-selected td { background: #FEF2F2; }
         </div>
 
         <!-- Banner explicativo -->
-        <div style="display:flex;align-items:flex-start;gap:14px;background:rgba(184,134,11,0.07);border:1px solid rgba(184,134,11,0.25);border-radius:12px;padding:18px 20px;max-width:720px;margin-bottom:28px">
-          <span style="font-size:22px;flex-shrink:0;margin-top:1px">🪄</span>
+        <div class="info-banner content-narrow">
+          <div class="info-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M15 9h.01M17.8 6.2L19 5M3 21l9-9M12.2 6.2L11 5"/></svg>
+          </div>
           <div>
-            <div style="font-size:13px;font-weight:600;color:var(--black);margin-bottom:4px">Como funciona</div>
-            <div style="font-size:13px;color:var(--gray-5);line-height:1.6">Selecione um detentor cadastrado, depois clique em <strong style="color:var(--black)">Abrir Formulário</strong>. O formulário de criação abrirá em uma nova aba com um modo especial: a oportunidade será salva diretamente no nome do cliente, sem aparecer como Relevantia. Um banner dourado ficará visível durante todo o preenchimento.</div>
+            <div class="info-banner-title">Como funciona</div>
+            <div class="info-banner-text">Selecione um detentor cadastrado, depois clique em <strong>Abrir Formulário</strong>. O formulário de criação abrirá em uma nova aba com um modo especial: a oportunidade será salva diretamente no nome do cliente, sem aparecer como Relevantia. Um banner dourado ficará visível durante todo o preenchimento.</div>
           </div>
         </div>
 
         <!-- Card de seleção -->
-        <div style="background:var(--white);border:1px solid var(--gray-2);border-radius:16px;padding:28px 24px;max-width:720px">
-          <div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:20px">1. Selecione o detentor</div>
+        <div class="panel content-narrow">
+          <div class="panel-head">
+            <div class="panel-title"><span class="panel-step">1</span> Selecione o detentor</div>
+          </div>
 
           <div id="impersonate-loading" style="color:var(--gray-5);font-size:13px;padding:12px 0">Carregando detentores...</div>
 
           <div id="impersonate-list" style="display:none">
-            <div style="position:relative;margin-bottom:16px">
-              <input id="impersonate-search" type="text" placeholder="Buscar por nome ou empresa..."
-                oninput="filterImpersonateList(this.value)"
-                style="width:100%;padding:10px 14px 10px 36px;border:1.5px solid var(--gray-2);border-radius:10px;font-size:13px;font-family:var(--font-body);outline:none;transition:border-color 0.15s"
-                onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--gray-2)'">
-              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--gray-5);font-size:14px">🔍</span>
+            <div class="search-field" style="margin-bottom:16px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input id="impersonate-search" type="text" class="field-input" placeholder="Buscar por nome ou empresa..."
+                oninput="filterImpersonateList(this.value)">
             </div>
 
-            <div id="impersonate-detentor-cards" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto;padding-right:4px"></div>
+            <div id="impersonate-detentor-cards" class="row-list" style="max-height:320px;overflow-y:auto;padding-right:4px"></div>
           </div>
 
           <div id="impersonate-empty" style="display:none;color:var(--gray-5);font-size:13px;padding:16px 0">
             Nenhum detentor encontrado. Verifique se há detentores com perfil criado na plataforma.
           </div>
 
-          <div id="impersonate-error" style="display:none;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px 14px;font-size:13px;color:#991B1B;margin-top:12px"></div>
+          <div id="impersonate-error" style="display:none;background:var(--red-bg);border:1px solid var(--red-border);border-radius:8px;padding:12px 14px;font-size:13px;color:#991B1B;margin-top:12px"></div>
 
           <!-- Selecionado -->
-          <div id="impersonate-selected" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-2)">
-            <div style="font-size:14px;font-weight:600;color:var(--black);margin-bottom:14px">2. Confirme e abra o formulário</div>
-            <div id="impersonate-selected-card" style="display:flex;align-items:center;gap:14px;background:var(--gold-pale);border:1px solid rgba(184,134,11,0.25);border-radius:12px;padding:16px 18px;margin-bottom:16px">
-              <div style="width:42px;height:42px;border-radius:50%;background:var(--gold-gradient);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🏟️</div>
-              <div>
-                <div id="impersonate-selected-name" style="font-size:14px;font-weight:600;color:var(--black)"></div>
-                <div id="impersonate-selected-email" style="font-size:12px;color:var(--gray-5);margin-top:2px"></div>
+          <div id="impersonate-selected" style="display:none">
+            <hr class="panel-divider">
+            <div class="panel-title" style="margin-bottom:14px"><span class="panel-step">2</span> Confirme e abra o formulário</div>
+            <div id="impersonate-selected-card" class="row-item selected static" style="margin-bottom:16px">
+              <div class="row-avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
               </div>
-              <button onclick="clearImpersonateSelection()" style="margin-left:auto;background:transparent;border:1px solid var(--gray-2);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--gray-5);font-family:var(--font-body)">Trocar</button>
+              <div class="row-main">
+                <div id="impersonate-selected-name" class="row-name"></div>
+                <div id="impersonate-selected-email" class="row-meta"></div>
+              </div>
+              <button onclick="clearImpersonateSelection()" class="btn-soft" style="margin-left:auto">Trocar</button>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button onclick="openFormAsClient()" style="background:var(--black);color:var(--white);border:none;padding:12px 28px;border-radius:100px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:opacity 0.15s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                🪄 Abrir Formulário como este Detentor →
+              <button onclick="openFormAsClient()" class="btn-pill btn-pill-dark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M15 9h.01M17.8 6.2L19 5M3 21l9-9M12.2 6.2L11 5"/></svg>
+                Abrir Formulário como este Detentor →
               </button>
-              <button onclick="openOportunidadesDoDetentor()" style="background:var(--white);color:var(--black);border:1.5px solid var(--gray-2);padding:12px 24px;border-radius:100px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:all 0.15s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--brown-warm)'" onmouseout="this.style.borderColor='var(--gray-2)';this.style.color='var(--black)'">
-                📋 Ver Oportunidades deste Detentor
+              <button onclick="openOportunidadesDoDetentor()" class="btn-pill btn-pill-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 12h6M9 16h6"/></svg>
+                Ver Oportunidades deste Detentor
               </button>
             </div>
           </div>
@@ -1538,77 +1660,72 @@ tr.row-selected td { background: #FEF2F2; }
         </div>
 
         <!-- Banner aviso -->
-        <div style="display:flex;align-items:flex-start;gap:14px;background:rgba(184,134,11,0.07);border:1px solid rgba(184,134,11,0.25);border-radius:12px;padding:18px 20px;max-width:720px;margin-bottom:28px">
-          <span style="font-size:22px;flex-shrink:0;margin-top:1px">⚠️</span>
+        <div class="info-banner warn" style="max-width:920px">
+          <div class="info-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
           <div>
-            <div style="font-size:13px;font-weight:600;color:var(--black);margin-bottom:4px">Acesso total ao painel</div>
-            <div style="font-size:13px;color:var(--gray-5);line-height:1.6">Usuários admin têm acesso completo a todos os dados da plataforma. Crie senhas provisórias seguras e compartilhe por canal privado. O novo admin poderá alterar a senha pelo painel.</div>
+            <div class="info-banner-title">Acesso total ao painel</div>
+            <div class="info-banner-text">Usuários admin têm acesso completo a todos os dados da plataforma. Crie senhas provisórias seguras e compartilhe por canal privado. O novo admin poderá alterar a senha pelo painel.</div>
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;align-items:start">
+        <div class="content-grid-2" style="max-width:920px">
 
           <!-- Card: Admins atuais -->
-          <div style="background:var(--white);border:1px solid var(--gray-2);border-radius:16px;padding:24px">
-            <div style="font-size:14px;font-weight:700;color:var(--black);margin-bottom:4px">Admins cadastrados</div>
-            <div style="font-size:12px;color:var(--gray-5);margin-bottom:20px">Clique em ✕ para remover o acesso</div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Admins cadastrados</div>
+              <div class="panel-sub">Gerencie nome, senha e acesso de cada usuário</div>
+            </div>
 
             <div id="admins-loading" style="display:flex;align-items:center;gap:8px;color:var(--gray-5);font-size:13px;padding:8px 0">
-              <div style="width:14px;height:14px;border:2px solid var(--gray-3);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite"></div>
+              <div class="spinner"></div>
               Carregando…
             </div>
 
-            <div id="admins-list" style="display:none;display:flex;flex-direction:column;gap:8px"></div>
+            <div id="admins-list" class="row-list" style="display:none"></div>
             <div id="admins-empty" style="display:none;font-size:13px;color:var(--gray-5);padding:8px 0">Nenhum admin encontrado.</div>
-            <div id="admins-list-error" style="display:none;font-size:12px;color:#991B1B;background:rgba(239,68,68,0.08);border-radius:8px;padding:10px 12px;margin-top:8px"></div>
+            <div id="admins-list-error" style="display:none;font-size:12px;color:#991B1B;background:var(--red-bg);border-radius:8px;padding:10px 12px;margin-top:8px"></div>
           </div>
 
           <!-- Card: Convidar novo admin -->
-          <div style="background:var(--white);border:1px solid var(--gray-2);border-radius:16px;padding:24px">
-            <div style="font-size:14px;font-weight:700;color:var(--black);margin-bottom:4px">Convidar novo admin</div>
-            <div style="font-size:12px;color:var(--gray-5);margin-bottom:20px">O acesso é imediato — compartilhe as credenciais por canal seguro</div>
-
-            <div style="display:flex;flex-direction:column;gap:12px">
-              <div>
-                <label style="font-size:12px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:5px">Nome</label>
-                <input type="text" id="adminInviteNome" placeholder="Ex: Mariana Costa"
-                  style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:10px;font-size:13px;font-family:var(--font-body);outline:none;box-sizing:border-box;transition:border-color 0.15s"
-                  onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--gray-2)'">
-              </div>
-              <div>
-                <label style="font-size:12px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:5px">Email <span style="color:var(--gold)">*</span></label>
-                <input type="email" id="adminInviteEmail" placeholder="email@relevantia.com"
-                  style="width:100%;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:10px;font-size:13px;font-family:var(--font-body);outline:none;box-sizing:border-box;transition:border-color 0.15s"
-                  onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--gray-2)'">
-              </div>
-              <div>
-                <label style="font-size:12px;font-weight:600;color:var(--gray-4);display:block;margin-bottom:5px">Senha provisória <span style="color:var(--gold)">*</span></label>
-                <div style="display:flex;gap:8px">
-                  <input type="text" id="adminInvitePassword" placeholder="Mín. 8 caracteres"
-                    style="flex:1;padding:10px 12px;border:1.5px solid var(--gray-2);border-radius:10px;font-size:13px;font-family:var(--font-body);outline:none;box-sizing:border-box;transition:border-color 0.15s"
-                    onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--gray-2)'">
-                  <button onclick="adminGeneratePassword()"
-                    style="flex-shrink:0;background:var(--gray-1);border:1px solid var(--gray-2);border-radius:8px;padding:0 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray-4);font-family:var(--font-body);white-space:nowrap;transition:background 0.15s"
-                    onmouseover="this.style.background='var(--gray-2)'" onmouseout="this.style.background='var(--gray-1)'">
-                    🎲 Gerar
-                  </button>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
-                  <button id="adminCopyPwdBtn" onclick="adminCopyPassword()" style="display:none;background:transparent;border:none;padding:0;cursor:pointer;font-size:12px;color:var(--gold);font-family:var(--font-body);font-weight:600;text-decoration:underline">
-                    📋 Copiar senha
-                  </button>
-                </div>
-              </div>
-
-              <div id="adminInviteError" style="display:none;font-size:12px;color:#991B1B;background:rgba(239,68,68,0.08);border-radius:8px;padding:10px 12px"></div>
-              <div id="adminInviteSuccess" style="display:none;font-size:12px;color:#166534;background:rgba(34,197,94,0.08);border-radius:8px;padding:10px 12px;line-height:1.5"></div>
-
-              <button id="adminInviteBtn" onclick="adminInvite()"
-                style="background:var(--black);color:var(--white);border:none;padding:11px 20px;border-radius:100px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-body);transition:opacity 0.15s;margin-top:4px"
-                onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                Criar acesso →
-              </button>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Convidar novo admin</div>
+              <div class="panel-sub">O acesso é imediato — compartilhe as credenciais por canal seguro</div>
             </div>
+
+            <div class="field">
+              <label class="field-label" for="adminInviteNome">Nome</label>
+              <input type="text" id="adminInviteNome" class="field-input" placeholder="Ex: Mariana Costa">
+            </div>
+            <div class="field">
+              <label class="field-label" for="adminInviteEmail">Email <span class="req">*</span></label>
+              <input type="email" id="adminInviteEmail" class="field-input" placeholder="email@relevantia.com">
+            </div>
+            <div class="field">
+              <label class="field-label" for="adminInvitePassword">Senha provisória <span class="req">*</span></label>
+              <div class="field-row">
+                <input type="text" id="adminInvitePassword" class="field-input" placeholder="Mín. 8 caracteres" style="flex:1">
+                <button onclick="adminGeneratePassword()" class="btn-soft" style="white-space:nowrap">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1.3" fill="currentColor"/><circle cx="16" cy="16" r="1.3" fill="currentColor"/><circle cx="16" cy="8" r="1.3" fill="currentColor"/><circle cx="8" cy="16" r="1.3" fill="currentColor"/></svg>
+                  Gerar
+                </button>
+              </div>
+              <div style="margin-top:6px">
+                <button id="adminCopyPwdBtn" onclick="adminCopyPassword()" style="display:none;background:transparent;border:none;padding:0;cursor:pointer;font-size:12px;color:var(--gold);font-family:var(--font-body);font-weight:600;text-decoration:underline">
+                  📋 Copiar senha
+                </button>
+              </div>
+            </div>
+
+            <div id="adminInviteError" style="display:none;font-size:12px;color:#991B1B;background:var(--red-bg);border-radius:8px;padding:10px 12px;margin-bottom:12px"></div>
+            <div id="adminInviteSuccess" style="display:none;font-size:12px;color:#166534;background:var(--green-bg);border-radius:8px;padding:10px 12px;line-height:1.5;margin-bottom:12px"></div>
+
+            <button id="adminInviteBtn" onclick="adminInvite()" class="btn-pill btn-pill-dark" style="margin-top:4px">
+              Criar acesso →
+            </button>
           </div>
 
         </div>
@@ -4543,17 +4660,16 @@ function renderImpersonateCards(detentores) {
     return;
   }
   container.innerHTML = detentores.map(d => `
-    <div class="impersonate-card" data-id="${d.id}" data-nome="${escapeHtml(d.nome || d.empresa || '')}" data-email="${escapeHtml(d.email || '')}"
-      onclick="selectImpersonate('${d.id}', '${escapeHtml(d.nome || d.empresa || 'Sem nome')}', '${escapeHtml(d.email || '')}')"
-      style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--gray-2);border-radius:10px;cursor:pointer;transition:all 0.15s;background:var(--white)"
-      onmouseover="this.style.borderColor='var(--gold)';this.style.background='var(--gold-pale)'"
-      onmouseout="this.style.borderColor='var(--gray-2)';this.style.background='var(--white)'">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--gold-gradient);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🏟️</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(d.nome || d.empresa || '—')}</div>
-        <div style="font-size:12px;color:var(--gray-5);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(d.empresa || '')}${d.empresa && d.email ? ' · ' : ''}${escapeHtml(d.email || '')}</div>
+    <div class="row-item impersonate-card" data-id="${d.id}" data-nome="${escapeHtml(d.nome || d.empresa || '')}" data-email="${escapeHtml(d.email || '')}"
+      onclick="selectImpersonate('${d.id}', '${escapeHtml(d.nome || d.empresa || 'Sem nome')}', '${escapeHtml(d.email || '')}')">
+      <div class="row-avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
       </div>
-      <span style="font-size:11px;color:var(--gold);font-weight:600;flex-shrink:0">Selecionar →</span>
+      <div class="row-main">
+        <div class="row-name">${escapeHtml(d.nome || d.empresa || '—')}</div>
+        <div class="row-meta">${escapeHtml(d.empresa || '')}${d.empresa && d.email ? ' · ' : ''}${escapeHtml(d.email || '')}</div>
+      </div>
+      <span class="row-cta">Selecionar →</span>
     </div>
   `).join('');
 }
@@ -4579,9 +4695,7 @@ function selectImpersonate(id, nome, email) {
 
   // Highlight o card selecionado
   document.querySelectorAll('.impersonate-card').forEach(c => {
-    const isSelected = c.dataset.id === id;
-    c.style.borderColor = isSelected ? 'var(--gold)' : 'var(--gray-2)';
-    c.style.background  = isSelected ? 'var(--gold-pale)' : 'var(--white)';
+    c.classList.toggle('selected', c.dataset.id === id);
   });
 
   // Scroll suave até o botão
@@ -4701,25 +4815,25 @@ async function loadAdmins() {
     const myId = session?.user?.id;
 
     listEl.innerHTML = admins.map(a => `
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--gray-2);border-radius:10px;background:var(--gray-1)">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--gold-gradient);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🔐</div>
-        <div style="flex:1;min-width:0" id="admin-info-${a.id}">
-          <div style="font-size:13px;font-weight:600;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(a.nome || a.email)}</div>
-          <div style="font-size:11px;color:var(--gray-5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(a.email)}</div>
+      <div class="row-item static">
+        <div class="row-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-          <button onclick="adminEditNome('${a.id}','${escHtml(a.nome || '')}')"
-            style="background:transparent;border:1px solid var(--gray-2);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)"
-            title="Editar nome">✏️</button>
-          <button onclick="adminResetSenha('${a.id}','${escHtml(a.email)}')"
-            style="background:transparent;border:1px solid var(--gray-2);border-radius:6px;padding:4px 8px;font-size:11px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)"
-            title="Redefinir senha">🔑</button>
+        <div class="row-main" id="admin-info-${a.id}">
+          <div class="row-name">${escHtml(a.nome || a.email)}${a.id === myId ? ' <span style="font-weight:500;color:var(--gray-5);font-size:11px">(você)</span>' : ''}</div>
+          <div class="row-meta">${escHtml(a.email)}</div>
+        </div>
+        <div class="row-actions">
+          <button onclick="adminEditNome('${a.id}','${escHtml(a.nome || '')}')" class="icon-btn" title="Editar nome">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button onclick="adminResetSenha('${a.id}','${escHtml(a.email)}')" class="icon-btn" title="Redefinir senha">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2M16 7l3 3M14 9l3 3"/></svg>
+          </button>
           ${a.id === myId
-            ? `<span style="font-size:11px;color:var(--gray-5)">(você)</span>`
-            : `<button onclick="adminRemove('${a.id}','${escHtml(a.email)}')"
-                 style="background:transparent;border:1px solid rgba(239,68,68,0.3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:#991B1B;cursor:pointer;font-family:var(--font-body);transition:background 0.15s"
-                 onmouseover="this.style.background='rgba(239,68,68,0.07)'" onmouseout="this.style.background='transparent'">
-                 ✕ Remover
+            ? ``
+            : `<button onclick="adminRemove('${a.id}','${escHtml(a.email)}')" class="icon-btn danger" title="Remover acesso">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                </button>`
           }
         </div>
