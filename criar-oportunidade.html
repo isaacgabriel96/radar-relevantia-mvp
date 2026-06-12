@@ -14293,7 +14293,8 @@ async function _impersonateMaybeLoadDraft() {
         try { await maybePreFillEdit(true); } catch (e) { console.warn('[Impersonate] preFill falhou:', e); }
       }
     }
-    _renderImpersonateInfoBar(opps, perfil);
+    // (O contexto do detentor é exibido na página do admin, em "Criar como
+    //  Cliente" — não duplicamos uma barra flutuante aqui no formulário.)
   } catch (e) {
     console.warn('[Impersonate] carregar rascunho/status falhou:', e);
   } finally {
@@ -14317,33 +14318,6 @@ function _showImpersonateLoading(show) {
   } else if (ov) {
     ov.remove();
   }
-}
-
-/** Barra flutuante com contexto do detentor para o admin (não aparece pro detentor). */
-function _renderImpersonateInfoBar(opps, perfil) {
-  try {
-    const total      = Array.isArray(opps) ? opps.length : 0;
-    const editando   = !!formState.editId;
-    const ehPrimeira = total <= 1; // 0 ou 1 oportunidade = ainda é a primeira
-    const validado   = !!(perfil && perfil.pode_publicar);
-    const juridicoOk = !!(perfil && perfil.cadastro_juridico_completo);
-
-    let bar = document.getElementById('impersonateInfoBar');
-    if (!bar) {
-      bar = document.createElement('div');
-      bar.id = 'impersonateInfoBar';
-      bar.style.cssText = 'position:fixed;top:74px;left:16px;z-index:90;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#FBF3DE;border:1px solid #B8860B;border-radius:12px;padding:7px 12px;font-family:var(--font-body,sans-serif);font-size:11.5px;color:#5b4a16;box-shadow:0 4px 16px rgba(0,0,0,.12);max-width:280px';
-      document.body.appendChild(bar);
-    }
-    const badge = (txt, ok) => '<span style="display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-weight:600;background:' +
-      (ok ? 'rgba(34,139,34,.12)' : 'rgba(184,134,11,.16)') + ';color:' + (ok ? '#1f7a1f' : '#9a7209') + '">' + txt + '</span>';
-    bar.innerHTML =
-      '<span style="font-weight:700;color:#7a5e10;width:100%;font-size:10px;letter-spacing:.06em;text-transform:uppercase">Contexto do detentor</span>' +
-      badge(editando ? 'Continuando rascunho' : (total === 0 ? 'Sem oportunidade' : 'Form em branco'), editando) +
-      badge(ehPrimeira ? '1ª oportunidade' : (total + ' oportunidades'), false) +
-      badge(validado ? 'Conta validada' : 'Conta não validada', validado) +
-      badge(juridicoOk ? 'Jurídico ok' : 'Jurídico pendente', juridicoOk);
-  } catch (_) { /* barra é só informativa — nunca quebra o fluxo */ }
 }
 
 /** Sai do modo impersonation: limpa contexto e fecha a aba */
