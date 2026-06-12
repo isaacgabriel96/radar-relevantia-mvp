@@ -107,6 +107,24 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido' });
   }
 
+  // Autenticação — exige JWT válido do Supabase para evitar abuso de quota
+  // (qualquer um na internet poderia, do contrário, queimar a ANTHROPIC_API_KEY).
+  const authHeader = req.headers.authorization || '';
+  const userToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
+  if (!userToken) {
+    return res.status(401).json({ error: 'Não autenticado.' });
+  }
+  {
+    const SB_URL = process.env.SUPABASE_URL || 'https://bzckerazidgrkbpgqqee.supabase.co';
+    const SB_ANON = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
+    const uRes = await fetch(`${SB_URL}/auth/v1/user`, {
+      headers: { 'Authorization': `Bearer ${userToken}`, 'apikey': SB_ANON },
+    });
+    if (!uRes.ok) {
+      return res.status(401).json({ error: 'Sessão inválida ou expirada.' });
+    }
+  }
+
   const { descricao } = req.body || {};
 
   if (!descricao || descricao.trim().length < 10) {

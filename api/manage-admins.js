@@ -23,16 +23,22 @@ const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
 // Chave pública (anon) — segura para usar no servidor para verificar JWTs de usuários
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+// CORS restrito aos domínios do Radar Relevantia (+ previews da Vercel).
+// Requisições same-origin não são afetadas; bloqueia abuso cross-site.
+function corsHeaders(origin) {
+  const ok = /^https:\/\/([a-z0-9-]+\.)*relevantia\.com\.br$/.test(origin || '')
+          || /^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin || '');
+  return {
+    'Access-Control-Allow-Origin': ok ? origin : 'https://radar-relevantia.com.br',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+}
 
-function json(data, status = 200) {
+function json(data, status = 200, origin = '') {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
   });
 }
 
@@ -47,7 +53,8 @@ async function verifyAdmin(token) {
   });
   if (!res.ok) return null;
   const user = await res.json();
-  if (user?.user_metadata?.tipo !== 'admin') return null;
+  // Confia SOMENTE em app_metadata (não-editável pelo usuário final).
+  if (user?.app_metadata?.tipo !== 'admin') return null;
   return user;
 }
 
@@ -66,7 +73,7 @@ async function listAdmins(serviceKey) {
   const data = await res.json();
   const users = data.users || [];
   return users
-    .filter(u => u.user_metadata?.tipo === 'admin')
+    .filter(u => u.app_metadata?.tipo === 'admin')
     .map(u => ({
       id: u.id,
       email: u.email,
@@ -91,8 +98,11 @@ async function inviteAdmin(serviceKey, { email, nome, tempPassword }) {
       email,
       password: tempPassword,
       email_confirm: true,           // pula verificação por email
-      user_metadata: {
+      // tipo=admin vai em app_metadata (não-editável pelo usuário final).
+      app_metadata: {
         tipo: 'admin',
+      },
+      user_metadata: {
         nome: nome || email.split('@')[0],
         temp_password: true,         // flag para forçar troca de senha no 1º login
       },
@@ -124,19 +134,21 @@ async function removeAdmin(serviceKey, userId) {
 }
 
 export default async function handler(req) {
-  if (req.method === 'OPTIONS') return new Response(null, { status: 200, headers: corsHeaders });
-  if (req.method !== 'POST') return json({ error: 'Método não permitido' }, 405);
+  const origin = req.headers.get('origin') || '';
+  const reply = (data, status) => json(data, status, origin);
+  if (req.method === 'OPTIONS') return new Response(null, { status: 200, headers: corsHeaders(origin) });
+  if (req.method !== 'POST') return reply({ error: 'Método não permitido' }, 405);
 
   // Autenticação
   const authHeader = req.headers.get('authorization') || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : null;
-  if (!token) return json({ error: 'Não autenticado.' }, 401);
+  if (!token) return reply({ error: 'Não autenticado.' }, 401);
 
   const caller = await verifyAdmin(token);
-  if (!caller) return json({ error: 'Acesso restrito a administradores.' }, 403);
+  if (!caller) return reply({ error: 'Acesso restrito a administradores.' }, 403);
 
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) return json({ error: 'SUPABASE_SERVICE_ROLE_KEY não configurada na Vercel. Vá em Settings → Environment Variables e adicione a chave service_role do Supabase.' }, 500);
+  if (!serviceKey) return reply({ error: 'SUPABASE_SERVICE_ROLE_KEY não configurada na Vercel. Vá em Settings → Environment Variables e adicione a chave service_role do Supabase.' }, 500);
 
   let body = {};
   try { body = await req.json(); } catch {}
@@ -146,7 +158,7 @@ export default async function handler(req) {
   try {
     if (action === 'list') {
       const admins = await listAdmins(serviceKey);
-      return json({ admins });
+      return reply({ admins });
     }
 
     if (action === 'invite') {
@@ -155,21 +167,21 @@ export default async function handler(req) {
         nome: body.nome?.trim(),
         tempPassword: body.tempPassword,
       });
-      return json({ ok: true, ...result });
+      return reply({ ok: true, ...result });
     }
 
     if (action === 'remove') {
       // Impede que o admin remova a si mesmo
       if (body.userId === caller.id) {
-        return json({ error: 'Você não pode remover sua própria conta.' }, 400);
+        return reply({ error: 'Você não pode remover sua própria conta.' }, 400);
       }
       await removeAdmin(serviceKey, body.userId);
-      return json({ ok: true });
+      return reply({ ok: true });
     }
 
-    return json({ error: `Ação desconhecida: ${action}` }, 400);
+    return reply({ error: `Ação desconhecida: ${action}` }, 400);
   } catch (err) {
     console.error('[manage-admins] Erro:', err.message);
-    return json({ error: err.message || 'Erro interno do servidor.' }, 500);
+    return reply({ error: err.message || 'Erro interno do servidor.' }, 500);
   }
 }
