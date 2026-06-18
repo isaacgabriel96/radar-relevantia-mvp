@@ -1184,8 +1184,19 @@ tbody tr:last-child td { border-bottom: none; }
 .cam-btn-send{padding:9px 16px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;flex-shrink:0}
 .cam-btn-send:hover:not(:disabled){background:#2C1E00}
 .cam-btn-send:disabled{opacity:.4;cursor:not-allowed}
-.cam-result{padding:14px 18px 18px;border-top:1px solid var(--gray-2);flex-shrink:0}
-.cam-result-card{background:rgba(184,134,11,.05);border:1.5px solid rgba(184,134,11,.22);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.cam-result{padding:16px 18px 18px;flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.cam-result-card{background:#fff;border:none;border-radius:0;padding:0;margin-bottom:16px;flex:1}
+/* Tela de revisão da campanha (substitui a conversa) */
+.cam-review{display:flex;flex-direction:column;gap:15px}
+.cam-review-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);display:flex;align-items:center;gap:6px}
+.cam-review-title{font-family:var(--font-heading);font-size:18px;font-weight:700;color:var(--black);line-height:1.25}
+.cam-review-bus{display:flex;flex-wrap:wrap;gap:5px}
+.cam-review-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-3);margin-bottom:3px}
+.cam-review-value{font-size:13px;color:var(--gray-4);line-height:1.55}
+.cam-review-value.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+.cam-review-vermais{font-size:11.5px;font-weight:600;color:var(--gold);cursor:pointer;margin-top:3px;display:inline-block}
+.cam-review-filtro{background:var(--gray-1);border:1px solid var(--gray-2);border-radius:12px;padding:13px 15px}
+.cam-review-filtro-exp{font-size:12px;color:var(--gray-4);line-height:1.5;margin-bottom:10px}
 .cam-result-nome{font-family:var(--font-heading);font-size:15px;font-weight:700;color:var(--black);margin-bottom:4px}
 .cam-result-desc{font-size:12px;color:var(--gray-3);margin-bottom:8px;line-height:1.5}
 .cam-result-chips{display:flex;flex-wrap:wrap;gap:5px}
@@ -2565,7 +2576,7 @@ tbody tr:last-child td { border-bottom: none; }
       <div class="cam-result" id="cam-result-step" style="display:none">
         <div class="cam-result-card" id="cam-result-card"></div>
         <div class="cam-result-actions">
-          <button class="cam-btn-refazer" onclick="camRefazer()">Ajustar</button>
+          <button class="cam-btn-refazer" onclick="camRefazer()">← Ajustar com o agente</button>
           <button class="cam-btn-confirmar" id="cam-btn-confirmar" onclick="camConfirmar()">✦ Criar campanha →</button>
         </div>
       </div>
@@ -8723,24 +8734,31 @@ async function loadFinanceiroMarca() {
 
   function _mostrarResult(campanha){
     if(!campanha)return;
+    _st.lastResult=campanha;
     const chips=_getChips(campanha.filtro);
-    let html=`<div class="cam-result-nome">${_esc(campanha.nome||'Nova Campanha')}</div>`;
+    let html=`<div class="cam-review">`;
+    html+=`<div class="cam-review-head">✦ Revise sua campanha</div>`;
+    html+=`<div class="cam-review-title">${_esc(campanha.nome||'Nova Campanha')}</div>`;
     if(campanha.negocios?.length){
-      html+=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">`;
-      campanha.negocios.forEach(n=>{ html+=`<span class="cam-result-chip" style="background:rgba(30,22,0,.06);border-color:rgba(30,22,0,.15);color:var(--gray-4)">${_esc(n)}</span>`; });
-      html+=`</div>`;
+      html+=`<div class="cam-review-bus">`+campanha.negocios.map(n=>`<span class="cam-result-chip" style="background:rgba(30,22,0,.06);border-color:rgba(30,22,0,.15);color:var(--gray-4)">${_esc(n)}</span>`).join('')+`</div>`;
     }
-    if(campanha.contexto)html+=`<div style="font-size:12px;color:var(--gray-4);margin-bottom:6px;line-height:1.5"><strong style="color:var(--black)">Contexto:</strong> ${_esc(campanha.contexto)}</div>`;
-    if(campanha.definicao_publico)html+=`<div style="font-size:12px;color:var(--gray-4);margin-bottom:8px;line-height:1.5"><strong style="color:var(--black)">Público:</strong> ${_esc(campanha.definicao_publico)}</div>`;
-    if(chips.length)html+=`<div class="cam-result-chips">${chips.map(c=>`<span class="cam-result-chip">${_esc(c)}</span>`).join('')}</div>`;
-    if(campanha.filtro || _camUltimoFiltro) html+=_filtroExplicacaoHtml()+_filtroBtnHtml();
+    if(campanha.contexto)html+=`<div><div class="cam-review-label">Contexto</div><div class="cam-review-value clamp" onclick="window._camToggleVerMais(this)">${_esc(campanha.contexto)}</div></div>`;
+    if(campanha.definicao_publico)html+=`<div><div class="cam-review-label">Público</div><div class="cam-review-value clamp" onclick="window._camToggleVerMais(this)">${_esc(campanha.definicao_publico)}</div></div>`;
+    html+=`<div class="cam-review-filtro">`;
+    if(chips.length)html+=`<div class="cam-result-chips" style="margin-bottom:10px">${chips.map(c=>`<span class="cam-result-chip">${_esc(c)}</span>`).join('')}</div>`;
+    html+=`<div class="cam-review-filtro-exp">Montei o <strong>filtro de oportunidades</strong> com base na conversa — é por ele que o Radar busca os ativos certos. Edite aqui ou peça ajustes ao agente.</div>`;
+    html+=_filtroBtnHtml();
+    html+=`</div></div>`;
     document.getElementById('cam-result-card').innerHTML=html;
-    document.getElementById('cam-result-step').style.display='block';
+    // Esconde a conversa: a revisão substitui o chat
+    const thread=document.getElementById('cam-thread'); if(thread)thread.style.display='none';
+    const err=document.getElementById('cam-error'); if(err)err.style.display='none';
     document.getElementById('cam-input-row').style.display='none';
+    document.getElementById('cam-result-step').style.display='flex';
     const btnConfirmar=document.getElementById('cam-btn-confirmar');
     if(btnConfirmar)btnConfirmar.textContent=_st.editingCampanha?'✦ Atualizar campanha →':'✦ Criar campanha →';
-    _st.lastResult=campanha;
   }
+  window._camToggleVerMais=function(el){ el.classList.toggle('clamp'); };
 
   function _renderMsg(parsed){
     if(!parsed){ _addMsg('agent','<span style="color:#DC2626">❌ Erro. Tente novamente.</span>'); return; }
@@ -8752,19 +8770,12 @@ async function loadFinanceiroMarca() {
     // Proposta completa = nome+contexto+público+filtro (fallback caso o modelo esqueça pronto_filtro)
     const _c = parsed.campanha || {};
     const propostaCompleta = !!(_c.nome && _c.contexto && _c.definicao_publico && _c.filtro);
-    const ehProposta = temFiltro && !parsed.concluido && (parsed.pronto_filtro || propostaCompleta);
-    if(parsed.concluido){
-      html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Campanha configurada!</span><br><span style="font-size:12px;color:#A89880">Revise abaixo e confirme para criar.</span>`;
-      if(temFiltro) html+=_filtroExplicacaoHtml()+_filtroBtnHtml();
-      _addMsg('agent',html);
-      setTimeout(()=>_mostrarResult(parsed.campanha),300);
-      return;
-    }
+    const ehProposta = temFiltro && (parsed.pronto_filtro || propostaCompleta);
     if(parsed.pergunta)html+=_html(parsed.pergunta);
-    if(ehProposta){
-      // Turno de proposta: a interface controla as ações (confirmar/ajustar) — ignora opcoes do agente
-      html+=_filtroExplicacaoHtml()+_filtroBtnHtml()+_propostaAcoesHtml();
-      _addMsg('agent',html);
+    if(parsed.concluido || ehProposta){
+      // Proposta pronta → guarda o resumo no histórico (visível ao "Ajustar") e mostra a tela de revisão
+      _addMsg('agent', html || '✦ Montei sua campanha.');
+      _mostrarResult(parsed.campanha);
       return;
     }
     if(parsed.opcoes?.length){
@@ -8824,7 +8835,7 @@ async function loadFinanceiroMarca() {
     cs.style.display='none';
     document.getElementById('cam-result-step').style.display='none';
     document.getElementById('cam-input-row').style.display='flex';
-    document.getElementById('cam-thread').innerHTML='';
+    const _thr=document.getElementById('cam-thread'); _thr.innerHTML=''; _thr.style.display='';
     document.getElementById('cam-prompt-input').value='';
     document.getElementById('cam-prompt-btn').disabled=true;
     _showErr('');
@@ -8879,8 +8890,11 @@ async function loadFinanceiroMarca() {
 
   window.camRefazer = function(){
     document.getElementById('cam-result-step').style.display='none';
+    // Restaura a conversa (revisão deixa de substituir o chat)
+    const thread=document.getElementById('cam-thread'); if(thread){ thread.style.display=''; thread.scrollTop=thread.scrollHeight; }
+    const err=document.getElementById('cam-error'); if(err)err.style.display='';
     document.getElementById('cam-input-row').style.display='flex';
-    _st.lastResult=null;
+    _st.lastResult=null; // mantém _camUltimoFiltro e _st.filtroManual (preserva edição do filtro)
     setTimeout(()=>document.getElementById('cam-input')?.focus(),80);
   };
 
