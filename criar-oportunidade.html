@@ -6573,6 +6573,31 @@ function _applyPendingDetalhes(tplKey) {
   const cotasData = formState._pendingCotas;
   const cotasHabilitadas = formState._pendingCotasHabilitadas;
 
+  // ── Datas/locais (template evento) — restaura da coluna canônica `datas_evento`.
+  // Roda sempre (independe de `detalhes`). CRÍTICO: NÃO chamar syncEventPais() aqui —
+  // ela executa _clearAcField() em cidade/venue (input.value=''), apagando os valores
+  // recém-restaurados. Era a causa de cidade/venue sumirem do banco. Em vez disso,
+  // propagamos apenas os country codes do país para o autocomplete, sem limpar nada.
+  const _evArr = (Array.isArray(formState._pendingDatasEvento) && formState._pendingDatasEvento.length)
+    ? formState._pendingDatasEvento
+    : (formState._pendingDetalhes && Array.isArray(formState._pendingDetalhes['undefined'])
+        ? formState._pendingDetalhes['undefined'] : []);
+  const _evList = document.getElementById('event-entries-list');
+  if (_evList && _evArr.length > 0) {
+    _evList.innerHTML = '';
+    _evArr.forEach(entry => addEventEntry(entry));
+    const _evSel = _evList.querySelector('.event-pais-select');
+    if (_evSel) {
+      const _evPais = _evSel.value;
+      _evList.querySelectorAll('.event-entry').forEach(en => {
+        const ci = en.querySelector('.event-cidade-input');
+        const ve = en.querySelector('.event-venue-input');
+        if (ci) ci._acCountryCodes = _evPais ? [_evPais] : null;
+        if (ve) ve._acCountryCodes = _evPais ? [_evPais] : null;
+      });
+    }
+  }
+
   if (detalhes && Object.keys(detalhes).length > 0) {
     const tpl = TEMPLATES[tplKey];
     if (tpl) {
@@ -6643,17 +6668,8 @@ function _applyPendingDetalhes(tplKey) {
               if (opt && !opt.classList.contains('ts-selected')) _tagSelSelect(opt);
             });
           }
-        } else if (f.type === 'event-dates') {
-          const valArr = Array.isArray(val) ? val : [];
-          const list = document.getElementById('event-entries-list');
-          if (list && valArr.length > 0) {
-            list.innerHTML = '';
-            valArr.forEach(entry => addEventEntry(entry));
-            // Sincroniza badges após restaurar
-            const firstSel = list.querySelector('.event-pais-select');
-            if (firstSel) syncEventPais(firstSel);
-          }
         }
+        // (event-dates é restaurado no topo de _applyPendingDetalhes, sem syncEventPais)
       });
     }
 
@@ -11375,6 +11391,25 @@ function mergePreviewData(data) {
     if (formState._pendingIncentivo)           data.incentivo_data      = formState._pendingIncentivo;
   }
 
+  // ── Proteção contra apagar campos não-editados em modo edição ──
+  // Em edição o PATCH manda o objeto inteiro. Se uma seção não está renderizada no
+  // DOM (ex.: outra aba/step não visitado), collectOppData() devolve vazio e
+  // sobrescreveria o banco com null. Aqui preservamos o valor original (snapshot do
+  // registro carregado) quando a seção correspondente não está presente.
+  const _orig = formState._editOriginal || null;
+
+  // Datas/locais: se a lista de datas não está no DOM, não envie datas_evento vazio.
+  if (!data.datas_evento && !document.getElementById('event-entries-list')) {
+    if (_orig && _orig.datas_evento)       data.datas_evento = _orig.datas_evento;
+    else if (formState._pendingDatasEvento) data.datas_evento = formState._pendingDatasEvento;
+  }
+
+  // Incentivo: se o toggle não está no DOM, não rebaixe projeto_incentivado para false.
+  if (!document.getElementById('incentivo-toggle-switch') && _orig) {
+    if (_orig.projeto_incentivado) data.projeto_incentivado = true;
+    if (_orig.incentivo_data)      data.incentivo_data      = _orig.incentivo_data;
+  }
+
   if (!previewEditData || Object.keys(previewEditData).length === 0) return data;
 
   // publico_descricao — coluna própria
@@ -12022,22 +12057,45 @@ async function maybePreFillEdit(forceRun = false) {
   let opp;
   try { opp = JSON.parse(raw); } catch(e) { return; }
 
-  // Se midia_kit_url não veio no sessionStorage (cache antigo do dashboard),
-  // busca direto da API para não perder o PDF no viewer de edição
-  if (!opp.midia_kit_url && opp.id) {
+  // Re-fetch autoritário do registro antes de popular o form. O cache do
+  // sessionStorage (dashboard/lista) pode estar desatualizado — ex.: PDF, datas ou
+  // incentivo enviados depois — fazendo campos aparecerem vazios e serem apagados
+  // no próximo save. Buscamos a fonte canônica; sob impersonation usamos a Edge
+  // Function admin (RLS bloqueia leitura direta do registro de outro detentor).
+  // Campos REST = lista de colunas que precisam estar corretas no editor.
+  const _AUTH_FIELDS = ['midia_kit_url','datas_evento','projeto_incentivado','incentivo_data','cotas_data','cotas_habilitadas','detalhes','redes_sociais','tags','publico_canais','publico_presencial','publico_descricao','imagens','imagem_capa','imagens_focal'];
+  if (opp.id) {
     try {
-      const token = await _getWriteToken();
-      if (token) {
-        const r = await fetch(
-          SUPABASE_URL + '/rest/v1/oportunidades?select=midia_kit_url&id=eq.' + opp.id,
-          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-        );
-        if (r.ok) {
-          const rows = await r.json();
-          if (rows[0]?.midia_kit_url) opp.midia_kit_url = rows[0].midia_kit_url;
+      let fresh = null;
+      if (window._impersonateCtx) {
+        const adminTok = await _freshAdminToken();
+        if (adminTok) {
+          const r = await fetch(SUPABASE_URL + '/functions/v1/admin-actions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminTok, 'apikey': SUPABASE_KEY },
+            body: JSON.stringify({ action: 'list-oportunidades-as', target_user_id: window._impersonateCtx.target_user_id }),
+          });
+          if (r.ok) {
+            const d = await r.json().catch(() => null);
+            fresh = ((d && d.oportunidades) || []).find(o => String(o.id) === String(opp.id)) || null;
+          }
+        }
+      } else {
+        const token = await _getWriteToken();
+        if (token) {
+          const r = await fetch(
+            SUPABASE_URL + '/rest/v1/oportunidades?id=eq.' + opp.id + '&select=' + _AUTH_FIELDS.join(','),
+            { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+          );
+          if (r.ok) { const rows = await r.json(); fresh = rows[0] || null; }
         }
       }
-    } catch(_) { /* falha silenciosa */ }
+      if (fresh) {
+        // Banco tem precedência sobre o cache para estes campos (inclui valores
+        // "falsy" legítimos como projeto_incentivado=false e datas_evento=null).
+        _AUTH_FIELDS.forEach(k => { if (k in fresh) opp[k] = fresh[k]; });
+      }
+    } catch(_) { /* degrada para o cache do sessionStorage */ }
   }
 
   // Guarda o ID e slug para usar no PATCH ao salvar/publicar e no link de convite
@@ -12347,6 +12405,11 @@ async function maybePreFillEdit(forceRun = false) {
 
   const incentivoData = opp.incentivo_data || null;
   const projetoIncentivado = opp.projeto_incentivado || false;
+
+  // Datas/locais canônicas (restauradas no _applyPendingDetalhes) + snapshot do
+  // registro original como rede de segurança contra apagar campos não-editados.
+  formState._pendingDatasEvento = Array.isArray(opp.datas_evento) ? opp.datas_evento : null;
+  formState._editOriginal = opp;
 
   if (Object.keys(detalhes).length > 0 || cotasData || cotasHabilitadas || projetoIncentivado) {
     // Armazena para aplicar quando o step 4 for renderizado
