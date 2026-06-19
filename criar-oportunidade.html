@@ -11410,6 +11410,27 @@ function mergePreviewData(data) {
     if (_orig.incentivo_data)      data.incentivo_data      = _orig.incentivo_data;
   }
 
+  // Slug: nunca apaga um slug existente. O campo não é restaurado na edição, então
+  // collectOppData() pode lê-lo vazio e zerar a URL pública da oportunidade.
+  if (!data.slug && _orig && _orig.slug) data.slug = _orig.slug;
+
+  // Localização do evento: em template 'evento' o bloco país/cidade geral fica
+  // OCULTO (a localização é por data). collectOppData lê esses campos ocultos e
+  // produz lixo (ex.: "Estados Unidos — Brasil"). Aqui derivamos da 1ª data/local
+  // já mesclada; sem dados utilizáveis, preservamos a localização original.
+  if (formState.selectedTemplate === 'evento') {
+    const _ev0 = (Array.isArray(data.datas_evento) && data.datas_evento[0]) ? data.datas_evento[0] : null;
+    if (_ev0 && (_ev0.pais || _ev0.cidade)) {
+      const _pn = _ev0.pais ? (((_PAISES_INTL.find(p => p.v === _ev0.pais) || {}).l || '').replace(/^\S+\s/, '')) : '';
+      const _cid = _ev0.cidade || '';
+      data.localizacao = (_pn === 'Brasil')
+        ? [_cid, 'Brasil'].filter(Boolean).join(' — ')
+        : [_cid, _pn].filter(Boolean).join(', ');
+    } else if (_orig && _orig.localizacao) {
+      data.localizacao = _orig.localizacao;
+    }
+  }
+
   if (!previewEditData || Object.keys(previewEditData).length === 0) return data;
 
   // publico_descricao — coluna própria
@@ -12172,22 +12193,49 @@ async function maybePreFillEdit(forceRun = false) {
     updateChar(buscaEl, 'buscaCount', 480);
   }
 
-  // Cidade: extrai o nome da cidade da string de localização
+  // Localização (template não-evento). Restaura PAÍS antes da cidade. Sem isso, o
+  // select volta ao default "Brasil" e collectOppData reconstrói a localização
+  // errada (ex.: "Los Angeles — Brasil") apagando o país real. NÃO chamamos
+  // toggleOppLocBrasil() aqui — ela faz input.value='' e apagaria a cidade.
   const locStr = opp.localizacao || opp.cidade || '';
   if (locStr) {
+    let paisNome = '';
+    if (/—\s*Brasil\s*$/i.test(locStr)) paisNome = 'Brasil';
+    else if (locStr.includes(',')) paisNome = locStr.split(',').pop().trim();
+    if (paisNome) {
+      const paisSel = document.getElementById('opp-pais');
+      if (paisSel) {
+        const opt = Array.from(paisSel.options).find(o => o.value.toLowerCase() === paisNome.toLowerCase());
+        if (opt) {
+          paisSel.value = opt.value;
+          const ci = document.getElementById('opp-cidade-intl');
+          if (ci) ci._acCountryCodes = (typeof _PAIS_ISO !== 'undefined' && _PAIS_ISO[opt.value]) ? [_PAIS_ISO[opt.value]] : null;
+        }
+      }
+    }
+    // Cidade: extrai o nome da cidade da string de localização
     const cidadeNome = locStr.replace(/\s*—\s*Brasil/i, '').split(',')[0].trim();
     const intlInput = document.getElementById('opp-cidade-intl');
-    if (intlInput && cidadeNome) {
-      intlInput.value = cidadeNome;
-      if (intlInput._acChip) { intlInput._acChip.querySelector('span').textContent = cidadeNome; intlInput._acChip.style.display = 'flex'; intlInput.style.display = 'none'; }
+    // Em "cidade, País" o split[0] já é a cidade; em "Cidade — Brasil" idem.
+    // Evita usar o nome do país como cidade quando a string é só o país.
+    const cidadeFinal = (cidadeNome && cidadeNome.toLowerCase() !== (paisNome || '').toLowerCase()) ? cidadeNome : '';
+    if (intlInput && cidadeFinal) {
+      intlInput.value = cidadeFinal;
+      if (intlInput._acChip) { intlInput._acChip.querySelector('span').textContent = cidadeFinal; intlInput._acChip.style.display = 'flex'; intlInput.style.display = 'none'; }
     }
   }
 
-  // Abrangência
-  if (opp.abrangencia || opp.data) {
+  // Slug — restaura o campo do passo 7 (senão collectOppData lê vazio e zera a URL)
+  if (opp.slug) {
+    const slugEl = document.getElementById('opp-slug');
+    if (slugEl) slugEl.value = opp.slug;
+  }
+
+  // Abrangência (coluna real é `alcance`; mantém compat. com chaves antigas)
+  if (opp.alcance || opp.abrangencia || opp.data) {
     const abr = document.getElementById('opp-abrangencia');
     if (abr) {
-      const val = opp.abrangencia || opp.data || '';
+      const val = opp.alcance || opp.abrangencia || opp.data || '';
       const opt = Array.from(abr.options).find(o =>
         o.text.toLowerCase().includes(val.toLowerCase()) ||
         o.value.toLowerCase().includes(val.toLowerCase())
