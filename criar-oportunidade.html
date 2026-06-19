@@ -10751,6 +10751,16 @@ async function uploadMediaKit(oppId, token) {
   return SUPABASE_URL + '/storage/v1/object/public/oportunidades/' + fileName;
 }
 
+/**
+ * Mídia kit foi removido explicitamente: havia um PDF, o usuário clicou no X e
+ * não restaurou nem subiu outro arquivo. Nesse caso uploadMediaKit() retorna
+ * null e o save PRECISA gravar midia_kit_url=null para persistir a remoção
+ * (senão o PATCH é pulado e o PDF antigo "volta" ao reabrir).
+ */
+function _mkExplicitlyRemoved() {
+  return !!_mkRemovedUrl && !mkPdfFile && !formState.existingMkUrl;
+}
+
 /* ══════════════════════════════════════════════
    CHAR COUNT
 ══════════════════════════════════════════════ */
@@ -11202,6 +11212,8 @@ async function saveDraft() {
         const mkUrl = await uploadMediaKit(oppId, uploadToken);
         if (mkUrl) {
           await _patchOportunidade(oppId, { midia_kit_url: mkUrl }, token);
+        } else if (_mkExplicitlyRemoved()) {
+          await _patchOportunidade(oppId, { midia_kit_url: null }, token);
         }
       } catch (e) { console.warn('[Draft] Mídia kit upload failed:', e); }
     }
@@ -11345,6 +11357,8 @@ async function silentSaveDraft() {
         const mkUrl = await uploadMediaKit(oppId, uploadToken);
         if (mkUrl) {
           await _patchOportunidade(oppId, { midia_kit_url: mkUrl }, token);
+        } else if (_mkExplicitlyRemoved()) {
+          await _patchOportunidade(oppId, { midia_kit_url: null }, token);
         }
       } catch (e) { console.warn('[AutoSave] Mídia kit:', e); }
     }
@@ -11977,6 +11991,9 @@ async function publishOpportunity() {
         if (mkUrl) {
           await _patchOportunidade(oppId, { midia_kit_url: mkUrl }, token);
           console.log('[Publish] Mídia kit uploaded:', mkUrl);
+        } else if (_mkExplicitlyRemoved()) {
+          await _patchOportunidade(oppId, { midia_kit_url: null }, token);
+          console.log('[Publish] Mídia kit removido');
         }
       } catch (e) { console.warn('[Publish] Mídia kit upload failed:', e); }
 
