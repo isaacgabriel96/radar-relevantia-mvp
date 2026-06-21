@@ -211,10 +211,26 @@ function removeTyping(){const e=$('agTypingMsg');if(e)e.remove();}
 function phase(phases,idx){const el=$('agTypingMsg');if(!el)return;el.querySelector('.ag-msg-bubble').innerHTML=`<span class="ag-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="ag-loading-dots"></span></span>`;}
 function parseResp(raw){try{return JSON.parse(String(raw).trim().replace(/^```json\s*/i,'').replace(/```\s*$/,''));}catch(e){return null;}}
 
+function buildNegociosList(negocios){
+  let h='<div style="margin-top:6px;display:flex;flex-direction:column;gap:6px">';
+  negocios.forEach(n=>{
+    const nm=typeof n==='string'?n:(n.nome||'');
+    const dc=typeof n==='object'?(n.descricao||''):'';
+    const pub=typeof n==='object'?(n.publico_alvo||''):'';
+    const des=typeof n==='object'?(n.desafio||''):'';
+    h+=`<div class="profile-negocio"><div class="profile-negocio-name">${esc(nm)}</div>
+      ${dc?`<div class="profile-negocio-desc">${esc(dc)}</div>`:''}
+      ${pub?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Público:</strong> ${esc(pub)}</div>`:''}
+      ${des?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Desafio:</strong> ${esc(des)}</div>`:''}</div>`;
+  });
+  return h+'</div>';
+}
 function renderMsg(parsed){
   if(!parsed){addMsg('agent','<span style="color:#DC2626">❌ Erro ao processar. Tente novamente.</span>');return;}
   let html='';
   if(parsed.resumo) html+=`${msgHtml(parsed.resumo)}<br><br>`;
+  const negocios=parsed.perfil?.negocios?.valor ?? parsed.perfil?.negocios ?? [];
+  if(negocios.length && !parsed.concluido) html+=buildNegociosList(negocios);
   if(parsed.concluido){
     html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Brief criado com sucesso.</span><br><span style="font-size:12px;color:#A89880">Revise o perfil abaixo e crie a primeira campanha quando estiver pronto.</span>`;
     addMsg('agent',html); setTimeout(mostrarPerfil,300); return;

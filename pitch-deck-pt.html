@@ -130,12 +130,16 @@
   .embed-wrap{margin-top:24px;display:flex;gap:22px;align-items:stretch}
   .embed{flex:1;border:1px solid var(--gray-2);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-lg);background:var(--white);min-height:0}
   .embed .bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:var(--gray-1);border-bottom:1px solid var(--gray-2)}
-  .embed .bar i{width:10px;height:10px;border-radius:50%;background:var(--gray-3);opacity:.5}
+  .embed .bar i{width:11px;height:11px;border-radius:50%;opacity:1;display:grid;place-items:center;font-size:9px;line-height:1;color:rgba(0,0,0,.55);font-weight:700}
+  .embed .bar i:nth-child(1){background:#ff5f57}
+  .embed .bar i:nth-child(2){background:#febc2e}
+  .embed .bar i:nth-child(3){background:#28c840}
+  .embed .bar i.act{cursor:pointer}
+  .embed .bar:hover i.act.close::after{content:'×'}
+  .embed .bar:hover i.act.max::after{content:'+'}
   .embed .bar .u{margin-left:10px;font-family:var(--font-ui);font-size:11.5px;color:var(--gray-3)}
   .embed iframe{width:100%;height:58vh;border:0;display:block;background:var(--white)}
   .embed.tall iframe{height:62vh}
-  .embed-max{margin-left:auto;flex-shrink:0;background:none;border:0;cursor:pointer;font-size:14px;line-height:1;color:var(--gray-3);width:28px;height:22px;border-radius:6px;display:grid;place-items:center;transition:.15s}
-  .embed-max:hover{background:var(--gray-2);color:var(--ink)}
   .embed.max{position:fixed;inset:0;z-index:300;border-radius:0;box-shadow:none;border:0;flex:none}
   .embed.max iframe{height:calc(100vh - 40px)!important}
   .embed-side{flex:0 0 300px;align-self:center}
@@ -368,7 +372,7 @@
           <p class="note">Escreva o nome da marca e <strong>converse de verdade</strong> com o agente. Agente de demonstração.</p>
         </div>
         <div class="embed">
-          <div class="bar"><i></i><i></i><i></i><span class="u">copiloto · brand brief</span><button class="embed-max" onclick="toggleMax(this)" title="Maximizar" aria-label="Maximizar">⤢</button></div>
+          <div class="bar"><i class="act close" onclick="restoreMax()" title="Fechar"></i><i></i><i class="act max" onclick="maximizeEmbed(this)" title="Maximizar"></i><span class="u">copiloto · brand brief</span></div>
           <iframe src="demo-brand-brief.html" title="Demo Brand Brief" loading="lazy"></iframe>
         </div>
       </div>
@@ -386,7 +390,7 @@
           <p class="note">Começa na escolha de formato, igual ao site — <strong>escolha e descreva para conversar de verdade</strong> com o agente. Agente de demonstração.</p>
         </div>
         <div class="embed">
-          <div class="bar"><i></i><i></i><i></i><span class="u">copiloto · criar oportunidade</span><button class="embed-max" onclick="toggleMax(this)" title="Maximizar" aria-label="Maximizar">⤢</button></div>
+          <div class="bar"><i class="act close" onclick="restoreMax()" title="Fechar"></i><i></i><i class="act max" onclick="maximizeEmbed(this)" title="Maximizar"></i><span class="u">copiloto · criar oportunidade</span></div>
           <iframe src="demo-criar-oportunidade.html" title="Demo Criar Oportunidade" loading="lazy"></iframe>
         </div>
       </div>
@@ -543,19 +547,9 @@
   document.getElementById('next').onclick=next;
   document.getElementById('prev').onclick=prev;
 
-  // Maximizar/restaurar o embed do agente (janela em tela cheia)
-  function toggleMax(btn){
-    const embed=btn.closest('.embed'); if(!embed) return;
-    const on=embed.classList.toggle('max');
-    btn.textContent=on?'✕':'⤢';
-    btn.title=on?'Restaurar (Esc)':'Maximizar';
-  }
-  function restoreMax(){
-    document.querySelectorAll('.embed.max').forEach(el=>{
-      el.classList.remove('max');
-      const b=el.querySelector('.embed-max'); if(b){b.textContent='⤢';b.title='Maximizar';}
-    });
-  }
+  // Janela do agente — bolinha verde maximiza, vermelha fecha (estilo Mac)
+  function maximizeEmbed(dot){ const e=dot.closest('.embed'); if(e) e.classList.add('max'); }
+  function restoreMax(){ document.querySelectorAll('.embed.max').forEach(el=>el.classList.remove('max')); }
 
   document.addEventListener('keydown',e=>{
     if(document.querySelector('.embed.max')){ if(e.key==='Escape') restoreMax(); return; }
