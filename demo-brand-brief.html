@@ -1,142 +1,436 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Demo · Agente Brand Brief — Radar</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Poppins:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
-<style>
-  :root{
-    --gold:#B8860B; --gold-light:#C8A84B;
-    --gold-gradient:linear-gradient(135deg,#B8860B,#C8A84B);
-    --gold-muted:rgba(184,134,11,0.12); --gold-border:rgba(184,134,11,0.35);
-    --black:#1A1200; --white:#FFFFFF; --white-warm:#FFFDF7;
-    --gray-body:#FAF8F5; --gray-1:#F5F0E8; --gray-2:#E0D8CC;
-    --gray-3:#A89880; --gray-4:#5C4C38; --brown-warm:#7A5C1E; --text:#1A1200;
-    --font-heading:'Playfair Display',serif; --font-body:'DM Sans',sans-serif;
-    --shadow-sm:0 1px 3px rgba(30,22,0,0.12); --shadow-md:0 4px 12px rgba(30,22,0,0.10);
-    --radius-pill:100px; --radius-lg:16px; --radius-md:12px; --radius-base:10px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:var(--font-body);background:var(--gray-body);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
-  .wrap{height:100vh;display:flex;flex-direction:column;max-width:720px;margin:0 auto;padding:16px 18px}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conhecendo sua marca — Radar Relevantia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design tokens — idênticos ao criar-oportunidade ───── */
+    :root {
+      --gold: #B8860B; --gold-light: #C8A84B;
+      --gold-gradient: linear-gradient(135deg, #B8860B, #C8A84B);
+      --gold-muted: rgba(184,134,11,0.12);
+      --gold-border: rgba(184,134,11,0.35);
+      --black: #1A1200; --white: #FFFFFF; --white-warm: #FFFDF7;
+      --gray-body: #FAF8F5; --gray-1: #F5F0E8; --gray-2: #E0D8CC;
+      --gray-3: #A89880; --gray-4: #5C4C38; --brown-warm: #7A5C1E;
+      --text: #1A1200;
+      --font-heading: 'Playfair Display', serif;
+      --font-body: 'DM Sans', sans-serif;
+      --shadow-sm: 0 1px 3px rgba(30,22,0,0.12);
+      --shadow-md: 0 4px 12px rgba(30,22,0,0.10);
+      --radius-pill: 100px; --radius-lg: 16px; --radius-md: 12px; --radius-base: 10px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-body); background: var(--gray-body); color: var(--text); font-size: 15px; line-height: 1.6; }
 
-  .agent-header{margin-bottom:12px;flex-shrink:0}
-  .agent-header .row{display:flex;align-items:center;gap:9px}
-  .agent-header h2{font-family:var(--font-heading);font-size:18px;color:var(--black);font-weight:600}
-  .agent-header .badge-demo{margin-left:auto;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);background:var(--gold-muted);padding:4px 10px;border-radius:100px}
-  .agent-header p{font-size:12.5px;color:var(--gray-3);margin-top:4px;line-height:1.5}
-  .agent-header .dot{width:26px;height:26px;border-radius:50%;background:var(--gold-gradient);display:grid;place-items:center;color:#fff;font-size:13px}
+    /* ── Topbar — igual ao criar-oportunidade (sem sidebar) ── */
+    .topbar {
+      position: fixed; left: 0; top: 0; right: 0; height: 64px; z-index: 90;
+      background: rgba(250,248,245,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--gray-2);
+      display: flex; align-items: center; padding: 0 32px; gap: 12px;
+    }
+    .topbar-logo {
+      font-family: var(--font-heading); font-size: 16px; font-weight: 700;
+      color: var(--gold); letter-spacing: -0.3px; text-decoration: none; white-space: nowrap;
+    }
+    .topbar-sep { color: var(--gray-2); user-select: none; }
+    .topbar-title { font-family: var(--font-heading); font-size: 17px; font-weight: 600; color: var(--text); }
+    .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .topbar-badge {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase;
+      color: var(--gold); background: var(--gold-muted);
+      border: 1px solid var(--gold-border); padding: 4px 11px; border-radius: var(--radius-pill);
+    }
 
-  /* ── Etapa 1: nome da marca (igual ao site) ── */
-  #brand-input-section{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
-  .brand-input-card{background:var(--white);border:1px solid var(--gray-2);border-radius:18px;box-shadow:var(--shadow-md);padding:34px 30px;max-width:460px;width:100%;text-align:center}
-  .bic-icon{width:46px;height:46px;border-radius:50%;background:var(--gold-gradient);color:#fff;display:grid;place-items:center;font-size:20px;margin:0 auto 16px}
-  .brand-input-card label{display:block;font-family:var(--font-heading);font-size:19px;color:var(--black);margin-bottom:18px;font-weight:600}
-  .brand-input-card input{width:100%;padding:13px 16px;border:1.5px solid var(--gray-2);border-radius:12px;font-size:15px;font-family:var(--font-body);color:var(--black);background:#F5F0E8;text-align:center;transition:.18s}
-  .brand-input-card input:focus{outline:none;border-color:var(--gold);background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.08)}
-  .brand-input-card input::placeholder{color:#A89880}
-  .btn-iniciar{margin-top:14px;width:100%;padding:13px;background:var(--black);color:#fff;border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:.15s}
-  .btn-iniciar:hover:not(:disabled){background:#2C1E00}
-  .btn-iniciar:disabled{opacity:.5;cursor:not-allowed}
-  .brand-input-hint{font-size:11.5px;color:var(--gray-3);margin-top:14px;line-height:1.45}
+    /* ── Layout ───────────────────────────────────────────── */
+    .main { padding-top: 64px; min-height: 100vh; }
+    .main-inner { padding: 40px 32px 80px; max-width: 780px; margin: 0 auto; }
 
-  /* ── Chat — exato da plataforma ── */
-  .ag-chat-card{background:var(--white);border:1px solid #E0D8CC;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(30,22,0,0.06);position:relative}
-  .ag-chat-card.ag-chat-full{display:none;flex-direction:column;flex:1;min-height:0}
-  .ag-chat-card.ag-chat-full.on{display:flex}
-  .ag-chat-card.ag-chat-full .ag-chat-thread{flex:1;max-height:none}
-  .ag-chat-thread{padding:16px 18px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
-  .ag-chat-thread::-webkit-scrollbar{width:4px}
-  .ag-chat-thread::-webkit-scrollbar-thumb{background:#E0D8CC;border-radius:2px}
-  .ag-msg{display:flex;gap:8px;align-items:flex-start}
-  .ag-msg.user{flex-direction:row-reverse}
-  .ag-msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-  .ag-msg.agent .ag-msg-avatar{background:var(--gold-gradient);color:#FFF;font-size:12px}
-  .ag-msg.user .ag-msg-avatar{background:#E0D8CC;color:#5C4C38}
-  .ag-msg-bubble{max-width:calc(100% - 40px);padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.55}
-  .ag-msg.agent .ag-msg-bubble{background:#F5F0E8;border:1px solid #E0D8CC;border-top-left-radius:4px;color:var(--black)}
-  .ag-msg.user .ag-msg-bubble{background:var(--black);color:#FFF;border-top-right-radius:4px}
-  .ag-msg-bubble ul{padding-left:16px;margin-top:4px}
-  .ag-msg-bubble li{margin-bottom:3px}
-  .ag-msg-bubble strong{font-weight:600}
-  .ag-typing-dots{display:inline-flex;align-items:center;gap:3px;padding:4px 2px}
-  .ag-typing-dots span{width:5px;height:5px;background:#A89880;border-radius:50%;animation:agBounce 1.2s infinite}
-  .ag-typing-dots span:nth-child(2){animation-delay:.2s}.ag-typing-dots span:nth-child(3){animation-delay:.4s}
-  @keyframes agBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
-  @keyframes agMsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-  .ag-msg.agent{animation:agMsgIn .28s ease forwards}
-  .ag-loading-dots::after{content:'';animation:agLoadDots 1.4s steps(1,end) infinite}
-  @keyframes agLoadDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%,100%{content:'...'}}
-  .ag-loading-phase{display:inline-block;opacity:.7;font-size:13px}
-  .ag-options{display:flex;flex-direction:column;gap:6px;margin-top:12px}
-  .ag-option-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;font-size:13px;font-family:var(--font-body);color:#1A1200;cursor:pointer;text-align:left;transition:all .15s;width:100%}
-  .ag-option-btn:hover{border-color:#B8860B;background:#FBF8F1;transform:translateX(2px)}
-  .ag-option-num{flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:var(--gold-gradient);color:#FFF;border-radius:50%;font-size:11px;font-weight:600}
-  .ag-option-text{flex:1;line-height:1.35}
-  .ag-option-free{background:transparent;border-style:dashed;color:#5C4C38}
-  .ag-option-free .ag-option-num{background:transparent;color:#5C4C38;border:1.5px solid #A89880}
-  .ag-option-free:hover{background:#FAF8F5;border-style:solid}
-  .ag-error-msg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:10px;padding:10px 14px;margin:0 18px 8px;font-size:12px;color:#DC2626;display:none;line-height:1.5}
-  .ag-error-msg.visible{display:block}
-  .ag-chat-input-row{display:flex;gap:8px;padding:14px 18px;border-top:2px solid #F0EBE1;margin-top:4px;align-items:flex-end}
-  .ag-chat-input{flex:1;padding:9px 12px;border:1.5px solid #E0D8CC;border-radius:12px;font-size:13px;font-family:var(--font-body);color:var(--black);background:#F5F0E8;transition:all .18s;resize:none;line-height:1.5;min-height:38px;max-height:140px;overflow-y:auto;display:block}
-  .ag-chat-input:focus{outline:none;border-color:#B8860B;background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.08)}
-  .ag-chat-input::placeholder{color:#A89880}
-  .ag-btn-send{padding:9px 16px;background:var(--black);color:#FFF;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;flex-shrink:0}
-  .ag-btn-send:hover:not(:disabled){background:#2C1E00}
-  .ag-btn-send:disabled{opacity:.4;cursor:not-allowed}
+    /* ── Agent header — idêntico ao criar-oportunidade ──── */
+    .agent-header { margin-bottom: 20px; }
+    .agent-header h2 {
+      font-family: var(--font-heading); font-size: 18px; font-weight: 700;
+      color: var(--black); margin-bottom: 4px;
+    }
+    .agent-header p { font-size: 13px; color: var(--gray-3); line-height: 1.5; }
+    .agent-header-meta {
+      display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+    }
+    .agent-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+      color: var(--brown-warm); background: rgba(184,134,11,0.08);
+      border: 1px solid rgba(184,134,11,0.22); padding: 4px 10px; border-radius: var(--radius-pill);
+    }
+    .agent-badge-dot {
+      width: 5px; height: 5px; border-radius: 50%; background: var(--gold);
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+    .agent-steps { display: flex; gap: 6px; flex-wrap: wrap; }
+    .agent-step-pill {
+      font-size: 11px; color: var(--gray-3);
+      background: var(--gray-1); border: 1px solid var(--gray-2);
+      padding: 3px 10px; border-radius: var(--radius-pill);
+    }
+    .agent-step-pill.active {
+      color: var(--brown-warm, #7A5C1E);
+      background: rgba(184,134,11,0.08);
+      border-color: rgba(184,134,11,0.3);
+      font-weight: 600;
+    }
 
-  /* ── Perfil result ── */
-  #section-profile{display:none;margin-top:14px;overflow-y:auto;flex-shrink:0}
-  .profile-card{background:#fff;border:1.5px solid rgba(184,134,11,.28);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}
-  .profile-card-header{padding:16px 20px;background:linear-gradient(135deg,rgba(184,134,11,.07),rgba(200,168,75,.04));border-bottom:1px solid var(--gray-2);display:flex;align-items:center;gap:12px}
-  .profile-card-icon{width:54px;height:54px;border-radius:12px;background:var(--gray-1);border:1px solid var(--gray-2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-family:var(--font-heading);font-size:22px;color:var(--gold)}
-  .profile-card-header h3{font-family:var(--font-heading);font-size:19px;color:var(--black)}
-  .profile-card-header p{font-size:12px;color:var(--gray-3);margin-top:2px}
-  .profile-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
-  .profile-row label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-3);font-weight:600;margin-bottom:4px}
-  .profile-row .val{font-size:14px;color:var(--black);line-height:1.5}
-  .profile-negocio{padding:10px 12px;background:var(--gray-1);border-radius:8px;border:1px solid var(--gray-2);margin-bottom:6px}
-  .profile-negocio:last-child{margin-bottom:0}
-  .profile-negocio-name{font-size:13px;font-weight:600;color:var(--black)}
-  .profile-negocio-desc{font-size:12px;color:var(--gray-4);margin-top:2px}
-  .btn-salvar{width:100%;padding:12px;background:var(--gold-gradient);color:#fff;border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;font-family:var(--font-heading);cursor:pointer;transition:all .15s;margin-top:12px;box-shadow:0 4px 16px rgba(184,134,11,.3)}
-  .btn-salvar:hover{opacity:.9;transform:translateY(-1px)}
-  .demo-foot{flex-shrink:0;text-align:center;font-size:11px;color:var(--gray-3);padding-top:8px;font-style:italic}
-</style>
+    /* ── Brand input card (pré-chat) ─────────────────────── */
+    #brand-input-section { margin-bottom: 16px; }
+    .brand-input-card {
+      background: var(--white); border: 1px solid var(--gray-2); border-radius: var(--radius-lg);
+      padding: 22px 24px; box-shadow: var(--shadow-sm);
+    }
+    .brand-input-card label {
+      display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--gray-4); margin-bottom: 8px;
+    }
+    #brandInput {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--gray-2); border-radius: var(--radius-base);
+      font-size: 14px; font-family: var(--font-body); color: var(--black);
+      background: var(--gray-1); outline: none; transition: all .18s;
+    }
+    #brandInput:focus {
+      border-color: var(--gold); background: var(--white);
+      box-shadow: 0 0 0 3px rgba(184,134,11,0.1);
+    }
+    #brandInput::placeholder { color: var(--gray-3); }
+    .brand-input-hint { font-size: 12px; color: var(--gray-3); margin-top: 7px; }
+
+    /* ── Token section (auth para teste local) ───────────── */
+    #token-section {
+      background: var(--white); border: 1.5px dashed var(--gray-2);
+      border-radius: var(--radius-base); padding: 14px 18px; margin-bottom: 20px;
+    }
+    #token-section.hidden { display: none; }
+    .token-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--gray-3); margin-bottom: 8px; display: flex; align-items: center;
+      justify-content: space-between;
+    }
+    .token-ok { color: #16a34a; font-size: 11px; display: none; }
+    .token-ok.on { display: inline; }
+    .token-row { display: flex; gap: 8px; }
+    .token-input {
+      flex: 1; padding: 8px 11px; border: 1.5px solid var(--gray-2);
+      border-radius: var(--radius-base); font-size: 11px; font-family: monospace;
+      color: var(--text); background: var(--gray-1); outline: none;
+    }
+    .token-input:focus { border-color: var(--gold); background: var(--white); }
+    .token-input::placeholder { font-family: var(--font-body); color: var(--gray-3); }
+    .token-btn {
+      padding: 8px 14px; background: var(--black); color: #fff;
+      border: none; border-radius: var(--radius-base);
+      font-size: 12px; font-weight: 600; font-family: var(--font-body); cursor: pointer;
+    }
+    .token-btn:hover { opacity: .85; }
+    .token-hint { font-size: 11px; color: var(--gray-3); margin-top: 7px; line-height: 1.55; }
+    .token-hint code { font-family: monospace; font-size: 10.5px; background: var(--gray-1); padding: 1px 5px; border-radius: 4px; }
+
+    /* ── Chat card — CSS pixel-a-pixel do criar-oportunidade */
+    .ag-chat-card {
+      background: var(--white); border: 1px solid #E0D8CC;
+      border-radius: 16px; overflow: hidden;
+      box-shadow: 0 1px 4px rgba(30,22,0,0.06);
+      display: none; position: relative;
+    }
+    .ag-chat-card.ag-chat-full {
+      display: flex; flex-direction: column; height: 480px;
+    }
+    .ag-chat-card.ag-chat-full .ag-chat-thread { flex: 1; max-height: none; }
+
+    .ag-chat-thread {
+      padding: 16px 18px 12px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .ag-chat-thread::-webkit-scrollbar { width: 4px; }
+    .ag-chat-thread::-webkit-scrollbar-thumb { background: #E0D8CC; border-radius: 2px; }
+
+    .ag-msg { display: flex; gap: 8px; align-items: flex-start; }
+    .ag-msg.user { flex-direction: row-reverse; }
+    .ag-msg-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+    }
+    .ag-msg.agent .ag-msg-avatar { background: var(--gold-gradient); color: #FFF; font-size: 12px; }
+    .ag-msg.user  .ag-msg-avatar { background: #E0D8CC; color: #5C4C38; }
+    .ag-msg-bubble {
+      max-width: calc(100% - 40px); padding: 9px 13px;
+      border-radius: 12px; font-size: 13px; line-height: 1.55;
+    }
+    .ag-msg.agent .ag-msg-bubble {
+      background: #F5F0E8; border: 1px solid #E0D8CC;
+      border-top-left-radius: 4px; color: var(--black);
+    }
+    .ag-msg.user .ag-msg-bubble {
+      background: var(--black); color: #FFF; border-top-right-radius: 4px;
+    }
+    .ag-msg-bubble ul { padding-left: 16px; margin-top: 4px; }
+    .ag-msg-bubble li { margin-bottom: 3px; }
+    .ag-msg-bubble strong { font-weight: 600; }
+
+    .ag-typing-dots { display: inline-flex; align-items: center; gap: 3px; padding: 4px 2px; }
+    .ag-typing-dots span { width: 5px; height: 5px; background: #A89880; border-radius: 50%; animation: agBounce 1.2s infinite; }
+    .ag-typing-dots span:nth-child(2) { animation-delay: .2s; }
+    .ag-typing-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes agBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+    @keyframes agMsgIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+    .ag-msg.agent { animation: agMsgIn .28s ease forwards; }
+
+    .ag-loading-dots::after { content:''; animation: agLoadDots 1.4s steps(1,end) infinite; }
+    @keyframes agLoadDots { 0%{content:''} 25%{content:'.'} 50%{content:'..'} 75%,100%{content:'...'} }
+    .ag-loading-phase { display:inline-block; animation: agPhaseFade .4s ease; opacity:.7; font-size:13px; }
+    @keyframes agPhaseFade { from{opacity:.2;} to{opacity:.7;} }
+
+    .ag-options { display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+    .ag-option-btn {
+      display:flex; align-items:center; gap:10px; padding:9px 12px;
+      background:#fff; border:1.5px solid #E0D8CC; border-radius:10px;
+      font-size:13px; font-family:var(--font-body); color:#1A1200;
+      cursor:pointer; text-align:left; transition:all .15s; width:100%;
+    }
+    .ag-option-btn:hover { border-color:#B8860B; background:#FBF8F1; transform:translateX(2px); }
+    .ag-option-btn:active { transform:translateX(2px) scale(.99); }
+    .ag-option-num {
+      flex-shrink:0; width:22px; height:22px;
+      display:inline-flex; align-items:center; justify-content:center;
+      background: var(--gold-gradient); color:#FFF;
+      border-radius:50%; font-size:11px; font-weight:600;
+    }
+    .ag-option-text { flex:1; line-height:1.35; }
+    .ag-option-free { background:transparent; border-style:dashed; color:#5C4C38; }
+    .ag-option-free .ag-option-num { background:transparent; color:#5C4C38; border:1.5px solid #A89880; }
+    .ag-option-free:hover { background:#FAF8F5; border-style:solid; }
+
+    .ag-error-msg {
+      background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.22);
+      border-radius:10px; padding:10px 14px; margin:0 18px 8px;
+      font-size:12px; color:#DC2626; display:none; line-height:1.5;
+    }
+    .ag-error-msg.visible { display:block; }
+
+    .ag-chat-input-row {
+      display:flex; gap:8px; padding:14px 18px;
+      border-top:2px solid #F0EBE1; margin-top:4px; align-items:flex-end;
+    }
+    .ag-chat-input {
+      flex:1; padding:9px 12px; border:1.5px solid #E0D8CC; border-radius:12px;
+      font-size:13px; font-family:var(--font-body); color:var(--black);
+      background:#F5F0E8; transition:all .18s;
+      resize:none; line-height:1.5; min-height:38px; max-height:140px; overflow-y:auto; display:block;
+    }
+    .ag-chat-input:focus { outline:none; border-color:#B8860B; background:#fff; box-shadow:0 0 0 3px rgba(184,134,11,.08); }
+    .ag-chat-input::placeholder { color:#A89880; }
+    .ag-btn-send {
+      padding:9px 16px; background:var(--black); color:#FFF;
+      border:none; border-radius:var(--radius-pill);
+      font-size:13px; font-weight:600; font-family:var(--font-body);
+      cursor:pointer; transition:all .15s; flex-shrink:0;
+    }
+    .ag-btn-send:hover:not(:disabled) { background:#2C1E00; }
+    .ag-btn-send:disabled { opacity:.4; cursor:not-allowed; }
+
+    .ag-btn-confirm {
+      display:flex; align-items:center; justify-content:center;
+      width:100%; padding:12px 18px;
+      background: var(--gold-gradient); color:#FFF;
+      border:none; border-radius:var(--radius-pill);
+      font-size:13px; font-weight:600; font-family:var(--font-heading);
+      cursor:pointer; transition:all .18s;
+    }
+    .ag-btn-confirm:hover { opacity:.9; transform:translateY(-1px); }
+
+    /* ── Panel actions ─────────────────────────────────────── */
+    .ag-panel-actions {
+      display:flex; gap:10px; margin-top:16px; align-items:center;
+    }
+    .ag-btn-iniciar {
+      padding:11px 28px; background:var(--black); color:#fff;
+      border:none; border-radius:var(--radius-pill);
+      font-size:14px; font-weight:600; font-family:var(--font-body);
+      cursor:pointer; transition:all .15s;
+    }
+    .ag-btn-iniciar:hover:not(:disabled) { background:#2C1E00; }
+    .ag-btn-iniciar:disabled { opacity:.4; cursor:not-allowed; }
+    .ag-btn-reiniciar {
+      padding:11px 20px; background:transparent; color:var(--gray-3);
+      border:1.5px solid var(--gray-2); border-radius:var(--radius-pill);
+      font-size:13px; font-weight:500; font-family:var(--font-body);
+      cursor:pointer; transition:all .15s; display:none;
+    }
+    .ag-btn-reiniciar:hover { color:var(--black); border-color:var(--gray-3); }
+
+    /* ── Perfil result ─────────────────────────────────────── */
+    #section-profile { display:none; margin-top:32px; }
+    .profile-card {
+      background:#fff; border:1.5px solid rgba(184,134,11,.28);
+      border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-md);
+    }
+    .profile-card-header {
+      padding:18px 22px;
+      background:linear-gradient(135deg,rgba(184,134,11,.07),rgba(200,168,75,.04));
+      border-bottom:1px solid var(--gray-2);
+      display:flex; align-items:center; gap:12px;
+    }
+    .profile-card-icon {
+      width:64px; height:64px; border-radius:12px;
+      background:var(--gray-1); border:1px solid var(--gray-2);
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden; flex-shrink:0;
+    }
+    .profile-card-header h3 { font-family:var(--font-heading); font-size:20px; color:var(--black); }
+    .profile-card-header p { font-size:12px; color:var(--gray-3); margin-top:2px; }
+    .profile-body { padding:20px 22px; display:flex; flex-direction:column; gap:16px; }
+    .profile-row label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--gray-3); font-weight:600; margin-bottom:4px; }
+    .profile-row .val { font-size:14px; color:var(--black); line-height:1.5; }
+    .profile-chips { display:flex; flex-wrap:wrap; gap:6px; }
+    .profile-chip { padding:3px 10px; background:var(--gray-1); border:1px solid var(--gray-2); border-radius:var(--radius-pill); font-size:12px; color:var(--gray-4); }
+    .profile-negocio { padding:10px 12px; background:var(--gray-1); border-radius:8px; border:1px solid var(--gray-2); margin-bottom:6px; }
+    .profile-negocio:last-child { margin-bottom:0; }
+    .profile-negocio-name { font-size:13px; font-weight:600; color:var(--black); }
+    .profile-negocio-desc { font-size:12px; color:var(--gray-4); margin-top:2px; }
+
+    .btn-salvar {
+      width:100%; padding:13px; background:var(--gold-gradient); color:#fff;
+      border:none; border-radius:var(--radius-pill);
+      font-size:14px; font-weight:600; font-family:var(--font-heading);
+      cursor:pointer; transition:all .15s; margin-top:12px;
+      box-shadow:0 4px 16px rgba(184,134,11,.3);
+    }
+    .btn-salvar:hover { opacity:.9; transform:translateY(-1px); }
+    .btn-salvar.saved { background:linear-gradient(135deg,#16a34a,#22c55e); box-shadow:none; }
+
+
+
+/* ── Tutorial modal ─────────────────────────────────────── */
+.tut-overlay { position:fixed; inset:0; background:rgba(30,22,0,0.55); backdrop-filter:blur(4px); z-index:700; display:none; align-items:center; justify-content:center; padding:20px; }
+.tut-overlay.open { display:flex; animation:tutFade .2s ease; }
+@keyframes tutFade { from{opacity:0} to{opacity:1} }
+.tut-card { background:var(--white); border-radius:20px; width:100%; max-width:460px; box-shadow:0 24px 64px rgba(30,22,0,0.22); overflow:hidden; display:flex; flex-direction:column; animation:tutRise .25s ease; }
+@keyframes tutRise { from{transform:translateY(12px);opacity:.5} to{transform:translateY(0);opacity:1} }
+.tut-top { height:3px; background:var(--gold-gradient); }
+.tut-head { display:flex; align-items:center; padding:16px 20px 0; }
+.tut-badge { font-size:10px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--brown-warm); background:var(--gold-muted); border:1px solid var(--gold-border); padding:3px 9px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; }
+.tut-close { margin-left:auto; background:none; border:none; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:14px; color:var(--gray-3); display:flex; align-items:center; justify-content:center; transition:background .15s; }
+.tut-close:hover { background:var(--gray-1); color:var(--black); }
+.tut-body { padding:18px 24px 6px; min-height:248px; }
+.tut-title-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.tut-icon-sm { width:30px; height:30px; border-radius:8px; background:rgba(184,134,11,.1); color:var(--gold); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.tut-icon-sm svg { width:17px; height:17px; }
+.tut-title { font-family:'Poppins',sans-serif; font-size:19px; font-weight:700; color:var(--black); line-height:1.3; letter-spacing:-.2px; }
+.tut-text { font-size:14px; color:var(--gray-4); line-height:1.6; }
+.tut-text strong { color:var(--black); font-weight:600; }
+.tut-list { list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:9px; }
+.tut-list li { display:flex; gap:10px; align-items:flex-start; font-size:13px; color:var(--gray-4); line-height:1.45; }
+.tut-list li .em { font-size:18px; flex-shrink:0; line-height:1.3; }
+.tut-list li strong { color:var(--black); font-weight:600; }
+.tut-foot { display:flex; align-items:center; justify-content:space-between; padding:12px 24px 20px; gap:12px; }
+.tut-dots { display:flex; gap:6px; }
+.tut-dot { width:7px; height:7px; border-radius:50%; background:var(--gray-2); transition:all .2s; cursor:pointer; border:none; padding:0; }
+.tut-dot.active { background:var(--gold); width:20px; border-radius:4px; }
+.tut-nav { display:flex; gap:8px; }
+.tut-btn-back { padding:9px 16px; background:none; border:1.5px solid var(--gray-2); border-radius:100px; font-size:13px; color:var(--gray-3); font-family:var(--font-body); cursor:pointer; transition:all .15s; }
+.tut-btn-back:hover { border-color:var(--gray-3); color:var(--black); }
+.tut-btn-next { padding:9px 22px; background:var(--black); color:#fff; border:none; border-radius:100px; font-size:13px; font-weight:600; font-family:var(--font-body); cursor:pointer; transition:all .15s; }
+.tut-btn-next:hover { background:#2C1E00; }
+.tut-trigger { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--brown-warm); background:rgba(184,134,11,.06); border:1px solid rgba(184,134,11,.22); padding:4px 11px; border-radius:100px; cursor:pointer; font-family:var(--font-body); transition:all .15s; }
+.tut-trigger:hover { background:rgba(184,134,11,.12); }
+.tut-trigger svg { width:13px; height:13px; }
+
+.tut-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+.tut-grid-item { border:1px solid var(--gray-2); border-radius:12px; padding:12px; background:var(--gray-1); }
+.tut-grid-icon { width:30px; height:30px; border-radius:8px; background:rgba(184,134,11,.1); color:var(--gold); display:flex; align-items:center; justify-content:center; margin-bottom:8px; }
+.tut-grid-icon svg { width:16px; height:16px; }
+.tut-grid-title { font-size:13px; font-weight:700; color:var(--black); margin-bottom:2px; }
+.tut-grid-desc { font-size:11px; color:var(--gray-3); line-height:1.4; }
+
+  </style>
 </head>
 <body>
-<div class="wrap">
+
+<!-- Topbar -->
+<div class="topbar">
+  <a class="topbar-logo" href="index.html">
+    <img src="logos/5.png" alt="Radar Relevantia" style="height:34px;width:auto;display:block;filter:brightness(0)">
+  </a>
+  <span class="topbar-sep">/</span>
+  <span class="topbar-title">Conhecendo sua marca</span>
+  <div class="topbar-right">
+    <a href="#" onclick="event.preventDefault(); pularOnboarding()" id="linkPular" style="font-size:12px;color:var(--gray-3);text-decoration:none">Pular por agora →</a>
+  </div>
+</div>
+
+<div class="main">
+<div class="main-inner">
+
+  <!-- Loading inicial -->
+  <div id="loading-section" style="text-align:center;padding:48px 0">
+    <div style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border:3px solid var(--gray-2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite"></div>
+    <p style="margin-top:12px;font-size:13px;color:var(--gray-3)">Carregando seu perfil…</p>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+  <!-- Agent content (hidden until init) -->
+  <div id="panel-agent" style="display:none">
+  <!-- Agent header -->
   <div class="agent-header">
-    <div class="row">
-      <div class="dot">✦</div>
-      <h2>Agente de Onboarding</h2>
-      <span class="badge-demo">Demo</span>
+    <h2>Antes de explorar, nosso agente vai conhecer sua marca</h2>
+    <p>
+      Pesquisamos informações públicas sobre sua empresa e preparamos um mapeamento dos seus negócios e produtos.
+      Revise, ajuste se necessário e confirme — leva menos de 2 minutos.
+      Isso garante que as oportunidades no Radar sejam relevantes para a sua marca.
+    </p>
+    <div class="agent-header-meta">
+      <div class="agent-steps">
+        <span class="agent-step-pill active">① Perfil da marca</span>
+        <span class="agent-step-pill">② Primeira campanha</span>
+      </div>
+      <button class="tut-trigger" onclick="window.Tut.open()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Como funciona</button>
     </div>
-    <p>Igual à plataforma: escreva o nome da marca e o agente pesquisa e monta o perfil — <strong>de verdade</strong>.</p>
   </div>
 
-  <!-- Etapa 1: nome da marca -->
+  <!-- Brand input (antes da conversa) -->
   <div id="brand-input-section">
     <div class="brand-input-card">
-      <div class="bic-icon">✦</div>
-      <label for="brandInput">Qual marca você representa?</label>
-      <input type="text" id="brandInput" placeholder="Ex: Ambev, Itaú, iFood, Nubank, Vivo…" autocomplete="off" />
-      <button class="btn-iniciar" id="btnIniciar">Iniciar conversa →</button>
-      <p class="brand-input-hint">Na plataforma real, este campo já vem preenchido com a marca do seu cadastro.</p>
+      <label>Qual marca você representa?</label>
+      <input type="text" id="brandInput"
+        placeholder="Ex: Ambev, Itaú, iFood, Nubank, Vivo…"
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter') iniciarConversa()" />
+      <p class="brand-input-hint">
+        Na plataforma real, este campo já vem preenchido com a marca do seu cadastro.
+      </p>
     </div>
   </div>
 
-  <!-- Chat -->
-  <div class="ag-chat-card ag-chat-full" id="agChatCard">
+  <!-- Chat card -->
+  <div class="ag-chat-card ag-chat-full" id="agChatCard" style="display:none">
     <div class="ag-chat-thread" id="agChatThread"></div>
     <div class="ag-error-msg" id="agErrorMsg"></div>
     <div class="ag-chat-input-row">
-      <textarea class="ag-chat-input" id="agChatInput" rows="1" placeholder="Responda ou ajuste o perfil…"></textarea>
-      <button class="ag-btn-send" id="agBtnSend">Enviar</button>
+      <textarea class="ag-chat-input" id="agChatInput" rows="1"
+        placeholder="Digite sua resposta…"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agEnviar()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px'"></textarea>
+      <button class="ag-btn-send" id="agBtnSend" onclick="agEnviar()">Enviar</button>
     </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="ag-panel-actions" id="agActions" style="display:none">
+    <button class="ag-btn-iniciar" id="btnIniciar" onclick="iniciarConversa()">Iniciar conversa →</button>
+    <button class="ag-btn-reiniciar" id="btnReiniciar" onclick="reiniciar()">← Reiniciar</button>
   </div>
 
   <!-- Perfil final -->
@@ -144,41 +438,253 @@
     <div class="profile-card">
       <div class="profile-card-header">
         <div class="profile-card-icon" id="profileCardIcon"></div>
-        <div><h3 id="profileTitle">Perfil da marca</h3><p>Gerado pelo Agente de Onboarding · Radar Relevantia</p></div>
+        <div>
+          <h3 id="profileTitle">Perfil da marca</h3>
+          <p>Gerado pelo Agente de Onboarding · Radar Relevantia</p>
+        </div>
       </div>
       <div class="profile-body" id="profileBody"></div>
     </div>
-    <button class="btn-salvar" id="btnSalvar">✦ Criar primeira campanha →</button>
-  </div>
+    <button class="btn-salvar" id="btnSalvar" onclick="salvarPerfil()">✦ Criar primeira campanha →</button>
 
-  <div class="demo-foot">Agente de demonstração</div>
+  </div>
+  </div><!-- /panel-agent -->
+
+</div>
 </div>
 
+
+<!-- Tutorial modal -->
+<div class="tut-overlay" id="tut-overlay" onclick="if(event.target===this)window.Tut.close()"></div>
+
 <script>
-/* ============ Config: chamada REAL ao agente ============ */
-const API_BASE = (location.protocol === 'file:') ? 'https://radar-relevantia.com.br' : '';
-async function getToken(){
-  try{
-    for(const k of ['sb_admin_session','sb_marca_session','sb_detentor_session']){
-      const v=JSON.parse(localStorage.getItem(k)||'null');
-      const t=v&&v.access_token;
-      if(t && String(t).split('.').length===3) return t;
-    }
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k && k.includes('auth-token')){
-        const v=JSON.parse(localStorage.getItem(k)||'{}');
-        const t=v?.access_token||v?.currentSession?.access_token;
-        if(t && String(t).split('.').length===3) return t;
-      }
-    }
-  }catch(e){}
+/* ── Tutorial engine (data-driven) ─────────────────────── */
+(function(){
+  const CFG = { key: 'rr_tut_marca_v1', badge: 'Como funciona', slides: [
+  { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>', title:'Por que conhecer sua marca?', html:'Para te conectar com as oportunidades certas, o Radar precisa entender quem é a sua marca — o que você oferece, para quem e quais são seus objetivos.<br><br>Quanto mais preciso o perfil, mais relevantes ficam as recomendações de patrocínio.' },
+  { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>', title:'O que são “negócios”?', html:'Negócios (ou unidades de negócio) são as diferentes frentes da sua empresa — produtos, serviços ou áreas de atuação.<br><br>Um banco, por exemplo, pode ter <strong>Varejo PF</strong>, <strong>Empresas PJ</strong> e <strong>Private Bank</strong> — cada um fala com um público diferente.<br><br>Separar esses negócios deixa cada campanha mais certeira, em vez de tratar tudo como uma coisa só.' },
+  { icon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>', title:'O que fazer agora', html:'Revise os negócios que o agente identificou. Você pode <strong>editar, remover ou adicionar</strong> — direto nos cards ou pedindo ao agente no chat.<br><br>Quando estiver tudo certo, confirme para seguir à criação da sua primeira campanha.' }
+] };
+  let idx = 0;
+  function renderShell(){
+    const ov = document.getElementById('tut-overlay');
+    if(!ov) return;
+    ov.innerHTML = '<div class="tut-card" onclick="event.stopPropagation()">'
+      + '<div class="tut-top"></div>'
+      + '<div class="tut-head"><span class="tut-badge">\u2726 '+CFG.badge+'</span>'
+      + '<button class="tut-close" onclick="window.Tut.close()" aria-label="Fechar">\u2715</button></div>'
+      + '<div class="tut-body" id="tut-body"></div>'
+      + '<div class="tut-foot"><div class="tut-dots" id="tut-dots"></div><div class="tut-nav" id="tut-nav"></div></div>'
+      + '</div>';
+  }
+  function renderSlide(){
+    const s = CFG.slides[idx];
+    document.getElementById('tut-body').innerHTML =
+      '<div class="tut-title-row"><span class="tut-icon-sm">'+s.icon+'</span><div class="tut-title">'+s.title+'</div></div><div class="tut-text">'+s.html+'</div>';
+    document.getElementById('tut-dots').innerHTML =
+      CFG.slides.map(function(_,i){ return '<button class="tut-dot'+(i===idx?' active':'')+'" onclick="window.Tut.goto('+i+')"></button>'; }).join('');
+    const isLast = idx === CFG.slides.length-1, isFirst = idx === 0;
+    document.getElementById('tut-nav').innerHTML =
+      (isFirst ? '' : '<button class="tut-btn-back" onclick="window.Tut.prev()">Voltar</button>')
+      + '<button class="tut-btn-next" onclick="'+(isLast?'window.Tut.close()':'window.Tut.next()')+'">'+(isLast?'Entendi \u2713':'Pr\u00f3ximo \u2192')+'</button>';
+  }
+  window.Tut = {
+    open: function(){ idx=0; renderShell(); renderSlide(); document.getElementById('tut-overlay').classList.add('open'); document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; },
+    close: function(){ document.getElementById('tut-overlay').classList.remove('open'); document.documentElement.style.overflow=''; document.body.style.overflow=''; try{sessionStorage.setItem(CFG.key,'1');}catch(e){} },
+    next: function(){ if(idx<CFG.slides.length-1){ idx++; renderSlide(); } },
+    prev: function(){ if(idx>0){ idx--; renderSlide(); } },
+    goto: function(i){ idx=i; renderSlide(); },
+    maybeAutoOpen: function(){ try{ if(sessionStorage.getItem(CFG.key)) return; }catch(e){} setTimeout(function(){ window.Tut.open(); }, 500); }
+  };
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/core.js"></script>
+<script>
+const _st = { brandName:'', history:[], lastResult:null, loading:false, token:null, userId:null };
+// SUPABASE_URL e SUPABASE_KEY já declarados por core.js
+
+/* ── Init ──────────────────────────────────────────── */
+/* ── Init (MODO DEMO — sem login, sem gravação no Supabase) ── */
+function _demoToken(){
+  try{ for(const k of ['sb_admin_session','sb_marca_session','sb_detentor_session']){
+    const v=JSON.parse(localStorage.getItem(k)||'null'); const t=v&&v.access_token;
+    if(t && String(t).split('.').length===3) return t; } }catch(e){}
   return 'demo.demo.demo';
 }
-async function callAPI(messages, brandName){
+(async () => {
+  _st.token = _demoToken();
+  _st.userId = 'demo';
+  const ls=document.getElementById('loading-section'); if(ls) ls.style.display='none';
+  const pa=document.getElementById('panel-agent'); if(pa) pa.style.display='block';
+  const ac=document.getElementById('agActions'); if(ac) ac.style.display='flex';
+  const bis=document.getElementById('brand-input-section'); if(bis) bis.style.display='block';
+  document.getElementById('brandInput')?.focus();
+})();
+
+/* ── Helpers ────────────────────────────────────────────────── */
+// Marca onboarding_completo=true para liberar o dashboard
+async function concluirOnboarding() {
+  try {
+    const token = _st.token;
+    if (!token) return;
+    await fetch(SUPABASE_URL + '/auth/v1/user', {
+      method: 'PUT',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: { onboarding_completo: true } })
+    });
+  } catch(e) { console.warn('[concluirOnboarding] erro (não crítico):', e); }
+}
+
+async function pularOnboarding() { /* demo: no-op */ }
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function msgHtml(t) { return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>'); }
+function showError(m) { const e=document.getElementById('agErrorMsg'); e.textContent=m; e.classList.toggle('visible',!!m); }
+function setLoading(on) {
+  _st.loading=on;
+  const b=document.getElementById('agBtnSend'), i=document.getElementById('agChatInput');
+  const bi=document.getElementById('btnIniciar');
+  if(b) b.disabled=on; if(i) i.disabled=on; if(bi) bi.disabled=on;
+}
+function addMsg(role, html, isTyping=false) {
+  const t=document.getElementById('agChatThread');
+  const d=document.createElement('div');
+  d.className=`ag-msg ${role}`;
+  d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
+  if(isTyping) d.id='agTypingMsg';
+  t.appendChild(d);
+  // Carga inicial (agente fala primeiro): rola para o topo p/ ler do começo.
+  // Depois que o usuário responde: fluxo normal (rola para o fim).
+  if(role==='agent' && !isTyping && !_st.userHasReplied){ t.scrollTop=0; }
+  else { t.scrollTop=t.scrollHeight; }
+  return d;
+}
+function removeTyping() { const e=document.getElementById('agTypingMsg'); if(e) e.remove(); }
+function phase(phases, idx) {
+  const el=document.getElementById('agTypingMsg'); if(!el) return;
+  el.querySelector('.ag-msg-bubble').innerHTML=`<span class="ag-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="ag-loading-dots"></span></span>`;
+}
+
+/* ── Iniciar ────────────────────────────────────────────────── */
+async function iniciarConversa(autoName) {
+  const brandName = autoName || document.getElementById('brandInput').value.trim();
+  if (!brandName) { document.getElementById('brandInput').focus(); return; }
+
+  _st.token = _st.token || '';
+  if (!_st.token) { window.location.href='/acesso-marca.html'; return; }
+  _st.brandName = brandName;
+  _st.userHasReplied = false;
+
+  // Troca UI
+  document.getElementById('brand-input-section').style.display = 'none';
+  document.getElementById('agChatCard').style.display = 'flex';
+  document.getElementById('btnIniciar').style.display = 'none';
+  document.getElementById('btnReiniciar').style.display = 'inline-block';
+  const linkPular = document.getElementById('linkPular');
+  if (linkPular) linkPular.style.display = 'none';
+
+  // Mensagem de abertura instantânea — contextualiza o que vai acontecer
+  const saudacao = _st.nomeUsuario ? `Oi, ${_st.nomeUsuario}! ` : 'Oi! ';
+  addMsg('agent', `${saudacao}Pesquisei o que sei sobre <strong>${esc(brandName)}</strong> e vou apresentar um mapeamento dos seus negócios e produtos. Você revisa e ajusta o que precisar 👇`);
+
+  setLoading(true);
+  addMsg('agent','',true);
+
+  const phases = [
+    '🔍 Buscando informações sobre ' + brandName + '…',
+    '🧠 Mapeando negócios e produtos…',
+    '✍️ Organizando seu perfil…'
+  ];
+  let pi=0;
+  const pt=setInterval(()=>{ phase(phases,++pi); },4000);
+
+  try {
+    _st.history = [{role:'user', content:brandName}];
+    const raw = await callAPI(_st.history, brandName, _st.token);
+    clearInterval(pt); removeTyping();
+    _st.history.push({role:'assistant', content:raw});
+    const parsed = parseResp(raw); _st.lastResult=parsed;
+    renderMsg(parsed);
+  } catch(err) {
+    clearInterval(pt); removeTyping();
+    showError(err.message||'Erro ao iniciar.');
+    addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message||'Erro.')}</span>`);
+  } finally { setLoading(false); }
+}
+
+/* ── Enviar resposta ────────────────────────────────────────── */
+async function agEnviar() {
+  if (_st.loading) return;
+  const input=document.getElementById('agChatInput');
+  const text=(input.value||'').trim(); if(!text) return;
+  _st.userHasReplied = true;
+  showError(''); input.value=''; input.style.height='auto';
+  addMsg('user',msgHtml(text));
+  _st.history.push({role:'user', content:text});
+  setLoading(true); addMsg('agent','',true);
+
+  const phases=['🧠 Analisando sua resposta…','✍️ Atualizando o perfil…'];
+  let pi=0;
+  const pt=setInterval(()=>{ phase(phases,++pi); },3500);
+
+  try {
+    const token=_st.token||await getToken();
+    if(!token) throw new Error('Sessão expirada. Insira o token novamente.');
+    const raw=await callAPI(_st.history,_st.brandName,token);
+    clearInterval(pt); removeTyping();
+    _st.history.push({role:'assistant',content:raw});
+    const parsed=parseResp(raw); _st.lastResult=parsed;
+    renderMsg(parsed);
+  } catch(err) {
+    clearInterval(pt); removeTyping();
+    showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span>`);
+  } finally {
+    setLoading(false);
+    const t=document.getElementById('agChatThread'); if(t) t.scrollTop=t.scrollHeight;
+  }
+}
+
+window.agSelecionarOpcao = t => { if(_st.loading)return; document.getElementById('agChatInput').value=t||''; agEnviar(); };
+window.agFocarInput = () => { const i=document.getElementById('agChatInput'); if(i){i.value='';i.focus();} };
+
+window.agToggleOpcao = function(btn) {
+  if(_st.loading) return;
+  const selected = btn.getAttribute('data-selected')==='true';
+  btn.setAttribute('data-selected', selected ? 'false' : 'true');
+  btn.style.borderColor   = selected ? '#E0D8CC' : '#B8860B';
+  btn.style.background    = selected ? '#fff'    : 'rgba(184,134,11,0.08)';
+  btn.style.color         = selected ? '#1A1200' : '#7A5C1E';
+  const num = btn.querySelector('.ag-option-num');
+  if(num) { num.style.background = selected ? 'linear-gradient(135deg,#B8860B,#C8A84B)' : '#E0D8CC'; num.style.color = selected ? '#fff' : '#7A5C1E'; }
+
+  // Mostra/esconde botão confirmar
+  const groupId = btn.getAttribute('data-group');
+  const container = document.getElementById(groupId);
+  if (!container) return;
+  const anySelected = container.querySelectorAll('[data-selected="true"]').length > 0;
+  const confirmBtn = document.getElementById('btn_confirm_'+groupId);
+  if (confirmBtn) confirmBtn.style.display = anySelected ? 'block' : 'none';
+};
+
+window.agEnviarMultiselect = function(groupId) {
+  if(_st.loading) return;
+  const container = document.getElementById(groupId);
+  if (!container) return;
+  const selected = [...container.querySelectorAll('[data-selected="true"]')].map(b=>b.dataset.opc).filter(Boolean);
+  if (!selected.length) return;
+  document.getElementById('agChatInput').value = selected.join(', ');
+  agEnviar();
+};
+
+/* ── API ────────────────────────────────────────────────────── */
+// Quando aberto como file://, aponta para produção
+const API_BASE = window.location.protocol === 'file:' ? 'https://radar-relevantia.com.br' : '';
+
+async function callAPI(messages, brandName, token) {
   const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),150000);
-  const token=await getToken();
-  try{
+  try {
     const r=await fetch(API_BASE+'/api/gemini-brand-agent',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
@@ -190,146 +696,317 @@ async function callAPI(messages, brandName){
     if(!r.ok) throw new Error(data.error||`Erro HTTP ${r.status}`);
     if(!data.text) throw new Error('Resposta vazia do agente.');
     return data.text;
-  }catch(err){ clearTimeout(timer); if(err.name==='AbortError') throw new Error('A IA demorou demais.'); throw err; }
+  } catch(err) { clearTimeout(timer); if(err.name==='AbortError') throw new Error('A IA demorou demais. Tente novamente.'); throw err; }
 }
 
-/* ============ Estado + helpers (espelha a plataforma) ============ */
-const _st={brandName:'',history:[],lastResult:null,loading:false};
-const $=id=>document.getElementById(id);
-const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const msgHtml=t=>esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-function showError(m){const e=$('agErrorMsg');e.textContent=m;e.classList.toggle('visible',!!m);}
-function setLoading(on){_st.loading=on;$('agBtnSend').disabled=on;$('agChatInput').disabled=on;}
-function addMsg(role,html,isTyping=false){
-  const t=$('agChatThread');const d=document.createElement('div');
-  d.className=`ag-msg ${role}`;
-  d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
-  if(isTyping)d.id='agTypingMsg';
-  t.appendChild(d);t.scrollTop=t.scrollHeight;return d;
+/* ── Parse ──────────────────────────────────────────────────── */
+function parseResp(raw) {
+  try { return JSON.parse(raw.trim().replace(/^```json\s*/i,'').replace(/```\s*$/,'')); }
+  catch(e) { console.warn('[brand-agent] parse:', e.message); return null; }
 }
-function removeTyping(){const e=$('agTypingMsg');if(e)e.remove();}
-function phase(phases,idx){const el=$('agTypingMsg');if(!el)return;el.querySelector('.ag-msg-bubble').innerHTML=`<span class="ag-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="ag-loading-dots"></span></span>`;}
-function parseResp(raw){try{return JSON.parse(String(raw).trim().replace(/^```json\s*/i,'').replace(/```\s*$/,''));}catch(e){return null;}}
 
-function buildNegociosList(negocios){
-  let h='<div style="margin-top:6px;display:flex;flex-direction:column;gap:6px">';
-  negocios.forEach(n=>{
-    const nm=typeof n==='string'?n:(n.nome||'');
-    const dc=typeof n==='object'?(n.descricao||''):'';
-    const pub=typeof n==='object'?(n.publico_alvo||''):'';
-    const des=typeof n==='object'?(n.desafio||''):'';
-    h+=`<div class="profile-negocio"><div class="profile-negocio-name">${esc(nm)}</div>
-      ${dc?`<div class="profile-negocio-desc">${esc(dc)}</div>`:''}
-      ${pub?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Público:</strong> ${esc(pub)}</div>`:''}
-      ${des?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Desafio:</strong> ${esc(des)}</div>`:''}</div>`;
+/* ── Helpers de negócios (CRUD inline) ──────────────────────── */
+function getNegociosArr() {
+  const p = _st.lastResult?.perfil;
+  if (!p) return [];
+  return p.negocios?.valor ?? p.negocios ?? [];
+}
+
+window.updateNegocio = function(idx, field, value) {
+  const arr = getNegociosArr();
+  if (arr[idx]) arr[idx][field] = value;
+};
+
+window.removeNegocio = function(idx) {
+  const arr = getNegociosArr();
+  arr.splice(idx, 1);
+  rerenderNegociosList();
+};
+
+window.addNegocio = function() {
+  const arr = getNegociosArr();
+  arr.push({ nome:'', tipo:'produto', descricao:'', publico_alvo:'', desafio:'' });
+  rerenderNegociosList();
+  // Abre o último accordion automaticamente
+  setTimeout(() => {
+    const details = document.querySelectorAll('#negociosList details');
+    if (details.length) { const last = details[details.length-1]; last.open=true; last.querySelector('input')?.focus(); }
+  }, 50);
+};
+
+function rerenderNegociosList() {
+  const el = document.getElementById('negociosList');
+  if (el) el.outerHTML = buildNegociosList(getNegociosArr());
+}
+
+/* ── Negócios como accordion com edição inline + CRUD ───────── */
+function buildNegociosList(negocios) {
+  if (!negocios) negocios = [];
+  const editStyle = `width:100%;border:none;border-bottom:1.5px solid #E0D8CC;background:transparent;
+    font-size:11.5px;color:#5C4C38;font-family:'DM Sans',sans-serif;padding:3px 0;
+    outline:none;resize:none;line-height:1.5`;
+  const inputStyle = `width:100%;border:none;border-bottom:1.5px solid #E0D8CC;background:transparent;
+    font-size:13px;font-weight:600;color:#1A1200;font-family:'DM Sans',sans-serif;padding:3px 0;outline:none`;
+
+  let h = `<div id="negociosList" style="display:flex;flex-direction:column;gap:6px;margin:10px 0 14px">`;
+
+  // ── Tip card: duas formas de editar ────────────────────────────────────────
+  h += `<div style="display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(184,134,11,0.05);border:1px solid rgba(184,134,11,0.18);border-radius:8px;margin-bottom:4px;font-size:11.5px;color:#7A5C1E">
+    ✏️ Clique em um negócio para editar
+    <span style="color:#C8BCA8;margin:0 2px">·</span>
+    💬 ou peça ao agente no chat
+  </div>`;
+
+  if (!negocios.length) {
+    h += `<div style="font-size:12px;color:#A89880;padding:10px 0">Nenhum negócio cadastrado ainda.</div>`;
+  }
+
+  negocios.forEach((n, idx) => {
+    const nome   = typeof n==='string' ? n : (n.nome||'');
+    const tipo   = typeof n==='object' ? (n.tipo||'produto') : 'produto';
+    const descr  = typeof n==='object' ? (n.descricao||'') : '';
+    const pub    = typeof n==='object' ? (n.publico_alvo||'') : '';
+    const desafio= typeof n==='object' ? (n.desafio||'') : '';
+
+    h += `<details style="background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;overflow:hidden" ontoggle="this.querySelector('.neg-chevron').style.transform=this.open?'rotate(180deg)':'rotate(0deg)'">
+      <summary style="padding:11px 14px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;color:#1A1200;user-select:none;transition:background .15s" onmouseover="this.style.background='rgba(184,134,11,0.04)'" onmouseout="this.style.background=''">
+        <span style="flex:1;min-width:0;display:flex;align-items:center;gap:6px">
+          ${nome ? esc(nome) : '<span style="color:#A89880;font-weight:400">Novo negócio</span>'}
+          ${tipo?`<span style="font-size:10px;font-weight:500;color:#A89880;text-transform:uppercase;letter-spacing:.4px;background:#F5F0E8;padding:2px 6px;border-radius:4px">${esc(tipo)}</span>`:''}
+        </span>
+        <span style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <button type="button" onclick="event.preventDefault();event.stopPropagation();removeNegocio(${idx})"
+            style="background:none;border:none;cursor:pointer;font-size:13px;color:#C8BCA8;padding:2px 4px;line-height:1;transition:color .15s"
+            onmouseover="this.style.color='#EF4444'" onmouseout="this.style.color='#C8BCA8'"
+            title="Remover">✕</button>
+          <svg class="neg-chevron" viewBox="0 0 16 16" fill="none" style="width:16px;height:16px;color:#A89880;transition:transform .2s;flex-shrink:0">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </summary>
+      <div style="padding:9px 13px 12px;display:flex;flex-direction:column;gap:10px;border-top:1px solid #F0EBE1">
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:3px">Nome</div>
+          <input type="text" style="${inputStyle}" value="${esc(nome)}"
+            oninput="updateNegocio(${idx},'nome',this.value)" placeholder="Nome do negócio" />
+        </div>
+        ${descr ? `<div style="font-size:12px;color:#5C4C38;line-height:1.5">${esc(descr)}</div>` : ''}
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:3px">Público-alvo</div>
+          <textarea style="${editStyle}" rows="2"
+            oninput="updateNegocio(${idx},'publico_alvo',this.value)"
+            placeholder="Quem usa / para quem se destina">${esc(pub)}</textarea>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:3px">Desafio atual</div>
+          <textarea style="${editStyle}" rows="2"
+            oninput="updateNegocio(${idx},'desafio',this.value)"
+            placeholder="Principal objetivo ou dor desta área">${esc(desafio)}</textarea>
+        </div>
+      </div>
+    </details>`;
   });
-  return h+'</div>';
+
+  h += `<button type="button" onclick="addNegocio()"
+    style="display:flex;align-items:center;gap:8px;padding:9px 13px;background:transparent;
+    border:1.5px dashed #E0D8CC;border-radius:10px;font-size:13px;color:#A89880;
+    cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;width:100%"
+    onmouseover="this.style.borderColor='#B8860B';this.style.color='#B8860B'"
+    onmouseout="this.style.borderColor='#E0D8CC';this.style.color='#A89880'">
+    <span style="font-size:16px;line-height:1">＋</span> Adicionar negócio
+  </button>`;
+
+
+  h += `</div>`;
+  return h;
 }
-function renderMsg(parsed){
-  if(!parsed){addMsg('agent','<span style="color:#DC2626">❌ Erro ao processar. Tente novamente.</span>');return;}
-  let html='';
-  if(parsed.resumo) html+=`${msgHtml(parsed.resumo)}<br><br>`;
-  const negocios=parsed.perfil?.negocios?.valor ?? parsed.perfil?.negocios ?? [];
-  if(negocios.length && !parsed.concluido) html+=buildNegociosList(negocios);
-  if(parsed.concluido){
-    html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Brief criado com sucesso.</span><br><span style="font-size:12px;color:#A89880">Revise o perfil abaixo e crie a primeira campanha quando estiver pronto.</span>`;
-    addMsg('agent',html); setTimeout(mostrarPerfil,300); return;
-  } else if(parsed.duvidas?.length){
+
+/* ── Render mensagem ────────────────────────────────────────── */
+function renderMsg(parsed) {
+  if (!parsed) { addMsg('agent','<span style="color:#DC2626">❌ Erro ao processar. Tente novamente.</span>'); return; }
+  let html = '';
+  if (parsed.resumo) html += `${msgHtml(parsed.resumo)}<br><br>`;
+
+  // Mostra negócios como accordion se existirem e ainda houver dúvida
+  const negocios = parsed.perfil?.negocios?.valor ?? parsed.perfil?.negocios ?? [];
+  if (negocios.length && !parsed.concluido) {
+    html += buildNegociosList(negocios);
+  }
+
+  if (parsed.concluido) {
+    html += `<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Brief criado com sucesso.</span><br>
+      <span style="font-size:12px;color:#A89880">Revise o perfil abaixo e crie a primeira campanha quando estiver pronto.</span>`;
+    addMsg('agent', html);
+    setTimeout(() => mostrarPerfil(), 300);
+    return;
+  } else if (parsed.duvidas?.length) {
     const duv=parsed.duvidas[0];
     const pergunta=typeof duv==='string'?duv:(duv?.pergunta||'');
     const opcoes=(duv&&typeof duv==='object'&&Array.isArray(duv.opcoes))?duv.opcoes:[];
+    const multi=(duv&&typeof duv==='object')?!!duv.multiselect:false;
+    const msgId='ms_'+Date.now();
+
     html+=`<strong>Para continuar:</strong><br>${esc(pergunta)}`;
-    if(opcoes.length){
-      html+='<div class="ag-options">';
-      opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" onclick="selOpc(this)" data-opc="${esc(o)}"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
-      html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="$('agChatInput').focus()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+    if(multi) html+=`<div style="font-size:11px;color:#A89880;margin:4px 0 8px">Selecione uma ou mais opções</div>`;
+
+    if (opcoes.length) {
+      html+=`<div class="ag-options" id="${msgId}">`;
+      if (multi) {
+        // Multi-select: toggle + botão confirmar
+        opcoes.forEach((o,i)=>{
+          html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" data-group="${msgId}"
+            onclick="agToggleOpcao(this)"
+            style="transition:all .15s">
+            <span class="ag-option-num">${i+1}</span>
+            <span class="ag-option-text">${esc(o)}</span>
+          </button>`;
+        });
+        html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()">
+          <span class="ag-option-num">${opcoes.length+1}</span>
+          <span class="ag-option-text">Descreva melhor</span>
+        </button>`;
+        html+=`<button type="button" id="btn_confirm_${msgId}"
+          onclick="agEnviarMultiselect('${msgId}')"
+          style="display:none;margin-top:4px;padding:10px 18px;background:#1A1200;color:#fff;
+          border:none;border-radius:100px;font-size:13px;font-weight:600;
+          font-family:'DM Sans',sans-serif;cursor:pointer;width:100%">
+          Confirmar seleção →
+        </button>`;
+      } else {
+        // Single-select: comportamento atual
+        opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" data-opc="${esc(o)}" onclick="agSelecionarOpcao(this.dataset.opc)"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
+        html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="agFocarInput()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+      }
       html+='</div>';
     }
   }
   addMsg('agent',html);
 }
-window.selOpc=function(b){if(_st.loading)return;$('agChatInput').value=b.dataset.opc||'';agEnviar();};
 
-function mostrarPerfil(){
-  const parsed=_st.lastResult; if(!parsed?.perfil)return;
-  const perfil=parsed.perfil; const p=c=>perfil[c]?.valor??perfil[c]??null;
-  const empresa=p('empresa')||_st.brandName||'—';
-  const descr=p('descricao_empresa')||''; const negocios=p('negocios')||[];
-  $('profileTitle').textContent=empresa;
-  $('profileCardIcon').textContent=(empresa[0]||'R').toUpperCase();
+function buildPerfilSummary(perfil) {
+  if (!perfil) return '';
+  const p=c=>perfil[c]?.valor??perfil[c]??null;
+  const empresa=p('empresa')||p('nome_curto')||'—';
+  const negocios=p('negocios')||[];
+
+  let h=`<div style="padding:12px 14px;background:rgba(184,134,11,0.07);border:1px solid rgba(184,134,11,0.2);border-radius:10px">`;
+  h+=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;font-weight:600;margin-bottom:4px">✦ Perfil capturado</div>`;
+  h+=`<div style="font-size:16px;font-weight:700;color:#1A1200;margin-bottom:8px">${esc(empresa)}</div>`;
+  if(negocios.length){
+    h+=`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">`;
+    negocios.forEach(n=>{const nm=typeof n==='string'?n:(n.nome||'');h+=`<span style="padding:3px 10px;background:#F5F0E8;border:1px solid #E0D8CC;border-radius:100px;font-size:12px;color:#5C4C38">${esc(nm)}</span>`;});
+    h+=`</div>`;
+  }
+  h+=`</div>`;
+  return h;
+}
+
+/* ── Perfil completo ────────────────────────────────────────── */
+// ── Logo: mesmo padrão de _applyMarcaLogo do dashboard ─────────────────────
+const BF_CLIENT_ID = '1idE-ar9WXT49s6Qb2f';
+function _applyProfileLogo(src, name, domain) {
+  const iconEl = document.getElementById('profileCardIcon');
+  if (!iconEl) return;
+  const inicial = name ? name.charAt(0).toUpperCase() : '?';
+  const fallbackHtml = `<span style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:700;color:var(--gold)">${inicial}</span>`;
+  iconEl.innerHTML = fallbackHtml; // mostra inicial imediatamente
+
+  function tryImg(url, onFail) {
+    const img = document.createElement('img');
+    img.style.cssText = 'width:100%;height:100%;object-fit:contain';
+    img.alt = name || '';
+    img.onload = () => { iconEl.innerHTML = ''; iconEl.appendChild(img); };
+    img.onerror = () => { if (onFail) onFail(); };
+    img.src = url;
+  }
+
+  function tryBrandfetch(q) {
+    if (!q) return;
+    fetch(`https://api.brandfetch.io/v2/search/${encodeURIComponent(q)}?c=${BF_CLIENT_ID}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.[0]?.icon) tryImg(d[0].icon, null); })
+      .catch(() => {});
+  }
+
+  function tryClearbit(dm, onFail) {
+    if (!dm) { onFail(); return; }
+    tryImg(`https://logo.clearbit.com/${dm}`, onFail);
+  }
+
+  if (src) {
+    // 1. logo_url salvo → Clearbit → Brandfetch → inicial
+    tryImg(src, () => tryClearbit(domain, () => tryBrandfetch(domain || name)));
+  } else if (domain) {
+    // 2. Clearbit pelo domain → Brandfetch → inicial
+    tryClearbit(domain, () => tryBrandfetch(domain));
+  } else if (name) {
+    // 3. Brandfetch pelo nome → inicial
+    tryBrandfetch(name);
+  }
+}
+
+function mostrarPerfil() {
+  if(!_st.lastResult?.perfil) return;
+  const perfil=_st.lastResult.perfil;
+  const p=c=>perfil[c]?.valor??perfil[c]??null;
+  const empresa=p('empresa')||p('nome_curto')||'—';
+  const descr=p('descricao_empresa')||'';
+  const negocios=p('negocios')||[];
+
+  document.getElementById('profileTitle').textContent=empresa;
+
+  // ── Logo: mesmo padrão do dashboard (Brandfetch search API) ─────────────
+  _applyProfileLogo(_st.logoUrl, empresa, _st.empresaDomain || empresa);
+
+  // ── Body: só descrição + negócios (geografias/porte/objetivo removidos) ──
   let body='';
   if(descr) body+=`<div class="profile-row"><label>Sobre</label><div class="val">${esc(descr)}</div></div>`;
   if(negocios.length){
     body+=`<div class="profile-row"><label>Negócios / BUs</label><div>`;
     negocios.forEach(n=>{
-      const nm=typeof n==='string'?n:(n.nome||''); const dc=typeof n==='object'?(n.descricao||''):'';
-      const pub=typeof n==='object'?(n.publico_alvo||''):''; const des=typeof n==='object'?(n.desafio||''):'';
-      body+=`<div class="profile-negocio"><div class="profile-negocio-name">${esc(nm)}</div>
+      const nm=typeof n==='string'?n:(n.nome||'');
+      const dc=typeof n==='object'?(n.descricao||''):'';
+      const pub=typeof n==='object'?(n.publico_alvo||''):'';
+      const desafio=typeof n==='object'?(n.desafio||''):'';
+      body+=`<div class="profile-negocio">
+        <div class="profile-negocio-name">${esc(nm)}</div>
         ${dc?`<div class="profile-negocio-desc">${esc(dc)}</div>`:''}
-        ${pub?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Público:</strong> ${esc(pub)}</div>`:''}
-        ${des?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Desafio:</strong> ${esc(des)}</div>`:''}</div>`;
+        ${pub?`<div class="profile-negocio-desc" style="margin-top:4px"><strong style="color:#7A5C1E">Público:</strong> ${esc(pub)}</div>`:''}
+        ${desafio?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Desafio:</strong> ${esc(desafio)}</div>`:''}
+      </div>`;
     });
     body+=`</div></div>`;
   }
-  $('profileBody').innerHTML=body;
-  $('section-profile').style.display='block';
-  $('section-profile').scrollIntoView({behavior:'smooth'});
+
+  document.getElementById('profileBody').innerHTML=body;
+  document.getElementById('section-profile').style.display='block';
+  document.getElementById('section-profile').scrollIntoView({behavior:'smooth'});
 }
 
-/* ============ Fluxo real: marca → agente ============ */
-async function iniciarConversa(brandName){
-  _st.brandName=brandName; _st.history=[{role:'user',content:brandName}];
-  // troca a etapa do nome pelo chat (igual ao site)
-  $('brand-input-section').style.display='none';
-  $('agChatCard').classList.add('on');
-  $('section-profile').style.display='none';
-  addMsg('agent',`Oi! Pesquisei o que sei sobre <strong>${esc(brandName)}</strong> e vou mapear seus negócios e produtos. Você revisa e ajusta o que precisar 👇`);
-  setLoading(true); addMsg('agent','',true);
-  const phases=['🔍 Buscando informações sobre '+brandName+'…','🧠 Mapeando negócios e produtos…','✍️ Organizando seu perfil…'];
-  let pi=0; const pt=setInterval(()=>phase(phases,++pi),4000);
-  try{
-    const raw=await callAPI(_st.history,brandName);
-    clearInterval(pt); removeTyping();
-    _st.history.push({role:'assistant',content:raw});
-    _st.lastResult=parseResp(raw); renderMsg(_st.lastResult);
-  }catch(err){
-    clearInterval(pt); removeTyping();
-    showError(err.message||'Erro.');
-    addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message||'Erro ao falar com o agente.')}</span><br><span style="font-size:12px;color:#A89880">A interação real precisa estar logado como admin no radar-relevantia.com.br.</span>`);
-  }finally{setLoading(false);}
-}
-async function agEnviar(){
-  if(_st.loading)return;
-  const input=$('agChatInput'); const text=(input.value||'').trim(); if(!text)return;
-  showError(''); input.value=''; input.style.height='auto';
-  addMsg('user',msgHtml(text)); _st.history.push({role:'user',content:text});
-  setLoading(true); addMsg('agent','',true);
-  const phases=['🧠 Analisando sua resposta…','✍️ Atualizando o perfil…'];
-  let pi=0; const pt=setInterval(()=>phase(phases,++pi),3500);
-  try{
-    const raw=await callAPI(_st.history,_st.brandName);
-    clearInterval(pt); removeTyping();
-    _st.history.push({role:'assistant',content:raw});
-    _st.lastResult=parseResp(raw); renderMsg(_st.lastResult);
-  }catch(err){
-    clearInterval(pt); removeTyping();
-    showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span>`);
-  }finally{setLoading(false);}
+async function salvarPerfil() {
+  const b=document.getElementById('btnSalvar');
+  b.textContent='✓ Perfil pronto (demonstração)'; b.disabled=true;
+  // MODO DEMO: não grava no Supabase nem redireciona.
 }
 
-/* Etapa 1: iniciar ao escrever a marca */
-function tentarIniciar(){
-  const brand=($('brandInput').value||'').trim();
-  if(!brand){ $('brandInput').focus(); return; }
-  iniciarConversa(brand);
+function reiniciar() {
+  _st.history=[]; _st.lastResult=null; _st.brandName='';
+  document.getElementById('agChatThread').innerHTML='';
+  document.getElementById('agChatCard').style.display='none';
+  document.getElementById('brand-input-section').style.display='block';
+  document.getElementById('btnIniciar').style.display='inline-block';
+  document.getElementById('btnReiniciar').style.display='none';
+  document.getElementById('section-profile').style.display='none';
+  document.getElementById('brandInput').value='';
+  if (_st.brandName) {
+    iniciarConversa(_st.brandName);
+  } else {
+    document.getElementById('brandInput').focus();
+  }
+  showError('');
 }
-$('btnIniciar').onclick=tentarIniciar;
-$('brandInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();tentarIniciar();}});
-$('agBtnSend').onclick=agEnviar;
-$('agChatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();agEnviar();}});
-$('agChatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px';});
-$('btnSalvar').onclick=()=>{const b=$('btnSalvar');b.textContent='✓ (demo — nada salvo)';};
-$('brandInput').focus();
+
+
 </script>
 </body>
 </html>
