@@ -541,7 +541,7 @@
   document.getElementById('prev').onclick=prev;
 
   // Agent window — green dot maximizes, red dot closes (Mac style)
-  function maximizeEmbed(dot){ const e=dot.closest('.embed'); if(e) e.classList.add('max'); }
+  function maximizeEmbed(dot){ const e=dot.closest('.embed'); if(e) e.classList.toggle('max'); }
   function restoreMax(){ document.querySelectorAll('.embed.max').forEach(el=>el.classList.remove('max')); }
 
   document.addEventListener('keydown',e=>{
