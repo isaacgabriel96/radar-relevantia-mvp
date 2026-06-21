@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Demo · Agente Brand Brief — Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Poppins:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --gold:#B8860B; --gold-light:#C8A84B;
+    --gold-gradient:linear-gradient(135deg,#B8860B,#C8A84B);
+    --gold-muted:rgba(184,134,11,0.12); --gold-border:rgba(184,134,11,0.35);
+    --black:#1A1200; --white:#FFFFFF; --white-warm:#FFFDF7;
+    --gray-body:#FAF8F5; --gray-1:#F5F0E8; --gray-2:#E0D8CC;
+    --gray-3:#A89880; --gray-4:#5C4C38; --brown-warm:#7A5C1E; --text:#1A1200;
+    --font-heading:'Playfair Display',serif; --font-body:'DM Sans',sans-serif;
+    --shadow-sm:0 1px 3px rgba(30,22,0,0.12); --shadow-md:0 4px 12px rgba(30,22,0,0.10);
+    --radius-pill:100px; --radius-lg:16px; --radius-md:12px; --radius-base:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-body);background:var(--gray-body);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+  .wrap{height:100vh;display:flex;flex-direction:column;max-width:720px;margin:0 auto;padding:16px 18px}
+
+  .agent-header{margin-bottom:12px;flex-shrink:0}
+  .agent-header .row{display:flex;align-items:center;gap:9px}
+  .agent-header h2{font-family:var(--font-heading);font-size:18px;color:var(--black);font-weight:600}
+  .agent-header .badge-demo{margin-left:auto;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);background:var(--gold-muted);padding:4px 10px;border-radius:100px}
+  .agent-header p{font-size:12.5px;color:var(--gray-3);margin-top:4px;line-height:1.5}
+  .agent-header .dot{width:26px;height:26px;border-radius:50%;background:var(--gold-gradient);display:grid;place-items:center;color:#fff;font-size:13px}
+
+  /* ── Chat card — exato da plataforma ── */
+  .ag-chat-card{background:var(--white);border:1px solid #E0D8CC;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(30,22,0,0.06);position:relative}
+  .ag-chat-card.ag-chat-full{display:flex;flex-direction:column;flex:1;min-height:0}
+  .ag-chat-card.ag-chat-full .ag-chat-thread{flex:1;max-height:none}
+  .ag-chat-thread{padding:16px 18px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+  .ag-chat-thread::-webkit-scrollbar{width:4px}
+  .ag-chat-thread::-webkit-scrollbar-thumb{background:#E0D8CC;border-radius:2px}
+  .ag-msg{display:flex;gap:8px;align-items:flex-start}
+  .ag-msg.user{flex-direction:row-reverse}
+  .ag-msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .ag-msg.agent .ag-msg-avatar{background:var(--gold-gradient);color:#FFF;font-size:12px}
+  .ag-msg.user .ag-msg-avatar{background:#E0D8CC;color:#5C4C38}
+  .ag-msg-bubble{max-width:calc(100% - 40px);padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.55}
+  .ag-msg.agent .ag-msg-bubble{background:#F5F0E8;border:1px solid #E0D8CC;border-top-left-radius:4px;color:var(--black)}
+  .ag-msg.user .ag-msg-bubble{background:var(--black);color:#FFF;border-top-right-radius:4px}
+  .ag-msg-bubble ul{padding-left:16px;margin-top:4px}
+  .ag-msg-bubble li{margin-bottom:3px}
+  .ag-msg-bubble strong{font-weight:600}
+  .ag-typing-dots{display:inline-flex;align-items:center;gap:3px;padding:4px 2px}
+  .ag-typing-dots span{width:5px;height:5px;background:#A89880;border-radius:50%;animation:agBounce 1.2s infinite}
+  .ag-typing-dots span:nth-child(2){animation-delay:.2s}.ag-typing-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes agBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+  @keyframes agMsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .ag-msg.agent{animation:agMsgIn .28s ease forwards}
+  .ag-loading-dots::after{content:'';animation:agLoadDots 1.4s steps(1,end) infinite}
+  @keyframes agLoadDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%,100%{content:'...'}}
+  .ag-loading-phase{display:inline-block;animation:agPhaseFade .4s ease;opacity:.7;font-size:13px}
+  @keyframes agPhaseFade{from{opacity:.2}to{opacity:.7}}
+  .ag-options{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+  .ag-option-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;font-size:13px;font-family:var(--font-body);color:#1A1200;cursor:pointer;text-align:left;transition:all .15s;width:100%}
+  .ag-option-btn:hover{border-color:#B8860B;background:#FBF8F1;transform:translateX(2px)}
+  .ag-option-num{flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:var(--gold-gradient);color:#FFF;border-radius:50%;font-size:11px;font-weight:600}
+  .ag-option-text{flex:1;line-height:1.35}
+  .ag-option-free{background:transparent;border-style:dashed;color:#5C4C38}
+  .ag-option-free .ag-option-num{background:transparent;color:#5C4C38;border:1.5px solid #A89880}
+  .ag-option-free:hover{background:#FAF8F5;border-style:solid}
+  .ag-error-msg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:10px;padding:10px 14px;margin:0 18px 8px;font-size:12px;color:#DC2626;display:none;line-height:1.5}
+  .ag-error-msg.visible{display:block}
+  .ag-chat-input-row{display:flex;gap:8px;padding:14px 18px;border-top:2px solid #F0EBE1;margin-top:4px;align-items:flex-end}
+  .ag-chat-input{flex:1;padding:9px 12px;border:1.5px solid #E0D8CC;border-radius:12px;font-size:13px;font-family:var(--font-body);color:var(--black);background:#F5F0E8;transition:all .18s;resize:none;line-height:1.5;min-height:38px;max-height:140px;overflow-y:auto;display:block}
+  .ag-chat-input:focus{outline:none;border-color:#B8860B;background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.08)}
+  .ag-chat-input::placeholder{color:#A89880}
+  .ag-btn-send{padding:9px 16px;background:var(--black);color:#FFF;border:none;border-radius:var(--radius-pill);font-size:13px;font-weight:600;font-family:var(--font-body);cursor:pointer;transition:all .15s;flex-shrink:0}
+  .ag-btn-send:hover:not(:disabled){background:#2C1E00}
+  .ag-btn-send:disabled{opacity:.4;cursor:not-allowed}
+
+  /* ── Perfil result ── */
+  #section-profile{display:none;margin-top:14px;overflow-y:auto;flex-shrink:0}
+  .profile-card{background:#fff;border:1.5px solid rgba(184,134,11,.28);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-md)}
+  .profile-card-header{padding:16px 20px;background:linear-gradient(135deg,rgba(184,134,11,.07),rgba(200,168,75,.04));border-bottom:1px solid var(--gray-2);display:flex;align-items:center;gap:12px}
+  .profile-card-icon{width:54px;height:54px;border-radius:12px;background:var(--gray-1);border:1px solid var(--gray-2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-family:var(--font-heading);font-size:22px;color:var(--gold)}
+  .profile-card-header h3{font-family:var(--font-heading);font-size:19px;color:var(--black)}
+  .profile-card-header p{font-size:12px;color:var(--gray-3);margin-top:2px}
+  .profile-body{padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+  .profile-row label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--gray-3);font-weight:600;margin-bottom:4px}
+  .profile-row .val{font-size:14px;color:var(--black);line-height:1.5}
+  .profile-negocio{padding:10px 12px;background:var(--gray-1);border-radius:8px;border:1px solid var(--gray-2);margin-bottom:6px}
+  .profile-negocio:last-child{margin-bottom:0}
+  .profile-negocio-name{font-size:13px;font-weight:600;color:var(--black)}
+  .profile-negocio-desc{font-size:12px;color:var(--gray-4);margin-top:2px}
+  .btn-salvar{width:100%;padding:12px;background:var(--gold-gradient);color:#fff;border:none;border-radius:var(--radius-pill);font-size:14px;font-weight:600;font-family:var(--font-heading);cursor:pointer;transition:all .15s;margin-top:12px;box-shadow:0 4px 16px rgba(184,134,11,.3)}
+  .btn-salvar:hover{opacity:.9;transform:translateY(-1px)}
+  .demo-foot{flex-shrink:0;text-align:center;font-size:11px;color:var(--gray-3);padding-top:8px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="agent-header">
+    <div class="row">
+      <div class="dot">✦</div>
+      <h2>Agente de Onboarding</h2>
+      <span class="badge-demo">Demo</span>
+    </div>
+    <p>Mapeia os negócios e o público da sua marca. Digite uma marca para conversar <strong>de verdade</strong> com o agente.</p>
+  </div>
+
+  <div class="ag-chat-card ag-chat-full" id="agChatCard">
+    <div class="ag-chat-thread" id="agChatThread"></div>
+    <div class="ag-error-msg" id="agErrorMsg"></div>
+    <div class="ag-chat-input-row">
+      <textarea class="ag-chat-input" id="agChatInput" rows="1" placeholder="Digite o nome de uma marca…"></textarea>
+      <button class="ag-btn-send" id="agBtnSend">Enviar</button>
+    </div>
+  </div>
+
+  <div id="section-profile">
+    <div class="profile-card">
+      <div class="profile-card-header">
+        <div class="profile-card-icon" id="profileCardIcon"></div>
+        <div><h3 id="profileTitle">Perfil da marca</h3><p>Gerado pelo Agente de Onboarding · Radar Relevantia</p></div>
+      </div>
+      <div class="profile-body" id="profileBody"></div>
+    </div>
+    <button class="btn-salvar" id="btnSalvar">✦ Criar primeira campanha →</button>
+  </div>
+
+  <div class="demo-foot" id="demoFoot">Demonstração — nada é salvo no Supabase.</div>
+</div>
+
+<script>
+/* ============ Config: chamada REAL ao agente ============ */
+const API_BASE = (location.protocol === 'file:') ? 'https://radar-relevantia.com.br' : '';
+async function getToken(){
+  try{
+    // sessão do Radar (admin/marca/detentor) — token real
+    for(const k of ['sb_admin_session','sb_marca_session','sb_detentor_session']){
+      const v=JSON.parse(localStorage.getItem(k)||'null');
+      const t=v&&v.access_token;
+      if(t && String(t).split('.').length===3) return t;
+    }
+    // fallback: chave do SDK supabase
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && k.includes('auth-token')){
+        const v=JSON.parse(localStorage.getItem(k)||'{}');
+        const t=v?.access_token||v?.currentSession?.access_token;
+        if(t && String(t).split('.').length===3) return t;
+      }
+    }
+  }catch(e){}
+  return 'demo.demo.demo'; // placeholder (endpoint valida só o formato de 3 partes)
+}
+async function callAPI(messages, brandName){
+  const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),150000);
+  const token=await getToken();
+  try{
+    const r=await fetch(API_BASE+'/api/gemini-brand-agent',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({messages,brandName}),
+      signal:ctrl.signal,
+    });
+    clearTimeout(timer);
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error||`Erro HTTP ${r.status}`);
+    if(!data.text) throw new Error('Resposta vazia do agente.');
+    return data.text;
+  }catch(err){ clearTimeout(timer); if(err.name==='AbortError') throw new Error('A IA demorou demais.'); throw err; }
+}
+
+/* ============ Estado + helpers (espelha a plataforma) ============ */
+const _st={brandName:'',history:[],lastResult:null,loading:false,intro:true};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const msgHtml=t=>esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function showError(m){const e=$('agErrorMsg');e.textContent=m;e.classList.toggle('visible',!!m);}
+function setLoading(on){_st.loading=on;$('agBtnSend').disabled=on;$('agChatInput').disabled=on;}
+function addMsg(role,html,isTyping=false){
+  const t=$('agChatThread');const d=document.createElement('div');
+  d.className=`ag-msg ${role}`;
+  d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
+  if(isTyping)d.id='agTypingMsg';
+  t.appendChild(d);t.scrollTop=t.scrollHeight;return d;
+}
+function removeTyping(){const e=$('agTypingMsg');if(e)e.remove();}
+function phase(phases,idx){const el=$('agTypingMsg');if(!el)return;el.querySelector('.ag-msg-bubble').innerHTML=`<span class="ag-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="ag-loading-dots"></span></span>`;}
+function parseResp(raw){try{return JSON.parse(String(raw).trim().replace(/^```json\s*/i,'').replace(/```\s*$/,''));}catch(e){return null;}}
+
+function renderMsg(parsed){
+  if(!parsed){addMsg('agent','<span style="color:#DC2626">❌ Erro ao processar. Tente novamente.</span>');return;}
+  let html='';
+  if(parsed.resumo) html+=`${msgHtml(parsed.resumo)}<br><br>`;
+  if(parsed.concluido){
+    html+=`<span style="font-size:13px;color:#7A5C1E;font-weight:600">✦ Brief criado com sucesso.</span><br><span style="font-size:12px;color:#A89880">Revise o perfil abaixo e crie a primeira campanha quando estiver pronto.</span>`;
+    addMsg('agent',html); setTimeout(mostrarPerfil,300); return;
+  } else if(parsed.duvidas?.length){
+    const duv=parsed.duvidas[0];
+    const pergunta=typeof duv==='string'?duv:(duv?.pergunta||'');
+    const opcoes=(duv&&typeof duv==='object'&&Array.isArray(duv.opcoes))?duv.opcoes:[];
+    html+=`<strong>Para continuar:</strong><br>${esc(pergunta)}`;
+    if(opcoes.length){
+      html+='<div class="ag-options">';
+      opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" onclick="selOpc(this)" data-opc="${esc(o)}"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
+      html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="$('agChatInput').focus()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button>`;
+      html+='</div>';
+    }
+  }
+  addMsg('agent',html);
+}
+window.selOpc=function(b){if(_st.loading)return;$('agChatInput').value=b.dataset.opc||'';agEnviar();};
+
+function mostrarPerfil(){
+  const parsed=_st.lastResult; if(!parsed?.perfil)return;
+  const perfil=parsed.perfil; const p=c=>perfil[c]?.valor??perfil[c]??null;
+  const empresa=p('empresa')||_st.brandName||'—';
+  const descr=p('descricao_empresa')||''; const negocios=p('negocios')||[];
+  $('profileTitle').textContent=empresa;
+  $('profileCardIcon').textContent=(empresa[0]||'R').toUpperCase();
+  let body='';
+  if(descr) body+=`<div class="profile-row"><label>Sobre</label><div class="val">${esc(descr)}</div></div>`;
+  if(negocios.length){
+    body+=`<div class="profile-row"><label>Negócios / BUs</label><div>`;
+    negocios.forEach(n=>{
+      const nm=typeof n==='string'?n:(n.nome||''); const dc=typeof n==='object'?(n.descricao||''):'';
+      const pub=typeof n==='object'?(n.publico_alvo||''):''; const des=typeof n==='object'?(n.desafio||''):'';
+      body+=`<div class="profile-negocio"><div class="profile-negocio-name">${esc(nm)}</div>
+        ${dc?`<div class="profile-negocio-desc">${esc(dc)}</div>`:''}
+        ${pub?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Público:</strong> ${esc(pub)}</div>`:''}
+        ${des?`<div class="profile-negocio-desc"><strong style="color:#7A5C1E">Desafio:</strong> ${esc(des)}</div>`:''}</div>`;
+    });
+    body+=`</div></div>`;
+  }
+  $('profileBody').innerHTML=body;
+  $('section-profile').style.display='block';
+  $('section-profile').scrollIntoView({behavior:'smooth'});
+}
+
+/* ============ Conversa REAL ============ */
+async function iniciarConversa(brandName){
+  _st.brandName=brandName; _st.history=[{role:'user',content:brandName}];
+  $('section-profile').style.display='none';
+  addMsg('agent',`Oi! Pesquisei o que sei sobre <strong>${esc(brandName)}</strong> e vou mapear seus negócios e produtos. Você revisa e ajusta o que precisar 👇`);
+  setLoading(true); addMsg('agent','',true);
+  const phases=['🔍 Buscando informações sobre '+brandName+'…','🧠 Mapeando negócios e produtos…','✍️ Organizando seu perfil…'];
+  let pi=0; const pt=setInterval(()=>phase(phases,++pi),4000);
+  try{
+    const raw=await callAPI(_st.history,brandName);
+    clearInterval(pt); removeTyping();
+    _st.history.push({role:'assistant',content:raw});
+    _st.lastResult=parseResp(raw); renderMsg(_st.lastResult);
+  }catch(err){
+    clearInterval(pt); removeTyping();
+    showError(err.message||'Erro.');
+    addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message||'Erro ao falar com o agente.')}</span><br><span style="font-size:12px;color:#A89880">A interação real precisa do deck publicado em radar-relevantia.com.br.</span>`);
+  }finally{setLoading(false);}
+}
+async function agEnviar(){
+  if(_st.loading)return;
+  const input=$('agChatInput'); const text=(input.value||'').trim(); if(!text)return;
+  // primeira interação do usuário encerra a animação e começa conversa real
+  if(_st.intro){ _st.intro=false; $('agChatThread').innerHTML=''; $('section-profile').style.display='none'; input.value=''; return iniciarConversa(text); }
+  showError(''); input.value='';
+  addMsg('user',msgHtml(text)); _st.history.push({role:'user',content:text});
+  setLoading(true); addMsg('agent','',true);
+  const phases=['🧠 Analisando sua resposta…','✍️ Atualizando o perfil…'];
+  let pi=0; const pt=setInterval(()=>phase(phases,++pi),3500);
+  try{
+    const raw=await callAPI(_st.history,_st.brandName);
+    clearInterval(pt); removeTyping();
+    _st.history.push({role:'assistant',content:raw});
+    _st.lastResult=parseResp(raw); renderMsg(_st.lastResult);
+  }catch(err){
+    clearInterval(pt); removeTyping();
+    showError(err.message||'Erro.'); addMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span>`);
+  }finally{setLoading(false);}
+}
+$('agBtnSend').onclick=agEnviar;
+$('agChatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();agEnviar();}});
+$('agChatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px';});
+$('btnSalvar').onclick=()=>{const b=$('btnSalvar');b.textContent='✓ (demo — nada salvo)';};
+
+/* ============ Animação de introdução (scriptada) ============ */
+const INTRO={
+  resumo:'Mapeei a Natura a partir do que encontrei. Revise e ajuste o que precisar.',
+  concluido:true,
+  perfil:{empresa:'Natura',descricao_empresa:'Multinacional brasileira de cosméticos e produtos de beleza e cuidado pessoal, com forte posicionamento em sustentabilidade e venda por relações (consultoras).',
+    negocios:[
+      {nome:'Perfumaria',descricao:'Fragrâncias premium e populares.',publico_alvo:'adultos 25–55, classes B/C',desafio:'diferenciar em datas comemorativas'},
+      {nome:'Cuidados com a pele',descricao:'Linha facial e corporal.',publico_alvo:'mulheres 20–45 ligadas a beleza natural',desafio:'educar sobre ativos da biodiversidade'},
+      {nome:'Sustentabilidade & marca',descricao:'Posicionamento ESG e amazônia.',publico_alvo:'consumidor consciente',desafio:'ativações com causa autêntica'}
+    ]}
+};
+async function typeInto(text){const inp=$('agChatInput');for(const ch of text){if(!_st.intro)return;inp.value+=ch;await wait(34);}}
+async function playIntro(){
+  await wait(500);
+  addMsg('agent','Oi! Sou o Agente de Onboarding do Radar. Me diga o <strong>nome da sua marca</strong> que eu pesquiso e mapeio seus negócios — em segundos.');
+  await wait(900); if(!_st.intro)return;
+  await typeInto('Natura'); if(!_st.intro)return;
+  await wait(400); $('agChatInput').value='';
+  addMsg('user','Natura');
+  addMsg('agent','',true);
+  const phases=['🔍 Buscando informações sobre Natura…','🧠 Mapeando negócios e produtos…','✍️ Organizando seu perfil…'];
+  let pi=0; const pt=setInterval(()=>phase(phases,++pi),1100);
+  await wait(3200); clearInterval(pt); if(!_st.intro)return;
+  removeTyping();
+  _st.brandName='Natura'; _st.lastResult=INTRO; renderMsg(INTRO);
+}
+// encerra a animação assim que o usuário interage de verdade
+$('agChatInput').addEventListener('focus',()=>{ if(_st.intro){/* deixa a animação rodar; só zera ao enviar */} });
+playIntro();
+</script>
+</body>
+</html>

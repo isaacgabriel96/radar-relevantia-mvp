@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Demo · Agente Criar Oportunidade — Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Poppins:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --gold:#B8860B; --gold-light:#C8A84B;
+    --gold-gradient:linear-gradient(135deg,#B8860B,#C8A84B);
+    --gold-muted:rgba(184,134,11,0.12); --gold-border:rgba(184,134,11,0.35);
+    --black:#1A1200; --white:#FFFFFF; --white-warm:#FFFDF7;
+    --gray-body:#FAF8F5; --gray-1:#F5F0E8; --gray-2:#E0D8CC;
+    --gray-3:#A89880; --gray-4:#5C4C38; --brown-warm:#7A5C1E; --text:#1A1200;
+    --font-heading:'Poppins',sans-serif; --font-body:'DM Sans',sans-serif;
+    --shadow-md:0 4px 12px rgba(30,22,0,0.10);
+    --radius-pill:100px; --radius-lg:16px; --radius-md:12px; --radius-base:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-body);background:var(--gray-body);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+  .wrap{height:100vh;display:flex;flex-direction:column;max-width:760px;margin:0 auto;padding:16px 18px}
+
+  .agent-header{margin-bottom:12px;flex-shrink:0}
+  .agent-header .row{display:flex;align-items:center;gap:9px}
+  .agent-header h2{font-family:var(--font-heading);font-size:18px;color:var(--black);font-weight:600}
+  .agent-header .badge-demo{margin-left:auto;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);background:var(--gold-muted);padding:4px 10px;border-radius:100px}
+  .agent-header p{font-size:12.5px;color:var(--gray-3);margin-top:4px;line-height:1.5}
+  .agent-header .dot{width:26px;height:26px;border-radius:50%;background:var(--gold-gradient);display:grid;place-items:center;color:#fff;font-size:13px}
+
+  /* ── Template cards (Passo 1) — exatos da plataforma ── */
+  #panel-1{flex:1;overflow-y:auto;min-height:0}
+  .template-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .template-card{border:1.5px solid var(--gray-2);border-radius:var(--radius-lg);padding:18px 18px 16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:var(--white);display:flex;flex-direction:column}
+  .template-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold-gradient);opacity:0;transition:opacity .2s}
+  .template-card:hover{border-color:var(--gold-border)} .template-card:hover::before{opacity:1}
+  .template-card.selected{border-color:var(--gold-border);box-shadow:0 0 0 2px rgba(184,134,11,.15),var(--shadow-md)} .template-card.selected::before{opacity:1}
+  .template-check{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;background:var(--gold-gradient);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.8);transition:.2s}
+  .template-card.selected .template-check{opacity:1;transform:scale(1)}
+  .template-card-icon{width:44px;height:44px;border-radius:var(--radius-md);background:var(--gray-1);display:flex;align-items:center;justify-content:center;color:var(--gray-4);margin-bottom:12px;transition:.2s;flex-shrink:0}
+  .template-card.selected .template-card-icon{background:var(--gold-muted);color:var(--gold)}
+  .template-card-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gray-3);font-weight:700;margin-bottom:5px}
+  .template-card-title{font-family:var(--font-heading);font-size:18px;font-weight:600;color:var(--text);margin-bottom:8px}
+  .template-card-desc{font-size:12px;color:var(--gray-3);line-height:1.55;margin-bottom:12px;flex:1}
+  .template-card-tags{display:flex;flex-wrap:wrap;gap:5px}
+  .template-card-tag{padding:3px 9px;border:1px solid var(--gray-2);border-radius:var(--radius-pill);font-size:10.5px;font-weight:500;color:var(--gray-4);background:var(--gray-1)}
+  .template-card-cta{margin-top:12px;font-size:12.5px;font-weight:600;color:var(--gold);visibility:hidden;opacity:0;transition:opacity .2s}
+  .template-card:hover .template-card-cta,.template-card.selected .template-card-cta{visibility:visible;opacity:1}
+  /* ── Cabeçalho da etapa (igual ao site, sem sidebar) ── */
+  .card-header{margin-bottom:16px}
+  .card-title{font-family:var(--font-heading);font-size:21px;font-weight:600;color:var(--black)}
+  .card-desc{font-size:13px;color:var(--gray-3);margin-top:5px;line-height:1.5}
+  .step-actions{display:flex;justify-content:flex-end;margin-top:18px;padding-bottom:4px}
+  .btn{font-family:var(--font-body);font-size:14px;font-weight:600;border:none;border-radius:var(--radius-pill);cursor:pointer;transition:all .15s}
+  .btn-primary{padding:11px 28px;background:var(--black);color:#fff}
+  .btn-primary:hover:not(:disabled){background:#2C1E00}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed}
+
+  /* ── Chat ── */
+  #panel-agent{flex:1;display:none;flex-direction:column;min-height:0}
+  .ag-chat-card{background:var(--white);border:1px solid #E0D8CC;border-radius:16px;overflow:hidden;box-shadow:0 1px 4px rgba(30,22,0,0.06);position:relative}
+  .ag-chat-card.ag-chat-full{display:flex;flex-direction:column;flex:1;min-height:0}
+  .ag-chat-card.ag-chat-full .ag-chat-thread{flex:1;max-height:none}
+  .ag-chat-thread{padding:16px 18px 12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+  .ag-chat-thread::-webkit-scrollbar{width:4px}
+  .ag-chat-thread::-webkit-scrollbar-thumb{background:#E0D8CC;border-radius:2px}
+  .ag-msg{display:flex;gap:8px;align-items:flex-start}
+  .ag-msg.user{flex-direction:row-reverse}
+  .ag-msg-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+  .ag-msg.agent .ag-msg-avatar{background:var(--gold-gradient);color:#FFF;font-size:12px}
+  .ag-msg.user .ag-msg-avatar{background:#E0D8CC;color:#5C4C38}
+  .ag-msg-bubble{max-width:calc(100% - 40px);padding:9px 13px;border-radius:12px;font-size:13px;line-height:1.55}
+  .ag-msg.agent .ag-msg-bubble{background:#F5F0E8;border:1px solid #E0D8CC;border-top-left-radius:4px;color:var(--black)}
+  .ag-msg.user .ag-msg-bubble{background:var(--black);color:#FFF;border-top-right-radius:4px}
+  .ag-msg-bubble ul{padding-left:18px;margin:6px 0 0}
+  .ag-msg-bubble li{margin-bottom:3px} .ag-msg-bubble strong{font-weight:600}
+  .ag-typing-dots{display:inline-flex;align-items:center;gap:3px;padding:4px 2px}
+  .ag-typing-dots span{width:5px;height:5px;background:#A89880;border-radius:50%;animation:agBounce 1.2s infinite}
+  .ag-typing-dots span:nth-child(2){animation-delay:.2s}.ag-typing-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes agBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+  @keyframes agMsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .ag-msg.agent{animation:agMsgIn .28s ease forwards}
+  .ag-loading-dots::after{content:'';animation:agLoadDots 1.4s steps(1,end) infinite}
+  @keyframes agLoadDots{0%{content:''}25%{content:'.'}50%{content:'..'}75%,100%{content:'...'}}
+  .ag-loading-phase{display:inline-block;opacity:.7;font-size:13px}
+  .ag-error-msg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);border-radius:10px;padding:10px 14px;margin:0 12px 8px;font-size:12px;color:#DC2626;display:none;line-height:1.5}
+  .ag-error-msg.visible{display:block}
+  .ag-chat-input-row{display:flex;gap:8px;padding:14px 18px;border-top:2px solid #F0EBE1;margin-top:4px;align-items:flex-end}
+  .ag-attach-btn{width:34px;height:34px;border-radius:50%;background:#F5F0E8;border:1.5px solid #E0D8CC;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:#5C4C38;transition:.15s}
+  .ag-attach-btn:hover{border-color:#B8860B;color:#B8860B;background:rgba(184,134,11,.07)}
+  .ag-chat-input{flex:1;padding:9px 12px;border:1.5px solid #E0D8CC;border-radius:12px;font-size:13px;font-family:var(--font-body);color:var(--black);background:#F5F0E8;transition:.18s;resize:none;line-height:1.5;min-height:38px;max-height:140px;overflow-y:auto;display:block}
+  .ag-chat-input:focus{outline:none;border-color:#B8860B;background:#fff;box-shadow:0 0 0 3px rgba(184,134,11,.08)}
+  .ag-chat-input::placeholder{color:#A89880}
+  .ag-btn-send{width:38px;height:38px;padding:0;background:var(--black);color:#FFF;border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex-shrink:0}
+  .ag-btn-send:hover:not(:disabled){background:#2C1E00} .ag-btn-send:disabled{opacity:.4;cursor:not-allowed}
+  .ag-btn-confirm{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px 18px;background:var(--gold-gradient);color:#FFF;border:none;border-radius:100px;font-size:13px;font-weight:600;font-family:var(--font-heading);cursor:pointer;transition:.18s}
+  .ag-btn-confirm:hover{opacity:.9;transform:translateY(-1px)}
+  .ag-btn-adjust{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:11px 18px;background:transparent;color:#8A6D3B;border:1px solid #D9C9A8;border-radius:100px;font-size:13px;font-weight:600;font-family:var(--font-heading);cursor:pointer;transition:.18s}
+  .ag-btn-adjust:hover{background:#F5F0E8;border-color:#C8A84B}
+  .ag-options{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+  .ag-option-btn{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1.5px solid #E0D8CC;border-radius:10px;font-size:13px;font-family:var(--font-body);color:#1A1200;cursor:pointer;text-align:left;transition:.15s;width:100%}
+  .ag-option-btn:hover{border-color:#B8860B;background:#FBF8F1;transform:translateX(2px)}
+  .ag-option-num{flex-shrink:0;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;background:var(--gold-gradient);color:#FFF;border-radius:50%;font-size:11px;font-weight:600}
+  .ag-option-text{flex:1;line-height:1.35}
+  .ag-option-free{background:transparent;border-style:dashed;color:#5C4C38}
+  .ag-option-free .ag-option-num{background:transparent;color:#5C4C38;border:1.5px solid #A89880}
+  .ag-panel-actions{display:flex;gap:10px;margin-top:12px;flex-shrink:0}
+  .ag-btn-voltar{padding:9px 18px;border-radius:100px;background:var(--white);color:#5C4C38;border:1.5px solid #E0D8CC;font-size:13px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:.15s}
+  .ag-btn-voltar:hover{border-color:#A89880;color:var(--black)}
+  .demo-foot{flex-shrink:0;text-align:center;font-size:11px;color:var(--gray-3);padding-top:8px;font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="agent-header">
+    <div class="row">
+      <div class="dot">✦</div>
+      <h2>Assistente de Cadastro</h2>
+      <span class="badge-demo">Demo</span>
+    </div>
+    <p>Comece escolhendo o formato — depois descreva e o agente pesquisa e estrutura a oferta. <strong>Conversa de verdade</strong> com o agente.</p>
+  </div>
+
+  <!-- Passo 1: seleção de formato (igual ao site oficial, sem sidebar) -->
+  <div id="panel-1">
+    <div class="card-header">
+      <div class="card-title">Qual é o seu tipo de oportunidade?</div>
+      <div class="card-desc">Escolha a categoria que melhor representa o que você está ofertando às marcas.</div>
+    </div>
+    <div class="template-grid">
+      <div class="template-card" data-template="personalidade" onclick="selectTemplate(this)">
+        <div class="template-check">✓</div>
+        <div class="template-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="template-card-label">Pessoas</div>
+        <div class="template-card-title">Personalidade</div>
+        <div class="template-card-desc">Influenciador, celebridade ou criador com audiência própria que associa marcas à sua imagem.</div>
+        <div class="template-card-tags"><span class="template-card-tag">Imagem & direitos</span><span class="template-card-tag">Redes sociais</span></div>
+        <div class="template-card-cta">Usar este modelo →</div>
+      </div>
+      <div class="template-card" data-template="evento" onclick="selectTemplate(this)">
+        <div class="template-check">✓</div>
+        <div class="template-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="template-card-label">Experiência</div>
+        <div class="template-card-title">Evento</div>
+        <div class="template-card-desc">Acontecimento ou festival com data, público presencial e ativações de marca no local.</div>
+        <div class="template-card-tags"><span class="template-card-tag">Data definida</span><span class="template-card-tag">Público presencial</span></div>
+        <div class="template-card-cta">Usar este modelo →</div>
+      </div>
+      <div class="template-card" data-template="artista" onclick="selectTemplate(this)">
+        <div class="template-check">✓</div>
+        <div class="template-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <div class="template-card-label">Música</div>
+        <div class="template-card-title">Artista Musical</div>
+        <div class="template-card-desc">Músico, banda ou DJ com fanbase que associa marcas a shows, lançamentos e presença digital.</div>
+        <div class="template-card-tags"><span class="template-card-tag">Shows & turnês</span><span class="template-card-tag">Streaming</span></div>
+        <div class="template-card-cta">Usar este modelo →</div>
+      </div>
+      <div class="template-card" data-template="midia" onclick="selectTemplate(this)">
+        <div class="template-check">✓</div>
+        <div class="template-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"/></svg></div>
+        <div class="template-card-label">Comunicação</div>
+        <div class="template-card-title">Mídia</div>
+        <div class="template-card-desc">Veículo — portal, podcast, rádio ou canal — com audiência qualificada e formatos comerciais.</div>
+        <div class="template-card-tags"><span class="template-card-tag">Audiência</span><span class="template-card-tag">Formatos comerciais</span></div>
+        <div class="template-card-cta">Usar este modelo →</div>
+      </div>
+    </div>
+    <div class="step-actions">
+      <button class="btn btn-primary" id="btnProximo1" disabled onclick="abrirAgente()">Próximo →</button>
+    </div>
+  </div>
+
+  <!-- Painel do agente -->
+  <div id="panel-agent">
+    <div class="ag-chat-card ag-chat-full" id="agChatCard">
+      <div class="ag-chat-thread" id="agChatThread"></div>
+      <div class="ag-error-msg" id="agErrorMsg"></div>
+      <div class="ag-chat-input-row">
+        <button class="ag-attach-btn" title="Anexar PDF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>
+        <textarea class="ag-chat-input" id="agChatInput" rows="1" placeholder="Descreva a oportunidade, cole um link ou envie um PDF…"></textarea>
+        <button class="ag-btn-send" id="agBtnSend"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      </div>
+    </div>
+    <div class="ag-panel-actions">
+      <button class="ag-btn-voltar" onclick="voltar()">← Voltar aos formatos</button>
+    </div>
+  </div>
+
+  <div class="demo-foot">Demonstração — nada é salvo no Supabase.</div>
+</div>
+
+<script>
+/* ============ Config: chamada REAL ============ */
+const API_BASE=(location.protocol==='file:')?'https://radar-relevantia.com.br':'';
+async function getToken(){
+  try{
+    for(const k of ['sb_admin_session','sb_marca_session','sb_detentor_session']){
+      const v=JSON.parse(localStorage.getItem(k)||'null');
+      const t=v&&v.access_token;
+      if(t&&String(t).split('.').length===3)return t;
+    }
+    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);
+      if(k&&k.includes('auth-token')){const v=JSON.parse(localStorage.getItem(k)||'{}');
+        const t=v?.access_token||v?.currentSession?.access_token;
+        if(t&&String(t).split('.').length===3)return t;}}
+  }catch(e){}
+  return 'demo.demo.demo';
+}
+async function agCallGemini(messages,{useSearch=false}={}){
+  const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),150000);
+  const token=await getToken();
+  try{
+    const r=await fetch(API_BASE+'/api/gemini-agent',{
+      method:'POST',signal:ctrl.signal,
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({messages,useSearch}),
+    });
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(data.error||`HTTP ${r.status}`);
+    if(!data.text?.trim()) throw new Error('Resposta vazia do agente.');
+    return data.text;
+  }catch(err){ if(err.name==='AbortError')throw new Error('A IA demorou demais.'); throw err; }
+  finally{ clearTimeout(timer); }
+}
+
+/* ============ Estado + helpers ============ */
+const _ag={history:[],lastResult:null,loading:false,tipo:'',intro:true};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const msgHtml=t=>esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const TIPO_LABEL={personalidade:'personalidade',evento:'evento',artista:'artista',midia:'mídia'};
+function showError(m){const e=$('agErrorMsg');e.textContent=m;e.classList.toggle('visible',!!m);}
+function setLoading(on){_ag.loading=on;$('agBtnSend').disabled=on;$('agChatInput').disabled=on;}
+function agAddMsg(role,html,isTyping=false){
+  const t=$('agChatThread');const d=document.createElement('div');
+  d.className=`ag-msg ${role}`;
+  d.innerHTML=`<div class="ag-msg-avatar">${role==='agent'?'✦':'👤'}</div><div class="ag-msg-bubble">${isTyping?'<div class="ag-typing-dots"><span></span><span></span><span></span></div>':html}</div>`;
+  if(isTyping)d.id='agTypingMsg';
+  t.appendChild(d);t.scrollTop=t.scrollHeight;return d;
+}
+function agRemoveTyping(){const e=$('agTypingMsg');if(e)e.remove();}
+function phase(phases,idx){const el=$('agTypingMsg');if(!el)return;el.querySelector('.ag-msg-bubble').innerHTML=`<span class="ag-loading-phase">${phases[Math.min(idx,phases.length-1)]}<span class="ag-loading-dots"></span></span>`;}
+function agParse(raw){try{return JSON.parse(String(raw).trim().replace(/^```json\s*/i,'').replace(/```\s*$/,''));}catch(e){return null;}}
+
+function agBuildCard(parsed){
+  const c=parsed.campos||{}; const v=k=>c[k]?.valor??c[k]??null;
+  const tipoLabel={personalidade:'Personalidade',evento:'Evento',artista:'Artista',midia:'Mídia'};
+  const nome=v('nome_oportunidade')||'—'; const tipo=v('tipo')||_ag.tipo;
+  const descCurta=v('descricao_curta'); const descCompleta=v('descricao_completa');
+  const buscaMarca=v('busca_marca'); const segmentos=v('segmentos')||[]; const loc=v('localizacao')||{};
+  let h=`✅ <strong>Pronto para preencher! Aqui está o que vou cadastrar:</strong>`;
+  h+=`<div style="margin-top:10px;padding:10px 12px;background:rgba(184,134,11,.06);border:1px solid rgba(184,134,11,.2);border-radius:8px">`;
+  h+=`<div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#7A5C1E;margin-bottom:2px">${esc(tipoLabel[tipo]||tipo)}</div>`;
+  h+=`<div style="font-size:15px;font-weight:600;color:#1A1200">${esc(nome)}</div></div>`;
+  if(descCurta){h+=`<div style="margin-top:12px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#5C4C38;margin-bottom:4px">Descrição curta</div><div style="line-height:1.55">${esc(descCurta)}</div></div>`;}
+  if(descCompleta){h+=`<div style="margin-top:12px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#5C4C38;margin-bottom:4px">Descrição completa</div><div style="line-height:1.55;white-space:pre-line">${msgHtml(descCompleta)}</div></div>`;}
+  if(buscaMarca){h+=`<div style="margin-top:12px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#5C4C38;margin-bottom:4px">Perfil de marca ideal</div><div style="line-height:1.55;white-space:pre-line">${msgHtml(buscaMarca)}</div></div>`;}
+  const segLabel=segmentos.map(s=>String(s).split('_').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '));
+  if(segLabel.length){h+=`<div style="margin-top:12px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#5C4C38;margin-bottom:6px">Segmentos de marca</div><div style="display:flex;flex-wrap:wrap;gap:6px">`;segLabel.forEach(s=>{h+=`<span style="display:inline-block;padding:3px 10px;background:#F5F0E8;border:1px solid #E0D8CC;border-radius:100px;font-size:11.5px;color:#5C4C38">${esc(s)}</span>`;});h+=`</div></div>`;}
+  if(loc.pais){h+=`<div style="margin-top:12px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#5C4C38;margin-bottom:4px">Local</div><div style="line-height:1.55">${esc([loc.cidade,loc.pais].filter(Boolean).join(' · '))}</div></div>`;}
+  h+=`<div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">`;
+  h+=`<button class="ag-btn-confirm" onclick="demoFill()">→ Está tudo certo, preencher formulário</button>`;
+  h+=`<button class="ag-btn-adjust" onclick="$('agChatInput').focus()">✎ Preciso de ajustes</button></div>`;
+  return h;
+}
+window.demoFill=function(){agAddMsg('agent','<span style="color:#7A5C1E">✦ (Demo) Na plataforma, isso preenche o formulário — nada é salvo aqui.</span>');};
+
+function agRender(parsed){
+  if(!parsed){agAddMsg('agent','<span style="color:#DC2626">❌ Não consegui extrair informações. Tente descrever de outro jeito.</span>');return;}
+  let html='';
+  if(parsed.resumo) html+=`${msgHtml(parsed.resumo)}<br><br>`;
+  if(parsed.duvidas?.length){
+    const duv=parsed.duvidas[0];
+    const pergunta=typeof duv==='string'?duv:(duv?.pergunta||'');
+    const opcoes=(duv&&typeof duv==='object'&&Array.isArray(duv.opcoes))?duv.opcoes:[];
+    html+=`<strong>Para completar o cadastro:</strong><br>${esc(pergunta)}`;
+    if(opcoes.length){html+='<div class="ag-options">';
+      opcoes.forEach((o,i)=>{html+=`<button type="button" class="ag-option-btn" onclick="selOpc(this)" data-opc="${esc(o)}"><span class="ag-option-num">${i+1}</span><span class="ag-option-text">${esc(o)}</span></button>`;});
+      html+=`<button type="button" class="ag-option-btn ag-option-free" onclick="$('agChatInput').focus()"><span class="ag-option-num">${opcoes.length+1}</span><span class="ag-option-text">Descreva melhor</span></button></div>`;}
+  } else { html+=agBuildCard(parsed); }
+  const conf=parsed.confianca_geral||0;
+  if(conf>0) html+=`<br><br><span style="font-size:11px;color:#A89880">Confiança geral: ${conf}%</span>`;
+  agAddMsg('agent',html);
+}
+window.selOpc=function(b){if(_ag.loading)return;$('agChatInput').value=b.dataset.opc||'';agEnviar();};
+
+/* ============ Etapa 1: escolha de formato (igual ao site) ============ */
+window.selectTemplate=function(card){
+  document.querySelectorAll('.template-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  _ag.tipo=card.dataset.template;
+  $('btnProximo1').disabled=false;
+};
+window.abrirAgente=function(){
+  if(!_ag.tipo)return;
+  _ag.history=[];
+  $('panel-1').style.display='none'; $('panel-agent').style.display='flex';
+  $('agChatThread').innerHTML='';
+  agAddMsg('agent',`Olá! Vou te ajudar a cadastrar a oportunidade de <strong>${esc(TIPO_LABEL[_ag.tipo]||_ag.tipo)}</strong>. Me conta sobre ela — descreva aqui, cole o link do perfil/site, ou envie um PDF. Vou pesquisar na web e extrair tudo automaticamente. 🔍`);
+  $('agChatInput').focus();
+};
+window.voltar=function(){$('panel-agent').style.display='none';$('panel-1').style.display='block';};
+
+async function agEnviar(){
+  if(_ag.loading)return;
+  const input=$('agChatInput'); const text=(input.value||'').trim(); if(!text)return;
+  showError(''); input.value=''; input.style.height='auto';
+  agAddMsg('user',msgHtml(text));
+  const isFirst=_ag.history.length===0;
+  const firstMsg=isFirst?`[Tipo de oportunidade já selecionado pelo usuário: ${_ag.tipo}]\n\n[Descrição do usuário]\n${text}`:text;
+  _ag.history.push({role:'user',content:firstMsg});
+  setLoading(true); agAddMsg('agent','',true);
+  const hasLinks=/https?:\/\//.test(text);
+  const phases=hasLinks?['🔍 Pesquisando na web','🧠 Analisando o perfil','✍️ Escrevendo o que entendi']:['🔍 Pesquisando na web','🧠 Analisando','✍️ Escrevendo o que entendi'];
+  let pi=0; const pt=setInterval(()=>phase(phases,Math.min(++pi,phases.length-1)),2800);
+  setTimeout(()=>phase(phases,0),900);
+  try{
+    const raw=await agCallGemini(_ag.history,{useSearch:isFirst||hasLinks});
+    clearInterval(pt); agRemoveTyping();
+    _ag.history.push({role:'assistant',content:raw});
+    _ag.lastResult=agParse(raw); agRender(_ag.lastResult);
+  }catch(err){
+    clearInterval(pt); agRemoveTyping();
+    showError(err.message||'Erro.');
+    agAddMsg('agent',`<span style="color:#DC2626">❌ ${esc(err.message)}</span><br><span style="font-size:12px;color:#A89880">A interação real precisa do deck publicado em radar-relevantia.com.br.</span>`);
+  }finally{setLoading(false);}
+}
+$('agBtnSend').onclick=agEnviar;
+$('agChatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();agEnviar();}});
+$('agChatInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,140)+'px';});
+
+/* Começa na etapa de escolha de formato (igual ao site oficial, sem sidebar). */
+</script>
+</body>
+</html>

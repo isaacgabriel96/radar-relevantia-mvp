@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Radar Relevantia — Pitch Deck</title>
+<script>
+/* Admin gate — only Radar admins see the deck. Runs before paint. */
+(function(){
+  try{
+    var s=JSON.parse(localStorage.getItem('sb_admin_session')||'null');
+    var ok=s && s.access_token && s.user && s.user.user_metadata && s.user.user_metadata.tipo==='admin';
+    if(!ok){ document.documentElement.style.display='none'; window.location.replace('admin.html'); }
+  }catch(e){ document.documentElement.style.display='none'; window.location.replace('admin.html'); }
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --black:#0A0800; --black-2:#1A1200; --black-3:#2A2008;
+    --ink:#1A1200; --brown-warm:#7A5C1E;
+    --gold:#B8860B; --gold-light:#C8A84B; --gold-deep:#8A6608;
+    --gold-gradient:linear-gradient(135deg,#B8860B,#C8A84B);
+    --gold-soft:linear-gradient(135deg,rgba(184,134,11,0.10),rgba(200,168,75,0.03));
+    --gray-1:#F5F0E8; --gray-2:#E0D8CC; --gray-3:#A89880; --gray-4:#5C4C38;
+    --gray-body:#FAF8F5; --white-warm:#FFFDF7; --white:#FFFFFF;
+    --font-heading:'Poppins',sans-serif; --font-body:'DM Sans',sans-serif;
+    --font-display:'Space Grotesk',sans-serif; --font-ui:'Inter',sans-serif;
+    --radius-sm:8px; --radius-base:10px; --radius-md:12px; --radius-lg:16px; --radius-pill:100px;
+    --shadow-md:0 8px 24px rgba(30,22,0,0.10),0 1px 3px rgba(30,22,0,0.06);
+    --shadow-lg:0 24px 70px rgba(30,22,0,0.18);
+    --ease:cubic-bezier(0.22,1,0.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--font-body);color:var(--ink);background:var(--black);overflow:hidden;-webkit-font-smoothing:antialiased}
+
+  .deck{position:fixed;inset:0;overflow:hidden}
+  .slide{
+    position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+    padding:clamp(40px,6vw,96px) clamp(28px,7vw,120px);
+    opacity:0;visibility:hidden;transform:translateX(40px);
+    transition:opacity .55s var(--ease),transform .55s var(--ease),visibility .55s;
+    background:var(--white-warm);overflow-y:auto;
+  }
+  .slide.active{opacity:1;visibility:visible;transform:translateX(0);z-index:2}
+  .slide.prev{transform:translateX(-40px)}
+  .slide.dark{background:var(--black);color:var(--white-warm)}
+  .slide.dark h1,.slide.dark h2,.slide.dark h3{color:var(--white-warm)}
+  .slide-inner{width:100%;max-width:1180px;margin:0 auto}
+
+  .eyebrow{font-family:var(--font-ui);font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+    font-size:clamp(11px,1vw,13px);color:var(--gold-deep);margin-bottom:22px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:26px;height:2px;background:var(--gold);border-radius:2px}
+  .slide.dark .eyebrow{color:var(--gold-light)}
+  h1{font-family:var(--font-heading);font-weight:700;line-height:1.05;letter-spacing:-.02em;font-size:clamp(34px,5.6vw,76px);color:var(--ink)}
+  h2{font-family:var(--font-heading);font-weight:700;line-height:1.12;letter-spacing:-.015em;font-size:clamp(27px,3.6vw,50px);color:var(--ink);margin-bottom:18px}
+  h3{font-family:var(--font-heading);font-weight:600;font-size:clamp(17px,1.6vw,21px);color:var(--ink)}
+  p{font-size:clamp(15px,1.3vw,18px);line-height:1.62;color:var(--gray-4);max-width:64ch}
+  .slide.dark p{color:#D8CFBE}
+  .lead{font-size:clamp(17px,1.6vw,22px);color:var(--ink);font-weight:500}
+  .slide.dark .lead{color:#ECE4D3}
+  .soft{font-weight:500;color:var(--gray-3)}
+  .slide.dark .soft{color:#A99B80}
+  strong{color:var(--ink);font-weight:600}
+  .slide.dark strong{color:var(--white-warm)}
+  .k{color:var(--ink);font-weight:600}
+  .slide.dark .k{color:var(--white-warm)}
+
+  .quote{border-left:2px solid var(--gold);padding:6px 0 6px 22px;margin:28px 0 0;
+    font-family:var(--font-body);font-weight:500;font-size:clamp(16px,1.5vw,21px);line-height:1.5;color:var(--ink);max-width:66ch}
+  .slide.dark .quote{color:#E6DDCB;border-color:var(--gold)}
+  .cards{display:grid;gap:18px;margin-top:34px}
+  .cards.c2{grid-template-columns:repeat(2,1fr)}
+  .cards.c3{grid-template-columns:repeat(3,1fr)}
+  .cards.c4{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--white);border:1px solid var(--gray-2);border-radius:var(--radius-lg);padding:24px 22px;box-shadow:var(--shadow-md)}
+  .slide.dark .card{background:var(--black-2);border-color:rgba(255,255,255,0.09)}
+  .card .ic{font-size:24px;margin-bottom:12px;display:block;filter:grayscale(.2)}
+  .card h3{margin-bottom:8px}
+  .card p{font-size:14.5px;line-height:1.5;color:var(--gray-4)}
+  .slide.dark .card p{color:#C8BEA8}
+
+  .steps{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px;align-items:stretch}
+  .step{flex:1 1 0;min-width:128px;background:var(--white);border:1px solid var(--gray-2);
+    border-radius:var(--radius-md);padding:15px 16px;font-family:var(--font-display);font-weight:600;
+    font-size:15px;color:var(--ink);display:flex;align-items:center;gap:10px}
+  .step .n{font-family:var(--font-ui);font-size:12px;color:var(--gold-deep);font-weight:700}
+  .arrow{display:flex;align-items:center;color:var(--gray-3);font-weight:700;font-size:16px}
+
+  ul.bullets{list-style:none;margin-top:24px;display:grid;gap:15px;max-width:68ch}
+  ul.bullets li{position:relative;padding-left:28px;font-size:clamp(15px,1.35vw,18px);line-height:1.55;color:var(--gray-4)}
+  .slide.dark ul.bullets li{color:#D8CFBE}
+  ul.bullets li::before{content:"";position:absolute;left:0;top:.6em;width:8px;height:8px;border-radius:50%;background:var(--gold);opacity:.85}
+
+  table{width:100%;border-collapse:collapse;margin-top:26px;font-size:clamp(13px,1.15vw,16px)}
+  th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--gray-2);vertical-align:top}
+  .slide.dark th,.slide.dark td{border-color:rgba(255,255,255,0.10)}
+  thead th{font-family:var(--font-ui);font-weight:600;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--gray-4);border-bottom:2px solid var(--gold)}
+  .slide.dark thead th{color:#C8BEA8}
+  tbody td:first-child{font-weight:600;color:var(--ink)}
+  .slide.dark tbody td:first-child{color:var(--white-warm)}
+  .badge{display:inline-block;font-family:var(--font-ui);font-size:11px;font-weight:600;padding:3px 9px;border-radius:var(--radius-pill);letter-spacing:.03em}
+  .badge.live{background:rgba(46,125,50,0.12);color:#2e7d32}
+  .badge.road{background:var(--gray-1);color:var(--gray-4);border:1px solid var(--gray-2)}
+  .slide.dark .badge.road{background:rgba(255,255,255,.06);color:#C8BEA8;border-color:rgba(255,255,255,.12)}
+
+  .two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,5vw,72px);align-items:center}
+  .stat-row{display:flex;flex-wrap:wrap;gap:28px;margin-top:34px}
+  .stat{flex:1 1 150px}
+  .stat .num{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,3.6vw,46px);color:var(--gold-deep);line-height:1}
+  .slide.dark .stat .num{color:var(--gold-light)}
+  .stat .lbl{font-size:14px;color:var(--gray-4);margin-top:8px}
+  .slide.dark .stat .lbl{color:#C8BEA8}
+
+  .pill-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .pill{font-family:var(--font-ui);font-weight:500;font-size:14px;padding:9px 16px;border-radius:var(--radius-pill);background:var(--white);border:1px solid var(--gray-2);color:var(--gray-4);box-shadow:var(--shadow-md)}
+  .pill .ok{color:#2e7d32;font-weight:700;margin-right:6px}
+
+  .note{font-size:13px;color:var(--gray-3);margin-top:18px}
+  .slide.dark .note{color:#A99B80}
+
+  .embed-wrap{margin-top:24px;display:flex;gap:22px;align-items:stretch}
+  .embed{flex:1;border:1px solid var(--gray-2);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-lg);background:var(--white);min-height:0}
+  .embed .bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:var(--gray-1);border-bottom:1px solid var(--gray-2)}
+  .embed .bar i{width:10px;height:10px;border-radius:50%;background:var(--gray-3);opacity:.5}
+  .embed .bar .u{margin-left:10px;font-family:var(--font-ui);font-size:11.5px;color:var(--gray-3)}
+  .embed iframe{width:100%;height:58vh;border:0;display:block;background:var(--white)}
+  .embed.tall iframe{height:62vh}
+  .embed-side{flex:0 0 300px;align-self:center}
+  .embed-side h2{margin-bottom:14px}
+  @media (max-width:960px){.embed-wrap{flex-direction:column}.embed-side{flex:auto}.embed iframe{height:48vh}}
+
+  .cover{justify-content:center;align-items:flex-start;text-align:left}
+  .radar{width:clamp(92px,11vw,140px);height:auto;margin-bottom:30px;display:block}
+  .radar-sweep{transform-origin:140px 140px;animation:sweep 5s linear infinite}
+  @keyframes sweep{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  .rd1{animation:dot1 5s linear infinite}.rd2{animation:dot2 5s linear infinite}.rd3{animation:dot3 5s linear infinite}
+  @keyframes dot1{0%,100%{opacity:.06}28%,48%{opacity:1}}
+  @keyframes dot2{0%,100%{opacity:.06}48%,66%{opacity:1}}
+  @keyframes dot3{0%,100%{opacity:.06}66%,80%{opacity:1}}
+  .cover .brand{font-family:var(--font-display);font-weight:600;font-size:clamp(13px,1.3vw,16px);letter-spacing:.14em;color:var(--gold-light);margin-bottom:18px;text-transform:uppercase}
+  .cover h1{font-size:clamp(40px,7vw,92px);margin-bottom:14px}
+  .cover .tagline{font-family:var(--font-heading);font-weight:500;font-size:clamp(19px,2.3vw,32px);color:#CDBFA3;margin-bottom:36px;letter-spacing:-.01em}
+  .cover .meta{font-family:var(--font-ui);font-size:13.5px;letter-spacing:.03em;color:var(--gray-3);border-top:1px solid rgba(255,255,255,.12);padding-top:22px;max-width:760px}
+  .cover .one-liner{margin-top:0;margin-bottom:30px;max-width:800px;font-size:clamp(15px,1.45vw,19px);color:#CDBFA3;line-height:1.6}
+
+  .slide.dark::before{content:"";position:absolute;top:-20%;right:-12%;width:60vw;height:60vw;background:radial-gradient(circle,rgba(184,134,11,0.13),transparent 60%);pointer-events:none;z-index:0}
+  .slide.dark .slide-inner{position:relative;z-index:1}
+
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--gold-gradient);z-index:50;transition:width .4s var(--ease)}
+  .nav{position:fixed;bottom:22px;right:26px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--font-ui);font-size:13px;color:var(--gray-3)}
+  .nav .counter{letter-spacing:.1em;font-variant-numeric:tabular-nums}
+  .nav button{width:38px;height:38px;border-radius:50%;border:1px solid var(--gray-2);background:rgba(255,255,255,.85);color:var(--ink);cursor:pointer;font-size:16px;display:grid;place-items:center;transition:.2s var(--ease);backdrop-filter:blur(6px)}
+  .nav button:hover{background:var(--ink);color:#fff;border-color:transparent}
+  .dots{position:fixed;left:26px;bottom:24px;z-index:50;display:flex;gap:6px;max-width:62vw;flex-wrap:wrap}
+  .dots i{width:7px;height:7px;border-radius:50%;background:var(--gray-2);cursor:pointer;transition:.25s var(--ease)}
+  .dots i.on{background:var(--gold);width:20px;border-radius:4px}
+  .hint{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:40;font-family:var(--font-ui);font-size:12px;color:var(--gray-3);opacity:.8;transition:opacity .4s}
+  .hint.hide{opacity:0}
+  .lang-switch{position:fixed;top:18px;right:24px;z-index:50;font-family:var(--font-ui);font-weight:600;font-size:12px;letter-spacing:.08em;text-decoration:none;color:var(--gray-3);border:1px solid var(--gray-2);background:rgba(255,255,255,.7);backdrop-filter:blur(6px);padding:7px 13px;border-radius:var(--radius-pill);transition:.2s var(--ease)}
+  .lang-switch:hover{background:var(--ink);color:#fff;border-color:transparent}
+  @media print{.lang-switch{display:none}}
+  @media (max-width:860px){
+    .two-col{grid-template-columns:1fr;gap:28px}
+    .cards.c3,.cards.c4,.cards.c2{grid-template-columns:1fr}
+    .steps{flex-direction:column}.arrow{transform:rotate(90deg)}
+    .dots{display:none}
+  }
+  @media print{
+    body,.deck{position:static;overflow:visible;height:auto;background:#fff}
+    .slide{position:static;opacity:1;visibility:visible;transform:none;page-break-after:always;min-height:100vh;border-bottom:1px solid #eee}
+    .slide.dark{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .nav,.dots,.progress,.hint{display:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<a class="lang-switch" href="pitch-deck-pt.html" title="Versão em português">PT</a>
+<div class="deck" id="deck">
+
+  <!-- 1 · COVER -->
+  <section class="slide dark cover active">
+    <div class="slide-inner">
+      <svg class="radar" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" aria-label="Radar Relevantia">
+        <defs>
+          <radialGradient id="base" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#6b5a14"/><stop offset="40%" stop-color="#3a340c"/>
+            <stop offset="70%" stop-color="#1c1706"/><stop offset="100%" stop-color="#0a0802"/>
+          </radialGradient>
+          <linearGradient id="swG" x1="0.5" y1="0" x2="0" y2="0.5">
+            <stop offset="0%" stop-color="#c8a428" stop-opacity="0.28"/><stop offset="100%" stop-color="#c8a428" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="dc"><circle cx="140" cy="140" r="118"/></clipPath>
+        </defs>
+        <circle cx="140" cy="140" r="121" fill="#060502"/>
+        <circle cx="140" cy="140" r="118" fill="url(#base)"/>
+        <g clip-path="url(#dc)">
+          <circle cx="140" cy="140" r="116" fill="none" stroke="#9a8828" stroke-width="0.5" opacity="0.5"/>
+          <circle cx="140" cy="140" r="92" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.5"/>
+          <circle cx="140" cy="140" r="68" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.55"/>
+          <circle cx="140" cy="140" r="44" fill="none" stroke="#9a8828" stroke-width="0.45" opacity="0.6"/>
+        </g>
+        <circle cx="140" cy="140" r="118" fill="none" stroke="#b89824" stroke-width="1.6" opacity="0.65"/>
+        <circle cx="140" cy="140" r="103" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.55"/>
+        <circle cx="140" cy="140" r="80" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.5"/>
+        <circle cx="140" cy="140" r="52" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.45"/>
+        <circle cx="140" cy="140" r="26" fill="none" stroke="#b89824" stroke-width="1.1" opacity="0.42"/>
+        <line x1="140" y1="22" x2="140" y2="258" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+        <line x1="22" y1="140" x2="258" y2="140" stroke="#b89824" stroke-width="0.8" opacity="0.55"/>
+        <g clip-path="url(#dc)"><g class="radar-sweep">
+          <path d="M140 140 L140 22 A118 118 0 0 1 223.5 53.5 Z" fill="url(#swG)"/>
+          <line x1="140" y1="140" x2="140" y2="22" stroke="#c8a428" stroke-width="1.8" opacity="0.7"/>
+        </g></g>
+        <circle cx="140" cy="140" r="3" fill="#1a1608" stroke="#b89824" stroke-width="0.6" opacity="0.7"/>
+        <circle cx="190" cy="72" r="5" fill="#d8c890" class="rd1"/>
+        <circle cx="82" cy="170" r="5" fill="#d8c890" class="rd2"/>
+        <circle cx="222" cy="195" r="5" fill="#d8c890" class="rd3"/>
+      </svg>
+      <div class="brand">Radar Relevantia</div>
+      <h1>Radar</h1>
+      <div class="tagline">The operating system for those who live on attention.</div>
+      <div class="one-liner">
+        In a world where attention is fragmenting more and more, Radar is the <strong>system of record</strong>
+        where brands and audiences meet, transact and measure results — recurring SaaS on both sides
+        <strong>+ deal intermediation</strong>, built on a network developed over years.
+      </div>
+      <div class="meta">Pre-launch &nbsp;·&nbsp; MVP in production &nbsp;·&nbsp; Pre-seed / seed round &nbsp;·&nbsp; 2026</div>
+    </div>
+  </section>
+
+  <!-- 2 · TREND -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">The trend · where the pain comes from</div>
+      <h2>Attention is fragmenting.<br><span class="soft">And it's irreversible.</span></h2>
+      <p class="lead">The audience once concentrated in a few channels is now scattered across thousands of niches, formats and creators. From here on, attention will only become more diffuse.</p>
+      <ul class="bullets">
+        <li><strong>Capturing attention is the precondition</strong> for any campaign result — and it's getting more expensive, complex and risky to reach.</li>
+        <li>Brands will <strong>struggle more and more to deliver results</strong>. Not for lack of budget, but because the audience is no longer in one place.</li>
+        <li>It's scattered across <span class="k">Personality, Event, Musical Artist and Media</span> niches.</li>
+      </ul>
+      <div class="quote">The more diffuse attention becomes, the harder every investment decision gets. The pain isn't cyclical — it's structural and growing.</div>
+    </div>
+  </section>
+
+  <!-- 3 · STATUS QUO -->
+  <section class="slide dark">
+    <div class="slide-inner">
+      <div class="eyebrow">Why the status quo won't solve it</div>
+      <h2>Today brands outsource this pain to agencies.<br><span class="soft">And agencies won't keep up.</span></h2>
+      <div class="cards c3">
+        <div class="card"><span class="ic">✋</span><h3>Manual & barely data-driven</h3><p>Most agencies run on relationships, spreadsheets and gut feeling — not data.</p></div>
+        <div class="card"><span class="ic">⚡</span><h3>Slower than the market</h3><p>The market evolves and fragments faster than that model can follow.</p></div>
+        <div class="card"><span class="ic">🔍</span><h3>Brands decide blind</h3><p>They pay a premium, decide without data, and can't measure or control what came back.</p></div>
+      </div>
+      <div class="quote">It's not a lack of effort from the agency — it's an architecture problem. Diffuse attention demands infrastructure and data, not more human hours.</div>
+    </div>
+  </section>
+
+  <!-- 4 · SOLUTION -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">The solution</div>
+      <h2>The infrastructure and data layer<br>between brands and fragmented attention.</h2>
+      <p class="lead">Radar isn't a marketplace. It's the <strong>operating system</strong> that covers the entire cycle in a single flow — with an AI copilot.</p>
+      <div class="steps">
+        <div class="step"><span class="n">01</span> Discover</div><div class="arrow">→</div>
+        <div class="step"><span class="n">02</span> Evaluate</div><div class="arrow">→</div>
+        <div class="step"><span class="n">03</span> Negotiate</div><div class="arrow">→</div>
+        <div class="step"><span class="n">04</span> Close</div><div class="arrow">→</div>
+        <div class="step"><span class="n">05</span> Manage</div><div class="arrow">→</div>
+        <div class="step"><span class="n">06</span> Measure</div>
+      </div>
+      <div class="quote">Sponsorship is module 1, not the ceiling. Radar is where audience becomes business — and it grows in modules from there.</div>
+    </div>
+  </section>
+
+  <!-- 5 · 4 FORMATS -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Already in production · proof of execution</div>
+      <h2>The 4 formats we already operate in the product</h2>
+      <p>Each format has its own flow inside the platform — it's not roadmap, it's already live.</p>
+      <div class="cards c4">
+        <div class="card"><span class="ic">🎤</span><h3>Personality</h3><p>Professional media kit in minutes; proposals by status; fair-price check on the spot.</p></div>
+        <div class="card"><span class="ic">🎟️</span><h3>Event</h3><p>Tiers (master, gold, silver…) kept from one edition to the next; own page; pipeline of brands.</p></div>
+        <div class="card"><span class="ic">🎵</span><h3>Musical Artist</h3><p>Real audience (streams, shows) with credibility; naming and activations in a single flow.</p></div>
+        <div class="card"><span class="ic">📺</span><h3>Media</h3><p>Inventory (channels, podcasts, portals, profiles) becomes a live catalog brands can buy.</p></div>
+      </div>
+      <p style="margin-top:24px">On the other side, <strong>brands and agencies</strong> find these 4 formats by segment, audience, region and budget — and decide with the copilot before spending.</p>
+    </div>
+  </section>
+
+  <!-- 6 · SEE THE PRODUCT (site embed) -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">The product · live</div>
+      <h2 style="margin-bottom:6px">See the real platform</h2>
+      <div class="embed-wrap">
+        <div class="embed tall">
+          <div class="bar"><i></i><i></i><i></i><span class="u">radar-relevantia.com.br</span></div>
+          <iframe src="index.html" title="Radar Relevantia site" loading="lazy"></iframe>
+        </div>
+      </div>
+      <p class="note">Live site in production, embedded here. Use the arrows to continue. (Product UI is in Portuguese — Brazilian market.)</p>
+    </div>
+  </section>
+
+  <!-- 7 · COMPLIANCE -->
+  <section class="slide dark">
+    <div class="slide-inner">
+      <div class="eyebrow">Compliance & control</div>
+      <h2>The control brands don't have today</h2>
+      <p class="lead">With diffuse attention and many simultaneous partnerships, brands lose control. Radar gives it back.</p>
+      <div class="cards c2">
+        <div class="card"><h3>📍 Where the investment went</h3><p>Every deal recorded, auditable, in one place.</p></div>
+        <div class="card"><h3>📈 What came back</h3><p>Metrics and ROI per partnership. <span class="badge road">roadmap</span></p></div>
+        <div class="card"><h3>🗂️ How it's being managed</h3><p>Pipeline, contracts, deliverables and deadlines in one dashboard. <span class="badge road">roadmap</span></p></div>
+        <div class="card"><h3>🔒 Airtight contracts</h3><p>Exclusive / non-exclusive templates with anti-bypass.</p></div>
+      </div>
+      <div class="quote">Radar becomes the system of record for a brand's investment in audience. Whoever holds that record holds the relationship and the data.</div>
+    </div>
+  </section>
+
+  <!-- 8 · PRODUCT & AI -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Product & AI · wedge today, moat on the roadmap</div>
+      <h2>Many agents inside. <span class="soft">One copilot for the client.</span></h2>
+      <table>
+        <thead><tr><th>Phase</th><th>Agent</th><th>Value thesis</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Today</td><td>Opportunity intake · Brand brief · Campaign builder</td><td>Data entry — the base already live</td><td><span class="badge live">in production</span></td></tr>
+          <tr><td>P1</td><td>Opportunity evaluator</td><td><strong>Wedge.</strong> Fit, fair price, risk, counter-offer. Value with N=1 and zero inventory → opens MRR</td><td><span class="badge road">roadmap</span></td></tr>
+          <tr><td>P2</td><td>Partnership portfolio management</td><td>Retention + compliance. Works even with off-platform deals</td><td><span class="badge road">roadmap</span></td></tr>
+          <tr><td>P3</td><td>Live rights-holder brief</td><td>Infra that enables the two-sided layer</td><td><span class="badge road">roadmap</span></td></tr>
+          <tr><td>P4</td><td>Strategy merge</td><td><strong>Moat.</strong> Matchmaking at the strategy level, not filtering — nonexistent in Brazil</td><td><span class="badge road">roadmap</span></td></tr>
+          <tr><td>P5</td><td>Metrics, ROI & social listening</td><td>Premium, with real data — closes the control loop</td><td><span class="badge road">roadmap</span></td></tr>
+        </tbody>
+      </table>
+      <p class="note">Deliberate sequence: P1 unlocks revenue without depending on liquidity; the two-sided layer (P4) is the payoff, not the starting point — neutralizing the cold-start that kills marketplaces.</p>
+    </div>
+  </section>
+
+  <!-- 9 · DEMO BRAND BRIEF -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">The copilot in practice · 1</div>
+      <div class="embed-wrap">
+        <div class="embed-side">
+          <h2>Agent: Brand Brief</h2>
+          <p>You type the brand name. The agent researches and builds the strategic profile — businesses, audience and challenges — in seconds.</p>
+          <p class="note">Plays an animated preview — <strong>type a brand to really talk</strong> to the agent. Nothing is saved to Supabase. (UI in Portuguese.)</p>
+        </div>
+        <div class="embed">
+          <div class="bar"><i></i><i></i><i></i><span class="u">copilot · brand brief</span></div>
+          <iframe src="demo-brand-brief.html" title="Brand Brief demo" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · DEMO CREATE OPPORTUNITY -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">The copilot in practice · 2</div>
+      <div class="embed-wrap">
+        <div class="embed-side">
+          <h2>Agent: Create Opportunity</h2>
+          <p>Pick the format, describe it in one sentence, and the agent structures the full offer — audience, location and brand segments.</p>
+          <p class="note">Starts at format selection like the live site — <strong>pick a format and describe to really talk</strong> to the agent. Nothing is saved to Supabase. (UI in Portuguese.)</p>
+        </div>
+        <div class="embed">
+          <div class="bar"><i></i><i></i><i></i><span class="u">copilot · create opportunity</span></div>
+          <iframe src="demo-criar-oportunidade.html" title="Create Opportunity demo" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · UNFAIR ADVANTAGE -->
+  <section class="slide dark">
+    <div class="slide-inner">
+      <div class="eyebrow">The unfair advantage</div>
+      <h2>A market won by access.<br><span class="soft">Not by technology.</span></h2>
+      <p class="lead">This market isn't won with code alone. It's won with access, relationships, reputation and trust — and that can't be bought, only built.</p>
+      <ul class="bullets">
+        <li><strong>Isaac Araujo (founder)</strong> spent years building direct relationships with <span class="k">brands and rights holders</span>. That network unlocks supply and demand at the same time.</li>
+        <li>It's a <strong>closed, trust-driven market</strong>: the door opens by reputation, not by advertising. Capital and code don't replicate track record.</li>
+        <li>That network solves the most expensive problem of any marketplace — the <strong>two-sided cold-start</strong> — before even scaling technology.</li>
+      </ul>
+      <div class="quote">Anyone can copy technology. Access and trust in the Brazilian sponsorship market, no one can. Technology turns that network into a scalable product.</div>
+    </div>
+  </section>
+
+  <!-- 12 · BUSINESS MODEL -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Business model</div>
+      <h2>MRR + intermediation</h2>
+      <p class="lead">Two revenue layers that reinforce each other. We don't depend on just one.</p>
+      <div class="two-col" style="margin-top:26px">
+        <div>
+          <h3 style="margin-bottom:14px">1 · Recurring SaaS <span class="soft">— the base</span></h3>
+          <table style="margin-top:6px">
+            <thead><tr><th>Side</th><th>Basic</th><th>Mid</th><th>Top</th></tr></thead>
+            <tbody>
+              <tr><td>Audience</td><td>Free</td><td>~R$149/mo</td><td>Custom</td></tr>
+              <tr><td>Brand / Agency</td><td>~R$299/mo</td><td>~R$899/mo</td><td>Enterprise</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Both sides pay for their own OS. Free on the audience side solves cold-start. Prices are a hypothesis to validate.</p>
+        </div>
+        <div>
+          <h3 style="margin-bottom:14px">2 · Deal intermediation <span class="soft">— the upside</span></h3>
+          <p>Take-rate on the deals that happen on the platform. As we become the system of record, we capture the <strong>GMV</strong> flowing through it.</p>
+          <ul class="bullets" style="margin-top:18px">
+            <li><strong>MRR</strong> ensures predictable revenue, independent of deals in a given month.</li>
+            <li><strong>Intermediation</strong> captures the transactional upside of GMV.</li>
+            <li><strong>Distribution ICP: agencies.</strong> We don't compete — we become their infra. One logo brings N brands.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · MARKET -->
+  <section class="slide dark">
+    <div class="slide-inner">
+      <div class="eyebrow">Market · TAM / SAM / SOM</div>
+      <h2>A large category with no system of record</h2>
+      <div class="stat-row">
+        <div class="stat"><div class="num">TAM</div><div class="lbl">Spend on sponsorship, media and audience partnerships in Brazil (sports + culture + creator economy).</div></div>
+        <div class="stat"><div class="num">SAM</div><div class="lbl">The 4 formats + brands/agencies that transact recurrently and can be digitized.</div></div>
+        <div class="stat"><div class="num">SOM</div><div class="lbl">Paying subscribers × average SaaS ticket + take-rate on intermediated GMV (3 years).</div></div>
+      </div>
+      <div class="quote">Why now: irreversible attention fragmentation + manual agencies that can't keep up + AI that makes a specialist copilot viable.</div>
+      <p class="note">Figures to be filled in with the sources we can defend.</p>
+    </div>
+  </section>
+
+  <!-- 14 · TRACTION -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">Traction & status</div>
+      <h2>Already live — not a prototype</h2>
+      <div class="pill-list">
+        <span class="pill"><span class="ok">✓</span> MVP in production (radar-relevantia.com.br), continuous deploy</span>
+        <span class="pill"><span class="ok">✓</span> All 4 formats operating</span>
+        <span class="pill"><span class="ok">✓</span> End-to-end negotiation (proposal → counter-offer → chat → contract)</span>
+        <span class="pill"><span class="ok">✓</span> 3 AI agents in production</span>
+        <span class="pill"><span class="ok">✓</span> Catalog + advanced filtering</span>
+        <span class="pill"><span class="ok">✓</span> Brand brief + AI campaign builder</span>
+        <span class="pill"><span class="ok">✓</span> Established network of brands and rights holders</span>
+      </div>
+      <h3 style="margin-top:38px;color:var(--gold-deep)">KPIs to insert</h3>
+      <p style="margin-top:10px">Opportunities registered · active brands/agencies · open negotiations · closed deals · intermediated GMV.</p>
+    </div>
+  </section>
+
+  <!-- 15 · VISION & ASK -->
+  <section class="slide dark">
+    <div class="slide-inner">
+      <div class="eyebrow">Vision & the ask</div>
+      <h2>From module to platform</h2>
+      <div class="two-col" style="margin-top:20px">
+        <div>
+          <h3 style="margin-bottom:12px;color:var(--gold-light)">The vision</h3>
+          <p>A single account, brand ↔ audience (Airbnb-style sandbox: the same person hosts and travels). Sponsorship is module 1; the platform grows in modules on the same system of record.</p>
+        </div>
+        <div>
+          <h3 style="margin-bottom:12px;color:var(--gold-light)">The ask</h3>
+          <ul class="bullets" style="margin-top:6px">
+            <li><strong>Round:</strong> R$ [amount]</li>
+            <li><strong>Use (12–18m):</strong> P1+P2 (MRR + compliance) · acquisition across the 4 formats via the network + agency ICP · instrument GMV</li>
+            <li><strong>Milestones:</strong> retention and willingness-to-pay at the wedge · [X] paying accounts / [Y] MRR · GMV instrumented for the next round</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 · CLOSING -->
+  <section class="slide dark cover">
+    <div class="slide-inner">
+      <div class="brand">Radar Relevantia</div>
+      <h1 style="font-size:clamp(34px,6vw,82px);max-width:18ch">Where audience becomes business.</h1>
+      <div class="quote" style="font-size:clamp(18px,2.1vw,28px);margin-top:28px;max-width:32ch;border-color:var(--gold)">
+        Not where brands find sponsorship — where brands and audiences decide, close and manage everything. With AI.
+      </div>
+      <div class="meta" style="margin-top:40px;border-top:1px solid rgba(255,255,255,.12);padding-top:22px">Let's talk &nbsp;·&nbsp; live demo &nbsp;·&nbsp; Isaac Araujo, founder</div>
+    </div>
+  </section>
+
+</div>
+
+<!-- CHROME -->
+<div class="dots" id="dots"></div>
+<div class="hint" id="hint">← → to navigate · F for fullscreen</div>
+<div class="nav">
+  <span class="counter" id="counter">01 / 16</span>
+  <button id="prev" aria-label="Previous">‹</button>
+  <button id="next" aria-label="Next">›</button>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  const total=slides.length;
+  let i=0;
+  const progress=document.getElementById('progress');
+  const counter=document.getElementById('counter');
+  const dotsWrap=document.getElementById('dots');
+  const hint=document.getElementById('hint');
+
+  slides.forEach((_,idx)=>{const d=document.createElement('i');d.addEventListener('click',()=>go(idx));dotsWrap.appendChild(d);});
+  const dots=[...dotsWrap.children];
+
+  function render(){
+    slides.forEach((s,idx)=>{s.classList.toggle('active',idx===i);s.classList.toggle('prev',idx<i);});
+    dots.forEach((d,idx)=>d.classList.toggle('on',idx===i));
+    progress.style.width=((i+1)/total*100)+'%';
+    const pad=n=>String(n).padStart(2,'0');
+    counter.textContent=pad(i+1)+' / '+pad(total);
+  }
+  function go(n){i=Math.max(0,Math.min(total-1,n));render();}
+  function next(){go(i+1);} function prev(){go(i-1);}
+
+  document.getElementById('next').onclick=next;
+  document.getElementById('prev').onclick=prev;
+
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown',' ','PageDown'].includes(e.key)){e.preventDefault();next();}
+    else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();prev();}
+    else if(e.key==='Home'){go(0);} else if(e.key==='End'){go(total-1);}
+    else if(e.key==='f'||e.key==='F'){toggleFs();}
+    hideHint();
+  });
+
+  document.getElementById('deck').addEventListener('click',e=>{
+    if(e.target.closest('button,a,.dots,input,iframe,.embed')) return;
+    (e.clientX > window.innerWidth/2) ? next() : prev();
+    hideHint();
+  });
+
+  let sx=0;
+  addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+  addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>50){dx<0?next():prev();}},{passive:true});
+
+  function toggleFs(){if(!document.fullscreenElement){document.documentElement.requestFullscreen?.();}else{document.exitFullscreen?.();}}
+  let hintTimer=setTimeout(hideHint,5000);
+  function hideHint(){hint.classList.add('hide');clearTimeout(hintTimer);}
+
+  render();
+</script>
+</body>
+</html>
