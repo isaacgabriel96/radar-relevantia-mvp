@@ -224,6 +224,26 @@
   .cover .meta{font-family:var(--font-ui);font-size:13.5px;letter-spacing:.03em;color:var(--gray-3);border-top:1px solid rgba(255,255,255,.12);padding-top:22px;max-width:760px}
   .cover.clean{align-items:center;text-align:center}
   .cover.clean .radar{width:clamp(150px,21vw,250px);margin:0 auto 34px}
+  /* Hero (estilo site) */
+  .cover.hero{align-items:center;text-align:left}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(30px,5vw,64px);align-items:center;width:100%}
+  .hero-left .brand{margin-bottom:16px}
+  .hero-left .tagline{margin-bottom:26px}
+  .hero-radar{position:relative;display:flex;justify-content:center}
+  .hero-radar .radar{width:100%;max-width:440px;margin:0}
+  .hchip{position:absolute;display:inline-flex;align-items:center;gap:7px;font-family:var(--font-ui);font-weight:500;font-size:clamp(12px,1.05vw,14px);padding:8px 15px;border-radius:var(--radius-pill);background:rgba(18,13,3,.72);border:1px solid rgba(255,255,255,.14);color:var(--white-warm);backdrop-filter:blur(6px);box-shadow:0 6px 20px rgba(0,0,0,.35);white-space:nowrap}
+  .hchip.c1{top:5%;right:-2%}
+  .hchip.c2{top:40%;left:-7%}
+  .hchip.c3{bottom:20%;right:-5%}
+  .hchip.c4{bottom:1%;left:32%}
+  @media (max-width:860px){.hero-grid{grid-template-columns:1fr}.hero-radar{margin-top:30px;max-width:360px}}
+  /* Alocação da captação */
+  .alloc{margin-top:16px;display:flex;flex-direction:column;gap:9px}
+  .alloc-row{display:flex;align-items:center;gap:12px;font-size:13px;color:#C8BEA8}
+  .alloc-row .a-lab{width:108px;flex-shrink:0}
+  .alloc-bar{flex:1;height:7px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden}
+  .alloc-bar span{display:block;height:100%;background:var(--gold-gradient);border-radius:4px}
+  .alloc-row .a-pct{width:40px;text-align:right;font-weight:600;color:var(--white-warm)}
 
   .slide.dark::before{content:"";position:absolute;top:-20%;right:-12%;width:60vw;height:60vw;background:radial-gradient(circle,rgba(184,134,11,0.13),transparent 60%);pointer-events:none;z-index:0}
   .slide.dark .slide-inner{position:relative;z-index:1}
@@ -261,9 +281,16 @@
 <a class="lang-switch" href="pitch-deck-en.html" title="English version">EN</a>
 <div class="deck" id="deck">
 
-  <!-- 1 · CAPA (clean) -->
-  <section class="slide dark cover clean active">
-    <div class="slide-inner">
+  <!-- 1 · CAPA (hero estilo site) -->
+  <section class="slide dark cover hero active">
+    <div class="slide-inner hero-grid">
+      <div class="hero-left">
+        <div class="brand">Radar Relevantia</div>
+        <h1>Radar</h1>
+        <div class="tagline">O sistema operacional de quem vive de audiência.</div>
+        <div class="meta" style="border-top:1px solid rgba(255,255,255,.12);padding-top:20px">Pré-lançamento &nbsp;·&nbsp; MVP em produção &nbsp;·&nbsp; 2026</div>
+      </div>
+      <div class="hero-radar">
       <svg class="radar" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" aria-label="Radar Relevantia">
         <defs>
           <radialGradient id="base" cx="50%" cy="50%" r="50%">
@@ -299,9 +326,11 @@
         <circle cx="82" cy="170" r="5" fill="#d8c890" class="rd2"/>
         <circle cx="222" cy="195" r="5" fill="#d8c890" class="rd3"/>
       </svg>
-      <div class="brand">Radar Relevantia</div>
-      <h1>Radar</h1>
-      <div class="tagline">O sistema operacional de quem vive de audiência.</div>
+        <span class="hchip c1">🎤 Personalidade</span>
+        <span class="hchip c2">🎟️ Evento</span>
+        <span class="hchip c3">🎵 Artista Musical</span>
+        <span class="hchip c4">📺 Mídia</span>
+      </div>
     </div>
   </section>
 
@@ -309,7 +338,7 @@
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">Onde nasce a dor</div>
-      <h2>A atenção se fragmenta. <span class="soft">O dinheiro vaza.</span></h2>
+      <h2>A atenção se fragmenta. <span class="soft">O investimento se perde.</span></h2>
       <p class="lead">O público saiu de poucos canais para milhares de nichos. Tem muito investimento no mercado — mas cada vez mais ineficiente.</p>
       <div class="dgrid">
         <div class="dcol">
@@ -318,7 +347,7 @@
           <div class="dstat"><span class="dn">US$ 250 bi</span><span class="dd">creator economy, rumo a US$ 480 bi até 2027 <i>· Goldman Sachs</i></span></div>
         </div>
         <div class="dcol alert">
-          <div class="dlab">Mas a atenção foge e o dinheiro vaza</div>
+          <div class="dlab">Mas a atenção escapa e o investimento se perde</div>
           <div class="dstat"><span class="dn">~US$ 100 bi</span><span class="dd">perdidos por ano em fraude de anúncios <i>· Statista / Juniper</i></span></div>
           <div class="dstat"><span class="dn">~900 mi</span><span class="dd">de pessoas bloqueiam anúncios — 52% já usaram ad blocker <i>· YouGov</i></span></div>
         </div>
@@ -347,7 +376,7 @@
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">A dor de quem tem audiência</div>
-      <h2>Muita audiência, <span class="soft">nenhuma estrutura.</span></h2>
+      <h2>Muita audiência, <span class="soft">estrutura limitada.</span></h2>
       <p class="lead">Personalidade, Evento, Artista Musical ou Mídia — formatos diferentes, a mesma dor.</p>
       <div class="fmt-row">
         <span class="fmt">🎤 Personalidade</span>
@@ -474,7 +503,7 @@
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">O que somos</div>
-      <h2>Não é marketplace. <span class="soft">Não é SaaS genérico.</span></h2>
+      <h2>Não é só Marketplace, <span class="soft">nem só SaaS.</span></h2>
       <div class="weare">
         <div class="wno">❌&nbsp; <span><b>Marketplace</b> — não vivemos de casar duas pontas e torcer pela liquidez.</span></div>
         <div class="wno">❌&nbsp; <span><b>SaaS genérico</b> — não é mais uma ferramenta pra você aprender a operar.</span></div>
@@ -646,24 +675,29 @@
   <!-- 16 · VISÃO & ASK -->
   <section class="slide dark">
     <div class="slide-inner">
-      <div class="eyebrow">Visão & the ask</div>
-      <h2>De módulo a plataforma</h2>
-      <div class="two-col" style="margin-top:20px">
-        <div>
-          <h3 style="margin-bottom:12px;color:var(--gold-light)">A visão</h3>
-          <p>Conta única marca ↔ audiência (sandbox estilo Airbnb: a mesma pessoa hospeda e viaja). Patrocínio é o módulo 1; a plataforma cresce em módulos sobre o mesmo sistema de registro.</p>
+      <div class="eyebrow">Visão & captação</div>
+      <h2>Captação de US$ 500 mil <span class="soft">— em duas fases</span></h2>
+      <p class="lead">De módulo a plataforma: patrocínio é o módulo 1 e cresce sobre o mesmo sistema de registro. A rodada cobre duas fases.</p>
+      <div class="cards c2">
+        <div class="card">
+          <span class="badge live">Fase 1 · 6 meses</span>
+          <h3 style="margin-top:12px">Operar com product-market fit</h3>
+          <p>Estruturar equipe, produto e infraestrutura até o PMF — com cautela nos acordos entre marcas e detentores.</p>
+          <div class="alloc">
+            <div class="alloc-row"><span class="a-lab">Equipe</span><span class="alloc-bar"><span style="width:60%"></span></span><span class="a-pct">60%</span></div>
+            <div class="alloc-row"><span class="a-lab">Produto</span><span class="alloc-bar"><span style="width:25%"></span></span><span class="a-pct">25%</span></div>
+            <div class="alloc-row"><span class="a-lab">Infraestrutura</span><span class="alloc-bar"><span style="width:10%"></span></span><span class="a-pct">10%</span></div>
+            <div class="alloc-row"><span class="a-lab">Outros</span><span class="alloc-bar"><span style="width:5%"></span></span><span class="a-pct">5%</span></div>
+          </div>
         </div>
-        <div>
-          <h3 style="margin-bottom:12px;color:var(--gold-light)">The ask</h3>
-          <ul class="bullets" style="margin-top:6px">
-            <li><strong>Rodada:</strong> R$ [valor]</li>
-            <li><strong>Uso (12–18m):</strong> F1+F2 (MRR + compliance) · aquisição nos 4 formatos via rede + ICP agência · instrumentar GMV</li>
-            <li><strong>Milestones:</strong> retenção e willingness-to-pay no wedge · [X] contas pagantes / [Y] MRR · GMV instrumentado p/ próxima rodada</li>
-          </ul>
+        <div class="card">
+          <span class="badge road">Fase 2 · Go-to-market</span>
+          <h3 style="margin-top:12px">Primeira escala de mercado</h3>
+          <p>Com a equipe estruturada e o produto consolidado, focar na primeira escala de mercado.</p>
+          <p class="note" style="margin-top:14px">A visão: conta única marca ↔ audiência (estilo Airbnb). A plataforma cresce em módulos sobre o mesmo sistema de registro.</p>
         </div>
       </div>
-      <div class="quote" style="margin-top:30px">Onde a audiência vira negócio — não onde a marca acha patrocínio, mas onde marca e audiência decidem, fecham e administram tudo. Com IA.</div>
-      <div class="meta" style="font-family:var(--font-ui);font-size:13.5px;color:var(--gray-3);border-top:1px solid rgba(255,255,255,.12);padding-top:20px;margin-top:26px">Vamos conversar &nbsp;·&nbsp; demo ao vivo &nbsp;·&nbsp; Isaac Araujo, fundador</div>
+      <div class="meta" style="font-family:var(--font-ui);font-size:13px;color:var(--gray-3);border-top:1px solid rgba(255,255,255,.12);padding-top:18px;margin-top:24px">Valor da captação a confirmar &nbsp;·&nbsp; Vamos conversar — Isaac Araujo, fundador</div>
     </div>
   </section>
 
