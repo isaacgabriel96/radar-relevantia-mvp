@@ -122,15 +122,19 @@
   .acc-badge{font-family:var(--font-ui);font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;letter-spacing:.03em;flex-shrink:0}
   .acc-badge.core{background:rgba(46,125,50,.12);color:#2e7d32}
   .acc-badge.road{background:var(--gold-soft);color:var(--gold-deep);border:1px solid rgba(184,134,11,.28)}
+  .acc-badge.wip{background:rgba(224,178,107,.16);color:#8a6308;border:1px solid rgba(224,178,107,.5)}
   .acc-chevron{color:var(--gray-3);font-size:13px;transition:transform .3s var(--ease);flex-shrink:0}
   .acc-item.open .acc-chevron{transform:rotate(180deg)}
   .acc-body{max-height:0;overflow:hidden;transition:max-height .45s var(--ease)}
-  .acc-item.open .acc-body{max-height:680px}
+  .acc-item.open .acc-body{max-height:880px}
   .acc-body-inner{padding:0 20px 18px}
   .acc-sub{font-size:14px;color:var(--gray-4);line-height:1.55;max-width:none}
   .acc-body table{margin-top:12px;font-size:13px}
   .acc-body th,.acc-body td{padding:9px 14px}
   .cell-sub{font-size:11px;color:var(--gray-3)}
+  .ladder{list-style:none;margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .ladder li{font-size:13px;color:var(--gray-4);line-height:1.5;padding-left:16px;position:relative}
+  .ladder li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--gold)}
   .stat-row{display:flex;flex-wrap:wrap;gap:28px;margin-top:34px}
   .stat{flex:1 1 150px}
   .stat .num{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,3.6vw,46px);color:var(--gold-deep);line-height:1}
@@ -452,38 +456,18 @@
     <div class="slide-inner">
       <div class="eyebrow">Modelo de negócio</div>
       <h2>Receita em camadas</h2>
-      <p class="lead">Camadas que se reforçam — não dependemos de uma só. <strong>Hoje:</strong> MRR + intermediação. <strong>Roadmap:</strong> fintech.</p>
+      <p class="lead">Camadas que se reforçam. <strong>Hoje a intermediação já funciona</strong>; os planos SaaS estão em construção e a fintech é roadmap.</p>
       <div class="acc">
 
         <div class="acc-item open">
           <button class="acc-head" onclick="accToggle(this)">
             <span class="acc-n">1</span>
-            <span class="acc-title">SaaS recorrente <span class="soft">— a base</span></span>
+            <span class="acc-title">Intermediação de negócio <span class="soft">— o que já funciona</span></span>
             <span class="acc-badge core">no ar</span>
             <span class="acc-chevron">▾</span>
           </button>
           <div class="acc-body"><div class="acc-body-inner">
-            <p class="acc-sub">Os dois lados pagam pelo próprio SO. O plano Free resolve o cold-start dos dois lados.</p>
-            <table>
-              <thead><tr><th>Lado</th><th>Free</th><th>Básico</th><th>Intermediário</th><th>Enterprise</th></tr></thead>
-              <tbody>
-                <tr><td>Marca</td><td>Grátis<br><span class="cell-sub">1 usuário</span></td><td>~R$1.200/mês<br><span class="cell-sub">3 usuários · R$400/usuário</span></td><td>~R$4.500/mês<br><span class="cell-sub">10 usuários · R$450/usuário</span></td><td>Custom<br><span class="cell-sub">ilimitado</span></td></tr>
-                <tr><td>Detentores</td><td>Grátis<br><span class="cell-sub">1 usuário</span></td><td>~R$800/mês<br><span class="cell-sub">3 usuários · R$267/usuário</span></td><td>~R$3.500/mês<br><span class="cell-sub">10 usuários · R$350/usuário</span></td><td>Custom<br><span class="cell-sub">ilimitado</span></td></tr>
-              </tbody>
-            </table>
-            <p class="note">Receita previsível, independente de fechar deal no mês. Valores são hipótese a validar.</p>
-          </div></div>
-        </div>
-
-        <div class="acc-item">
-          <button class="acc-head" onclick="accToggle(this)">
-            <span class="acc-n">2</span>
-            <span class="acc-title">Intermediação de negócio <span class="soft">— o upside</span></span>
-            <span class="acc-badge core">no ar</span>
-            <span class="acc-chevron">▾</span>
-          </button>
-          <div class="acc-body"><div class="acc-body-inner">
-            <p class="acc-sub">Take-rate de <strong>3% a 15%</strong> sobre o GMV negociado na plataforma — <strong>decrescente</strong> conforme o deal aumenta (incentiva deals maiores). Captura o upside transacional sem depender só do SaaS.</p>
+            <p class="acc-sub">Take-rate de <strong>3% a 15%</strong> sobre o GMV negociado na plataforma — <strong>decrescente</strong> conforme o deal aumenta (incentiva deals maiores). É a camada que <strong>já está rodando</strong>.</p>
             <table>
               <thead><tr><th>Valor negociado</th><th>% comissão</th><th>Comissão</th></tr></thead>
               <tbody>
@@ -494,6 +478,32 @@
                 <tr><td>R$ 1.000.000</td><td>3,00%</td><td>R$ 30.000</td></tr>
               </tbody>
             </table>
+          </div></div>
+        </div>
+
+        <div class="acc-item">
+          <button class="acc-head" onclick="accToggle(this)">
+            <span class="acc-n">2</span>
+            <span class="acc-title">SaaS recorrente <span class="soft">— planos por tier</span></span>
+            <span class="acc-badge wip">em construção</span>
+            <span class="acc-chevron">▾</span>
+          </button>
+          <div class="acc-body"><div class="acc-body-inner">
+            <p class="acc-sub">Os dois lados pagam pelo próprio SO. O Free resolve o cold-start; cada tier sobe na <strong>escada de valor</strong>.</p>
+            <table>
+              <thead><tr><th>Plano</th><th>Free</th><th>Ouro</th><th>Diamante</th><th>Enterprise</th></tr></thead>
+              <tbody>
+                <tr><td>Marca</td><td>R$ 0</td><td>R$ 1.200/mês</td><td>R$ 4.500/mês</td><td>Sob consulta</td></tr>
+                <tr><td>Detentor</td><td>R$ 0</td><td>R$ 800/mês</td><td>R$ 3.500/mês</td><td>Sob consulta</td></tr>
+              </tbody>
+            </table>
+            <ul class="ladder">
+              <li><strong>Free — transacionar:</strong> descobrir oportunidades, negociar, contrato, pagamento seguro, métricas próprias. <span class="cell-sub">· 1 usuário</span></li>
+              <li><strong>Ouro — gerir + dados:</strong> campanhas, multi-formato, mapa de audiência, mídia kit vivo, comparador de perfis. <span class="cell-sub">· 3 usuários</span></li>
+              <li><strong>Diamante — decisão com IA:</strong> score de fit &amp; preço, raio-X do influenciador (fake followers), alerta de crise, benchmark. <span class="cell-sub">· 10 usuários</span></li>
+              <li><strong>Enterprise — corporativo:</strong> SSO, contratos sob medida, features sob demanda, suporte dedicado. <span class="cell-sub">· ilimitado</span></li>
+            </ul>
+            <p class="note">Em construção — escada de valor definida; preços são hipótese a validar.</p>
           </div></div>
         </div>
 
@@ -561,7 +571,7 @@
           </div>
         </foreignObject>
       </svg>
-      <p class="capture"><span class="lab">Captura ilustrativa</span>Do SAM (~US$ 300 bi), capturar <b>0,01% = US$ 30 mi</b> · <b>0,1% = US$ 300 mi</b> · <b>1% = US$ 3 bi</b> em volume transacionado. Uma fração mínima do mercado já é um negócio relevante.</p>
+      <p class="capture"><span class="lab">Como crescemos</span>Bottoms-up, não fatia de mercado: <b>contas pagantes × ticket</b> (MRR de marcas e detentores) <b>+ take-rate sobre o GMV</b> que essas contas movem. Não precisamos de fatia do mercado — precisamos de contas. A calibrar com os primeiros dados.</p>
       <p class="note">Estratégia de entrada e expansão: começamos pelo Brasil — onde o fundador já detém rede e reputação no setor — e avançamos para a América Latina e, na sequência, mercados globais.</p>
     </div>
   </section>
