@@ -85,6 +85,12 @@
   .card h3{margin-bottom:8px}
   .card p{font-size:14.5px;line-height:1.5;color:var(--gray-4)}
   .slide.dark .card p{color:#C8BEA8}
+  .era{font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:.05em;color:var(--gold-light);margin-bottom:3px}
+  .card.hot{border-color:rgba(184,134,11,.5);background:linear-gradient(135deg,rgba(184,134,11,.13),rgba(200,168,75,.04))}
+  ul.mini{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:7px}
+  ul.mini li{position:relative;padding-left:15px;font-size:13.5px;line-height:1.45;color:var(--gray-4)}
+  .slide.dark ul.mini li{color:#C8BEA8}
+  ul.mini li::before{content:"";position:absolute;left:0;top:.5em;width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:.75}
 
   .steps{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px;align-items:stretch}
   .step{flex:1 1 0;min-width:128px;background:var(--white);border:1px solid var(--gray-2);
@@ -334,7 +340,41 @@
     </div>
   </section>
 
-  <!-- 2 · ONDE NASCE A DOR (+ dados) -->
+  <!-- 2 · EVOLUÇÕES DO MARKETING (contexto) -->
+  <section class="slide dark">
+    <div class="slide-inner">
+      <div class="eyebrow">Contexto · a evolução do marketing</div>
+      <h2>De mídia de massa <span class="soft">à era fragmentada.</span></h2>
+      <div class="cards c4">
+        <div class="card">
+          <span class="ic">📰</span>
+          <div class="era">1960–1990</div>
+          <h3>A era tradicional</h3>
+          <ul class="mini"><li>Altos custos de produção e distribuição.</li><li>Público-alvo limitado.</li></ul>
+        </div>
+        <div class="card">
+          <span class="ic">🔍</span>
+          <div class="era">2000–2010</div>
+          <h3>A primeira era digital</h3>
+          <ul class="mini"><li>Da mídia de massa para campanhas personalizadas.</li><li>SEO e análise online.</li></ul>
+        </div>
+        <div class="card">
+          <span class="ic">📱</span>
+          <div class="era">2011–2020</div>
+          <h3>O boom das mídias sociais</h3>
+          <ul class="mini"><li>Competição crescente por atenção.</li><li>Dependência de algoritmos pagos.</li></ul>
+        </div>
+        <div class="card hot">
+          <span class="ic">🤖</span>
+          <div class="era">2021 e além</div>
+          <h3>A era fragmentada</h3>
+          <ul class="mini"><li>Múltiplas plataformas e segmentos de público.</li><li>ROI difícil de medir.</li><li>Canais novos em rápida evolução.</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · ONDE NASCE A DOR (+ dados) -->
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">Onde nasce a dor</div>
@@ -352,7 +392,6 @@
           <div class="dstat"><span class="dn">~900 mi</span><span class="dd">de pessoas bloqueiam anúncios — 52% já usaram ad blocker <i>· YouGov</i></span></div>
         </div>
       </div>
-      <div class="quote">Anúncio interrompe; relacionamento engaja. Atenção difusa exige presença real na audiência — não mais mídia interruptiva.</div>
     </div>
   </section>
 
@@ -368,7 +407,6 @@
         <div class="card"><span class="ic">📍</span><h3>Sem controle do investimento</h3><p>Não sabe para onde foi nem o que voltou — gestão dispersa em e-mail e planilha.</p></div>
         <div class="card"><span class="ic">🔒</span><h3>Sem compliance</h3><p>Contratos, prazos e entregas sem registro auditável num lugar só.</p></div>
       </div>
-      <div class="quote">A marca precisa de infraestrutura, dado e controle — não de mais horas de agência. Quem detém o sistema de registro detém a relação.</div>
     </div>
   </section>
 
@@ -390,7 +428,6 @@
         <div class="card"><span class="ic">💸</span><h3>Não sabem precificar</h3><p>Sem referência de preço justo, deixam dinheiro na mesa — ou afastam a marca.</p></div>
         <div class="card"><span class="ic">🧰</span><h3>Sem ferramenta própria</h3><p>Dependem de assessoria cara e de planilhas; zero dado pra provar valor.</p></div>
       </div>
-      <div class="quote">O mercado nunca construiu nada para eles. É o lado mais desatendido — e é onde nasce a oferta do Radar.</div>
     </div>
   </section>
 
@@ -495,7 +532,7 @@
           <tr><td>F5</td><td>Métricas, ROI & social listening</td><td>Premium, com dado real — fecha o ciclo de controle</td><td><span class="badge road">roadmap</span></td></tr>
         </tbody>
       </table>
-      <p class="note">Sequência deliberada: F1 destrava receita sem depender de liquidez; o two-sided (F4) é o payoff, não o ponto de partida — neutraliza o cold-start que mata marketplaces.</p>
+      <p class="note">F1 destrava receita sem depender de liquidez; o two-sided (F4) é o payoff, não o ponto de partida.</p>
     </div>
   </section>
 
@@ -697,7 +734,6 @@
           <p class="note" style="margin-top:14px">A visão: conta única marca ↔ audiência (estilo Airbnb). A plataforma cresce em módulos sobre o mesmo sistema de registro.</p>
         </div>
       </div>
-      <div class="meta" style="font-family:var(--font-ui);font-size:13px;color:var(--gray-3);border-top:1px solid rgba(255,255,255,.12);padding-top:18px;margin-top:24px">Valor da captação a confirmar &nbsp;·&nbsp; Vamos conversar — Isaac Araujo, fundador</div>
     </div>
   </section>
 
@@ -707,7 +743,7 @@
 <div class="dots" id="dots"></div>
 <div class="hint" id="hint">← → para navegar · F para tela cheia</div>
 <div class="nav">
-  <span class="counter" id="counter">01 / 16</span>
+  <span class="counter" id="counter">01 / 17</span>
   <button id="prev" aria-label="Anterior">‹</button>
   <button id="next" aria-label="Próximo">›</button>
 </div>

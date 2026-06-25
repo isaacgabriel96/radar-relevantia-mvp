@@ -82,6 +82,12 @@
   .card h3{margin-bottom:8px}
   .card p{font-size:14.5px;line-height:1.5;color:var(--gray-4)}
   .slide.dark .card p{color:#C8BEA8}
+  .era{font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:.05em;color:var(--gold-light);margin-bottom:3px}
+  .card.hot{border-color:rgba(184,134,11,.5);background:linear-gradient(135deg,rgba(184,134,11,.13),rgba(200,168,75,.04))}
+  ul.mini{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:7px}
+  ul.mini li{position:relative;padding-left:15px;font-size:13.5px;line-height:1.45;color:var(--gray-4)}
+  .slide.dark ul.mini li{color:#C8BEA8}
+  ul.mini li::before{content:"";position:absolute;left:0;top:.5em;width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:.75}
 
   .steps{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px;align-items:stretch}
   .step{flex:1 1 0;min-width:128px;background:var(--white);border:1px solid var(--gray-2);
@@ -331,7 +337,41 @@
     </div>
   </section>
 
-  <!-- 2 · WHERE THE PAIN COMES FROM (+ data) -->
+  <!-- 2 · EVOLUTION OF MARKETING (context) -->
+  <section class="slide dark">
+    <div class="slide-inner">
+      <div class="eyebrow">Context · the evolution of marketing</div>
+      <h2>From mass media <span class="soft">to a fragmented era.</span></h2>
+      <div class="cards c4">
+        <div class="card">
+          <span class="ic">📰</span>
+          <div class="era">1960–1990</div>
+          <h3>The traditional era</h3>
+          <ul class="mini"><li>High production and distribution costs.</li><li>Limited target audience.</li></ul>
+        </div>
+        <div class="card">
+          <span class="ic">🔍</span>
+          <div class="era">2000–2010</div>
+          <h3>The first digital era</h3>
+          <ul class="mini"><li>From mass media to personalized campaigns.</li><li>SEO and online analytics.</li></ul>
+        </div>
+        <div class="card">
+          <span class="ic">📱</span>
+          <div class="era">2011–2020</div>
+          <h3>The social media boom</h3>
+          <ul class="mini"><li>Growing competition for attention.</li><li>Dependence on paid algorithms.</li></ul>
+        </div>
+        <div class="card hot">
+          <span class="ic">🤖</span>
+          <div class="era">2021 and beyond</div>
+          <h3>The fragmented era</h3>
+          <ul class="mini"><li>Multiple platforms and audience segments.</li><li>ROI hard to measure.</li><li>New, fast-evolving channels.</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · WHERE THE PAIN COMES FROM (+ data) -->
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">Where the pain comes from</div>
@@ -349,7 +389,6 @@
           <div class="dstat"><span class="dn">~900M</span><span class="dd">people block ads — 52% have used an ad blocker <i>· YouGov</i></span></div>
         </div>
       </div>
-      <div class="quote">Ads interrupt; relationships engage. Diffuse attention demands real presence in the audience — not more interruptive media.</div>
     </div>
   </section>
 
@@ -365,7 +404,6 @@
         <div class="card"><span class="ic">📍</span><h3>No control of the investment</h3><p>Doesn't know where it went or what came back — management scattered across email and spreadsheets.</p></div>
         <div class="card"><span class="ic">🔒</span><h3>No compliance</h3><p>Contracts, deadlines and deliverables with no auditable record in one place.</p></div>
       </div>
-      <div class="quote">The brand needs infrastructure, data and control — not more agency hours. Whoever holds the system of record holds the relationship.</div>
     </div>
   </section>
 
@@ -387,7 +425,6 @@
         <div class="card"><span class="ic">💸</span><h3>Can't price it</h3><p>With no fair-price reference, they leave money on the table — or scare the brand off.</p></div>
         <div class="card"><span class="ic">🧰</span><h3>No tool of their own</h3><p>They depend on expensive agencies and spreadsheets; zero data to prove value.</p></div>
       </div>
-      <div class="quote">The market never built anything for them. It's the most underserved side — and where Radar's supply is born.</div>
     </div>
   </section>
 
@@ -492,7 +529,7 @@
           <tr><td>P5</td><td>Metrics, ROI & social listening</td><td>Premium, with real data — closes the control loop</td><td><span class="badge road">roadmap</span></td></tr>
         </tbody>
       </table>
-      <p class="note">Deliberate sequence: P1 unlocks revenue without depending on liquidity; the two-sided layer (P4) is the payoff, not the starting point — neutralizing the cold-start that kills marketplaces.</p>
+      <p class="note">P1 unlocks revenue without depending on liquidity; the two-sided layer (P4) is the payoff, not the starting point.</p>
     </div>
   </section>
 
@@ -694,7 +731,6 @@
           <p class="note" style="margin-top:14px">The vision: a single account, brand ↔ audience (Airbnb-style). The platform grows in modules on the same system of record.</p>
         </div>
       </div>
-      <div class="meta" style="font-family:var(--font-ui);font-size:13px;color:var(--gray-3);border-top:1px solid rgba(255,255,255,.12);padding-top:18px;margin-top:24px">Raise amount to be confirmed &nbsp;·&nbsp; Let's talk — Isaac Araujo, founder</div>
     </div>
   </section>
 
@@ -704,7 +740,7 @@
 <div class="dots" id="dots"></div>
 <div class="hint" id="hint">← → to navigate · F for fullscreen</div>
 <div class="nav">
-  <span class="counter" id="counter">01 / 16</span>
+  <span class="counter" id="counter">01 / 17</span>
   <button id="prev" aria-label="Previous">‹</button>
   <button id="next" aria-label="Next">›</button>
 </div>
