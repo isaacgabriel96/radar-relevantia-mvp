@@ -4647,6 +4647,12 @@ input[type=number] { -moz-appearance: textfield; }
   }catch(e){ console.warn('[demo guard]',e); }
 })();
 </script>
+<style>
+/* MODO DEMO — mostra só a área de criar oportunidade (sem sidebar/conta real) */
+:root{ --sidebar-w:0px !important; }
+.sidebar{ display:none !important; }
+.topbar-back{ display:none !important; }
+</style>
 <script src="js/admin-view-banner.js"></script>
 <script src="js/demo-data.js"></script>
 <script>if(new URLSearchParams(location.search).get('demo')==='true')document.write('<script src="js\/demo-mode.js"><\/script>');</script>
