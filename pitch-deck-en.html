@@ -115,6 +115,19 @@
   .stat .lbl{font-size:14px;color:var(--gray-4);margin-top:8px}
   .slide.dark .stat .lbl{color:#C8BEA8}
 
+  /* TAM/SAM/SOM diagram */
+  .tss-wrap{display:flex;gap:clamp(24px,5vw,64px);align-items:center;margin-top:26px}
+  .tss{flex:0 0 auto;width:clamp(230px,28vw,340px);height:auto}
+  .tss-legend{flex:1;display:flex;flex-direction:column;gap:16px}
+  .tss-item{display:flex;gap:13px;align-items:flex-start}
+  .tss-dot{flex:0 0 auto;width:14px;height:14px;border-radius:50%;margin-top:5px}
+  .tss-dot.t{background:rgba(184,134,11,0.25);border:1.5px solid #8A6608}
+  .tss-dot.s{background:rgba(184,134,11,0.55);border:1.5px solid #B8860B}
+  .tss-dot.o{background:linear-gradient(135deg,#B8860B,#C8A84B)}
+  .tss-item h3{font-family:var(--font-display);font-size:clamp(16px,1.6vw,21px);color:var(--white-warm)}
+  .tss-item p{font-size:13.5px;color:#C8BEA8;margin-top:3px;line-height:1.5}
+  .tss-item .src{color:var(--gold-light);font-style:italic}
+  @media (max-width:860px){.tss-wrap{flex-direction:column;align-items:flex-start}.tss{width:62vw;align-self:center}}
   .pill-list{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
   .pill{font-family:var(--font-ui);font-weight:500;font-size:14px;padding:9px 16px;border-radius:var(--radius-pill);background:var(--white);border:1px solid var(--gray-2);color:var(--gray-4);box-shadow:var(--shadow-md)}
   .pill .ok{color:#2e7d32;font-weight:700;margin-right:6px}
@@ -440,14 +453,25 @@
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">Market · TAM / SAM / SOM</div>
-      <h2>A large category with no system of record</h2>
-      <div class="stat-row">
-        <div class="stat"><div class="num">TAM</div><div class="lbl">Spend on sponsorship, media and audience partnerships in Brazil (sports + culture + creator economy).</div></div>
-        <div class="stat"><div class="num">SAM</div><div class="lbl">The 4 formats + brands/agencies that transact recurrently and can be digitized.</div></div>
-        <div class="stat"><div class="num">SOM</div><div class="lbl">Paying subscribers × average SaaS ticket + take-rate on intermediated GMV (3 years).</div></div>
+      <h2>A global market, starting in Brazil</h2>
+      <div class="tss-wrap">
+        <svg class="tss" viewBox="0 0 380 360" xmlns="http://www.w3.org/2000/svg" aria-label="TAM SAM SOM">
+          <defs><linearGradient id="somg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B8860B"/><stop offset="1" stop-color="#C8A84B"/></linearGradient></defs>
+          <circle cx="190" cy="182" r="168" fill="rgba(184,134,11,0.06)" stroke="#8A6608" stroke-width="1.5"/>
+          <circle cx="190" cy="182" r="112" fill="rgba(184,134,11,0.13)" stroke="#B8860B" stroke-width="1.5"/>
+          <circle cx="190" cy="182" r="58" fill="url(#somg)" stroke="#C8A84B" stroke-width="1.5"/>
+          <text x="190" y="40" text-anchor="middle" fill="#C8A84B" font-size="15" font-weight="700" font-family="'Space Grotesk',sans-serif">TAM</text>
+          <text x="190" y="100" text-anchor="middle" fill="#C8A84B" font-size="15" font-weight="700" font-family="'Space Grotesk',sans-serif">SAM</text>
+          <text x="190" y="178" text-anchor="middle" fill="#1A1200" font-size="16" font-weight="700" font-family="'Space Grotesk',sans-serif">SOM</text>
+          <text x="190" y="198" text-anchor="middle" fill="#1A1200" font-size="11" font-family="'Inter',sans-serif">3 years</text>
+        </svg>
+        <div class="tss-legend">
+          <div class="tss-item"><span class="tss-dot t"></span><div><h3>TAM · US$ 1.26T</h3><p>Global advertising — the attention economy (ads, media, digital, sponsorship). <span class="src">Statista, 2026</span></p></div></div>
+          <div class="tss-item"><span class="tss-dot s"></span><div><h3>SAM · ~US$ 300B+</h3><p>The relationship-based slice Radar serves: creator economy ~US$ 250B <span class="src">(Goldman Sachs)</span> + sponsorship ~US$ 100B + influencer ~US$ 33B. The 4 formats.</p></div></div>
+          <div class="tss-item"><span class="tss-dot o"></span><div><h3>SOM · R$ 15–40M/yr</h3><p>Obtainable in the Brazil→LatAm beachhead over 3 years: subscribers × SaaS ticket + take-rate on GMV. <span class="src">own projection</span></p></div></div>
+        </div>
       </div>
-      <div class="quote">Why now: irreversible attention fragmentation + manual agencies that can't keep up + AI that makes a specialist copilot viable.</div>
-      <p class="note">Figures to be filled in with the sources we can defend.</p>
+      <p class="note">Land Brazil (unfair advantage: founder's network) → expand LatAm → global. SOM to calibrate with real pipeline/ticket/GMV.</p>
     </div>
   </section>
 
