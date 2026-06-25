@@ -4648,10 +4648,11 @@ input[type=number] { -moz-appearance: textfield; }
 })();
 </script>
 <style>
-/* MODO DEMO — mostra só a área de criar oportunidade (sem sidebar/conta real) */
+/* MODO DEMO — mostra só o miolo de criar oportunidade (sem sidebar/topbar/conta real) */
 :root{ --sidebar-w:0px !important; }
 .sidebar{ display:none !important; }
-.topbar-back{ display:none !important; }
+.topbar{ display:none !important; }
+.app-main, .main, .content, main{ padding-top:28px !important; }
 </style>
 <script src="js/admin-view-banner.js"></script>
 <script src="js/demo-data.js"></script>
