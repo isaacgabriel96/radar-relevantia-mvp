@@ -108,6 +108,25 @@
   .slide.dark .badge.road{background:rgba(255,255,255,.06);color:#C8BEA8;border-color:rgba(255,255,255,.12)}
 
   .two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,5vw,72px);align-items:center}
+  /* Revenue accordion */
+  .acc{display:flex;flex-direction:column;gap:12px;margin-top:24px}
+  .acc-item{border:1px solid var(--gray-2);border-radius:var(--radius-lg);background:var(--white);overflow:hidden;box-shadow:var(--shadow-md);transition:border-color .2s var(--ease)}
+  .acc-item.open{border-color:rgba(184,134,11,.4)}
+  .acc-head{width:100%;display:flex;align-items:center;gap:13px;padding:16px 20px;background:none;border:0;cursor:pointer;text-align:left}
+  .acc-n{width:26px;height:26px;border-radius:50%;background:var(--gold-gradient);color:#fff;display:grid;place-items:center;font-family:var(--font-ui);font-size:13px;font-weight:700;flex-shrink:0}
+  .acc-title{font-family:var(--font-heading);font-size:clamp(15px,1.5vw,20px);font-weight:600;color:var(--ink);flex:1}
+  .acc-badge{font-family:var(--font-ui);font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;letter-spacing:.03em;flex-shrink:0}
+  .acc-badge.core{background:rgba(46,125,50,.12);color:#2e7d32}
+  .acc-badge.road{background:var(--gold-soft);color:var(--gold-deep);border:1px solid rgba(184,134,11,.28)}
+  .acc-chevron{color:var(--gray-3);font-size:13px;transition:transform .3s var(--ease);flex-shrink:0}
+  .acc-item.open .acc-chevron{transform:rotate(180deg)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .45s var(--ease)}
+  .acc-item.open .acc-body{max-height:680px}
+  .acc-body-inner{padding:0 20px 18px}
+  .acc-sub{font-size:14px;color:var(--gray-4);line-height:1.55;max-width:none}
+  .acc-body table{margin-top:12px;font-size:13px}
+  .acc-body th,.acc-body td{padding:9px 14px}
+  .cell-sub{font-size:11px;color:var(--gray-3)}
   .stat-row{display:flex;flex-wrap:wrap;gap:28px;margin-top:34px}
   .stat{flex:1 1 150px}
   .stat .num{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,3.6vw,46px);color:var(--gold-deep);line-height:1}
@@ -422,29 +441,73 @@
   <section class="slide">
     <div class="slide-inner">
       <div class="eyebrow">Business model</div>
-      <h2>MRR + intermediation</h2>
-      <p class="lead">Two revenue layers that reinforce each other. We don't depend on just one.</p>
-      <div class="two-col" style="margin-top:26px">
-        <div>
-          <h3 style="margin-bottom:14px">1 · Recurring SaaS <span class="soft">— the base</span></h3>
-          <table style="margin-top:6px">
-            <thead><tr><th>Side</th><th>Basic</th><th>Mid</th><th>Top</th></tr></thead>
-            <tbody>
-              <tr><td>Audience</td><td>Free</td><td>~R$149/mo</td><td>Custom</td></tr>
-              <tr><td>Brand / Agency</td><td>~R$299/mo</td><td>~R$899/mo</td><td>Enterprise</td></tr>
-            </tbody>
-          </table>
-          <p class="note">Both sides pay for their own OS. Free on the audience side solves cold-start. Prices are a hypothesis to validate.</p>
+      <h2>Layered revenue</h2>
+      <p class="lead">Layers that reinforce each other — we don't depend on just one. <strong>Today:</strong> MRR + intermediation. <strong>Roadmap:</strong> fintech.</p>
+      <div class="acc">
+
+        <div class="acc-item open">
+          <button class="acc-head" onclick="accToggle(this)">
+            <span class="acc-n">1</span>
+            <span class="acc-title">Recurring SaaS <span class="soft">— the base</span></span>
+            <span class="acc-badge core">live</span>
+            <span class="acc-chevron">▾</span>
+          </button>
+          <div class="acc-body"><div class="acc-body-inner">
+            <p class="acc-sub">Both sides pay for their own OS. The Free plan solves cold-start on both sides.</p>
+            <table>
+              <thead><tr><th>Side</th><th>Free</th><th>Basic</th><th>Mid</th><th>Enterprise</th></tr></thead>
+              <tbody>
+                <tr><td>Brand</td><td>Free<br><span class="cell-sub">1 user</span></td><td>~R$1,200/mo<br><span class="cell-sub">3 users · R$400/user</span></td><td>~R$4,500/mo<br><span class="cell-sub">10 users · R$450/user</span></td><td>Custom<br><span class="cell-sub">unlimited</span></td></tr>
+                <tr><td>Rights holders</td><td>Free<br><span class="cell-sub">1 user</span></td><td>~R$800/mo<br><span class="cell-sub">3 users · R$267/user</span></td><td>~R$3,500/mo<br><span class="cell-sub">10 users · R$350/user</span></td><td>Custom<br><span class="cell-sub">unlimited</span></td></tr>
+              </tbody>
+            </table>
+            <p class="note">Predictable revenue, independent of closing a deal in a given month. Prices are a hypothesis to validate.</p>
+          </div></div>
         </div>
-        <div>
-          <h3 style="margin-bottom:14px">2 · Deal intermediation <span class="soft">— the upside</span></h3>
-          <p>Take-rate on the deals that happen on the platform. As we become the system of record, we capture the <strong>GMV</strong> flowing through it.</p>
-          <ul class="bullets" style="margin-top:18px">
-            <li><strong>MRR</strong> ensures predictable revenue, independent of deals in a given month.</li>
-            <li><strong>Intermediation</strong> captures the transactional upside of GMV.</li>
-            <li><strong>Distribution ICP: agencies.</strong> We don't compete — we become their infra. One logo brings N brands.</li>
-          </ul>
+
+        <div class="acc-item">
+          <button class="acc-head" onclick="accToggle(this)">
+            <span class="acc-n">2</span>
+            <span class="acc-title">Deal intermediation <span class="soft">— the upside</span></span>
+            <span class="acc-badge core">live</span>
+            <span class="acc-chevron">▾</span>
+          </button>
+          <div class="acc-body"><div class="acc-body-inner">
+            <p class="acc-sub">Take-rate of <strong>3% to 15%</strong> on the GMV negotiated on the platform — <strong>decreasing</strong> as the deal grows (incentivizes larger deals). Captures the transactional upside without depending on SaaS alone.</p>
+            <table>
+              <thead><tr><th>Deal value</th><th>Commission %</th><th>Commission</th></tr></thead>
+              <tbody>
+                <tr><td>R$ 1,000</td><td>15.00%</td><td>R$ 150</td></tr>
+                <tr><td>R$ 10,000</td><td>12.80%</td><td>R$ 1,280</td></tr>
+                <tr><td>R$ 100,000</td><td>7.90%</td><td>R$ 7,900</td></tr>
+                <tr><td>R$ 500,000</td><td>4.70%</td><td>R$ 23,500</td></tr>
+                <tr><td>R$ 1,000,000</td><td>3.00%</td><td>R$ 30,000</td></tr>
+              </tbody>
+            </table>
+          </div></div>
         </div>
+
+        <div class="acc-item">
+          <button class="acc-head" onclick="accToggle(this)">
+            <span class="acc-n">3</span>
+            <span class="acc-title">Fintech <span class="soft">— receivables advance</span></span>
+            <span class="acc-badge road">roadmap · future</span>
+            <span class="acc-chevron">▾</span>
+          </button>
+          <div class="acc-body"><div class="acc-body-inner">
+            <p class="acc-sub">The rights holder receives the approved sponsorship and can <strong>advance</strong> the amount before the contractual term, via a spread charged by Relevantia. Becomes the <strong>financial rails</strong> of sponsorship — deepens monetization and defensibility.</p>
+            <table>
+              <thead><tr><th>Amount</th><th>Term</th><th>Spread</th><th>Advanced</th><th>To Relevantia</th></tr></thead>
+              <tbody>
+                <tr><td>R$ 10,000</td><td>30 days</td><td>2.5%</td><td>R$ 9,750</td><td>R$ 250</td></tr>
+                <tr><td>R$ 50,000</td><td>45 days</td><td>3.2%</td><td>R$ 48,400</td><td>R$ 1,600</td></tr>
+                <tr><td>R$ 100,000</td><td>60 days</td><td>3.8%</td><td>R$ 96,200</td><td>R$ 3,800</td></tr>
+              </tbody>
+            </table>
+            <p class="note">Not for now — it's in the plan. Spread varies by term and payer credit risk. Values are a hypothesis to validate.</p>
+          </div></div>
+        </div>
+
       </div>
     </div>
   </section>

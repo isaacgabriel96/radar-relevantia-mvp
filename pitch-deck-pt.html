@@ -112,6 +112,25 @@
   .slide.dark .badge.road{background:rgba(255,255,255,.06);color:#C8BEA8;border-color:rgba(255,255,255,.12)}
 
   .two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(30px,5vw,72px);align-items:center}
+  /* Accordion de receita */
+  .acc{display:flex;flex-direction:column;gap:12px;margin-top:24px}
+  .acc-item{border:1px solid var(--gray-2);border-radius:var(--radius-lg);background:var(--white);overflow:hidden;box-shadow:var(--shadow-md);transition:border-color .2s var(--ease)}
+  .acc-item.open{border-color:rgba(184,134,11,.4)}
+  .acc-head{width:100%;display:flex;align-items:center;gap:13px;padding:16px 20px;background:none;border:0;cursor:pointer;text-align:left}
+  .acc-n{width:26px;height:26px;border-radius:50%;background:var(--gold-gradient);color:#fff;display:grid;place-items:center;font-family:var(--font-ui);font-size:13px;font-weight:700;flex-shrink:0}
+  .acc-title{font-family:var(--font-heading);font-size:clamp(15px,1.5vw,20px);font-weight:600;color:var(--ink);flex:1}
+  .acc-badge{font-family:var(--font-ui);font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;letter-spacing:.03em;flex-shrink:0}
+  .acc-badge.core{background:rgba(46,125,50,.12);color:#2e7d32}
+  .acc-badge.road{background:var(--gold-soft);color:var(--gold-deep);border:1px solid rgba(184,134,11,.28)}
+  .acc-chevron{color:var(--gray-3);font-size:13px;transition:transform .3s var(--ease);flex-shrink:0}
+  .acc-item.open .acc-chevron{transform:rotate(180deg)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .45s var(--ease)}
+  .acc-item.open .acc-body{max-height:680px}
+  .acc-body-inner{padding:0 20px 18px}
+  .acc-sub{font-size:14px;color:var(--gray-4);line-height:1.55;max-width:none}
+  .acc-body table{margin-top:12px;font-size:13px}
+  .acc-body th,.acc-body td{padding:9px 14px}
+  .cell-sub{font-size:11px;color:var(--gray-3)}
   .stat-row{display:flex;flex-wrap:wrap;gap:28px;margin-top:34px}
   .stat{flex:1 1 150px}
   .stat .num{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,3.6vw,46px);color:var(--gold-deep);line-height:1}
@@ -121,7 +140,10 @@
 
   /* TAM/SAM/SOM diagrama */
   .tss-wrap{display:flex;gap:clamp(24px,5vw,64px);align-items:center;margin-top:26px}
-  .tss{width:100%;height:auto;display:block;margin-top:14px;max-height:74vh}
+  .tss{width:100%;height:auto;display:block;margin-top:8px;max-height:56vh}
+  .capture{margin-top:16px;padding:12px 18px;border:1px solid rgba(184,134,11,.3);background:rgba(184,134,11,.06);border-radius:10px;font-size:clamp(13px,1.2vw,16px);color:#E6DDCB;line-height:1.55}
+  .capture b{color:var(--gold-light);font-weight:600}
+  .capture .lab{font-family:var(--font-ui);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-deep);margin-right:8px}
   .tss-legend{flex:1;display:flex;flex-direction:column;gap:16px}
   .tss-item{display:flex;gap:13px;align-items:flex-start}
   .tss-dot{flex:0 0 auto;width:14px;height:14px;border-radius:50%;margin-top:5px}
@@ -429,29 +451,73 @@
   <section class="slide">
     <div class="slide-inner">
       <div class="eyebrow">Modelo de negócio</div>
-      <h2>MRR + intermediação</h2>
-      <p class="lead">Duas camadas de receita que se reforçam. Não dependemos de uma só.</p>
-      <div class="two-col" style="margin-top:26px">
-        <div>
-          <h3 style="margin-bottom:14px">1 · SaaS recorrente <span class="soft">— a base</span></h3>
-          <table style="margin-top:6px">
-            <thead><tr><th>Lado</th><th>Básico</th><th>Intermediário</th><th>Topo</th></tr></thead>
-            <tbody>
-              <tr><td>Audiência</td><td>Grátis</td><td>~R$149/mês</td><td>Custom</td></tr>
-              <tr><td>Marca / Agência</td><td>~R$299/mês</td><td>~R$899/mês</td><td>Enterprise</td></tr>
-            </tbody>
-          </table>
-          <p class="note">Os dois lados pagam pelo próprio SO. Free no lado da audiência resolve cold-start. Valores são hipótese a validar.</p>
+      <h2>Receita em camadas</h2>
+      <p class="lead">Camadas que se reforçam — não dependemos de uma só. <strong>Hoje:</strong> MRR + intermediação. <strong>Roadmap:</strong> fintech.</p>
+      <div class="acc">
+
+        <div class="acc-item open">
+          <button class="acc-head" onclick="accToggle(this)">
+            <span class="acc-n">1</span>
+            <span class="acc-title">SaaS recorrente <span class="soft">— a base</span></span>
+            <span class="acc-badge core">no ar</span>
+            <span class="acc-chevron">▾</span>
+          </button>
+          <div class="acc-body"><div class="acc-body-inner">
+            <p class="acc-sub">Os dois lados pagam pelo próprio SO. O plano Free resolve o cold-start dos dois lados.</p>
+            <table>
+              <thead><tr><th>Lado</th><th>Free</th><th>Básico</th><th>Intermediário</th><th>Enterprise</th></tr></thead>
+              <tbody>
+                <tr><td>Marca</td><td>Grátis<br><span class="cell-sub">1 usuário</span></td><td>~R$1.200/mês<br><span class="cell-sub">3 usuários · R$400/usuário</span></td><td>~R$4.500/mês<br><span class="cell-sub">10 usuários · R$450/usuário</span></td><td>Custom<br><span class="cell-sub">ilimitado</span></td></tr>
+                <tr><td>Detentores</td><td>Grátis<br><span class="cell-sub">1 usuário</span></td><td>~R$800/mês<br><span class="cell-sub">3 usuários · R$267/usuário</span></td><td>~R$3.500/mês<br><span class="cell-sub">10 usuários · R$350/usuário</span></td><td>Custom<br><span class="cell-sub">ilimitado</span></td></tr>
+              </tbody>
+            </table>
+            <p class="note">Receita previsível, independente de fechar deal no mês. Valores são hipótese a validar.</p>
+          </div></div>
         </div>
-        <div>
-          <h3 style="margin-bottom:14px">2 · Intermediação de negócio <span class="soft">— o upside</span></h3>
-          <p>Take-rate sobre os deals que acontecem na plataforma. À medida que viramos o sistema de registro, capturamos o <strong>GMV</strong> que flui por ela.</p>
-          <ul class="bullets" style="margin-top:18px">
-            <li>O <strong>MRR</strong> garante receita previsível, independente de deal no mês.</li>
-            <li>A <strong>intermediação</strong> captura o upside transacional do GMV.</li>
-            <li><strong>ICP de distribuição: agência.</strong> Não competimos — viramos a infra dela. Um logo traz N marcas.</li>
-          </ul>
+
+        <div class="acc-item">
+          <button class="acc-head" onclick="accToggle(this)">
+            <span class="acc-n">2</span>
+            <span class="acc-title">Intermediação de negócio <span class="soft">— o upside</span></span>
+            <span class="acc-badge core">no ar</span>
+            <span class="acc-chevron">▾</span>
+          </button>
+          <div class="acc-body"><div class="acc-body-inner">
+            <p class="acc-sub">Take-rate de <strong>3% a 15%</strong> sobre o GMV negociado na plataforma — <strong>decrescente</strong> conforme o deal aumenta (incentiva deals maiores). Captura o upside transacional sem depender só do SaaS.</p>
+            <table>
+              <thead><tr><th>Valor negociado</th><th>% comissão</th><th>Comissão</th></tr></thead>
+              <tbody>
+                <tr><td>R$ 1.000</td><td>15,00%</td><td>R$ 150</td></tr>
+                <tr><td>R$ 10.000</td><td>12,80%</td><td>R$ 1.280</td></tr>
+                <tr><td>R$ 100.000</td><td>7,90%</td><td>R$ 7.900</td></tr>
+                <tr><td>R$ 500.000</td><td>4,70%</td><td>R$ 23.500</td></tr>
+                <tr><td>R$ 1.000.000</td><td>3,00%</td><td>R$ 30.000</td></tr>
+              </tbody>
+            </table>
+          </div></div>
         </div>
+
+        <div class="acc-item">
+          <button class="acc-head" onclick="accToggle(this)">
+            <span class="acc-n">3</span>
+            <span class="acc-title">Fintech <span class="soft">— antecipação de recebíveis</span></span>
+            <span class="acc-badge road">roadmap · futuro</span>
+            <span class="acc-chevron">▾</span>
+          </button>
+          <div class="acc-body"><div class="acc-body-inner">
+            <p class="acc-sub">O detentor recebe o patrocínio aprovado e pode <strong>antecipar</strong> o valor antes do prazo contratual, mediante spread cobrado pela Relevantia. Vira o <strong>trilho financeiro</strong> do patrocínio — aprofunda a monetização e a defensibilidade.</p>
+            <table>
+              <thead><tr><th>Valor</th><th>Prazo</th><th>Spread</th><th>Antecipado</th><th>P/ Relevantia</th></tr></thead>
+              <tbody>
+                <tr><td>R$ 10.000</td><td>30 dias</td><td>2,5%</td><td>R$ 9.750</td><td>R$ 250</td></tr>
+                <tr><td>R$ 50.000</td><td>45 dias</td><td>3,2%</td><td>R$ 48.400</td><td>R$ 1.600</td></tr>
+                <tr><td>R$ 100.000</td><td>60 dias</td><td>3,8%</td><td>R$ 96.200</td><td>R$ 3.800</td></tr>
+              </tbody>
+            </table>
+            <p class="note">Não é para agora — está no planejamento. Spread varia por prazo e risco de crédito do pagador. Valores são hipótese a validar.</p>
+          </div></div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -495,6 +561,7 @@
           </div>
         </foreignObject>
       </svg>
+      <p class="capture"><span class="lab">Captura ilustrativa</span>Do SAM (~US$ 300 bi), capturar <b>0,01% = US$ 30 mi</b> · <b>0,1% = US$ 300 mi</b> · <b>1% = US$ 3 bi</b> em volume transacionado. Uma fração mínima do mercado já é um negócio relevante.</p>
       <p class="note">Estratégia de entrada e expansão: começamos pelo Brasil — onde o fundador já detém rede e reputação no setor — e avançamos para a América Latina e, na sequência, mercados globais.</p>
     </div>
   </section>
@@ -591,6 +658,13 @@
   // Janela do agente — bolinha verde maximiza, vermelha fecha (estilo Mac)
   function maximizeEmbed(dot){ const e=dot.closest('.embed'); if(e) e.classList.toggle('max'); }
   function restoreMax(){ document.querySelectorAll('.embed.max').forEach(el=>el.classList.remove('max')); }
+  // Accordion de receita (abre um por vez)
+  function accToggle(btn){
+    const item=btn.closest('.acc-item'); if(!item) return;
+    const open=item.classList.contains('open');
+    item.closest('.acc').querySelectorAll('.acc-item.open').forEach(el=>el.classList.remove('open'));
+    if(!open) item.classList.add('open');
+  }
 
   document.addEventListener('keydown',e=>{
     if(document.querySelector('.embed.max')){ if(e.key==='Escape') restoreMax(); return; }
