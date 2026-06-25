@@ -138,6 +138,31 @@
   .stat .lbl{font-size:14px;color:var(--gray-4);margin-top:8px}
   .slide.dark .stat .lbl{color:#C8BEA8}
 
+  /* ---------- DATA (where pain comes from) ---------- */
+  .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:30px}
+  .dcol{border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:20px 24px;background:var(--black-2)}
+  .dcol.alert{border-color:rgba(224,90,68,0.32);background:rgba(224,90,68,0.06)}
+  .dlab{font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-light);margin-bottom:8px}
+  .dcol.alert .dlab{color:#e8957f}
+  .dstat{display:flex;flex-direction:column;gap:2px;padding:13px 0;border-top:1px solid rgba(255,255,255,0.08)}
+  .dn{font-family:var(--font-display);font-weight:700;font-size:clamp(24px,2.8vw,34px);color:var(--white-warm);line-height:1.05}
+  .dcol.alert .dn{color:#f0a594}
+  .dd{font-size:13px;color:#C8BEA8;line-height:1.45}
+  .dd i{color:var(--gray-3);font-style:italic}
+  @media (max-width:860px){.dgrid{grid-template-columns:1fr}}
+
+  /* ---------- FORMAT CHIPS (rights-holder pain) ---------- */
+  .fmt-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+  .fmt{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-ui);font-weight:500;font-size:14px;padding:9px 16px;border-radius:var(--radius-pill);background:var(--white);border:1px solid var(--gray-2);color:var(--ink);box-shadow:var(--shadow-md)}
+  .slide.dark .fmt{background:var(--black-2);border-color:rgba(255,255,255,0.1);color:var(--white-warm)}
+
+  /* ---------- WHAT WE ARE ---------- */
+  .weare{display:flex;flex-direction:column;gap:12px;margin-top:30px;max-width:960px}
+  .wno{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius-md);background:var(--black-2);color:#C8BEA8;font-size:clamp(14px,1.4vw,17px);line-height:1.5}
+  .wno b{color:#D8CFBE;font-weight:600}
+  .wyes{display:flex;align-items:flex-start;gap:12px;padding:18px 20px;border:1.5px solid rgba(184,134,11,0.5);border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(184,134,11,0.16),rgba(200,168,75,0.05));color:var(--white-warm);font-size:clamp(15px,1.6vw,19px);line-height:1.5;font-weight:500}
+  .wyes b{color:var(--gold-light);font-weight:700}
+
   /* TAM/SAM/SOM diagram */
   .tss-wrap{display:flex;gap:clamp(24px,5vw,64px);align-items:center;margin-top:26px}
   .tss{width:100%;height:auto;display:block;margin-top:8px;max-height:56vh}
@@ -161,6 +186,7 @@
   .note{font-size:13px;color:var(--gray-3);margin-top:18px}
   .slide.dark .note{color:#A99B80}
 
+  /* ---------- EMBEDS (site + agents) ---------- */
   .embed-wrap{margin-top:24px;display:flex;gap:22px;align-items:stretch}
   .embed{flex:1;border:1px solid var(--gray-2);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-lg);background:var(--white);min-height:0}
   .embed .bar{display:flex;align-items:center;gap:7px;padding:9px 14px;background:var(--gray-1);border-bottom:1px solid var(--gray-2)}
@@ -180,6 +206,7 @@
   .embed-side h2{margin-bottom:14px}
   @media (max-width:960px){.embed-wrap{flex-direction:column}.embed-side{flex:auto}.embed iframe{height:48vh}}
 
+  /* ---------- COVER ---------- */
   .cover{justify-content:center;align-items:flex-start;text-align:left}
   .radar{width:clamp(92px,11vw,140px);height:auto;margin-bottom:30px;display:block}
   .radar-sweep{transform-origin:140px 140px;animation:sweep 5s linear infinite}
@@ -190,13 +217,15 @@
   @keyframes dot3{0%,100%{opacity:.06}66%,80%{opacity:1}}
   .cover .brand{font-family:var(--font-display);font-weight:600;font-size:clamp(13px,1.3vw,16px);letter-spacing:.14em;color:var(--gold-light);margin-bottom:18px;text-transform:uppercase}
   .cover h1{font-size:clamp(40px,7vw,92px);margin-bottom:14px}
-  .cover .tagline{font-family:var(--font-heading);font-weight:500;font-size:clamp(19px,2.3vw,32px);color:#CDBFA3;margin-bottom:36px;letter-spacing:-.01em}
+  .cover .tagline{font-family:var(--font-heading);font-weight:500;font-size:clamp(19px,2.3vw,32px);color:#CDBFA3;letter-spacing:-.01em}
   .cover .meta{font-family:var(--font-ui);font-size:13.5px;letter-spacing:.03em;color:var(--gray-3);border-top:1px solid rgba(255,255,255,.12);padding-top:22px;max-width:760px}
-  .cover .one-liner{margin-top:0;margin-bottom:30px;max-width:800px;font-size:clamp(15px,1.45vw,19px);color:#CDBFA3;line-height:1.6}
+  .cover.clean{align-items:center;text-align:center}
+  .cover.clean .radar{width:clamp(150px,21vw,250px);margin:0 auto 34px}
 
   .slide.dark::before{content:"";position:absolute;top:-20%;right:-12%;width:60vw;height:60vw;background:radial-gradient(circle,rgba(184,134,11,0.13),transparent 60%);pointer-events:none;z-index:0}
   .slide.dark .slide-inner{position:relative;z-index:1}
 
+  /* ---------- CHROME / NAV ---------- */
   .progress{position:fixed;top:0;left:0;height:3px;background:var(--gold-gradient);z-index:50;transition:width .4s var(--ease)}
   .nav{position:fixed;bottom:22px;right:26px;z-index:50;display:flex;align-items:center;gap:14px;font-family:var(--font-ui);font-size:13px;color:var(--gray-3)}
   .nav .counter{letter-spacing:.1em;font-variant-numeric:tabular-nums}
@@ -229,8 +258,8 @@
 <a class="lang-switch" href="pitch-deck-pt.html" title="Versão em português">PT</a>
 <div class="deck" id="deck">
 
-  <!-- 1 · COVER -->
-  <section class="slide dark cover active">
+  <!-- 1 · COVER (clean) -->
+  <section class="slide dark cover clean active">
     <div class="slide-inner">
       <svg class="radar" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" aria-label="Radar Relevantia">
         <defs>
@@ -270,45 +299,70 @@
       <div class="brand">Radar Relevantia</div>
       <h1>Radar</h1>
       <div class="tagline">The operating system for those who live on attention.</div>
-      <div class="one-liner">
-        In a world where attention is fragmenting more and more, Radar is the <strong>system of record</strong>
-        where brands and audiences meet, transact and measure results — recurring SaaS on both sides
-        <strong>+ deal intermediation</strong>, built on a network developed over years.
-      </div>
-      <div class="meta">Pre-launch &nbsp;·&nbsp; MVP in production &nbsp;·&nbsp; Pre-seed / seed round &nbsp;·&nbsp; 2026</div>
     </div>
   </section>
 
-  <!-- 2 · TREND -->
-  <section class="slide">
-    <div class="slide-inner">
-      <div class="eyebrow">The trend · where the pain comes from</div>
-      <h2>Attention is fragmenting.<br><span class="soft">And it's irreversible.</span></h2>
-      <p class="lead">The audience once concentrated in a few channels is now scattered across thousands of niches, formats and creators. From here on, attention will only become more diffuse.</p>
-      <ul class="bullets">
-        <li><strong>Capturing attention is the precondition</strong> for any campaign result — and it's getting more expensive, complex and risky to reach.</li>
-        <li>Brands will <strong>struggle more and more to deliver results</strong>. Not for lack of budget, but because the audience is no longer in one place.</li>
-        <li>It's scattered across <span class="k">Personality, Event, Musical Artist and Media</span> niches.</li>
-      </ul>
-      <div class="quote">The more diffuse attention becomes, the harder every investment decision gets. The pain isn't cyclical — it's structural and growing.</div>
-    </div>
-  </section>
-
-  <!-- 3 · STATUS QUO -->
+  <!-- 2 · WHERE THE PAIN COMES FROM (+ data) -->
   <section class="slide dark">
     <div class="slide-inner">
-      <div class="eyebrow">Why the status quo won't solve it</div>
-      <h2>Today brands outsource this pain to agencies.<br><span class="soft">And agencies won't keep up.</span></h2>
-      <div class="cards c3">
-        <div class="card"><span class="ic">✋</span><h3>Manual & barely data-driven</h3><p>Most agencies run on relationships, spreadsheets and gut feeling — not data.</p></div>
-        <div class="card"><span class="ic">⚡</span><h3>Slower than the market</h3><p>The market evolves and fragments faster than that model can follow.</p></div>
-        <div class="card"><span class="ic">🔍</span><h3>Brands decide blind</h3><p>They pay a premium, decide without data, and can't measure or control what came back.</p></div>
+      <div class="eyebrow">Where the pain comes from</div>
+      <h2>Attention fragments. <span class="soft">Money leaks.</span></h2>
+      <p class="lead">Audiences moved from a few channels to thousands of niches. There's huge investment in the market — but increasingly inefficient.</p>
+      <div class="dgrid">
+        <div class="dcol">
+          <div class="dlab">The money exists</div>
+          <div class="dstat"><span class="dn">US$ 1.26T</span><span class="dd">in global advertising per year <i>· Statista, 2026</i></span></div>
+          <div class="dstat"><span class="dn">US$ 250B</span><span class="dd">creator economy, toward US$ 480B by 2027 <i>· Goldman Sachs</i></span></div>
+        </div>
+        <div class="dcol alert">
+          <div class="dlab">But attention escapes and money leaks</div>
+          <div class="dstat"><span class="dn">~US$ 100B</span><span class="dd">lost per year to ad fraud <i>· Statista / Juniper</i></span></div>
+          <div class="dstat"><span class="dn">~900M</span><span class="dd">people block ads — 52% have used an ad blocker <i>· YouGov</i></span></div>
+        </div>
       </div>
-      <div class="quote">It's not a lack of effort from the agency — it's an architecture problem. Diffuse attention demands infrastructure and data, not more human hours.</div>
+      <div class="quote">Ads interrupt; relationships engage. Diffuse attention demands real presence in the audience — not more interruptive media.</div>
     </div>
   </section>
 
-  <!-- 4 · SOLUTION -->
+  <!-- 3 · BRAND PAIN + COMPLIANCE -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">The brand's pain</div>
+      <h2>Pays a premium and <span class="soft">decides blind.</span></h2>
+      <p class="lead">The brand outsources the pain to the agency — manual, slow and barely data-driven — and still loses control of what it invested.</p>
+      <div class="cards c2">
+        <div class="card"><span class="ic">✋</span><h3>Manual & barely data-driven agency</h3><p>Relationships, spreadsheets and gut feeling — not data. And slower than the market's fragmentation.</p></div>
+        <div class="card"><span class="ic">🔍</span><h3>Decides blind</h3><p>Without knowing the fit, the fair price or the risk before spending.</p></div>
+        <div class="card"><span class="ic">📍</span><h3>No control of the investment</h3><p>Doesn't know where it went or what came back — management scattered across email and spreadsheets.</p></div>
+        <div class="card"><span class="ic">🔒</span><h3>No compliance</h3><p>Contracts, deadlines and deliverables with no auditable record in one place.</p></div>
+      </div>
+      <div class="quote">The brand needs infrastructure, data and control — not more agency hours. Whoever holds the system of record holds the relationship.</div>
+    </div>
+  </section>
+
+  <!-- 4 · RIGHTS-HOLDER PAIN (common across the 4 formats) -->
+  <section class="slide dark">
+    <div class="slide-inner">
+      <div class="eyebrow">The pain of those who have an audience</div>
+      <h2>Lots of audience, <span class="soft">no structure.</span></h2>
+      <p class="lead">Personality, Event, Musical Artist or Media — different formats, the same pain.</p>
+      <div class="fmt-row">
+        <span class="fmt">🎤 Personality</span>
+        <span class="fmt">🎟️ Event</span>
+        <span class="fmt">🎵 Musical Artist</span>
+        <span class="fmt">📺 Media</span>
+      </div>
+      <div class="cards c2">
+        <div class="card"><span class="ic">📒</span><h3>Sell by hand</h3><p>Sponsorship negotiated over WhatsApp, email and spreadsheets — no flow, no history.</p></div>
+        <div class="card"><span class="ic">🔁</span><h3>Start from scratch</h3><p>Every proposal or edition, they redo materials and lose contacts and context.</p></div>
+        <div class="card"><span class="ic">💸</span><h3>Can't price it</h3><p>With no fair-price reference, they leave money on the table — or scare the brand off.</p></div>
+        <div class="card"><span class="ic">🧰</span><h3>No tool of their own</h3><p>They depend on expensive agencies and spreadsheets; zero data to prove value.</p></div>
+      </div>
+      <div class="quote">The market never built anything for them. It's the most underserved side — and where Radar's supply is born.</div>
+    </div>
+  </section>
+
+  <!-- 5 · SOLUTION -->
   <section class="slide">
     <div class="slide-inner">
       <div class="eyebrow">The solution</div>
@@ -322,11 +376,26 @@
         <div class="step"><span class="n">05</span> Manage</div><div class="arrow">→</div>
         <div class="step"><span class="n">06</span> Measure</div>
       </div>
-      <div class="quote">Sponsorship is module 1, not the ceiling. Radar is where audience becomes business — and it grows in modules from there.</div>
+      <div class="quote">Sponsorship is module 1, not the ceiling. Radar is where audience becomes business — and grows in modules from there.</div>
     </div>
   </section>
 
-  <!-- 5 · 4 FORMATS -->
+  <!-- 6 · THE PLATFORM (site embed) -->
+  <section class="slide">
+    <div class="slide-inner">
+      <div class="eyebrow">The product · live</div>
+      <h2 style="margin-bottom:6px">See the real platform</h2>
+      <div class="embed-wrap">
+        <div class="embed tall">
+          <div class="bar"><i></i><i></i><i></i><span class="u">radar-relevantia.com.br</span></div>
+          <iframe src="index.html" title="Radar Relevantia site" loading="lazy"></iframe>
+        </div>
+      </div>
+      <p class="note">Live site in production, embedded here. Use the arrows to continue. (Product UI is in Portuguese — Brazilian market.)</p>
+    </div>
+  </section>
+
+  <!-- 7 · 4 FORMATS -->
   <section class="slide">
     <div class="slide-inner">
       <div class="eyebrow">Already in production · proof of execution</div>
@@ -342,38 +411,43 @@
     </div>
   </section>
 
-  <!-- 6 · SEE THE PRODUCT (site embed) -->
+  <!-- 8 · DEMO BRAND BRIEF -->
   <section class="slide">
     <div class="slide-inner">
-      <div class="eyebrow">The product · live</div>
-      <h2 style="margin-bottom:6px">See the real platform</h2>
+      <div class="eyebrow">The copilot in practice · 1</div>
       <div class="embed-wrap">
-        <div class="embed tall">
-          <div class="bar"><i></i><i></i><i></i><span class="u">radar-relevantia.com.br</span></div>
-          <iframe src="index.html" title="Radar Relevantia site" loading="lazy"></iframe>
+        <div class="embed-side">
+          <h2>Agent: Brand Brief</h2>
+          <p>You type the brand name. The agent researches and builds the strategic profile — businesses, audience and challenges — in seconds.</p>
+          <p class="note">Type the brand name and <strong>really talk</strong> to the agent. Demo agent. (UI in Portuguese.)</p>
+        </div>
+        <div class="embed">
+          <div class="bar"><i class="act close" onclick="restoreMax()" title="Close"></i><i></i><i class="act max" onclick="maximizeEmbed(this)" title="Maximize"></i><span class="u">copilot · brand brief</span></div>
+          <iframe src="demo-brand-brief.html" title="Brand Brief demo" loading="lazy"></iframe>
         </div>
       </div>
-      <p class="note">Live site in production, embedded here. Use the arrows to continue. (Product UI is in Portuguese — Brazilian market.)</p>
     </div>
   </section>
 
-  <!-- 7 · COMPLIANCE -->
-  <section class="slide dark">
+  <!-- 9 · DEMO CREATE OPPORTUNITY -->
+  <section class="slide">
     <div class="slide-inner">
-      <div class="eyebrow">Compliance & control</div>
-      <h2>The control brands don't have today</h2>
-      <p class="lead">With diffuse attention and many simultaneous partnerships, brands lose control. Radar gives it back.</p>
-      <div class="cards c2">
-        <div class="card"><h3>📍 Where the investment went</h3><p>Every deal recorded, auditable, in one place.</p></div>
-        <div class="card"><h3>📈 What came back</h3><p>Metrics and ROI per partnership. <span class="badge road">roadmap</span></p></div>
-        <div class="card"><h3>🗂️ How it's being managed</h3><p>Pipeline, contracts, deliverables and deadlines in one dashboard. <span class="badge road">roadmap</span></p></div>
-        <div class="card"><h3>🔒 Airtight contracts</h3><p>Exclusive / non-exclusive templates with anti-bypass.</p></div>
+      <div class="eyebrow">The copilot in practice · 2</div>
+      <div class="embed-wrap">
+        <div class="embed-side">
+          <h2>Agent: Create Opportunity</h2>
+          <p>Pick the format, describe it in one sentence, and the agent structures the full offer — audience, location and brand segments.</p>
+          <p class="note">Full flow, like the live site — pick a format, talk to the agent and <strong>go all the way to publish</strong> (cover photo, tiers…). Demo agent. (UI in Portuguese.)</p>
+        </div>
+        <div class="embed">
+          <div class="bar"><i class="act close" onclick="restoreMax()" title="Close"></i><i></i><i class="act max" onclick="maximizeEmbed(this)" title="Maximize"></i><span class="u">copilot · create opportunity</span></div>
+          <iframe src="demo-criar-oportunidade.html" title="Create Opportunity demo" loading="lazy"></iframe>
+        </div>
       </div>
-      <div class="quote">Radar becomes the system of record for a brand's investment in audience. Whoever holds that record holds the relationship and the data.</div>
     </div>
   </section>
 
-  <!-- 8 · PRODUCT & AI -->
+  <!-- 10 · MANY AGENTS -->
   <section class="slide">
     <div class="slide-inner">
       <div class="eyebrow">Product & AI · wedge today, moat on the roadmap</div>
@@ -393,43 +467,21 @@
     </div>
   </section>
 
-  <!-- 9 · DEMO BRAND BRIEF -->
-  <section class="slide">
+  <!-- 11 · WHAT WE ARE -->
+  <section class="slide dark">
     <div class="slide-inner">
-      <div class="eyebrow">The copilot in practice · 1</div>
-      <div class="embed-wrap">
-        <div class="embed-side">
-          <h2>Agent: Brand Brief</h2>
-          <p>You type the brand name. The agent researches and builds the strategic profile — businesses, audience and challenges — in seconds.</p>
-          <p class="note">Type the brand name and <strong>really talk</strong> to the agent. Demo agent. (UI in Portuguese.)</p>
-        </div>
-        <div class="embed">
-          <div class="bar"><i class="act close" onclick="restoreMax()" title="Close"></i><i></i><i class="act max" onclick="maximizeEmbed(this)" title="Maximize"></i><span class="u">copilot · brand brief</span></div>
-          <iframe src="demo-brand-brief.html" title="Brand Brief demo" loading="lazy"></iframe>
-        </div>
+      <div class="eyebrow">What we are</div>
+      <h2>Not a marketplace. <span class="soft">Not generic SaaS.</span></h2>
+      <div class="weare">
+        <div class="wno">❌&nbsp; <span><b>Marketplace</b> — we don't live off matching two sides and hoping for liquidity.</span></div>
+        <div class="wno">❌&nbsp; <span><b>Generic SaaS</b> — not another tool for you to learn to operate.</span></div>
+        <div class="wno">❌&nbsp; <span><b>Agency</b> — we don't sell hours; we become the infrastructure agencies use.</span></div>
+        <div class="wyes">✅&nbsp; <span>We're the <b>operating system for those who work with audiences</b> — where brand and rights holder discover, decide, close, manage and measure. With AI.</span></div>
       </div>
     </div>
   </section>
 
-  <!-- 10 · DEMO CREATE OPPORTUNITY -->
-  <section class="slide">
-    <div class="slide-inner">
-      <div class="eyebrow">The copilot in practice · 2</div>
-      <div class="embed-wrap">
-        <div class="embed-side">
-          <h2>Agent: Create Opportunity</h2>
-          <p>Pick the format, describe it in one sentence, and the agent structures the full offer — audience, location and brand segments.</p>
-          <p class="note">Full flow, like the live site — pick a format, talk to the agent and <strong>go all the way to publish</strong> (cover photo, tiers…). Demo agent. (UI in Portuguese.)</p>
-        </div>
-        <div class="embed">
-          <div class="bar"><i class="act close" onclick="restoreMax()" title="Close"></i><i></i><i class="act max" onclick="maximizeEmbed(this)" title="Maximize"></i><span class="u">copilot · create opportunity</span></div>
-          <iframe src="demo-criar-oportunidade.html" title="Create Opportunity demo" loading="lazy"></iframe>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 11 · UNFAIR ADVANTAGE -->
+  <!-- 12 · UNFAIR ADVANTAGE -->
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">The unfair advantage</div>
@@ -444,25 +496,25 @@
     </div>
   </section>
 
-  <!-- 12 · BUSINESS MODEL -->
+  <!-- 13 · REVENUE IN LAYERS -->
   <section class="slide">
     <div class="slide-inner">
       <div class="eyebrow">Business model</div>
-      <h2>Layered revenue</h2>
-      <p class="lead">Layers that reinforce each other. <strong>Intermediation is already live</strong>; the SaaS plans are in progress and fintech is roadmap.</p>
+      <h2>Revenue in layers</h2>
+      <p class="lead">Layers that reinforce each other. <strong>Intermediation already works today</strong>; the SaaS plans are being built and the fintech is roadmap.</p>
       <div class="acc">
 
         <div class="acc-item open">
           <button class="acc-head" onclick="accToggle(this)">
             <span class="acc-n">1</span>
-            <span class="acc-title">Deal intermediation <span class="soft">— what's already live</span></span>
+            <span class="acc-title">Deal intermediation <span class="soft">— what already works</span></span>
             <span class="acc-badge core">live</span>
             <span class="acc-chevron">▾</span>
           </button>
           <div class="acc-body"><div class="acc-body-inner">
-            <p class="acc-sub">Take-rate of <strong>3% to 15%</strong> on the GMV negotiated on the platform — <strong>decreasing</strong> as the deal grows (incentivizes larger deals). This is the layer <strong>already running</strong>.</p>
+            <p class="acc-sub">Take-rate of <strong>3% to 15%</strong> on the GMV negotiated on the platform — <strong>decreasing</strong> as the deal grows (incentivizes bigger deals). It's the layer that's <strong>already running</strong>.</p>
             <table>
-              <thead><tr><th>Deal value</th><th>Commission %</th><th>Commission</th></tr></thead>
+              <thead><tr><th>Negotiated value</th><th>% commission</th><th>Commission</th></tr></thead>
               <tbody>
                 <tr><td>R$ 1,000</td><td>15.00%</td><td>R$ 150</td></tr>
                 <tr><td>R$ 10,000</td><td>12.80%</td><td>R$ 1,280</td></tr>
@@ -486,14 +538,14 @@
             <table>
               <thead><tr><th>Plan</th><th>Free</th><th>Gold</th><th>Diamond</th><th>Enterprise</th></tr></thead>
               <tbody>
-                <tr><td>Brand</td><td>R$ 0</td><td>R$ 1,200/mo</td><td>R$ 4,500/mo</td><td>On request</td></tr>
-                <tr><td>Rights holder</td><td>R$ 0</td><td>R$ 800/mo</td><td>R$ 3,500/mo</td><td>On request</td></tr>
+                <tr><td>Brand</td><td>R$ 0</td><td>R$ 1,200/mo</td><td>R$ 4,500/mo</td><td>Custom</td></tr>
+                <tr><td>Rights holder</td><td>R$ 0</td><td>R$ 800/mo</td><td>R$ 3,500/mo</td><td>Custom</td></tr>
               </tbody>
             </table>
             <ul class="ladder">
               <li><strong>Free — transact:</strong> discover opportunities, negotiate, contract, secure payment, own metrics. <span class="cell-sub">· 1 user</span></li>
               <li><strong>Gold — manage + data:</strong> campaigns, multi-format, audience map, live media kit, profile comparator. <span class="cell-sub">· 3 users</span></li>
-              <li><strong>Diamond — AI decisions:</strong> fit &amp; price score, influencer X-ray (fake followers), crisis alert, benchmark. <span class="cell-sub">· 10 users</span></li>
+              <li><strong>Diamond — decide with AI:</strong> fit &amp; price score, influencer X-ray (fake followers), crisis alert, benchmark. <span class="cell-sub">· 10 users</span></li>
               <li><strong>Enterprise — corporate:</strong> SSO, custom contracts, on-demand features, dedicated support. <span class="cell-sub">· unlimited</span></li>
             </ul>
             <p class="note">In progress — value ladder defined; prices are a hypothesis to validate.</p>
@@ -508,16 +560,16 @@
             <span class="acc-chevron">▾</span>
           </button>
           <div class="acc-body"><div class="acc-body-inner">
-            <p class="acc-sub">The rights holder receives the approved sponsorship and can <strong>advance</strong> the amount before the contractual term, via a spread charged by Relevantia. Becomes the <strong>financial rails</strong> of sponsorship — deepens monetization and defensibility.</p>
+            <p class="acc-sub">The rights holder receives the approved sponsorship and can <strong>advance</strong> the amount before the contractual term, for a spread charged by Relevantia. Becomes the <strong>financial rail</strong> of sponsorship — deepens monetization and defensibility.</p>
             <table>
-              <thead><tr><th>Amount</th><th>Term</th><th>Spread</th><th>Advanced</th><th>To Relevantia</th></tr></thead>
+              <thead><tr><th>Value</th><th>Term</th><th>Spread</th><th>Advanced</th><th>To Relevantia</th></tr></thead>
               <tbody>
                 <tr><td>R$ 10,000</td><td>30 days</td><td>2.5%</td><td>R$ 9,750</td><td>R$ 250</td></tr>
                 <tr><td>R$ 50,000</td><td>45 days</td><td>3.2%</td><td>R$ 48,400</td><td>R$ 1,600</td></tr>
                 <tr><td>R$ 100,000</td><td>60 days</td><td>3.8%</td><td>R$ 96,200</td><td>R$ 3,800</td></tr>
               </tbody>
             </table>
-            <p class="note">Not for now — it's in the plan. Spread varies by term and payer credit risk. Values are a hypothesis to validate.</p>
+            <p class="note">Not for now — it's in planning. Spread varies by term and payer credit risk. Values are a hypothesis to validate.</p>
           </div></div>
         </div>
 
@@ -525,7 +577,7 @@
     </div>
   </section>
 
-  <!-- 13 · MARKET -->
+  <!-- 14 · MARKET (TAM/SAM/SOM) -->
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">Market · TAM / SAM / SOM</div>
@@ -564,12 +616,12 @@
           </div>
         </foreignObject>
       </svg>
-      <p class="capture"><span class="lab">How we grow</span>Bottoms-up, not market share: <b>paying accounts × ticket</b> (MRR from brands and rights holders) <b>+ take-rate on the GMV</b> those accounts move. We don't need a slice of the market — we need accounts. To calibrate with the first data.</p>
+      <p class="capture"><span class="lab">How we grow</span>Bottom-up, not market share: <b>paying accounts × ticket</b> (brand + rights-holder MRR) <b>+ take-rate on the GMV</b> those accounts move. We don't need market share — we need accounts. To calibrate with first data.</p>
       <p class="note">Go-to-market and expansion: we start in Brazil — where the founder already holds network and reputation in the sector — and expand to Latin America and then global markets.</p>
     </div>
   </section>
 
-  <!-- 14 · TRACTION -->
+  <!-- 15 · ALREADY LIVE -->
   <section class="slide">
     <div class="slide-inner">
       <div class="eyebrow">Traction & status</div>
@@ -588,7 +640,7 @@
     </div>
   </section>
 
-  <!-- 15 · VISION & ASK -->
+  <!-- 16 · VISION & ASK -->
   <section class="slide dark">
     <div class="slide-inner">
       <div class="eyebrow">Vision & the ask</div>
@@ -607,18 +659,8 @@
           </ul>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- 16 · CLOSING -->
-  <section class="slide dark cover">
-    <div class="slide-inner">
-      <div class="brand">Radar Relevantia</div>
-      <h1 style="font-size:clamp(34px,6vw,82px);max-width:18ch">Where audience becomes business.</h1>
-      <div class="quote" style="font-size:clamp(18px,2.1vw,28px);margin-top:28px;max-width:32ch;border-color:var(--gold)">
-        Not where brands find sponsorship — where brands and audiences decide, close and manage everything. With AI.
-      </div>
-      <div class="meta" style="margin-top:40px;border-top:1px solid rgba(255,255,255,.12);padding-top:22px">Let's talk &nbsp;·&nbsp; live demo &nbsp;·&nbsp; Isaac Araujo, founder</div>
+      <div class="quote" style="margin-top:30px">Where audience becomes business — not where brands find sponsorship, but where brands and audiences decide, close and manage everything. With AI.</div>
+      <div class="meta" style="font-family:var(--font-ui);font-size:13.5px;color:var(--gray-3);border-top:1px solid rgba(255,255,255,.12);padding-top:20px;margin-top:26px">Let's talk &nbsp;·&nbsp; live demo &nbsp;·&nbsp; Isaac Araujo, founder</div>
     </div>
   </section>
 
@@ -658,9 +700,14 @@
   document.getElementById('next').onclick=next;
   document.getElementById('prev').onclick=prev;
 
-  // Agent window — green dot maximizes, red dot closes (Mac style)
   function maximizeEmbed(dot){ const e=dot.closest('.embed'); if(e) e.classList.toggle('max'); }
   function restoreMax(){ document.querySelectorAll('.embed.max').forEach(el=>el.classList.remove('max')); }
+  function accToggle(btn){
+    const item=btn.closest('.acc-item'); if(!item) return;
+    const open=item.classList.contains('open');
+    item.closest('.acc').querySelectorAll('.acc-item.open').forEach(el=>el.classList.remove('open'));
+    if(!open) item.classList.add('open');
+  }
 
   document.addEventListener('keydown',e=>{
     if(document.querySelector('.embed.max')){ if(e.key==='Escape') restoreMax(); return; }
