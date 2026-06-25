@@ -4638,8 +4638,15 @@ input[type=number] { -moz-appearance: textfield; }
         var u=String((input&&input.url)||input||'');
         var m=((opts&&opts.method)||(input&&input.method)||'GET').toUpperCase();
         // Bloqueia gravações/uploads no Supabase (REST/Storage/Edge) — simula sucesso, não persiste nada
-        if(typeof SUPABASE_URL==='string' && u.indexOf(SUPABASE_URL)===0 && /\/(rest|storage|functions)\/v1\//.test(u) && m!=='GET'){
-          return Promise.resolve(new Response('{"Key":"demo/cover.jpg","id":"demo","Id":"demo"}',{status:200,headers:{'Content-Type':'application/json'}}));
+        if(typeof SUPABASE_URL==='string' && u.indexOf(SUPABASE_URL)===0){
+          // Demo: a conta sempre "pode publicar" (libera o fluxo até o fim, sem modal de conta em análise)
+          if(/select=pode_publicar/.test(u)){
+            return Promise.resolve(new Response('[{"pode_publicar":true}]',{status:200,headers:{'Content-Type':'application/json'}}));
+          }
+          // Demo: bloqueia gravações/uploads — simula sucesso, não persiste nada
+          if(/\/(rest|storage|functions)\/v1\//.test(u) && m!=='GET'){
+            return Promise.resolve(new Response('{"Key":"demo/cover.jpg","id":"demo","Id":"demo"}',{status:200,headers:{'Content-Type':'application/json'}}));
+          }
         }
       }catch(e){}
       return _f.apply(this,arguments);
@@ -11256,7 +11263,7 @@ async function saveDraft() {
         const n = window._impersonateCtx.nonce ? '&_n=' + encodeURIComponent(window._impersonateCtx.nonce) : '';
         window.location.href = 'dashboard-detentor.html?_imp=1' + n + '#oportunidades';
       } else {
-        window.location.href = 'dashboard-detentor.html#oportunidades';
+        window.location.href = 'demo-criar-oportunidade.html';
       }
     }, 1200);
   } catch (err) {
@@ -11785,7 +11792,7 @@ async function encerrarOportunidade() {
     });
     if (!res.ok) throw new Error(await res.text());
     showToast('Oportunidade encerrada com sucesso.', 'success');
-    setTimeout(() => { window.location.href = 'dashboard-detentor.html#oportunidades'; }, 1200);
+    setTimeout(() => { window.location.href = 'demo-criar-oportunidade.html'; }, 1200);
   } catch (err) {
     console.error('[encerrarOportunidade]', err);
     showToast('Erro ao encerrar. Tente novamente.', 'error');
@@ -11810,7 +11817,7 @@ async function reativarOportunidade() {
     });
     if (!res.ok) throw new Error(await res.text());
     showToast('Oportunidade enviada para análise!', 'success');
-    setTimeout(() => { window.location.href = 'dashboard-detentor.html#oportunidades'; }, 1200);
+    setTimeout(() => { window.location.href = 'demo-criar-oportunidade.html'; }, 1200);
   } catch (err) {
     console.error('[reativarOportunidade]', err);
     showToast('Erro ao reativar. Tente novamente.', 'error');
@@ -12106,8 +12113,8 @@ async function initSession() {
 }
 
 async function doLogout() {
-  await window.supabase?.auth?.signOut();
-  window.location.href = 'index.html';
+  // MODO DEMO: não desloga (preserva a sessão admin) — só reinicia o demo.
+  window.location.href = 'demo-criar-oportunidade.html';
 }
 
 /* ══════════════════════════════════════════════
@@ -12804,7 +12811,7 @@ async function _guardDuplicateOpp() {
     if (typeof showToast === 'function') {
       showToast('Você já tem uma oportunidade em andamento. Conclua-a antes de criar outra.', 'error');
     }
-    setTimeout(() => { window.location.href = 'dashboard-detentor.html#oportunidades'; }, 1800);
+    setTimeout(() => { window.location.href = 'demo-criar-oportunidade.html'; }, 1800);
     return 'blocked';
   } catch (_) { /* erro: não bloqueia */ }
 }
@@ -14523,7 +14530,7 @@ function goToDashboardPreservingCtx() {
     const n = window._impersonateCtx.nonce ? '&_n=' + encodeURIComponent(window._impersonateCtx.nonce) : '';
     window.location.href = 'dashboard-detentor.html?_imp=1' + n + '#oportunidades';
   } else {
-    window.location.href = 'dashboard-detentor.html#oportunidades';
+    window.location.href = 'demo-criar-oportunidade.html';
   }
 }
 
@@ -15004,7 +15011,7 @@ function _closeContaEmAnaliseModal() {
       <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>Nossa equipe revisa e aprova sua conta</div>
       <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>Você recebe uma notificação e já pode publicar</div>
     </div>
-    <button onclick="_closeContaEmAnaliseModal();window.location.href='dashboard-detentor.html#configuracoes'" style="width:100%;height:46px;border:none;border-radius:10px;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;font-family:var(--font-heading);font-weight:700;font-size:14px;cursor:pointer">Preencher dados jurídicos</button>
+    <button onclick="_closeContaEmAnaliseModal();window.location.href='demo-criar-oportunidade.html'" style="width:100%;height:46px;border:none;border-radius:10px;background:linear-gradient(135deg,#B8860B,#C8A84B);color:#fff;font-family:var(--font-heading);font-weight:700;font-size:14px;cursor:pointer">Preencher dados jurídicos</button>
   </div>
 </div>
 
