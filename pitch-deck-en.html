@@ -117,7 +117,7 @@
 
   /* TAM/SAM/SOM diagram */
   .tss-wrap{display:flex;gap:clamp(24px,5vw,64px);align-items:center;margin-top:26px}
-  .tss{flex:0 0 auto;width:clamp(230px,28vw,340px);height:auto}
+  .tss{width:100%;height:auto;display:block;margin-top:14px;max-height:74vh}
   .tss-legend{flex:1;display:flex;flex-direction:column;gap:16px}
   .tss-item{display:flex;gap:13px;align-items:flex-start}
   .tss-dot{flex:0 0 auto;width:14px;height:14px;border-radius:50%;margin-top:5px}
@@ -454,24 +454,41 @@
     <div class="slide-inner">
       <div class="eyebrow">Market · TAM / SAM / SOM</div>
       <h2>A global market, starting in Brazil</h2>
-      <div class="tss-wrap">
-        <svg class="tss" viewBox="0 0 380 360" xmlns="http://www.w3.org/2000/svg" aria-label="TAM SAM SOM">
-          <defs><linearGradient id="somg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B8860B"/><stop offset="1" stop-color="#C8A84B"/></linearGradient></defs>
-          <circle cx="190" cy="182" r="168" fill="rgba(184,134,11,0.06)" stroke="#8A6608" stroke-width="1.5"/>
-          <circle cx="190" cy="182" r="112" fill="rgba(184,134,11,0.13)" stroke="#B8860B" stroke-width="1.5"/>
-          <circle cx="190" cy="182" r="58" fill="url(#somg)" stroke="#C8A84B" stroke-width="1.5"/>
-          <text x="190" y="40" text-anchor="middle" fill="#C8A84B" font-size="15" font-weight="700" font-family="'Space Grotesk',sans-serif">TAM</text>
-          <text x="190" y="100" text-anchor="middle" fill="#C8A84B" font-size="15" font-weight="700" font-family="'Space Grotesk',sans-serif">SAM</text>
-          <text x="190" y="178" text-anchor="middle" fill="#1A1200" font-size="16" font-weight="700" font-family="'Space Grotesk',sans-serif">SOM</text>
-          <text x="190" y="198" text-anchor="middle" fill="#1A1200" font-size="11" font-family="'Inter',sans-serif">beachhead</text>
-        </svg>
-        <div class="tss-legend">
-          <div class="tss-item"><span class="tss-dot t"></span><div><h3>TAM · US$ 1.26T</h3><p>Global advertising — the attention economy (ads, media, digital, sponsorship). <span class="src">Statista, 2026</span></p></div></div>
-          <div class="tss-item"><span class="tss-dot s"></span><div><h3>SAM · ~US$ 300B+</h3><p>The relationship-based slice Radar serves: creator economy ~US$ 250B <span class="src">(Goldman Sachs)</span> + sponsorship ~US$ 100B + influencer ~US$ 33B. The 4 formats.</p></div></div>
-          <div class="tss-item"><span class="tss-dot o"></span><div><h3>SOM · Brazil → LatAm beachhead</h3><p>Where we capture first: brands and rights holders in Brazil, then LatAm. Model: subscribers × SaaS ticket + take-rate on GMV. <span class="src">pre-launch — to be set with first data</span></p></div></div>
-        </div>
-      </div>
-      <p class="note">Pre-launch: not operating yet, so SOM is set with the first real data. Land Brazil (unfair advantage: founder's network) → expand LatAm → global.</p>
+      <svg class="tss" viewBox="0 0 1060 480" xmlns="http://www.w3.org/2000/svg" aria-label="TAM SAM SOM">
+        <defs>
+          <linearGradient id="somg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B8860B"/><stop offset="1" stop-color="#C8A84B"/></linearGradient>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#B8860B"/></marker>
+        </defs>
+        <circle cx="250" cy="238" r="218" fill="rgba(184,134,11,0.06)" stroke="#8A6608" stroke-width="1.5"/>
+        <circle cx="250" cy="238" r="144" fill="rgba(184,134,11,0.13)" stroke="#B8860B" stroke-width="1.5"/>
+        <circle cx="250" cy="238" r="74" fill="url(#somg)" stroke="#C8A84B" stroke-width="1.5"/>
+        <text x="250" y="48" text-anchor="middle" fill="#C8A84B" font-size="16" font-weight="700" font-family="'Space Grotesk',sans-serif">TAM</text>
+        <text x="250" y="120" text-anchor="middle" fill="#C8A84B" font-size="16" font-weight="700" font-family="'Space Grotesk',sans-serif">SAM</text>
+        <text x="250" y="245" text-anchor="middle" fill="#1A1200" font-size="18" font-weight="700" font-family="'Space Grotesk',sans-serif">SOM</text>
+        <path d="M381 64 L527 56" stroke="#B8860B" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+        <path d="M394 238 L527 238" stroke="#B8860B" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+        <path d="M302 290 L527 408" stroke="#B8860B" stroke-width="1.5" fill="none" marker-end="url(#arr)"/>
+        <foreignObject x="540" y="8" width="512" height="120">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:'DM Sans',sans-serif;color:#C8BEA8;font-size:14px;line-height:1.5">
+            <div style="font-family:'Space Grotesk',sans-serif;color:#FFFDF7;font-weight:700;font-size:21px;margin-bottom:5px">TAM · US$ 1.26T</div>
+            Global advertising — all brand spend to reach audiences (ads, media, digital and sponsorship). <span style="color:#C8A84B;font-style:italic">Statista, 2026</span>
+          </div>
+        </foreignObject>
+        <foreignObject x="540" y="146" width="512" height="200">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:'DM Sans',sans-serif;color:#C8BEA8;font-size:13.5px;line-height:1.5">
+            <div style="font-family:'Space Grotesk',sans-serif;color:#FFFDF7;font-weight:700;font-size:21px;margin-bottom:5px">SAM · ~US$ 300B+</div>
+            Relationship-based audience deals (outside programmatic): sports and cultural sponsorship, creator and influencer partnerships, event tiers and media placements — exactly what the 4 formats transact with brands and agencies.
+            <div style="color:#C8A84B;font-style:italic;margin-top:6px">Creator economy ~US$ 250B (Goldman Sachs) + sponsorship ~US$ 100B + influencer ~US$ 33B</div>
+          </div>
+        </foreignObject>
+        <foreignObject x="540" y="356" width="512" height="124">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:'DM Sans',sans-serif;color:#C8BEA8;font-size:14px;line-height:1.5">
+            <div style="font-family:'Space Grotesk',sans-serif;color:#FFFDF7;font-weight:700;font-size:21px;margin-bottom:5px">SOM · initial market</div>
+            Brazil and then Latin America. Subscription revenue (brands and rights holders) plus take-rate on transacted volume. <span style="color:#C8A84B;font-style:italic">Pre-launch — to be quantified with the first results.</span>
+          </div>
+        </foreignObject>
+      </svg>
+      <p class="note">Go-to-market and expansion: we start in Brazil — where the founder already holds network and reputation in the sector — and expand to Latin America and then global markets.</p>
     </div>
   </section>
 
