@@ -3301,7 +3301,7 @@ function irParaJuridicoDetentor() {
   showSection('configuracoes');
   setTimeout(() => {
     switchConfigTab('juridico');
-    if (!editingJuridico) toggleEditJuridico();
+    if (!editingJuridico && !window._adminViewCtx) toggleEditJuridico();
     setTimeout(() => {
       const ids = ['jur-cnpj','jur-razao','jur-logradouro','jur-cidade','jur-estado'];
       let firstEmpty = null;
@@ -3612,9 +3612,9 @@ function formatRelTime(iso) {
 
 // ─── NAVIGATION ───
 function showSection(sectionId) {
-  // Em modo admin view: força que só "oportunidades" seja acessível.
-  // Admin não deve poder mexer em Configurações/Equipe/Voz/Dashboard do detentor.
-  if (window._adminViewCtx && sectionId !== 'oportunidades') {
+  // Em modo admin view: bloqueia edição mas permite visualizar configurações (read-only).
+  // Voz e Dashboard são bloqueadas pois não têm sentido no contexto de impersonation.
+  if (window._adminViewCtx && (sectionId === 'voz' || sectionId === 'dashboard')) {
     sectionId = 'oportunidades';
   }
 
