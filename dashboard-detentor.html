@@ -3301,7 +3301,7 @@ function irParaJuridicoDetentor() {
   showSection('configuracoes');
   setTimeout(() => {
     switchConfigTab('juridico');
-    if (!editingJuridico && !window._adminViewCtx) toggleEditJuridico();
+    if (!editingJuridico) toggleEditJuridico();
     setTimeout(() => {
       const ids = ['jur-cnpj','jur-razao','jur-logradouro','jur-cidade','jur-estado'];
       let firstEmpty = null;
@@ -7435,7 +7435,7 @@ async function saveJuridico() {
     responsavel_legal_cpf:  document.getElementById('jur-resp-cpf')?.value.trim() || null,
   };
 
-  const { error } = await sb.rpc('upsert_perfil_juridico', {
+  const rpcParams = {
     p_cnpj:                   patch.cnpj,
     p_razao_social:           patch.razao_social,
     p_cep:                    patch.cep,
@@ -7446,7 +7446,9 @@ async function saveJuridico() {
     p_estado:                 patch.estado,
     p_responsavel_legal_nome: patch.responsavel_legal_nome,
     p_responsavel_legal_cpf:  patch.responsavel_legal_cpf
-  });
+  };
+  if (window._adminViewCtx) rpcParams.p_perfil_id = window._adminViewCtx.target_user_id;
+  const { error } = await sb.rpc('upsert_perfil_juridico', rpcParams);
 
   if (error) {
     console.error('[saveJuridico]', error);
@@ -7463,39 +7465,44 @@ async function saveJuridico() {
     updateSetupGuide();
     renderJuridicoBadge();
     _updateJuridicoBanner();
-    // Atualiza banner para "em análise" (foco mantido até admin aprovar)
-    _applyJuridicoFocusMode(true);
-    // Abre modal explicativo
-    document.getElementById('modalJuridicoAnalise')?.classList.add('open');
 
-    // Notificação no sino: confirma recebimento e informa que está aguardando aprovação
-    try {
-      const { data: { session: s } } = await sb.auth.getSession();
-      if (s && !OB_DET.podePublicar) {
-        // Só cria se ainda não tem permissão (caso contrário não precisa de aprovação)
-        const hoje = new Date().toISOString().slice(0, 10);
-        const chk = await fetch(
-          SUPABASE_URL + '/rest/v1/notifications?user_id=eq.' + s.user.id +
-          '&type=eq.juridico_recebido&created_at=gte.' + hoje + 'T00:00:00Z&limit=1',
-          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + s.access_token } }
-        );
-        const existing = chk.ok ? await chk.json() : [];
-        if (existing.length === 0) {
-          await fetch(SUPABASE_URL + '/rest/v1/notifications', {
-            method: 'POST',
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + s.access_token,
-                       'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-            body: JSON.stringify({
-              user_id: s.user.id,
-              type: 'juridico_recebido',
-              title: 'Dados recebidos! Agora é com a Relevantia ✅',
-              description: 'Recebemos seus dados jurídicos e sua oportunidade. Você será notificado assim que sua conta for aprovada.',
-              data: { section: 'configuracoes', sub: 'juridico' }
-            })
-          });
+    if (window._adminViewCtx) {
+      // Admin preencheu em nome do usuário: toast simples, sem modal nem notificação ao detentor
+      showToast('Dados jurídicos salvos com sucesso.', 'success');
+    } else {
+      // Atualiza banner para "em análise" (foco mantido até admin aprovar)
+      _applyJuridicoFocusMode(true);
+      // Abre modal explicativo
+      document.getElementById('modalJuridicoAnalise')?.classList.add('open');
+
+      // Notificação no sino: confirma recebimento e informa que está aguardando aprovação
+      try {
+        const { data: { session: s } } = await sb.auth.getSession();
+        if (s && !OB_DET.podePublicar) {
+          const hoje = new Date().toISOString().slice(0, 10);
+          const chk = await fetch(
+            SUPABASE_URL + '/rest/v1/notifications?user_id=eq.' + s.user.id +
+            '&type=eq.juridico_recebido&created_at=gte.' + hoje + 'T00:00:00Z&limit=1',
+            { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + s.access_token } }
+          );
+          const existing = chk.ok ? await chk.json() : [];
+          if (existing.length === 0) {
+            await fetch(SUPABASE_URL + '/rest/v1/notifications', {
+              method: 'POST',
+              headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + s.access_token,
+                         'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+              body: JSON.stringify({
+                user_id: s.user.id,
+                type: 'juridico_recebido',
+                title: 'Dados recebidos! Agora é com a Relevantia ✅',
+                description: 'Recebemos seus dados jurídicos e sua oportunidade. Você será notificado assim que sua conta for aprovada.',
+                data: { section: 'configuracoes', sub: 'juridico' }
+              })
+            });
+          }
         }
-      }
-    } catch(_) {}
+      } catch(_) {}
+    }
   }
 }
 
@@ -7532,7 +7539,8 @@ async function loadJuridicoFromPerfil() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session?.user) return;
   renderJuridicoBadge();
-  const { data, error } = await sb.rpc('get_perfil_juridico', { p_perfil_id: session.user.id });
+  const targetId = window._adminViewCtx ? window._adminViewCtx.target_user_id : session.user.id;
+  const { data, error } = await sb.rpc('get_perfil_juridico', { p_perfil_id: targetId });
   if (!error && data && data[0]) populateJuridicoFields(data[0]);
 }
 
