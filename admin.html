@@ -4209,6 +4209,7 @@ async function aprovarDetentor(perfilId, oppId) {
     _aprovacoesList = _aprovacoesList.filter(i => i.perfil?.id !== perfilId);
     renderAprovacoes();
     _updateAprovacoesBadge();
+    loadApprovalHistory();
     showToast('Detentor aprovado' + (oppId ? ' e oportunidade publicada!' : '!'), 'success');
   } catch(e) {
     console.error('[aprovarDetentor]', e);
