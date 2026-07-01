@@ -1428,6 +1428,11 @@ tr.row-selected td { background: #FEF2F2; }
           <p class="page-sub">Detentores com dados jurídicos preenchidos aguardando aprovação para publicar</p>
         </div>
         <div id="aprovacoes-list"></div>
+        <div style="margin-top:40px">
+          <h2 style="font-size:16px;font-weight:700;color:#374151;margin-bottom:4px">Histórico de aprovações</h2>
+          <p style="font-size:13px;color:#6b7280;margin-bottom:16px">Registro de liberações e bloqueios de conta por admin</p>
+          <div id="approval-history-list"><div style="color:#9ca3af;font-size:13px">Carregando…</div></div>
+        </div>
       </div>
 
       <!-- ── Aprovações Financeiras (dados de recebimento) ── -->
@@ -2185,7 +2190,7 @@ function showSection(name, el) {
   if (name === 'embaixadores')    loadEmbaixadores();
   if (name === 'marcas')          loadMarcas();
   if (name === 'detentores')      loadDetentores();
-  if (name === 'aprovacoes')      loadAprovacoes();
+  if (name === 'aprovacoes')      { loadAprovacoes(); loadApprovalHistory(); }
   if (name === 'financeiro')      loadFinanceiroAprov();
   if (name === 'oportunidades')   loadOportunidades();
   if (name === 'deals')           loadDeals();
@@ -3736,6 +3741,59 @@ function _updateAprovacoesBadge() {
   if (!badge) return;
   badge.textContent = _aprovacoesList.length;
   badge.style.display = _aprovacoesList.length > 0 ? '' : 'none';
+}
+
+// ── Histórico de Aprovações ────────────────────────────────────
+async function loadApprovalHistory() {
+  const container = document.getElementById('approval-history-list');
+  if (!container) return;
+  container.innerHTML = '<div style="color:#9ca3af;font-size:13px">Carregando…</div>';
+  try {
+    const data = await adminAction('list-approval-history', { limit: 50 });
+    renderApprovalHistory(data.history || []);
+  } catch(e) {
+    container.innerHTML = '<div style="color:#ef4444;font-size:13px">Erro ao carregar histórico.</div>';
+  }
+}
+
+function renderApprovalHistory(history) {
+  const container = document.getElementById('approval-history-list');
+  if (!container) return;
+  if (!history.length) {
+    container.innerHTML = '<div style="color:#9ca3af;font-size:13px;padding:16px 0">Nenhuma aprovação registrada ainda.</div>';
+    return;
+  }
+  const fmtDate = iso => {
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  };
+  container.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:#f9fafb;border-bottom:2px solid #e5e7eb">
+          <th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151">Data</th>
+          <th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151">Detentor</th>
+          <th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151">Ação</th>
+          <th style="text-align:left;padding:10px 14px;font-weight:600;color:#374151">Admin</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${history.map((h, i) => `
+        <tr style="border-bottom:1px solid #f3f4f6;background:${i%2===0?'#fff':'#fafafa'}">
+          <td style="padding:10px 14px;color:#6b7280;white-space:nowrap">${fmtDate(h.created_at)}</td>
+          <td style="padding:10px 14px">
+            <div style="font-weight:600">${escHtml(h.target_nome)}</div>
+            <div style="color:#9ca3af;font-size:11px">${escHtml(h.target_email)}</div>
+          </td>
+          <td style="padding:10px 14px">
+            ${h.action === 'liberar-publicacao'
+              ? '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600">✓ Liberado</span>'
+              : '<span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600">✕ Bloqueado</span>'}
+          </td>
+          <td style="padding:10px 14px;color:#374151">${escHtml(h.admin_nome)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
 }
 
 // ── Aprovações Financeiras (dados de recebimento) ──────────────
