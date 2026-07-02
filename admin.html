@@ -1918,6 +1918,12 @@ const SUPABASE_URL = 'https://bzckerazidgrkbpgqqee.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6Y2tlcmF6aWRncmticGdxcWVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MjczODksImV4cCI6MjA4ODIwMzM4OX0.HIVnwcGvKiYNGfVFEnP0Ik9kfOeXPB4c4BFqDpqFCS4';
 // SERVICE_KEY REMOVIDA — operações admin agora via Edge Function "admin-actions"
 
+// Escapa string para uso DENTRO de literais JS em handlers inline (onclick="fn('...')").
+// Usa \uXXXX (não entidades HTML — o browser decodifica entidades do atributo antes de executar o JS).
+function jsStr(s) {
+  return String(s ?? '').replace(/[\\'"<>&\n\r\u2028\u2029]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+}
+
 let currentSession = null;
 let marcasFilter = 'pendente';
 let detentoresFilter = 'pendente';
@@ -1952,6 +1958,11 @@ async function getSession() {
     });
     if (!res.ok) { localStorage.removeItem('sb_admin_session'); return null; }
     const data = await res.json();
+    // Persistir expires_at (o grant refresh_token retorna expires_in, não expires_at).
+    // Sem isso o guard acima nunca acerta → refresh em loop e falso "sessão expirada" no reload.
+    if (data.expires_in && !data.expires_at) {
+      data.expires_at = Math.floor(Date.now() / 1000) + data.expires_in;
+    }
     localStorage.setItem('sb_admin_session', JSON.stringify(data));
     currentSession = data;
     return data;
@@ -1960,7 +1971,12 @@ async function getSession() {
 
 async function sbFetch(path, opts = {}) {
   const session = await getSession();
-  const token = session?.access_token || SUPABASE_KEY;
+  if (!session?.access_token) {
+    showToast('Sessão expirada. Faça login novamente.', 'error');
+    doLogout();
+    throw new Error('Sessão expirada');
+  }
+  const token = session.access_token;
   const res = await fetch(`${SUPABASE_URL}${path}`, {
     ...opts,
     headers: {
@@ -2001,8 +2017,9 @@ async function doLogin() {
       return;
     }
 
-    // Verificar se usuário é admin
-    const userTipo = data.user?.user_metadata?.tipo;
+    // Verificar se usuário é admin — app_metadata é a fonte confiável
+    // (user_metadata pode ser editado pelo próprio usuário via auth.updateUser)
+    const userTipo = data.user?.app_metadata?.tipo;
     if (userTipo !== 'admin') {
       localStorage.removeItem('sb_admin_session');
       currentSession = null;
@@ -2020,7 +2037,7 @@ async function doLogin() {
     currentSession = data;
 
     // Primeiro acesso: força troca de senha antes de entrar no painel
-    if (data.user?.user_metadata?.senha_provisoria === true) {
+    if (data.user?.user_metadata?.senha_provisoria === true || data.user?.user_metadata?.temp_password === true) {
       showChangePwScreen();
       return;
     }
@@ -2120,7 +2137,7 @@ async function doChangePw() {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ password: nova, data: { senha_provisoria: false } }),
+      body: JSON.stringify({ password: nova, data: { senha_provisoria: false, temp_password: false } }),
     });
 
     const data = await res.json();
@@ -2129,6 +2146,7 @@ async function doChangePw() {
     // Atualiza sessão local
     if (currentSession?.user?.user_metadata) {
       currentSession.user.user_metadata.senha_provisoria = false;
+      currentSession.user.user_metadata.temp_password = false;
       localStorage.setItem('sb_admin_session', JSON.stringify(currentSession));
     }
 
@@ -2146,6 +2164,20 @@ async function doChangePw() {
 
 // Enter key on login
 document.addEventListener('DOMContentLoaded', () => {
+  // Limpeza: remove contextos de impersonation expirados do localStorage
+  for (const key of Object.keys(localStorage)) {
+    if (!key.startsWith('sb_impersonate_ctx__')) continue;
+    try {
+      const ctx = JSON.parse(localStorage.getItem(key) || '{}');
+      // expires_at é gravado em segundos (Math.floor(Date.now() / 1000) + 1800)
+      if (!ctx.expires_at || ctx.expires_at < Math.floor(Date.now() / 1000)) {
+        localStorage.removeItem(key);
+      }
+    } catch (e) {
+      localStorage.removeItem(key);
+    }
+  }
+
   document.getElementById('loginPassword').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
   });
@@ -2161,13 +2193,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Check expiry
       const exp = session.expires_at || (session.expires_in ? Date.now()/1000 + session.expires_in : 0);
       if (exp && Date.now()/1000 < exp) {
-        // Verificar se sessão cacheada é de admin
-        if (session.user?.user_metadata?.tipo !== 'admin') {
+        // Verificar se sessão cacheada é de admin (app_metadata = fonte confiável)
+        if (session.user?.app_metadata?.tipo !== 'admin') {
           localStorage.removeItem('sb_admin_session');
           return;
         }
         currentSession = session;
-        if (session.user?.user_metadata?.senha_provisoria === true) {
+        if (session.user?.user_metadata?.senha_provisoria === true || session.user?.user_metadata?.temp_password === true) {
           showChangePwScreen();
         } else {
           showDashboard(session);
@@ -2312,8 +2344,13 @@ function _supAvatar(logo, dom, nome) {
 async function loadSuporte() {
   try {
     const res = await sbFetch('/rest/v1/radar_tickets?select=*&order=last_message_at.desc');
-    _supTickets = res.ok ? await res.json() : [];
-  } catch (e) { _supTickets = []; }
+    if (!res.ok) throw new Error('Erro ao carregar (' + res.status + ')');
+    _supTickets = await res.json();
+  } catch (e) {
+    console.error('[loadSuporte]', e);
+    _supTickets = [];
+    showToast('Erro ao carregar tickets de suporte', 'error');
+  }
   await _supLoadNomes();
   suporteAtualizarBadge();
   suporteRenderList();
@@ -2385,7 +2422,7 @@ function suporteAbrirNeg(id) {
     return '<div class="asup-row ' + (isMarca ? 'me' : 'them') + '">' +
       '<div class="asup-who">' + escapeHtml(who) + '</div>' +
       '<div class="asup-bubble ' + (isMarca ? 'asup-b-me' : 'asup-b-them') + '">' + escapeHtml(m.texto) +
-        (m.anexo_url ? '<img src="' + m.anexo_url + '" onclick="window.open(this.src)">' : '') +
+        (m.anexo_url ? '<img src="' + escapeHtml(m.anexo_url) + '" onclick="window.open(this.src)">' : '') +
       '</div>' +
       '<div class="asup-time">' + dt + '</div>' +
     '</div>';
@@ -2491,7 +2528,7 @@ function suporteRenderThread() {
     return '<div class="asup-row ' + (radar ? 'me' : 'them') + '">' +
       '<div class="asup-who">' + escapeHtml(who) + '</div>' +
       '<div class="asup-bubble ' + (radar ? 'asup-b-me' : 'asup-b-them') + '">' + escapeHtml(m.texto) +
-        (m.anexo_url ? '<img src="' + m.anexo_url + '" onclick="window.open(this.src)">' : '') +
+        (m.anexo_url ? '<img src="' + escapeHtml(m.anexo_url) + '" onclick="window.open(this.src)">' : '') +
       '</div>' +
       '<div class="asup-time">' + dt + '</div>' +
     '</div>';
@@ -2571,16 +2608,25 @@ async function _supUploadAnexo() {
 }
 async function suporteToggleAnexo(autorId, on) {
   _supPodeAnexar[autorId] = on;
-  try { await sbFetch('/rest/v1/perfis?id=eq.' + autorId, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ pode_anexar: on }) }); } catch (e) {}
+  try {
+    const res = await sbFetch('/rest/v1/perfis?id=eq.' + autorId, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ pode_anexar: on }) });
+    if (!res.ok) throw new Error('Erro ao atualizar permissão de anexo (' + res.status + ')');
+  } catch (e) {
+    _supPodeAnexar[autorId] = !on;
+    showToast('Erro ao atualizar permissão de anexo', 'error');
+  }
 }
 
 async function suporteMudarStatus(id, status) {
   try {
-    await sbFetch('/rest/v1/radar_tickets?id=eq.' + id, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ status: status }) });
+    const res = await sbFetch('/rest/v1/radar_tickets?id=eq.' + id, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ status: status }) });
+    if (!res.ok) throw new Error('Erro ao mudar status (' + res.status + ')');
     const t = _supTickets.find(x => x.id === id);
     if (t) t.status = status;
     suporteRenderList();
-  } catch (e) {}
+  } catch (e) {
+    showToast('Erro ao mudar status do ticket', 'error');
+  }
 }
 
 function suporteAtualizarBadge() {
@@ -2778,6 +2824,7 @@ async function loadEmbaixadores() {
 
   try {
     const res = await sbFetch('/rest/v1/embaixadores?select=*&order=created_at.desc');
+    if (!res.ok) throw new Error('Erro ao carregar (' + res.status + ')');
     allEmbaixadores = await res.json();
 
     if (!Array.isArray(allEmbaixadores) || !allEmbaixadores.length) {
@@ -2796,7 +2843,7 @@ async function loadEmbaixadores() {
         <td class="td-muted">${escapeHtml(emb.email)}</td>
         <td>
           <span class="td-mono">${escapeHtml(emb.codigo_acesso)}</span>
-          <button class="btn btn-sm btn-copy" onclick="copyCodigo('${escapeHtml(emb.codigo_acesso)}', this)" title="Copiar código">⎘</button>
+          <button class="btn btn-sm btn-copy" onclick="copyCodigo('${jsStr(emb.codigo_acesso)}', this)" title="Copiar código">⎘</button>
         </td>
         <td><span class="badge badge-gold" style="font-size:12px;">${emb.comissao_percent != null ? emb.comissao_percent + '%' : '—'}</span></td>
         <td>${emb.total_indicacoes || 0}</td>
@@ -2809,7 +2856,7 @@ async function loadEmbaixadores() {
         <td class="td-muted">${fmtDate(emb.created_at)}</td>
         <td>
           <div class="action-group">
-            <button class="btn btn-sm btn-reject" onclick="deleteEmbaixador('${emb.id}', '${escapeHtml(emb.nome)}')">Excluir</button>
+            <button class="btn btn-sm btn-reject" onclick="deleteEmbaixador('${emb.id}', '${jsStr(emb.nome)}')">Excluir</button>
           </div>
         </td>
       </tr>`).join('');
@@ -2821,10 +2868,11 @@ async function loadEmbaixadores() {
 
 async function toggleEmbaixador(id, ativo) {
   try {
-    await sbFetch(`/rest/v1/embaixadores?id=eq.${id}`, {
+    const res = await sbFetch(`/rest/v1/embaixadores?id=eq.${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ ativo })
     });
+    if (!res.ok) throw new Error('Erro ao atualizar status (' + res.status + ')');
     showToast(ativo ? 'Embaixador ativado' : 'Embaixador desativado', 'success');
     loadStats();
   } catch (err) { showToast('Erro ao atualizar status', 'error'); }
@@ -2961,7 +3009,8 @@ async function excluirRegistro(tabela, id, rowId, nome) {
 async function deleteEmbaixador(id, nome) {
   if (!confirm(`Excluir embaixador "${nome}"? Esta ação não pode ser desfeita.`)) return;
   try {
-    await sbFetch(`/rest/v1/embaixadores?id=eq.${id}`, { method: 'DELETE' });
+    const res = await sbFetch(`/rest/v1/embaixadores?id=eq.${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Erro ao excluir (' + res.status + ')');
     showToast('Embaixador excluído', 'success');
     loadEmbaixadores(); loadStats();
   } catch (err) { showToast('Erro ao excluir', 'error'); }
@@ -3070,6 +3119,7 @@ async function loadMarcas() {
     if (marcasFilter !== 'todos') url += `&status=eq.${marcasFilter}`;
 
     const res = await sbFetch(url);
+    if (!res.ok) throw new Error('Erro ao carregar (' + res.status + ')');
     const rows = await res.json();
 
     if (!Array.isArray(rows) || !rows.length) {
@@ -3100,7 +3150,7 @@ async function loadMarcas() {
           <div class="action-group">
             ${m.status !== 'aprovado'  ? `<button class="btn btn-sm btn-approve" onclick="atualizarStatus('marcas_waitlist','${m.id}','aprovado','row-marca-${m.id}')">Aprovar</button>` : ''}
             ${m.status !== 'rejeitado' ? `<button class="btn btn-sm btn-reject"  onclick="atualizarStatus('marcas_waitlist','${m.id}','rejeitado','row-marca-${m.id}')">Rejeitar</button>` : ''}
-            <button class="btn btn-sm btn-delete" onclick="excluirRegistro('marcas_waitlist','${m.id}','row-marca-${m.id}','${escapeHtml((m.primeiro_nome||'') + ' ' + (m.sobrenome||'')).trim() || m.empresa || 'esta marca'}')">Excluir</button>
+            <button class="btn btn-sm btn-delete" onclick="excluirRegistro('marcas_waitlist','${m.id}','row-marca-${m.id}','${jsStr(((m.primeiro_nome||'') + ' ' + (m.sobrenome||'')).trim() || m.empresa || 'esta marca')}')">Excluir</button>
           </div>
         </td>
       </tr>`).join('');
@@ -3128,6 +3178,7 @@ async function loadDetentores() {
     if (detentoresFilter !== 'todos') url += `&status=eq.${detentoresFilter}`;
 
     const res = await sbFetch(url);
+    if (!res.ok) throw new Error('Erro ao carregar (' + res.status + ')');
     const rows = await res.json();
 
     if (!Array.isArray(rows) || !rows.length) {
@@ -3160,7 +3211,7 @@ async function loadDetentores() {
             ${d.status !== 'aprovado'  ? `<button class="btn btn-sm btn-approve" onclick="atualizarStatus('detentores_waitlist','${d.id}','aprovado','row-det-${d.id}')">Aprovar</button>` : ''}
             ${d.status !== 'rejeitado' ? `<button class="btn btn-sm btn-reject"  onclick="atualizarStatus('detentores_waitlist','${d.id}','rejeitado','row-det-${d.id}')">Rejeitar</button>` : ''}
             ${d.status === 'aprovado'  ? `<button class="btn btn-sm btn-reenviar" onclick="criarContaEEnviarAcesso('detentores_waitlist','${d.id}')">Reenviar acesso</button>` : ''}
-            <button class="btn btn-sm btn-delete" onclick="excluirRegistro('detentores_waitlist','${d.id}','row-det-${d.id}','${escapeHtml(d.nome || d.empresa || 'este detentor')}')">Excluir</button>
+            <button class="btn btn-sm btn-delete" onclick="excluirRegistro('detentores_waitlist','${d.id}','row-det-${d.id}','${jsStr(d.nome || d.empresa || 'este detentor')}')">Excluir</button>
           </div>
         </td>
       </tr>`).join('');
@@ -3181,7 +3232,11 @@ function filterDetentores(status, btn) {
 async function adminAction(action, payload = {}) {
   const session = await getSession();
   const token = session?.access_token;
-  if (!token) { showToast('Sessão expirada. Faça login novamente.', 'error'); return null; }
+  if (!token) {
+    showToast('Sessão expirada. Faça login novamente.', 'error');
+    doLogout();
+    throw new Error('Sessão expirada');
+  }
 
   const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-actions`, {
     method: 'POST',
@@ -3263,7 +3318,7 @@ function statusBadge(status) {
     rejeitado: ['badge-red',   'Rejeitado'],
     novo:      ['badge-blue',  'Novo']
   };
-  const [cls, label] = map[status] || ['badge-gray', status || '—'];
+  const [cls, label] = map[status] || ['badge-gray', escapeHtml(status) || '—'];
   return `<span class="badge ${cls}">${label}</span>`;
 }
 
@@ -3347,7 +3402,7 @@ function openPerfilMarca(m) {
     <button class="btn btn-outline" onclick="closeModalPerfil()">Fechar</button>
     ${m.status !== 'aprovado'  ? `<button class="btn btn-approve" onclick="atualizarStatus('marcas_waitlist','${m.id}','aprovado','row-marca-${m.id}');closeModalPerfil();">Aprovar</button>` : ''}
     ${m.status !== 'rejeitado' ? `<button class="btn btn-reject"  onclick="atualizarStatus('marcas_waitlist','${m.id}','rejeitado','row-marca-${m.id}');closeModalPerfil();">Rejeitar</button>` : ''}
-    <button class="btn btn-delete" onclick="excluirRegistro('marcas_waitlist','${m.id}','row-marca-${m.id}','${escapeHtml(((m.primeiro_nome||'') + ' ' + (m.sobrenome||'')).trim() || m.empresa || 'esta marca')}');closeModalPerfil();">Excluir</button>`;
+    <button class="btn btn-delete" onclick="excluirRegistro('marcas_waitlist','${m.id}','row-marca-${m.id}','${jsStr(((m.primeiro_nome||'') + ' ' + (m.sobrenome||'')).trim() || m.empresa || 'esta marca')}');closeModalPerfil();">Excluir</button>`;
 
   document.getElementById('modalPerfil').classList.add('show');
 }
@@ -3411,7 +3466,7 @@ async function loadOportunidades() {
   } catch (e) {
     console.error('[loadOportunidades]', e);
     document.getElementById('tbodyOportunidades').innerHTML =
-      '<tr><td colspan="6" style="color:var(--red);padding:16px">Erro ao carregar oportunidades.</td></tr>';
+      '<tr><td colspan="7" style="color:var(--red);padding:16px">Erro ao carregar oportunidades.</td></tr>';
   }
 }
 
@@ -3458,7 +3513,7 @@ function renderOportunidades(filter, btn) {
   tbody.innerHTML = rows.map(o => {
     const detentor = o.perfil_detentor?.nome || o.perfil_detentor?.empresa || o.detentor_id?.slice(0,8) || '—';
     const status = o.status || 'rascunho';
-    const data = o.created_at ? new Date(o.created_at).toLocaleDateString('pt-BR') : '—';
+    const data = o.criado_em ? new Date(o.criado_em).toLocaleDateString('pt-BR') : '—';
     const cor = statusColor[status] || '#6B7280';
     const sl  = statusLabel[status] || status;
     const tl  = tipoLabel[o.categoria] || o.categoria || '—';
@@ -3492,7 +3547,7 @@ function renderOportunidades(filter, btn) {
           ` : ''}
           ${o.detentor_id && o.perfil_detentor?.cadastro_juridico_completo ? `
           <button class="btn btn-sm" style="padding:4px 10px;font-size:12px;background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE"
-            onclick="verJuridicoDetentor('${o.detentor_id}', '${escapeHtml(o.perfil_detentor?.nome || o.perfil_detentor?.empresa || '')}')">
+            onclick="verJuridicoDetentor('${o.detentor_id}', '${jsStr(o.perfil_detentor?.nome || o.perfil_detentor?.empresa || '')}')">
             📋 Jurídico
           </button>` : ''}
           <a href="criar-oportunidade.html?edit=${o.id}" target="_blank"
@@ -3500,7 +3555,7 @@ function renderOportunidades(filter, btn) {
             ✏️ Editar
           </a>
           <button class="btn btn-sm btn-delete" style="padding:4px 10px;font-size:12px"
-            onclick="deleteOportunidade('${o.id}', ${JSON.stringify(escapeHtml(o.titulo||'(sem título)'))})">
+            onclick="deleteOportunidade('${o.id}', '${jsStr(o.titulo||'(sem título)')}')">
             🗑 Apagar
           </button>
         </div>
@@ -3621,6 +3676,11 @@ async function verJuridicoDetentor(detentorId, nomeDetentor) {
 
   try {
     const session = await getSession();
+    if (!session?.access_token) {
+      showToast('Sessão expirada. Faça login novamente.', 'error');
+      doLogout();
+      return;
+    }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_perfil_juridico`, {
       method: 'POST',
       headers: {
@@ -3635,8 +3695,19 @@ async function verJuridicoDetentor(detentorId, nomeDetentor) {
     const rows = await res.json();
     const d = rows[0];
 
+    let cnpjsExtras = [];
+    try {
+      const resExtras = await fetch(`${SUPABASE_URL}/rest/v1/rpc/list_detentor_cnpjs`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_perfil_id: detentorId })
+      });
+      if (resExtras.ok) cnpjsExtras = (await resExtras.json()).filter(c => !c.is_default);
+    } catch (e) { console.warn('[verJuridicoDetentor] falha ao carregar CNPJs extras', e); }
+
     if (!d) {
-      body.innerHTML = '<p style="color:var(--gray-5);text-align:center;padding:24px">Dados jurídicos não encontrados.</p>';
+      body.innerHTML = '<p style="color:var(--gray-5);text-align:center;padding:24px">Dados jurídicos não encontrados.</p>'
+        + _renderCnpjsExtrasAdminHtml(detentorId, nomeDetentor, cnpjsExtras);
       return;
     }
 
@@ -3675,12 +3746,14 @@ CPF RESPONSÁVEL: ${d.responsavel_legal_cpf || ''}`;
       </div>
 
       <button onclick="
-        navigator.clipboard.writeText(${JSON.stringify(textoContrato)});
+        navigator.clipboard.writeText('${jsStr(textoContrato)}');
         this.textContent='✅ Copiado!';
         setTimeout(()=>this.textContent='📋 Copiar dados para contrato',2000)
       " style="width:100%;height:40px;border:1.5px solid #1D4ED8;border-radius:8px;background:#EFF6FF;color:#1D4ED8;font-weight:600;font-size:13px;cursor:pointer">
         📋 Copiar dados para contrato
-      </button>`;
+      </button>
+
+      ${_renderCnpjsExtrasAdminHtml(detentorId, nomeDetentor, cnpjsExtras)}`;
   } catch (e) {
     console.error('[verJuridicoDetentor]', e);
     body.innerHTML = '<p style="color:var(--red);text-align:center;padding:24px">Erro ao carregar dados jurídicos.</p>';
@@ -3689,6 +3762,65 @@ CPF RESPONSÁVEL: ${d.responsavel_legal_cpf || ''}`;
 
 function closeModalJuridico() {
   document.getElementById('modalJuridico')?.classList.remove('show');
+}
+
+// Lista os CNPJs adicionais do detentor (além do principal) com aprovar/rejeitar por item
+function _renderCnpjsExtrasAdminHtml(detentorId, nomeDetentor, cnpjsExtras) {
+  if (!cnpjsExtras || !cnpjsExtras.length) return '';
+  const statusMap = {
+    pendente:  { t: 'Pendente',   bg: '#f3f4f6', c: '#6b7280' },
+    aprovado:  { t: '✓ Aprovado', bg: '#dcfce7', c: '#16a34a' },
+    rejeitado: { t: 'Rejeitado',  bg: '#fee2e2', c: '#dc2626' },
+  };
+  const items = cnpjsExtras.map(c => {
+    const s = statusMap[c.status] || statusMap.pendente;
+    const acoes = c.status === 'pendente'
+      ? `<div style="display:flex;gap:8px;margin-top:8px">
+           <button class="btn btn-sm" style="background:#16a34a;color:#fff;border:none;padding:5px 12px"
+             onclick="_aprovarCnpjAdmin('${c.id}','${detentorId}','${jsStr(nomeDetentor)}')">✓ Aprovar</button>
+           <button class="btn btn-sm" style="background:#fee2e2;color:#ef4444;border:1px solid rgba(239,68,68,0.2);padding:5px 12px"
+             onclick="_rejeitarCnpjAdmin('${c.id}','${detentorId}','${jsStr(nomeDetentor)}')">✕ Rejeitar</button>
+         </div>`
+      : '';
+    return `
+      <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+          <div style="font-weight:600;font-size:13px">${escapeHtml(c.apelido || 'CNPJ')}</div>
+          <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;background:${s.bg};color:${s.c}">${s.t}</span>
+        </div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px">${escapeHtml(c.cnpj || '')} · ${escapeHtml(c.razao_social || '')}</div>
+        ${acoes}
+      </div>`;
+  }).join('');
+  return `
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb">
+      <div style="font-weight:700;font-size:12px;color:#374151;margin-bottom:10px;text-transform:uppercase;letter-spacing:.04em">Outros CNPJs desta conta</div>
+      ${items}
+    </div>`;
+}
+
+async function _aprovarCnpjAdmin(cnpjId, detentorId, nomeDetentor) {
+  if (!confirm('Aprovar este CNPJ? Ele passará a poder ser usado em oportunidades.')) return;
+  try {
+    await adminAction('set-cnpj-status', { cnpj_id: cnpjId, status: 'aprovado' });
+    showToast('CNPJ aprovado.', 'success');
+    verJuridicoDetentor(detentorId, nomeDetentor);
+  } catch (e) {
+    console.error('[_aprovarCnpjAdmin]', e);
+    showToast('Erro ao aprovar CNPJ.', 'error');
+  }
+}
+
+async function _rejeitarCnpjAdmin(cnpjId, detentorId, nomeDetentor) {
+  if (!confirm('Rejeitar este CNPJ? O detentor será notificado.')) return;
+  try {
+    await adminAction('set-cnpj-status', { cnpj_id: cnpjId, status: 'rejeitado' });
+    showToast('CNPJ rejeitado.', 'success');
+    verJuridicoDetentor(detentorId, nomeDetentor);
+  } catch (e) {
+    console.error('[_rejeitarCnpjAdmin]', e);
+    showToast('Erro ao rejeitar CNPJ.', 'error');
+  }
 }
 
 async function togglePodePublicar(perfilId, currentValue) {
@@ -3802,9 +3934,14 @@ let _financeiroAprovList = [];
 async function loadFinanceiroAprov() {
   try {
     const session = await getSession();
+    if (!session?.access_token) {
+      showToast('Sessão expirada. Faça login novamente.', 'error');
+      doLogout();
+      throw new Error('Sessão expirada');
+    }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/list_dados_financeiros_pendentes`, {
       method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${session?.access_token || SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({})
     });
     const data = res.ok ? await res.json() : [];
@@ -3883,6 +4020,11 @@ async function _loadFinAprovDados(pid) {
   if (!el) return;
   try {
     const session = await getSession();
+    if (!session?.access_token) {
+      showToast('Sessão expirada. Faça login novamente.', 'error');
+      doLogout();
+      return;
+    }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_dados_financeiros`, {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
@@ -3894,7 +4036,7 @@ async function _loadFinAprovDados(pid) {
     const tipoConta = d.tipo_conta === 'poupanca' ? 'Poupança' : (d.tipo_conta === 'corrente' ? 'Corrente' : '');
     const row = (label, val) => {
       if (!val) return '';
-      const safeVal = String(val).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      const safeVal = jsStr(val);
       return `<div style="margin-bottom:10px;display:flex;align-items:flex-start;gap:6px">
         <div style="flex:1">
           <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1px">${label}</div>
@@ -3919,6 +4061,11 @@ async function _loadFinAprovDados(pid) {
 
 async function _setFinStatus(pid, status, motivo) {
   const session = await getSession();
+  if (!session?.access_token) {
+    showToast('Sessão expirada. Faça login novamente.', 'error');
+    doLogout();
+    throw new Error('Sessão expirada');
+  }
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/set_dados_financeiros_status`, {
     method: 'POST',
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
@@ -4047,7 +4194,10 @@ function renderAprovacoes() {
   }).join('');
 }
 
-function escHtml(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 async function toggleAprovAcordeon(perfilId, oppId) {
   const body    = document.getElementById('aprov-body-' + perfilId);
@@ -4073,8 +4223,10 @@ function _copyField(text, label) {
 }
 
 // Abre dashboard ou criação de oportunidade em modo impersonation
-function _aprovOpenImpersonate(perfilId, nome, email, dest) {
-  const session = currentSession;
+async function _aprovOpenImpersonate(perfilId, nome, email, dest) {
+  // getSession() renova o token se necessário — currentSession pode estar vencido
+  // e gravaria um admin_token morto no contexto de impersonation.
+  const session = await getSession();
   if (!session?.access_token) { showToast('Sessão admin expirada.', 'error'); return; }
   const nonce = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + '-' + Math.random().toString(36).slice(2));
   const ctx = {
@@ -4098,6 +4250,11 @@ async function _loadAprovJuridico(perfilId) {
   if (!el) return;
   try {
     const session = await getSession();
+    if (!session?.access_token) {
+      showToast('Sessão expirada. Faça login novamente.', 'error');
+      doLogout();
+      return;
+    }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_perfil_juridico`, {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
@@ -4114,7 +4271,7 @@ async function _loadAprovJuridico(perfilId) {
 
     const row = (label, val) => {
       if (!val) return '';
-      const safeVal = val.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      const safeVal = jsStr(val);
       return `<div style="margin-bottom:10px;display:flex;align-items:flex-start;gap:6px">
         <div style="flex:1">
           <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:1px">${label}</div>
@@ -4149,8 +4306,8 @@ async function _loadAprovOpps(perfilId, firstOppId) {
   const item = _aprovacoesList.find(i => i.perfil?.id === perfilId);
   const nome  = escHtml(item?.perfil?.nome  || '');
   const email = escHtml(item?.perfil?.email || '');
-  const safeNome  = (item?.perfil?.nome  || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-  const safeEmail = (item?.perfil?.email || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const safeNome  = jsStr(item?.perfil?.nome  || '');
+  const safeEmail = jsStr(item?.perfil?.email || '');
 
   // Botões de ação sempre visíveis
   const actionBar = `
@@ -4194,23 +4351,30 @@ async function aprovarDetentor(perfilId, oppId) {
     if (oppId) actions.push(adminAction('update-oportunidade-as', { opp_id: oppId, opp_data: { status: 'publicada', ativo: true } }));
     await Promise.all(actions);
     // Notifica o detentor
-    const session = await getSession();
-    await sbFetch('/rest/v1/notifications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        user_id: perfilId,
-        type: 'conta_aprovada',
-        title: 'Conta aprovada! 🎉',
-        description: 'Sua conta foi aprovada. Você já pode publicar suas oportunidades na plataforma.',
-        data: { section: 'oportunidades' }
-      })
-    });
+    let notifOk = true;
+    try {
+      const resNotif = await sbFetch('/rest/v1/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          user_id: perfilId,
+          type: 'conta_aprovada',
+          title: 'Conta aprovada! 🎉',
+          description: 'Sua conta foi aprovada. Você já pode publicar suas oportunidades na plataforma.',
+          data: { section: 'oportunidades' }
+        })
+      });
+      if (!resNotif.ok) notifOk = false;
+    } catch (eNotif) { notifOk = false; }
     _aprovacoesList = _aprovacoesList.filter(i => i.perfil?.id !== perfilId);
     renderAprovacoes();
     _updateAprovacoesBadge();
     loadApprovalHistory();
-    showToast('Detentor aprovado' + (oppId ? ' e oportunidade publicada!' : '!'), 'success');
+    if (notifOk) {
+      showToast('Detentor aprovado' + (oppId ? ' e oportunidade publicada!' : '!'), 'success');
+    } else {
+      showToast('Aprovado, mas falhou ao notificar o detentor.', 'error');
+    }
   } catch(e) {
     console.error('[aprovarDetentor]', e);
     showToast('Erro ao aprovar. Tente novamente.', 'error');
@@ -4245,22 +4409,30 @@ async function confirmarRejeicao(perfilId, oppId) {
   try {
     if (oppId) await adminAction('update-oportunidade-as', { opp_id: oppId, opp_data: { status: 'rascunho', ativo: false } });
     // Notifica o detentor com o motivo
-    await sbFetch('/rest/v1/notifications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        user_id: perfilId,
-        type: 'conta_bloqueada',
-        title: 'Ajustes necessários na sua conta',
-        description: motivo,
-        data: { section: 'configuracoes' }
-      })
-    });
+    let notifOk = true;
+    try {
+      const resNotif = await sbFetch('/rest/v1/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          user_id: perfilId,
+          type: 'conta_bloqueada',
+          title: 'Ajustes necessários na sua conta',
+          description: motivo,
+          data: { section: 'configuracoes' }
+        })
+      });
+      if (!resNotif.ok) notifOk = false;
+    } catch (eNotif) { notifOk = false; }
     _aprovacoesList = _aprovacoesList.filter(i => i.perfil?.id !== perfilId);
     delete _aprovAcordeonLoaded[perfilId];
     renderAprovacoes();
     _updateAprovacoesBadge();
-    showToast('Rejeitado — notificação enviada ao detentor.', 'success');
+    if (notifOk) {
+      showToast('Rejeitado — notificação enviada ao detentor.', 'success');
+    } else {
+      showToast('Rejeitado, mas falhou ao notificar o detentor.', 'error');
+    }
   } catch(e) {
     console.error('[confirmarRejeicao]', e);
     showToast('Erro ao rejeitar.', 'error');
@@ -4319,6 +4491,7 @@ async function loadDeals() {
       'contratos(id,documento_url,status,completo_em,enviado_em)' +
       '&status=in.(aceita,fechada)&order=updated_at.desc'
     );
+    if (!res.ok) throw new Error('Erro ao carregar (' + res.status + ')');
     const data = await res.json();
     allDeals = Array.isArray(data) ? data : [];
     renderDeals(currentDealFilter);
@@ -4443,6 +4616,11 @@ async function _fetchJuridicoAdmin(perfilId) {
   if (!perfilId) return null;
   try {
     const session = await getSession();
+    if (!session?.access_token) {
+      showToast('Sessão expirada. Faça login novamente.', 'error');
+      doLogout();
+      return null;
+    }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_perfil_juridico`, {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
@@ -4757,10 +4935,10 @@ async function loadMudancasMarca() {
       const logoSrc = pending.icon || '';
       const logoInitial = (pending.name || '?')[0].toUpperCase();
       const iconHtml = logoSrc
-        ? `<img src="${logoSrc}" alt=""
+        ? `<img src="${escapeHtml(logoSrc)}" alt=""
             style="width:28px;height:28px;border-radius:6px;object-fit:contain;background:#f5f5f5;margin-right:8px;vertical-align:middle;flex-shrink:0"
-            onerror="this.outerHTML='<span style=\\'width:28px;height:28px;border-radius:6px;background:var(--gold-pale);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brown-warm);margin-right:8px;flex-shrink:0;\\'>${logoInitial}</span>'">`
-        : `<span style="width:28px;height:28px;border-radius:6px;background:var(--gold-pale);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brown-warm);margin-right:8px;flex-shrink:0;">${logoInitial}</span>`;
+            onerror="this.outerHTML='<span style=\\'width:28px;height:28px;border-radius:6px;background:var(--gold-pale);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brown-warm);margin-right:8px;flex-shrink:0;\\'>${jsStr(logoInitial)}</span>'">`
+        : `<span style="width:28px;height:28px;border-radius:6px;background:var(--gold-pale);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--brown-warm);margin-right:8px;flex-shrink:0;">${escapeHtml(logoInitial)}</span>`;
       return `<tr id="mudanca-row-${r.id}" data-id="${r.id}">
         <td class="td-check" onclick="event.stopPropagation()">
           <input type="checkbox" class="row-cb" onchange="onRowCheck('mudancasMarca')">
@@ -4785,14 +4963,14 @@ async function loadMudancasMarca() {
           <div style="display:flex;gap:6px">
             <button class="btn-sm btn-approve" onclick="aprovarMudancaMarca('${r.id}')">✅ Aprovar</button>
             <button class="btn-sm btn-reject"  onclick="rejeitarMudancaMarca('${r.id}')">✕ Rejeitar</button>
-            <button class="btn btn-sm btn-delete" onclick="excluirPorPerfil('${r.id}','mudanca-row-${r.id}','${escapeHtml(r.nome||r.email||'este usuário')}')">Excluir</button>
+            <button class="btn btn-sm btn-delete" onclick="excluirPorPerfil('${r.id}','mudanca-row-${r.id}','${jsStr(r.nome||r.email||'este usuário')}')">Excluir</button>
           </div>
         </td>
       </tr>`;
     }).join('');
 
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="color:red">Erro: ${err.message}</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state" style="color:red">Erro: ${err.message}</div></td></tr>`;
     console.error(err);
   }
 }
@@ -4844,12 +5022,6 @@ let _impersonateDetentores = [];  // cache da lista
 let _impersonateSelected = null;  // detentor selecionado
 
 async function loadImpersonationDetentores() {
-  // Não recarregar se já carregou
-  if (_impersonateDetentores.length > 0) {
-    renderImpersonateCards(_impersonateDetentores);
-    return;
-  }
-
   const loadingEl = document.getElementById('impersonate-loading');
   const listEl    = document.getElementById('impersonate-list');
   const emptyEl   = document.getElementById('impersonate-empty');
@@ -4890,7 +5062,7 @@ function renderImpersonateCards(detentores) {
   }
   container.innerHTML = detentores.map(d => `
     <div class="row-item impersonate-card" data-id="${d.id}" data-nome="${escapeHtml(d.nome || d.empresa || '')}" data-email="${escapeHtml(d.email || '')}"
-      onclick="selectImpersonate('${d.id}', '${escapeHtml(d.nome || d.empresa || 'Sem nome')}', '${escapeHtml(d.email || '')}')">
+      onclick="selectImpersonate('${d.id}', '${jsStr(d.nome || d.empresa || 'Sem nome')}', '${jsStr(d.email || '')}')">
       <div class="row-avatar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
       </div>
@@ -5107,15 +5279,15 @@ async function loadAdmins() {
           <div class="row-meta">${escHtml(a.email)}</div>
         </div>
         <div class="row-actions">
-          <button onclick="adminEditNome('${a.id}','${escHtml(a.nome || '')}')" class="icon-btn" title="Editar nome">
+          <button onclick="adminEditNome('${a.id}','${jsStr(a.nome || '')}')" class="icon-btn" title="Editar nome">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
-          <button onclick="adminResetSenha('${a.id}','${escHtml(a.email)}')" class="icon-btn" title="Redefinir senha">
+          <button onclick="adminResetSenha('${a.id}','${jsStr(a.email)}')" class="icon-btn" title="Redefinir senha">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2M16 7l3 3M14 9l3 3"/></svg>
           </button>
           ${a.id === myId
             ? ``
-            : `<button onclick="adminRemove('${a.id}','${escHtml(a.email)}')" class="icon-btn danger" title="Remover acesso">
+            : `<button onclick="adminRemove('${a.id}','${jsStr(a.email)}')" class="icon-btn danger" title="Remover acesso">
                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                </button>`
           }
@@ -5184,7 +5356,7 @@ function adminResetSenha(userId, email) {
         style="padding:2px 8px;background:transparent;border:1px solid var(--gray-2);border-radius:4px;font-size:11px;color:var(--gray-4);cursor:pointer;font-family:var(--font-body)">
         📋 Copiar
       </button>
-      <button onclick="adminConfirmarSenha('${userId}','${escHtml(pwd)}')"
+      <button onclick="adminConfirmarSenha('${userId}','${jsStr(pwd)}')"
         style="padding:2px 10px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-body)">
         ✓ Salvar
       </button>
@@ -5207,6 +5379,11 @@ function adminCopiarSenha(userId) {
 async function adminConfirmarSenha(userId, novaSenha) {
   try {
     const session = await getSession();
+    if (!session?.access_token) {
+      showToast('Sessão expirada. Faça login novamente.', 'error');
+      doLogout();
+      return;
+    }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_reset_user_password`, {
       method: 'POST',
       headers: {
@@ -5235,6 +5412,11 @@ async function adminSalvarNome(userId) {
 
   try {
     const session = await getSession();
+    if (!session?.access_token) {
+      showToast('Sessão expirada. Faça login novamente.', 'error');
+      doLogout();
+      return;
+    }
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_update_user_nome`, {
       method: 'POST',
       headers: {
@@ -5293,11 +5475,10 @@ async function adminInvite() {
   btn.textContent = 'Criando…';
 
   try {
-    const result = await _callManageAdmins({ action: 'create-admin', email, nome, tempPassword: password });
+    await _callManageAdmins({ action: 'create-admin', email, nome, tempPassword: password });
 
-    const wasPromoted = result?.promoted === true;
     sucEl.innerHTML = `
-      ✅ <strong>${escHtml(email)}</strong> ${wasPromoted ? 'promovido para admin' : 'criado'} com sucesso!<br>
+      ✅ <strong>${escHtml(email)}</strong> criado com sucesso!<br>
       Compartilhe as credenciais por canal seguro:<br>
       <strong>Email:</strong> ${escHtml(email)}<br>
       <strong>Senha:</strong> ${escHtml(password)}
@@ -5316,11 +5497,7 @@ async function adminInvite() {
       err.message?.toLowerCase().includes('already been registered');
 
     if (isAlreadyRegistered) {
-      errEl.innerHTML = `
-        ⚠️ Este email já tem conta na plataforma.<br>
-        Para promovê-lo a admin, entre em contato com o suporte técnico
-        ou use o SQL: <code>UPDATE auth.users SET raw_user_meta_data = raw_user_meta_data || '{"tipo":"admin"}'::jsonb WHERE email = '${escHtml(email)}';</code>
-      `;
+      errEl.textContent = 'Este email já tem conta na plataforma. Exclua a conta existente ou use outro email.';
     } else {
       errEl.textContent = err.message;
     }
@@ -5331,9 +5508,6 @@ async function adminInvite() {
   }
 }
 
-function escHtml(str) {
-  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
 </script>
 
 <!-- Modal: Dados Jurídicos do Detentor -->
