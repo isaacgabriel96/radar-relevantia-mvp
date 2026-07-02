@@ -2356,6 +2356,19 @@ tbody tr:last-child td { border-bottom: none; }
           </div>
         </div>
 
+        <!-- Card: Outros CNPJs -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-header">
+            <div class="card-title">Outros CNPJs</div>
+            <button class="btn btn-ghost btn-sm" id="btnAddCnpjExtra" onclick="adicionarCnpjExtra()">+ Adicionar CNPJ</button>
+          </div>
+          <div style="padding:24px">
+            <p style="font-size:13px;color:var(--gray-400);margin:0 0 16px 0">Cadastre CNPJs adicionais para usar em oportunidades diferentes do principal. Cada CNPJ novo entra em análise da Relevantia antes de poder ser selecionado na publicação. Máximo de 3 CNPJs por conta (incluindo o principal acima).</p>
+            <div id="cnpjExtraList"></div>
+            <div id="cnpjExtraEmpty" style="font-size:13px;color:var(--gray-400)">Nenhum CNPJ adicional cadastrado.</div>
+          </div>
+        </div>
+
       </div><!-- /cfg-panel-juridico -->
 
       <!-- Painel: Financeiro -->
@@ -7350,7 +7363,7 @@ function switchConfigTab(tab) {
   });
   if (tab === 'equipe') loadEquipe();
   if (tab === 'financeiro') loadFinanceiro();
-  if (tab === 'juridico') loadJuridicoFromPerfil();
+  if (tab === 'juridico') { loadJuridicoFromPerfil(); loadDetentorCnpjs(); }
 }
 
 // ─── ABA JURÍDICO ───
@@ -7555,6 +7568,225 @@ async function buscarCep(input) {
       set('jur-logradouro', d.logradouro);
       set('jur-cidade',     d.localidade);
       const estadoEl = document.getElementById('jur-estado');
+      if (estadoEl && !estadoEl.value) estadoEl.value = d.uf;
+    }
+  } catch (_) {}
+}
+
+// ─── ABA JURÍDICO: CNPJs adicionais (até 3 no total, incluindo o principal) ───
+let _cnpjExtraItems = [];       // itens extras (exclui o principal), vindos de list_detentor_cnpjs
+let _cnpjExtraEditingKey = null; // id do card em edição, 'new' para cadastro novo, ou null
+
+function _ufOptionsHtml(selected) {
+  const ufs = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+  return '<option value="">Selecione</option>' + ufs.map(u => `<option${u === selected ? ' selected' : ''}>${u}</option>`).join('');
+}
+
+function _cnpjStatusBadgeHtml(status) {
+  const map = {
+    pendente:  { t: 'Pendente',   bg: 'var(--gray-100)', c: 'var(--gray-400)' },
+    aprovado:  { t: '✓ Aprovado', bg: '#dcfce7',          c: '#16a34a' },
+    rejeitado: { t: 'Rejeitado',  bg: '#fee2e2',          c: '#dc2626' },
+  };
+  const s = map[status] || map.pendente;
+  return `<span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;background:${s.bg};color:${s.c}">${s.t}</span>`;
+}
+
+async function loadDetentorCnpjs() {
+  const { data, error } = await sb.rpc('list_detentor_cnpjs');
+  if (error) { console.error('[loadDetentorCnpjs]', error); return; }
+  _cnpjExtraItems = (data || []).filter(d => !d.is_default);
+  _cnpjExtraEditingKey = null;
+  renderCnpjExtraList();
+}
+
+function renderCnpjExtraList() {
+  const list = document.getElementById('cnpjExtraList');
+  const empty = document.getElementById('cnpjExtraEmpty');
+  const addBtn = document.getElementById('btnAddCnpjExtra');
+  if (!list) return;
+  const totalComPrincipal = _cnpjExtraItems.length + 1;
+  if (addBtn) addBtn.style.display = (totalComPrincipal >= 3 || _cnpjExtraEditingKey) ? 'none' : '';
+  const cards = _cnpjExtraItems.map(item =>
+    item.id === _cnpjExtraEditingKey ? _cnpjExtraFormHtml(item.id, item) : _cnpjExtraCardHtml(item)
+  ).join('') + (_cnpjExtraEditingKey === 'new' ? _cnpjExtraFormHtml('new', {}) : '');
+  list.innerHTML = cards;
+  empty.style.display = cards ? 'none' : '';
+}
+
+function _cnpjExtraCardHtml(item) {
+  const cnpjFmt = (item.cnpj || '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+  return `
+    <div class="card" style="margin-bottom:12px;border:1px solid var(--gray-200)">
+      <div class="card-header" style="padding:14px 20px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="card-title" style="font-size:14px">${item.apelido || 'CNPJ'}</div>
+          ${_cnpjStatusBadgeHtml(item.status)}
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="editarCnpjExtra('${item.id}')">Editar</button>
+          <button class="btn btn-ghost btn-sm" onclick="removerCnpjExtra('${item.id}')">Remover</button>
+        </div>
+      </div>
+      <div style="padding:0 20px 16px;font-size:13px;color:var(--gray-500)">${cnpjFmt || item.cnpj || ''} · ${item.razao_social || ''}</div>
+    </div>`;
+}
+
+function _cnpjExtraFormHtml(key, item) {
+  const p = 'cnx-' + key;
+  const v = (val) => val ? String(val).replace(/"/g, '&quot;') : '';
+  return `
+    <div class="card" style="margin-bottom:12px;border:1px solid var(--gold,#D4AF37)">
+      <div style="padding:20px">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Apelido (opcional)</label>
+            <input class="form-input" id="${p}-apelido" type="text" placeholder="Ex: Filial SP" value="${v(item.apelido)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CNPJ</label>
+            <input class="form-input" id="${p}-cnpj" type="text" placeholder="00.000.000/0000-00" maxlength="18" value="${v(item.cnpj)}" oninput="_djpmMaskCnpj(this)" onblur="_lookupCnpj(this.value,'${p}')">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Razão social</label>
+            <input class="form-input" id="${p}-razao" type="text" placeholder="Razão social completa" value="${v(item.razao_social)}">
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin:16px 0 12px">Endereço</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">CEP</label>
+            <input class="form-input" id="${p}-cep" type="text" placeholder="00000-000" maxlength="9" value="${v(item.cep)}" oninput="_cnxMaskCep(this,'${p}')">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Logradouro</label>
+            <input class="form-input" id="${p}-logradouro" type="text" value="${v(item.logradouro)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Número</label>
+            <input class="form-input" id="${p}-numero" type="text" value="${v(item.numero_endereco)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Complemento</label>
+            <input class="form-input" id="${p}-complemento" type="text" value="${v(item.complemento)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cidade</label>
+            <input class="form-input" id="${p}-cidade" type="text" value="${v(item.cidade)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado</label>
+            <select class="form-input" id="${p}-estado" style="appearance:auto">${_ufOptionsHtml(item.estado)}</select>
+          </div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin:16px 0 12px">Responsável legal</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nome completo</label>
+            <input class="form-input" id="${p}-resp-nome" type="text" value="${v(item.responsavel_legal_nome)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CPF</label>
+            <input class="form-input" id="${p}-resp-cpf" type="text" placeholder="000.000.000-00" maxlength="14" value="${v(item.responsavel_legal_cpf)}" oninput="_djpmMaskCpf(this)">
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:16px">
+          <button class="btn btn-gold" onclick="salvarCnpjExtra('${key}')">Salvar CNPJ</button>
+          <button class="btn btn-ghost" onclick="cancelarCnpjExtra()">Cancelar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function adicionarCnpjExtra() {
+  if (_cnpjExtraItems.length + 1 >= 3) { showToast('Máximo de 3 CNPJs por conta.', 'error'); return; }
+  _cnpjExtraEditingKey = 'new';
+  renderCnpjExtraList();
+}
+
+function editarCnpjExtra(id) {
+  _cnpjExtraEditingKey = id;
+  renderCnpjExtraList();
+}
+
+function cancelarCnpjExtra() {
+  _cnpjExtraEditingKey = null;
+  renderCnpjExtraList();
+}
+
+async function salvarCnpjExtra(key) {
+  const p = 'cnx-' + key;
+  const get = (suf) => document.getElementById(p + suf)?.value.trim() || '';
+  const required = [
+    ['-cnpj', 'CNPJ'], ['-razao', 'Razão Social'], ['-cep', 'CEP'], ['-logradouro', 'Logradouro'],
+    ['-numero', 'Número'], ['-cidade', 'Cidade'], ['-estado', 'Estado'],
+    ['-resp-nome', 'Nome do responsável'], ['-resp-cpf', 'CPF do responsável'],
+  ];
+  for (const [suf, label] of required) {
+    if (!get(suf)) { showToast('Preencha o campo: ' + label, 'error'); return; }
+  }
+  const cnpjRaw = get('-cnpj');
+  if (!_djpmValidateCnpj(cnpjRaw)) { showToast('CNPJ inválido. Verifique os dígitos.', 'error'); return; }
+  const cpfRaw = get('-resp-cpf');
+  if (!_djpmValidateCpf(cpfRaw)) { showToast('CPF inválido. Verifique os dígitos.', 'error'); return; }
+
+  const params = {
+    p_apelido: get('-apelido') || null,
+    p_cnpj: cnpjRaw,
+    p_razao_social: get('-razao'),
+    p_cep: get('-cep'),
+    p_logradouro: get('-logradouro'),
+    p_numero_endereco: get('-numero'),
+    p_complemento: get('-complemento') || null,
+    p_cidade: get('-cidade'),
+    p_estado: get('-estado'),
+    p_responsavel_legal_nome: get('-resp-nome'),
+    p_responsavel_legal_cpf: cpfRaw,
+  };
+
+  const { error } = key === 'new'
+    ? await sb.rpc('add_detentor_cnpj', params)
+    : await sb.rpc('update_detentor_cnpj', { p_cnpj_id: key, ...params });
+
+  if (error) {
+    console.error('[salvarCnpjExtra]', error);
+    showToast(error.message || 'Erro ao salvar CNPJ. Tente novamente.', 'error');
+    return;
+  }
+  showToast('CNPJ salvo! Ele entra em análise da Relevantia antes de poder ser usado.', 'success');
+  await loadDetentorCnpjs();
+}
+
+async function removerCnpjExtra(id) {
+  if (!confirm('Remover este CNPJ? Essa ação não pode ser desfeita.')) return;
+  const { error } = await sb.rpc('remove_detentor_cnpj', { p_cnpj_id: id });
+  if (error) {
+    console.error('[removerCnpjExtra]', error);
+    showToast(error.message || 'Não foi possível remover este CNPJ.', 'error');
+    return;
+  }
+  showToast('CNPJ removido.', 'success');
+  await loadDetentorCnpjs();
+}
+
+function _cnxMaskCep(el, prefix) {
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) v = v.replace(/^(\d{5})(\d*)/,'$1-$2');
+  el.value = v;
+  if (v.replace('-','').length === 8) _cnxBuscarCep(v, prefix);
+}
+
+async function _cnxBuscarCep(cepVal, prefix) {
+  const cep = cepVal.replace(/\D/g,'');
+  if (cep.length !== 8) return;
+  try {
+    const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const d = await r.json();
+    if (!d.erro) {
+      const set = (suf, val) => { const el = document.getElementById(prefix + suf); if (el && !el.value) el.value = val || ''; };
+      set('-logradouro', d.logradouro);
+      set('-cidade', d.localidade);
+      const estadoEl = document.getElementById(prefix + '-estado');
       if (estadoEl && !estadoEl.value) estadoEl.value = d.uf;
     }
   } catch (_) {}
