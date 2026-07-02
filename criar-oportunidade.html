@@ -4509,6 +4509,15 @@ input[type=number] { -moz-appearance: textfield; }
         </div>
       </div>
 
+      <!-- CNPJ desta oportunidade (só aparece quando a conta já tem ao menos 1 CNPJ cadastrado) -->
+      <div class="form-card" id="cnpj-select-card" style="display:none">
+        <div class="card-header">
+          <div class="card-title">CNPJ desta oportunidade</div>
+          <div class="card-desc">Qual CNPJ vai responder por esta oportunidade?</div>
+        </div>
+        <div id="cnpj-select-inline-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
       <div class="step-actions">
         <button class="btn btn-ghost" onclick="nextStep(7)">← Voltar</button>
         <button class="btn btn-ghost" onclick="saveDraft()">Salvar rascunho</button>
@@ -4616,19 +4625,6 @@ input[type=number] { -moz-appearance: textfield; }
     <div class="jpm-footer">
       <button class="jpm-btn-pub" id="jpm-btn-pub" onclick="_saveJuridicoAndPublish()">Salvar e publicar</button>
       <button class="jpm-btn-later" onclick="_publishAsRascunho()">Publicar depois — salvar como rascunho</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Modal: Selecionar CNPJ para esta oportunidade (contas com mais de 1 CNPJ aprovado) ── -->
-<div class="modal-overlay" id="modal-cnpj-select" onclick="if(event.target===this)_closeCnpjSelectModal()">
-  <div class="jpm-box" style="max-width:480px">
-    <div class="jpm-title">Qual CNPJ usar nesta oportunidade?</div>
-    <div class="jpm-desc">Sua conta tem mais de um CNPJ aprovado. Escolha qual será usado para esta publicação.</div>
-    <div id="cnpj-select-list" style="display:flex;flex-direction:column;gap:10px;margin:16px 0"></div>
-    <div class="jpm-footer">
-      <button class="jpm-btn-pub" id="cnpj-select-btn-pub" onclick="_confirmCnpjSelectAndPublish()">Continuar</button>
-      <button class="jpm-btn-later" onclick="_closeCnpjSelectModal()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -6298,6 +6294,7 @@ function nextStep(n) {
     _updateProgressDots(8);
     currentStep = 8;
     renderReviewSummary();
+    renderCnpjSelectStep8();
     autoFillSlug();
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
@@ -6417,7 +6414,7 @@ function nextStep(n) {
   if (n === 2 && formState.selectedTemplate) {
     renderTemplateFields(formState.selectedTemplate);
   }
-  if (n === 8) { renderReviewSummary(); autoFillSlug(); }
+  if (n === 8) { renderReviewSummary(); renderCnpjSelectStep8(); autoFillSlug(); }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -11193,6 +11190,14 @@ async function saveDraft() {
       oppId = rows[0]?.id;
     }
 
+    // Vincula o CNPJ escolhido (seção "CNPJ desta oportunidade" no step Visibilidade) à oportunidade
+    if (oppId && window._selectedCnpjId) {
+      try {
+        const { error: cnpjErr } = await sb.rpc('set_oportunidade_cnpj', { p_oportunidade_id: oppId, p_cnpj_id: window._selectedCnpjId });
+        if (cnpjErr) console.warn('[Draft] set_oportunidade_cnpj failed', cnpjErr);
+      } catch (e) { console.warn('[Draft] set_oportunidade_cnpj failed', e); }
+    }
+
     // Upload de fotos
     const uploadToken = window._impersonateCtx ? (await _freshAdminToken()) : token;
     if (oppId) {
@@ -11703,54 +11708,73 @@ async function _saveJuridicoAndPublish() {
 }
 
 /* ══════════════════════════════════════════════
-   MODAL: SELEÇÃO DE CNPJ (contas com mais de 1 CNPJ aprovado)
+   CNPJ DA OPORTUNIDADE (seleção inline no step "Visibilidade")
 ══════════════════════════════════════════════ */
-let _cnpjSelectChoice = null;
+let _cnpjSelectOptions = [];   // cache do último list_detentor_cnpjs
+window._selectedCnpjId = null; // CNPJ escolhido nesta sessão de edição (null = ainda não resolvido)
 
-// Retorna 'ok' (pode seguir publicando; window._cnpjIdForPublish já resolvido se aplicável)
-// ou 'select' (abriu modal de seleção — publishOpportunity() deve parar e aguardar o usuário)
-async function _resolveCnpjForPublish() {
+// Chamado sempre que o step 8 é exibido. Some por completo se a conta ainda não
+// tem nenhum CNPJ cadastrado (ex.: primeira oportunidade, antes do jurídico existir).
+async function renderCnpjSelectStep8() {
+  const card = document.getElementById('cnpj-select-card');
+  if (!card) return;
   try {
     const { data, error } = await sb.rpc('list_detentor_cnpjs');
-    if (error || !Array.isArray(data)) return 'ok';
-    const aprovados = data.filter(c => c.status === 'aprovado');
-    if (aprovados.length <= 1) {
-      window._cnpjIdForPublish = aprovados[0]?.id || null;
-      return 'ok';
+    if (error || !Array.isArray(data) || data.length === 0) { card.style.display = 'none'; return; }
+    _cnpjSelectOptions = data;
+    card.style.display = '';
+
+    if (!window._selectedCnpjId) {
+      let current = null;
+      if (formState.editId) {
+        try {
+          const { data: oppRow } = await sb.from('oportunidades').select('cnpj_id').eq('id', formState.editId).single();
+          current = oppRow?.cnpj_id || null;
+        } catch (_) {}
+      }
+      if (!current) {
+        const principal = data.find(c => c.is_default && c.status === 'aprovado');
+        const primeiroAprovado = data.find(c => c.status === 'aprovado');
+        current = principal?.id || primeiroAprovado?.id || null;
+      }
+      window._selectedCnpjId = current;
     }
-    _openCnpjSelectModal(aprovados);
-    return 'select';
-  } catch (_) { return 'ok'; }
+    _renderCnpjSelectListHtml();
+  } catch (_) { card.style.display = 'none'; }
 }
 
-function _openCnpjSelectModal(aprovados) {
-  _cnpjSelectChoice = aprovados[0]?.id || null;
-  const list = document.getElementById('cnpj-select-list');
-  if (list) {
-    list.innerHTML = aprovados.map(c => {
-      const cnpjFmt = (c.cnpj || '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
-      return `
-        <label style="display:flex;align-items:center;gap:10px;border:1px solid var(--gray-200,#e5e7eb);border-radius:10px;padding:12px 14px;cursor:pointer">
-          <input type="radio" name="cnpj-select" value="${c.id}" ${c.id === _cnpjSelectChoice ? 'checked' : ''} onchange="_cnpjSelectChoice='${c.id}'">
-          <div>
-            <div style="font-weight:600;font-size:14px">${c.apelido || 'CNPJ'}</div>
-            <div style="font-size:12px;color:var(--gray-400,#9ca3af)">${cnpjFmt || c.cnpj || ''} · ${c.razao_social || ''}</div>
-          </div>
-        </label>`;
-    }).join('');
+function _renderCnpjSelectListHtml() {
+  const list = document.getElementById('cnpj-select-inline-list');
+  if (!list) return;
+  list.innerHTML = _cnpjSelectOptions.map(c => {
+    const cnpjFmt = (c.cnpj || '').replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+    const disabled = c.status !== 'aprovado';
+    const selected = c.id === window._selectedCnpjId;
+    const statusBadge = c.status === 'pendente'
+      ? '<span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;background:#f3f4f6;color:#6b7280">Pendente</span>'
+      : (c.status === 'rejeitado' ? '<span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:100px;background:#fee2e2;color:#dc2626">Rejeitado</span>' : '');
+    return `
+      <label style="display:flex;align-items:center;gap:10px;border:1.5px solid ${selected ? 'var(--gold,#D4AF37)' : 'var(--gray-2,#e5e7eb)'};border-radius:10px;padding:12px 14px;cursor:${disabled ? 'not-allowed' : 'pointer'};opacity:${disabled ? '.6' : '1'}">
+        <input type="radio" name="cnpj-select-inline" value="${c.id}" ${selected ? 'checked' : ''} ${disabled ? 'disabled' : ''} onchange="_onSelectCnpjInline('${c.id}')">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:14px">${c.apelido || 'CNPJ'}${c.is_default ? ' <span style="font-weight:400;color:var(--gray-400,#9ca3af);font-size:12px">· principal</span>' : ''}</div>
+          <div style="font-size:12px;color:var(--gray-400,#9ca3af)">${cnpjFmt || c.cnpj || ''} · ${c.razao_social || ''}</div>
+        </div>
+        ${statusBadge}
+      </label>`;
+  }).join('');
+}
+
+async function _onSelectCnpjInline(cnpjId) {
+  window._selectedCnpjId = cnpjId;
+  _renderCnpjSelectListHtml();
+  // Persiste na hora se a oportunidade já existe (auto-save já deve ter criado o rascunho)
+  if (formState.editId) {
+    try {
+      const { error } = await sb.rpc('set_oportunidade_cnpj', { p_oportunidade_id: formState.editId, p_cnpj_id: cnpjId });
+      if (error) console.warn('[set_oportunidade_cnpj]', error);
+    } catch (e) { console.warn('[set_oportunidade_cnpj]', e); }
   }
-  document.getElementById('modal-cnpj-select')?.classList.add('open');
-}
-
-function _closeCnpjSelectModal() {
-  document.getElementById('modal-cnpj-select')?.classList.remove('open');
-}
-
-function _confirmCnpjSelectAndPublish() {
-  if (!_cnpjSelectChoice) { showToast('Selecione um CNPJ.', 'error'); return; }
-  window._cnpjIdForPublish = _cnpjSelectChoice;
-  _closeCnpjSelectModal();
-  publishOpportunity();
 }
 
 /* ══════════════════════════════════════════════
@@ -11956,12 +11980,6 @@ async function publishOpportunity() {
   }
   window._juridicoValidated = false; // reset após uso
 
-  // ── Se a conta tem mais de um CNPJ aprovado, deixa o detentor escolher qual usar ──
-  if (!window._impersonateCtx && !window._cnpjIdForPublish) {
-    const resolved = await _resolveCnpjForPublish();
-    if (resolved === 'select') return; // modal de seleção aberto, aguarda escolha do usuário
-  }
-
   // ── Refresh token antes de operação longa (Fix 8) ──
   const token = await _getWriteToken();
   const userId = window._impersonateCtx ? window._impersonateCtx.target_user_id : await getAuthUserId();
@@ -12018,13 +12036,12 @@ async function publishOpportunity() {
       console.log('[Publish] Opportunity created:', oppId);
     }
 
-    // Vincula o CNPJ escolhido (se houver mais de um aprovado na conta) à oportunidade
-    if (oppId && window._cnpjIdForPublish) {
+    // Vincula o CNPJ escolhido (seção "CNPJ desta oportunidade" no step Visibilidade) à oportunidade
+    if (oppId && window._selectedCnpjId) {
       try {
-        const { error: cnpjErr } = await sb.rpc('set_oportunidade_cnpj', { p_oportunidade_id: oppId, p_cnpj_id: window._cnpjIdForPublish });
+        const { error: cnpjErr } = await sb.rpc('set_oportunidade_cnpj', { p_oportunidade_id: oppId, p_cnpj_id: window._selectedCnpjId });
         if (cnpjErr) console.warn('[Publish] set_oportunidade_cnpj failed', cnpjErr);
       } catch (e) { console.warn('[Publish] set_oportunidade_cnpj failed', e); }
-      window._cnpjIdForPublish = null; // reset após uso
     }
 
     // Upload fotos

@@ -1,6 +1,6 @@
 # Página: criar-oportunidade.html
 
-> **Última sincronização:** 2026-07-01 — commit `57f61b8` — gerado por Claude Code
+> **Última sincronização:** 2026-07-02 — seleção de CNPJ movida de modal para card inline no step Visibilidade — gerado por Claude Code
 
 **Rota:** `/criar-oportunidade.html`
 **Acesso:** detentor (`requireAuth('rightsholder')`) · admin via impersonation (`?_imp=1&_n=<nonce>`, sem exigir sessão de detentor)
@@ -42,7 +42,7 @@ Três modos de operação: **criação** (POST em `oportunidades`), **edição**
 2. Passo 1: escolhe template → "Próximo" abre o **painel do agente** (`abrirPainelAgente`). Usuário conversa/anexa e clica "Preencher formulário", ou "Pular e preencher manualmente" (→ `nextStep(2)`).
 3. Passos 2–7: preenche detalhes, informações, materiais; a cada transição `silentSaveDraft()` cria/atualiza o registro como `rascunho` (`ativo=false`) e liga auto-save de 60 s.
 4. Passo 8: slug auto-preenchido e validado; escolhe visibilidade; "Enviar para análise" → `publishOpportunity()`.
-5. `publishOpportunity()` valida (ver Regras), checa `pode_publicar` + dados jurídicos (`_checkJuridicoCompleto`), resolve CNPJ, faz POST/PATCH com `status='em_revisao'`/`ativo=false`, sobe fotos → cotas → mídia kit (PATCHs incrementais) e abre o modal de sucesso → dashboard.
+5. `publishOpportunity()` valida (ver Regras), checa `pode_publicar` + dados jurídicos (`_checkJuridicoCompleto`), faz POST/PATCH com `status='em_revisao'`/`ativo=false`, vincula o CNPJ selecionado (`set_oportunidade_cnpj`), sobe fotos → cotas → mídia kit (PATCHs incrementais) e abre o modal de sucesso → dashboard.
 
 ### Edição (detentor)
 1. Dashboard grava `edit_opp` no sessionStorage e abre `?edit`.
@@ -51,11 +51,16 @@ Três modos de operação: **criação** (POST em `oportunidades`), **edição**
 4. Restaura: título/descrições, Quill, busca_marca, país+cidade (sem chamar `toggleOppLocBrasil`, que limparia a cidade), slug, canais + audiência (`detalhes.publico_canais`), visibilidade, fotos existentes (sem `file`, não re-sobem), PDF (`formState.existingMkUrl` + preload), tags; datas/locais, detalhes do template, cotas e incentivo ficam em `formState._pending*` e são aplicados por `_applyPendingDetalhes` na renderização.
 5. Salvar preserva o status original (não rebaixa `publicada`/`em_revisao` para rascunho); `_editOriginal` (snapshot) + merge-guards em `mergePreviewData` protegem campos não renderizados de serem apagados no PATCH.
 
-### Publicação — portões jurídico e CNPJ
+### Publicação — portão jurídico
 1. `_checkJuridicoCompleto()`: consulta `perfis.pode_publicar` em tempo real e os dados reais via RPC `get_perfil_juridico` (não confia em flags de cache).
 2. `no_permission` → modal "Conta em análise" + insere notificação `aguardando_aprovacao` (máx. 1/dia) na tabela `notifications`.
-3. `no_juridico` → modal jurídico (`#modal-juridico-publish`) com máscaras e validação de dígitos de CNPJ/CPF, autofill por CEP (ViaCEP) e por CNPJ (BrasilAPI); "Salvar e publicar" → RPC `upsert_perfil_juridico` → re-invoca `publishOpportunity()`. Alternativa: "Publicar depois" salva rascunho.
-4. CNPJ: RPC `list_detentor_cnpjs` → se 2+ aprovados abre `#modal-cnpj-select`; o escolhido (ou o único) é vinculado após criar/atualizar via RPC `set_oportunidade_cnpj`.
+3. `no_juridico` → modal jurídico (`#modal-juridico-publish`) com máscaras e validação de dígitos de CNPJ/CPF, autofill por CEP (ViaCEP) e por CNPJ (BrasilAPI); "Salvar e publicar" → RPC `upsert_perfil_juridico` (grava o CNPJ **principal/#1** da conta em `perfis`; uma trigger em `perfis` espelha esse CNPJ como linha `is_default=true` em `detentor_cnpjs`, criando-a se não existir) → re-invoca `publishOpportunity()`. Alternativa: "Publicar depois" salva rascunho.
+
+### CNPJ da oportunidade (seleção inline no step "Visibilidade")
+1. Card "CNPJ desta oportunidade" no `panel-8` (`renderCnpjSelectStep8()`, chamado toda vez que o step 8 é exibido): busca `list_detentor_cnpjs()`; se a conta ainda não tem NENHUM CNPJ (primeira oportunidade, antes de qualquer jurídico preenchido), o card fica oculto (`display:none`) — comportamento idêntico ao anterior à feature.
+2. Com ≥1 CNPJ, o card aparece com um rádio por CNPJ (aprovados selecionáveis; pendentes/rejeitados aparecem desabilitados com badge de status). Seleção default: o `cnpj_id` já vinculado à oportunidade (se editando) → senão o CNPJ principal aprovado → senão o primeiro aprovado.
+3. Clicar num CNPJ (`_onSelectCnpjInline`) atualiza `window._selectedCnpjId` e, se a oportunidade já existe (`formState.editId`, normalmente já verdadeiro por causa do auto-save), persiste na hora via RPC `set_oportunidade_cnpj`.
+4. Tanto `saveDraft()` quanto `publishOpportunity()` também chamam `set_oportunidade_cnpj(oppId, window._selectedCnpjId)` logo após resolver o `oppId` — cobre o caso em que a seleção aconteceu antes do primeiro save (oportunidade ainda sem id). Não há validação bloqueante: se nada for selecionado (conta com 0 CNPJs), a oportunidade é salva/publicada sem `cnpj_id`, como sempre foi.
 
 ### Impersonation (admin cria/edita como cliente)
 1. `initImpersonateMode()` roda ANTES do `requireAuth`: exige `?_imp=1`, consome contexto por nonce (`?_n=…`, localStorage→sessionStorage) com `admin_token`, `target_user_id`, nome/email; sidebar mostra o cliente; botão "Enviar para análise" é escondido.
@@ -77,9 +82,10 @@ Três modos de operação: **criação** (POST em `oportunidades`), **edição**
 | Tabela | `perfis` | leitura — empresa/logo_url/empresa_domain (live preview, inclusive do cliente sob impersonation) e pode_publicar (portão de publicação, guard de duplicata) |
 | Tabela | `notifications` | leitura + insert — notificação `aguardando_aprovacao` (1×/dia) quando conta sem permissão tenta publicar |
 | RPC | `get_perfil_juridico` | carrega dados jurídicos reais (check antes de publicar + pré-preenchimento do modal) |
-| RPC | `upsert_perfil_juridico` | salva CNPJ principal, endereço e responsável legal no fluxo "Salvar e publicar" |
-| RPC | `list_detentor_cnpjs` | lista CNPJs da conta; filtra `status='aprovado'` para seleção na publicação |
-| RPC | `set_oportunidade_cnpj` | vincula o CNPJ escolhido à oportunidade após criar/atualizar |
+| RPC | `upsert_perfil_juridico` | salva CNPJ principal, endereço e responsável legal no fluxo "Salvar e publicar" (dispara trigger que espelha em `detentor_cnpjs`) |
+| RPC | `list_detentor_cnpjs` | lista todos os CNPJs da conta (principal + adicionais) para o card inline do step 8 |
+| RPC | `set_oportunidade_cnpj` | vincula o CNPJ escolhido à oportunidade — chamado ao selecionar, e novamente em `saveDraft()`/`publishOpportunity()` |
+| Tabela | `detentor_cnpjs` | leitura indireta (via RPC) — CNPJs da conta; a linha `is_default` é mantida em sincronia com `perfis.cnpj`/`pode_publicar` por trigger, não por esta página |
 | Edge Function | `admin-actions` | impersonation: `list-oportunidades-as`, `get-perfil-pode-publicar`, `create-oportunidade-as`, `update-oportunidade-as` (bypass de RLS com token admin) |
 | Storage | `oportunidades` (bucket único) | fotos da opp (`<oppId>/<ts>-<i>.<ext>`), fotos de cota (`cotas/<oppId>/<idx>/…`) e mídia kit (`opp-<oppId>-midia-kit-<nome>.pdf`); upload via REST `storage/v1` com `x-upsert` |
 | API Vercel | `api/gemini-upload` | inicia upload resumível do PDF na Files API do Gemini (devolve uploadUrl) |
@@ -100,7 +106,7 @@ Três modos de operação: **criação** (POST em `oportunidades`), **edição**
 ## Regras de negócio importantes
 
 - **Fluxo de status:** publicar envia `status='em_revisao'` + `ativo=false` (aprovação admin acontece fora desta página); rascunho = `rascunho`/`ativo=false`; salvar em edição preserva `publicada`/`em_revisao` (nunca rebaixa); encerrar = `finalizada`/`ativo=false`; reativar = salva e volta a `em_revisao`.
-- **Validações de publicação (nesta ordem):** título → descrição curta → localização com cidade (exceto evento, que usa datas/locais) → ≥1 foto → cotas habilitadas exigem ≥1 cota → slug preenchido e único (pulado se inalterado em edição) → campos `required` do template → ≥1 canal social **salvo** → permissão (`pode_publicar`) → jurídico completo → CNPJ resolvido.
+- **Validações de publicação (nesta ordem):** título → descrição curta → localização com cidade (exceto evento, que usa datas/locais) → ≥1 foto → cotas habilitadas exigem ≥1 cota → slug preenchido e único (pulado se inalterado em edição) → campos `required` do template → ≥1 canal social **salvo** → permissão (`pode_publicar`) → jurídico completo. CNPJ **não é uma validação bloqueante**: é resolvido automaticamente (principal aprovado por padrão) e só exige ação do detentor se ele quiser usar um CNPJ diferente do principal.
 - **Guard de duplicata (`_guardDuplicateOpp`):** detentor em onboarding (sem opp aprovada OU sem `pode_publicar`) que já tem 1 oportunidade não pode criar outra — toast + redirect ao dashboard. Não se aplica a impersonation, edição ou demo.
 - **Merge-guards em edição (`mergePreviewData`):** `_pendingDetalhes` vira base do objeto `detalhes` (DOM tem precedência); cotas/incentivo pendentes são preservados se a seção não foi visitada; `datas_evento`, slug e localização caem no snapshot `_editOriginal` quando o DOM não os tem; em template evento a `localizacao` é derivada da 1ª data/local (o bloco global oculto produziria lixo tipo "Estados Unidos — Brasil").
 - **Datas/locais de evento:** a coluna `datas_evento` é canônica (array `{pais, cidade, venue, datas[], cidadeTBC, venueTBC}`); `_applyPendingDetalhes` restaura SEM chamar `syncEventPais()` — essa função executa `_clearAcField()` (zera cidade/venue) e era a causa raiz dos campos sumirem em edição; na restauração apenas os country codes são propagados ao autocomplete.
