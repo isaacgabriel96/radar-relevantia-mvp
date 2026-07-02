@@ -3292,7 +3292,10 @@ async function criarContaEEnviarAcesso(table, id) {
   try {
     console.log('[ACESSO] chamado via Edge Function:', table, id);
     const result = await adminAction('create-user-and-send-access', { table, id });
-    if (result?.success) {
+    if (result?.merged_into_admin) {
+      // Email já era de um admin → ganhou papel de cliente com a mesma senha (conta híbrida).
+      showToast(result.message || `Papel de cliente concedido à conta admin ${result.email} (usa a senha atual).`, 'success');
+    } else if (result?.success) {
       showToast(`Aprovado! Email enviado para ${result.email}`, 'success');
     }
   } catch (err) {
@@ -5475,14 +5478,23 @@ async function adminInvite() {
   btn.textContent = 'Criando…';
 
   try {
-    await _callManageAdmins({ action: 'create-admin', email, nome, tempPassword: password });
+    const result = await _callManageAdmins({ action: 'create-admin', email, nome, tempPassword: password });
 
-    sucEl.innerHTML = `
-      ✅ <strong>${escHtml(email)}</strong> criado com sucesso!<br>
-      Compartilhe as credenciais por canal seguro:<br>
-      <strong>Email:</strong> ${escHtml(email)}<br>
-      <strong>Senha:</strong> ${escHtml(password)}
-    `;
+    if (result?.promoted) {
+      // Email já era cliente (marca/detentor) → promovido a admin, mantém papel e senha atuais.
+      sucEl.innerHTML = `
+        ✅ <strong>${escHtml(email)}</strong> já tinha conta de cliente e foi <strong>promovido a admin</strong>.<br>
+        Mantém o papel de marca/detentor e a <strong>senha atual</strong> — a senha digitada aqui foi ignorada.<br>
+        Peça para ele <strong>sair e entrar novamente</strong> para o acesso admin passar a valer.
+      `;
+    } else {
+      sucEl.innerHTML = `
+        ✅ <strong>${escHtml(email)}</strong> criado com sucesso!<br>
+        Compartilhe as credenciais por canal seguro:<br>
+        <strong>Email:</strong> ${escHtml(email)}<br>
+        <strong>Senha:</strong> ${escHtml(password)}
+      `;
+    }
     sucEl.style.display = 'block';
 
     document.getElementById('adminInviteEmail').value    = '';

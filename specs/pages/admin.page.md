@@ -1,6 +1,6 @@
 # Página: admin.html
 
-> **Última sincronização:** 2026-07-01 — commit `57f61b8` + mudanças locais não commitadas — fix de sessão (`expires_at` no refresh), token fresco na impersonation e blindagem de `admin_revogar_acesso` (guard anti-admin) — gerado por Claude Code
+> **Última sincronização:** 2026-07-01 — commit `57f61b8` + mudanças locais não commitadas — contas híbridas (admin + marca/detentor no mesmo email); fix de sessão (`expires_at` no refresh), token fresco na impersonation e blindagem de `admin_revogar_acesso` (guard anti-admin) — gerado por Claude Code
 
 **Rota:** `/admin.html`
 **Acesso:** admin (verificado via `app_metadata.tipo === 'admin'`)
@@ -111,7 +111,11 @@ Sem API Vercel (`api/`).
 - Contexto de impersonation expira em 30 min e é limpo do localStorage no load da página; nonce único por handoff evita que abas concorrentes consumam o ctx errado.
 - Handlers inline usam `jsStr()` (escape `\uXXXX`) para strings dentro de `onclick` — entidades HTML não bastam porque o browser as decodifica antes de executar o JS.
 - Novo ticket iniciado pelo admin é criado com `autor_id` do **cliente** (o ticket "pertence" ao cliente; a 1ª mensagem é da Relevantia).
-- Botão de remover admin não aparece para o próprio usuário logado; email já registrado na plataforma gera erro específico no convite (nunca reutilizar email de admin em contas de cliente).
+- Botão de remover admin não aparece para o próprio usuário logado. `remove-admin` apaga o auth user **inteiro** (não há rebaixar-só-admin mantendo o cliente).
+- **Contas híbridas (admin + marca/detentor no mesmo email) são suportadas** (`app_metadata.tipo='admin'` = admin; `user_metadata.tipo` = papel de cliente; campos independentes):
+  - "Adicionar admin" com email de um cliente existente → **promove** (`create-admin` retorna `promoted:true`): só adiciona `app_metadata.tipo='admin'`, preserva papel de cliente e senha; precisa re-logar. Se já for admin, erro 409.
+  - Aprovar/"reenviar acesso" de uma waitlist cujo email é de um admin → **concede papel de cliente** (`create-user-and-send-access` retorna `merged_into_admin:true`): grava `user_metadata.tipo`, alinha `perfis.role`, mantém a senha do admin (não envia provisória).
+  - `is_admin()`, `get_admin_users` e `verifyAdmin` usam **só `app_metadata.tipo`**, então o híbrido continua admin mesmo com `user_metadata.tipo='marca'/'detentor'`.
 
 ## Pendências e dívidas conhecidas
 

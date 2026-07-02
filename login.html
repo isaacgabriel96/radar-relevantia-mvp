@@ -427,6 +427,14 @@ function redirecionar(data) {
       const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
       window.location.href = redirectUrl ? decodeURIComponent(redirectUrl) : 'dashboard-marca.html';
     }
+  } else if (data.user?.app_metadata?.tipo === 'admin') {
+    // Conta admin sem papel de cliente (ou papel não reconhecido): vai para o painel admin.
+    // Contas híbridas (tipo=marca/detentor + app_metadata.tipo=admin) caem nos ramos acima e vão
+    // para o portal de cliente; o painel admin fica acessível direto em admin.html com a mesma senha.
+    localStorage.removeItem('sb_marca_session');
+    localStorage.removeItem('sb_detentor_session');
+    localStorage.setItem('sb_admin_session', JSON.stringify(data));
+    window.location.href = 'admin.html';
   } else {
     // Tipo não definido no cadastro — exibe erro orientativo
     showToast('Conta sem tipo definido. Contate hello@relevantia.com.br', 'error');
